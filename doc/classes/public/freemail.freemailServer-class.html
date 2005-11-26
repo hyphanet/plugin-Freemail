@@ -1,0 +1,1322 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>freemail.freemailServer</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="freemail-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+<font size="-1"><b class="breadcrumbs">
+  <a href="freemail-module.html">Module&nbsp;freemail</a> ::
+  Class&nbsp;freemailServer</b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[<a href="../private/freemail.freemailServer-class.html">show&nbsp;private</a>&nbsp;|&nbsp;hide&nbsp;private]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="freemail.freemailServer-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td></tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class freemailServer</h2>
+
+<hr/>
+<p>This is the uber-class that runs a freemail server.</p>
+<p>It launches the threads for monitoring RTS/CTS queues, monitoring 
+inbound message queues, posting outbound messages etc.</p>
+Note that some people, for some reason, might want to run multiple 
+freemail sites on the one machine.
+
+
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#__init__" class="summary-sig-name"><code>__init__</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Constructs a mailsite object.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#auth" class="summary-sig-name"><code>auth</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>attemptuser</span>,
+               <span class=summary-sig-arg>passwd</span>)</span></code>
+<br />Checks if username and password are valid</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#check_user" class="summary-sig-name"><code>check_user</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>attemptuser</span>)</span></code>
+<br />Returns 1 if user 'attemptuser' exists, 0 if not</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#chugFcpDeliverMsg" class="summary-sig-name"><code>chugFcpDeliverMsg</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>queueObj</span>)</span></code>
+<br />Attempts to deliver a message to peer, and transfers it to another 
+queue depending on outcome</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#chugFcpEngine" class="summary-sig-name"><code>chugFcpEngine</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />This is the guts of the freemail engine, that gets run inside a 
+try/except block by thread FcpEngine.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="chugFcpPollSlot"></a><span class=summary-sig><span class=summary-sig-name>chugFcpPollSlot</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>slotno</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbAddIdentity" class="summary-sig-name"><code>dbAddIdentity</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>name</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Creates a whole new identity (alias) and stores in database</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbAddList" class="summary-sig-name"><code>dbAddList</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>name</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Creates a new mailing list record and stores in database</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbAddPeer" class="summary-sig-name"><code>dbAddPeer</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>peerAddr</span>)</span></code>
+<br />Adds new peer record</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbCleanup" class="summary-sig-name"><code>dbCleanup</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Cleans up database and instance refs</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbDelIdentity" class="summary-sig-name"><code>dbDelIdentity</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>)</span></code>
+<br />Purges a mailing identity</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbDelPeer" class="summary-sig-name"><code>dbDelPeer</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>peerAddr</span>)</span></code>
+<br />Deletes a peer from the system.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbDelRxMsg" class="summary-sig-name"><code>dbDelRxMsg</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgHash</span>)</span></code>
+<br />Deletes a message from receive queue, and from filesystem</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbDelTxMsg" class="summary-sig-name"><code>dbDelTxMsg</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgHash</span>)</span></code>
+<br />Deletes a message from send queue, and from filesystem</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbGetRxMsgBody" class="summary-sig-name"><code>dbGetRxMsgBody</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgHash</span>)</span></code>
+<br />Given a message hash, return a string of the full message body</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbGetTxMsgBody" class="summary-sig-name"><code>dbGetTxMsgBody</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgHash</span>)</span></code>
+<br />Given a message hash, return a string of the full message body</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbInit" class="summary-sig-name"><code>dbInit</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Initialises the config object, to create a new mailsite</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbIntegrityOk" class="summary-sig-name"><code>dbIntegrityOk</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Perform some integrity checks on the database</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbLoad" class="summary-sig-name"><code>dbLoad</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Loads the configuration from file</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbSave" class="summary-sig-name"><code>dbSave</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Saves the configuration to file</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#dbUpdate" class="summary-sig-name"><code>dbUpdate</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Dodgy method which senses changes of FreeMail builds, and updates 
+database accordingly</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#decryptAndVerify" class="summary-sig-name"><code>decryptAndVerify</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>ciphertext</span>,
+               <span class=summary-sig-arg>keySender</span>,
+               <span class=summary-sig-arg>keyRecipient</span>)</span></code>
+<br />Decrypts message using a local identity's key, then verifies the 
+appended signature against the remote peer's public key.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#enqueueMessage" class="summary-sig-name"><code>enqueueMessage</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>peerAddr</span>,
+               <span class=summary-sig-arg>msgType</span>,
+               <span class=summary-sig-arg>bodyOrHash</span>)</span></code>
+<br />Sticks a message on the queue for later sending</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpGetListInfo" class="summary-sig-name"><code>fcpGetListInfo</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>listAddr</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Given a list freemail address, return a dict of the list's session 
+queue details, or None if we can't get these details</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpGetMsgFromSlot" class="summary-sig-name"><code>fcpGetMsgFromSlot</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>slotno</span>)</span></code>
+<br />Polls a given slot of a given identity's queue.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpGetPeerInfo" class="summary-sig-name"><code>fcpGetPeerInfo</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>peerAddr</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Given a peer freemail address, return a dict of the peer's session 
+queue details, or None if we can't get these details</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpParseMailMsg" class="summary-sig-name"><code>fcpParseMailMsg</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>plainText</span>)</span></code>
+<br />Breaks down an incoming message into a dict of its parts</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpRefreshListsite" class="summary-sig-name"><code>fcpRefreshListsite</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>listAddr</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Re-inserts the list's listsite.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpRefreshMailsite" class="summary-sig-name"><code>fcpRefreshMailsite</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Re-inserts the identity mailsite.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#fcpTransmitMessage" class="summary-sig-name"><code>fcpTransmitMessage</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>)</span></code>
+<br />Performs the actual work of sticking a message onto a remote 
+recipient's queue</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#forceIdRefresh" class="summary-sig-name"><code>forceIdRefresh</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>)</span></code>
+<br />Utility method to force the insertion of an identity's mailsite.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#log" class="summary-sig-name"><code>log</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>level</span>,
+               <span class=summary-sig-arg>msg</span>,
+               <span class=summary-sig-arg>nPrev</span>)</span></code>
+<br />Logs a message if level &lt;= self.verbosity</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#logFreenet" class="summary-sig-name"><code>logFreenet</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>level</span>,
+               <span class=summary-sig-arg>msg</span>,
+               <span class=summary-sig-arg>nPrev</span>)</span></code>
+<br />Logs a message if level &lt;= self.verbosity</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#Node" class="summary-sig-name"><code>Node</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>mode</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Convenience method which creates a freenet/entropy node object, based 
+on the mailserver's current configuration</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmMaxedRetries"></a><span class=summary-sig><span class=summary-sig-name>pmMaxedRetries</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmMsgDeletedFromInbox"></a><span class=summary-sig><span class=summary-sig-name>pmMsgDeletedFromInbox</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmMsgDeletedFromOutbox"></a><span class=summary-sig><span class=summary-sig-name>pmMsgDeletedFromOutbox</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmMsgFreenetException"></a><span class=summary-sig><span class=summary-sig-name>pmMsgFreenetException</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmMsgRouteNotFound"></a><span class=summary-sig><span class=summary-sig-name>pmMsgRouteNotFound</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmNoPeerInfo"></a><span class=summary-sig><span class=summary-sig-name>pmNoPeerInfo</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmReceiptFreenetException"></a><span class=summary-sig><span class=summary-sig-name>pmReceiptFreenetException</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="pmReceiptRouteNotFound"></a><span class=summary-sig><span class=summary-sig-name>pmReceiptRouteNotFound</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#readFromInbox" class="summary-sig-name"><code>readFromInbox</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgHash</span>)</span></code>
+<br />Reads in the text of a message from the inbound store</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#readFromOutbox" class="summary-sig-name"><code>readFromOutbox</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgHash</span>)</span></code>
+<br />Reads in the text of a message from the outbound store</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#runServer" class="summary-sig-name"><code>runServer</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Runs the server in blocking mode.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#signAndEncrypt" class="summary-sig-name"><code>signAndEncrypt</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>plainText</span>,
+               <span class=summary-sig-arg>keySender</span>,
+               <span class=summary-sig-arg>keyRecipient</span>)</span></code>
+<br />Signs message using a local identity's key, appends signature to 
+message, then encrypts against the remote peer's public key.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#startFcpEngine" class="summary-sig-name"><code>startFcpEngine</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Launches the FCP transport thread(s)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#startMailServers" class="summary-sig-name"><code>startMailServers</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Launches the freemail POP/SMTP servers</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#startServer" class="summary-sig-name"><code>startServer</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Launches the mail server</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#startTelnetServer" class="summary-sig-name"><code>startTelnetServer</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Launches the Telnet interface server</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#startWebServer" class="summary-sig-name"><code>startWebServer</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Launches the HTTP interface server</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#stopServer" class="summary-sig-name"><code>stopServer</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Terminates the mailsite, saves the config</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#threadFcpDeliverMsg" class="summary-sig-name"><code>threadFcpDeliverMsg</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>msgRec</span>,
+               <span class=summary-sig-arg>queueObj</span>)</span></code>
+<br />Attempts to deliver a message to peer, and transfers it to another 
+queue depending on outcome</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#threadFcpEngine" class="summary-sig-name"><code>threadFcpEngine</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />This thread does the low-level work of the actual Freemail mail 
+transport.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#threadFcpPollSlot" class="summary-sig-name"><code>threadFcpPollSlot</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>slotno</span>)</span></code>
+<br />Thread which polls an incoming message slot, and if the data is valid, 
+actions it.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#threadFcpRefreshList" class="summary-sig-name"><code>threadFcpRefreshList</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>listAddr</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Within a thread, (re-)inserts a given list's listsite</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#threadFcpRefreshMailsite" class="summary-sig-name"><code>threadFcpRefreshMailsite</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Within a thread, (re-)inserts a given identity's mailsite</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="threadHttpServer"></a><span class=summary-sig><span class=summary-sig-name>threadHttpServer</span>(<span class=summary-sig-arg>self</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="threadPopServer"></a><span class=summary-sig><span class=summary-sig-name>threadPopServer</span>(<span class=summary-sig-arg>self</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="threadSmtpServer"></a><span class=summary-sig><span class=summary-sig-name>threadSmtpServer</span>(<span class=summary-sig-arg>self</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="threadTelnetServer"></a><span class=summary-sig><span class=summary-sig-name>threadTelnetServer</span>(<span class=summary-sig-arg>self</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#verbosity" class="summary-sig-name"><code>verbosity</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>level</span>)</span></code>
+<br />Sets logging verbosity</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="writeFromPostmaster"></a><span class=summary-sig><span class=summary-sig-name>writeFromPostmaster</span>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>subject</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#writeToInbox" class="summary-sig-name"><code>writeToInbox</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>fromAddr</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+<br />Takes a received message and adds it to the local inbox</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#writeToInboxRaw" class="summary-sig-name"><code>writeToInboxRaw</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>idAddr</span>,
+               <span class=summary-sig-arg>fromAddr</span>,
+               <span class=summary-sig-arg>subject</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+<br />Composes a raw message to a local identity, and add this to the 
+identity's inbox</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail.freemailServer-class.html#writeToOutbox" class="summary-sig-name"><code>writeToOutbox</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>body</span>)</span></code>
+<br />Writes the text of the message to the local outbound file store</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="__init__"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>__init__</span>(<span class=sig-arg>self</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+    <br /><i>(Constructor)</i>
+  </h3>
+  <p>Constructs a mailsite object.</p>
+  Arguments:
+  <ul>
+    <li>
+      conf - either a config file, or an instance of a config object. 
+      defaults to 'freemail.conf'
+    </li>
+  </ul>
+  Keywords:
+  <ul>
+    <li>
+      quiet - don't print log msgs to stdout (in addition to logfile)
+    </li>
+    <li>
+      database - database file
+    </li>
+    <li>
+      verbosity - verbosity level for logging, default 2, 0 (quiet) thru 4 
+      (debug)
+    </li>
+    <li>
+      logFile - logging file, default 'freemail.loq'
+    </li>
+    <li>
+      fcpHost - hostname of computer with Freenet node, default 
+      localhost
+    </li>
+    <li>
+      fcpPort - port number of FCP port on machine with Freenet node
+    </li>
+    <li>
+      popPort - port number of FreeMail POP3 interface
+    </li>
+    <li>
+      smtpPort - port number of FreeMail SMTP interface
+    </li>
+    <li>
+      httpPort - port number of FreeMail Web (http) interface
+    </li>
+    <li>
+      telnetPort - port number of FreeMail Telnet interface
+    </li>
+    <li>
+      retryInit - initial
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="auth"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>auth</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>attemptuser</span>,
+               <span class=sig-arg>passwd</span>)</span>
+  </h3>
+  Checks if username and password are valid
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="check_user"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>check_user</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>attemptuser</span>)</span>
+  </h3>
+  Returns 1 if user 'attemptuser' exists, 0 if not
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="chugFcpDeliverMsg"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>chugFcpDeliverMsg</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgRec</span>,
+               <span class=sig-arg>queueObj</span>)</span>
+  </h3>
+  Attempts to deliver a message to peer, and transfers it to another 
+  queue depending on outcome
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="chugFcpEngine"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>chugFcpEngine</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  <p>This is the guts of the freemail engine, that gets run inside a 
+  try/except block by thread FcpEngine.</p>
+  Performs the checks of things needing to be done, and launches threads 
+  to perform those tasks.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbAddIdentity"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbAddIdentity</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>name</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Creates a whole new identity (alias) and stores in database</p>
+  Arguments:
+  <ul>
+    <li>
+      name - compulsory - name of this identity - short string 
+      [a-zA-Z0-9_]+
+    </li>
+  </ul>
+  Keywords:
+  <ul>
+    <li>
+      cryptoKey - if provided, this is an SSLCrypto private key
+    </li>
+    <li>
+      password - password under which to access this identity's mail via 
+      POP3. if provided, gets stored hashed in database. If not provided, 
+      no password required
+    </li>
+    <li>
+      cryptoKeySize - length of encryption key - defaults to configured 
+      value
+    </li>
+    <li>
+      sskPub, sskPriv - SSK keypair
+    </li>
+    <li>
+      insertPeriod - DBR period in seconds, default 259200 (3 days)
+    </li>
+    <li>
+      refreshInProgress - 1 to mark the id insert record as 'in progress', 
+      default 0
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      idAddr - the mailing address of the identity
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbAddList"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbAddList</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>name</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Creates a new mailing list record and stores in database</p>
+  Arguments:
+  <ul>
+    <li>
+      name - compulsory - name of this mailing list - short string 
+      [a-zA-Z0-9_]+
+    </li>
+  </ul>
+  Keywords:
+  <ul>
+    <li>
+      cryptoKey - if provided, this is an SSLCrypto private key
+    </li>
+    <li>
+      cryptoKeySize - length of encryption key - defaults to configured 
+      value
+    </li>
+    <li>
+      sskPub, sskPriv - SSK keypair
+    </li>
+    <li>
+      insertPeriod - DBR period in seconds, default 259200 (3 days)
+    </li>
+    <li>
+      refreshInProgress - 1 to mark the id insert record as 'in progress', 
+      default 0
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      idAddr - the mailing address of the identity
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbAddPeer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbAddPeer</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>peerAddr</span>)</span>
+  </h3>
+  Adds new peer record
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbCleanup"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbCleanup</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  <p>Cleans up database and instance refs</p>
+  <p>Called at the end of each processing run.</p>
+  Performs various checks on the database, and deletes obsolete records. 
+  Also, deletes local instance refs to these records (eg, slot tables in 
+  self.rxSlots[]).
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbDelIdentity"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbDelIdentity</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>)</span>
+  </h3>
+  <p>Purges a mailing identity</p>
+  This involves:
+  <ul>
+    <li>
+      removing the identity from the identities table, and the local 
+      dicts
+    </li>
+    <li>
+      removing all mailing relationships involving that identity
+    </li>
+    <li>
+      removing all messages to/from that identity
+    </li>
+  </ul>
+  The database will end up in a form as if the identity never 
+  existed.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbDelPeer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbDelPeer</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>peerAddr</span>)</span>
+  </h3>
+  <p>Deletes a peer from the system.</p>
+  Radical action - deletes everything to do with that peer
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbDelRxMsg"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbDelRxMsg</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgHash</span>)</span>
+  </h3>
+  Deletes a message from receive queue, and from filesystem
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbDelTxMsg"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbDelTxMsg</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgHash</span>)</span>
+  </h3>
+  Deletes a message from send queue, and from filesystem
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbGetRxMsgBody"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbGetRxMsgBody</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgHash</span>)</span>
+  </h3>
+  Given a message hash, return a string of the full message body
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbGetTxMsgBody"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbGetTxMsgBody</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgHash</span>)</span>
+  </h3>
+  Given a message hash, return a string of the full message body
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbInit"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbInit</span>(<span class=sig-arg>self</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Initialises the config object, to create a new mailsite</p>
+  Arguments:
+  <ul>
+    <li>
+      none
+    </li>
+  </ul>
+  Keywords:
+  <ul>
+    <li>
+      name - human-readable text name for this identity - mandatory
+    </li>
+    <li>
+      sskpriv - SSK private key. If none, a new SSK gets created
+    </li>
+    <li>
+      sskpub - SSK public key. IF none, a new SSK gets created
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbIntegrityOk"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbIntegrityOk</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  <p>Perform some integrity checks on the database</p>
+  Arguments:
+  <ul>
+    <li>
+      db - metakit database object
+    </li>
+  </ul>
+  Returns 1 if database seems ok, 0 if there's something wrong
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbLoad"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbLoad</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Loads the configuration from file
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbSave"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbSave</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Saves the configuration to file
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbUpdate"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbUpdate</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Dodgy method which senses changes of FreeMail builds, and updates 
+  database accordingly
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="decryptAndVerify"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>decryptAndVerify</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>ciphertext</span>,
+               <span class=sig-arg>keySender</span>,
+               <span class=sig-arg>keyRecipient</span>)</span>
+  </h3>
+  <p>Decrypts message using a local identity's key, then verifies the 
+  appended signature against the remote peer's public key.</p>
+  Arguments:
+  <ul>
+    <li>
+      msg - raw ciphertext of message. The message is created by appending 
+      the signature to the end of the plaintext (not even a newline), 
+      then encrypting it to ascii-armour.
+    </li>
+    <li>
+      keySender - an SSLCrypto key object containing the public key of the 
+      sender
+    </li>
+    <li>
+      keyRecipient - an SSLCrypto key object containing the public and 
+      private keys of the recipient
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      plaintext of message, if decryption was successful and the signature 
+      was verified
+    </li>
+    <li>
+      None if any kind of failure occurred.
+    </li>
+  </ul>
+  Possible causes of failure:
+  <ul>
+    <li>
+      keySender or keyRecipient are not valid key objects
+    </li>
+    <li>
+      text cannot be decrypted
+    </li>
+    <li>
+      signature is invalid
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="enqueueMessage"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>enqueueMessage</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-arg>peerAddr</span>,
+               <span class=sig-arg>msgType</span>,
+               <span class=sig-arg>bodyOrHash</span>)</span>
+  </h3>
+  Sticks a message on the queue for later sending
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpGetListInfo"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpGetListInfo</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>listAddr</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Given a list freemail address, return a dict of the list's session 
+  queue details, or None if we can't get these details</p>
+  The list session info dict contains the keys:
+  <ul>
+    <li>
+      queueUri - uri object of the list seq queue to write to
+    </li>
+    <li>
+      nextslot - int - the next sequence number on this queue to try
+    </li>
+    <li>
+      cryptoKey - an SSLCrypto.key object - the list's public encryption 
+      key
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpGetMsgFromSlot"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpGetMsgFromSlot</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-arg>slotno</span>)</span>
+  </h3>
+  <p>Polls a given slot of a given identity's queue.</p>
+  <p>If a message is present on that slot, marks the id's slot record as 
+  'used', retrieves the message, decrypts/verifies it.</p>
+  Arguments:
+  <ul>
+    <li>
+      idAddr - the identity whose queue we should poll for message
+    </li>
+    <li>
+      slotno - the slot number to poll
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      a dict of message if successful, None if nothing there
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpGetPeerInfo"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpGetPeerInfo</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>peerAddr</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Given a peer freemail address, return a dict of the peer's session 
+  queue details, or None if we can't get these details</p>
+  The peer session info dict contains the keys:
+  <ul>
+    <li>
+      queueUri - uri object of the peer seq queue to write to
+    </li>
+    <li>
+      nextslot - int - the next sequence number on this queue to try
+    </li>
+    <li>
+      cryptoKey - an SSLCrypto.key object - the peer's public encryption 
+      key
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpParseMailMsg"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpParseMailMsg</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>plainText</span>)</span>
+  </h3>
+  <p>Breaks down an incoming message into a dict of its parts</p>
+  Also, performs some basic validation of message format
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpRefreshListsite"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpRefreshListsite</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>listAddr</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  Re-inserts the list's listsite.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpRefreshMailsite"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpRefreshMailsite</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Re-inserts the identity mailsite.</p>
+  Recall that a 'mailsite' is just like a normal freesite, but with the 
+  requirement for certain documents to be available at certain paths.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="fcpTransmitMessage"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>fcpTransmitMessage</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgRec</span>)</span>
+  </h3>
+  <p>Performs the actual work of sticking a message onto a remote 
+  recipient's queue</p>
+  Arguments:
+  <ul>
+    <li>
+      msgRec - a freemail message cell object.
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      key object if delivery succeeded, None if failed
+    </li>
+  </ul>
+  Format of messages is:
+<pre class="literalblock">
+   FreemailMessage
+   Version=&lt;protocolversion&gt;
+   Type=&lt;msgtype&gt; - one of 'bounce', 'message', 'receipt', 'resend'
+   From=&lt;sender-address&gt;
+   To=&lt;recipient-address&gt;
+   Seq=&lt;message sequence no&gt; - nnn if sent first time, or seq of message being re-sent or bounced
+   Body=&lt;one-line ascii-armoured message&gt;
+   End
+   &lt;message signature&gt;
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="forceIdRefresh"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>forceIdRefresh</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>=<span class=sig-default>None</span>)</span>
+  </h3>
+  <p>Utility method to force the insertion of an identity's mailsite.</p>
+  Arguments:
+  <ul>
+    <li>
+      idAddr - address of identity to reinsert. If this argument is not 
+      given, then all identities will be reinserted
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      none
+    </li>
+  </ul>
+  Note - this just schedules the selected id(s) for reinsertion. Watch 
+  the log output to see the refreshes happening.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="log"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>log</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>level</span>,
+               <span class=sig-arg>msg</span>,
+               <span class=sig-arg>nPrev</span>=<span class=sig-default>0</span>)</span>
+  </h3>
+  Logs a message if level &lt;= self.verbosity
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="logFreenet"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>logFreenet</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>level</span>,
+               <span class=sig-arg>msg</span>,
+               <span class=sig-arg>nPrev</span>=<span class=sig-default>0</span>)</span>
+  </h3>
+  Logs a message if level &lt;= self.verbosity
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="Node"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>Node</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>mode</span>=<span class=sig-default>'get'</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  <p>Convenience method which creates a freenet/entropy node object, based 
+  on the mailserver's current configuration</p>
+  Arguments:
+  <ul>
+    <li>
+      mode - 'put' or 'get', depending on whether this node object will be 
+      used for inserting or retrieving keys. Determines which htl value 
+      in the config we use.
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="readFromInbox"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>readFromInbox</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgHash</span>)</span>
+  </h3>
+  <p>Reads in the text of a message from the inbound store</p>
+  Arguments:
+  <ul>
+    <li>
+      msgHash - the hash of the inbound message
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="readFromOutbox"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>readFromOutbox</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgHash</span>)</span>
+  </h3>
+  <p>Reads in the text of a message from the outbound store</p>
+  Arguments:
+  <ul>
+    <li>
+      msgHash - the hash of the outbound message
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="runServer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>runServer</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  <p>Runs the server in blocking mode.</p>
+  In contrast to 'startServer()', this method does not return 
+  immediately. It blocks until (or unless) Freemail terminates
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="signAndEncrypt"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>signAndEncrypt</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>plainText</span>,
+               <span class=sig-arg>keySender</span>,
+               <span class=sig-arg>keyRecipient</span>)</span>
+  </h3>
+  <p>Signs message using a local identity's key, appends signature to 
+  message, then encrypts against the remote peer's public key.</p>
+  Arguments:
+  <ul>
+    <li>
+      plainText - string - raw plaintext of message.
+    </li>
+    <li>
+      keySender - an SSLCrypto key object containing the public key and 
+      private keys of the local sender
+    </li>
+    <li>
+      keyRecipient - an SSLCrypto key object containing the public key of 
+      the remote recipient
+    </li>
+  </ul>
+  Returns:
+  <ul>
+    <li>
+      ciphertext, if the keys were valid and the message was successfully 
+      signed and encypted
+    </li>
+    <li>
+      None if any kind of failure occurred.
+    </li>
+  </ul>
+  Possible causes of failure:
+  <ul>
+    <li>
+      keySender or keyRecipient are not valid key objects
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="startFcpEngine"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>startFcpEngine</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Launches the FCP transport thread(s)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="startMailServers"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>startMailServers</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Launches the freemail POP/SMTP servers
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="startServer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>startServer</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  <p>Launches the mail server</p>
+  <p>Dispatches all the various threads</p>
+  If invoked with block=0 (default), returns immediately to the caller, 
+  so the caller can interact in real-time with the internals of the 
+  freemailServer object, invoke methods, examine data etc.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="startTelnetServer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>startTelnetServer</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Launches the Telnet interface server
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="startWebServer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>startWebServer</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Launches the HTTP interface server
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="stopServer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>stopServer</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Terminates the mailsite, saves the config
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="threadFcpDeliverMsg"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>threadFcpDeliverMsg</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>msgRec</span>,
+               <span class=sig-arg>queueObj</span>)</span>
+  </h3>
+  Attempts to deliver a message to peer, and transfers it to another 
+  queue depending on outcome
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="threadFcpEngine"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>threadFcpEngine</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  <p>This thread does the low-level work of the actual Freemail mail 
+  transport.</p>
+  Possible situations/events requiring action (in no particular 
+  order):
+<pre class="literalblock">
+- an identity's mailsite needs to be refreshed
+   - dispatch thread to refresh it
+
+- outbound mail in Unsent queue
+   - dispatch thread to:
+      - transmit to peer
+      - move to 'noreceipt' list
+
+- outbound message in 'noreceipt' list is due for re-send
+   - dispatch thread to re-send it
+
+- outbound message in 'noreceipt' list has maxed out retries
+   - move to 'dead' list
+   - send bounce to user
+
+- found inactive slots within id rx windows
+   - dispatch threads to poll these slots
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="threadFcpPollSlot"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>threadFcpPollSlot</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-arg>slotno</span>)</span>
+  </h3>
+  <p>Thread which polls an incoming message slot, and if the data is valid, 
+  actions it.</p>
+  Involves sending receipts for messages, sticking received messages on 
+  inbound queue, and some other shit
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="threadFcpRefreshList"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>threadFcpRefreshList</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>listAddr</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  Within a thread, (re-)inserts a given list's listsite
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="threadFcpRefreshMailsite"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>threadFcpRefreshMailsite</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  Within a thread, (re-)inserts a given identity's mailsite
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="verbosity"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>verbosity</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>level</span>)</span>
+  </h3>
+  <p>Sets logging verbosity</p>
+  0 - STFU, except for critical messages 1 - Important messages 2 - More 
+  info 3 - Even more info 4 - Debugging only
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="writeToInbox"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>writeToInbox</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-arg>fromAddr</span>,
+               <span class=sig-arg>body</span>)</span>
+  </h3>
+  <p>Takes a received message and adds it to the local inbox</p>
+  Arguments:
+  <ul>
+    <li>
+      inAddr - address of recipient
+    </li>
+    <li>
+      fromAddr - address of peer
+    </li>
+    <li>
+      body - body of message
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="writeToInboxRaw"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>writeToInboxRaw</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>idAddr</span>,
+               <span class=sig-arg>fromAddr</span>,
+               <span class=sig-arg>subject</span>,
+               <span class=sig-arg>body</span>)</span>
+  </h3>
+  <p>Composes a raw message to a local identity, and add this to the 
+  identity's inbox</p>
+  Headers get added to the message for the benefit of the client
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="writeToOutbox"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>writeToOutbox</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>body</span>)</span>
+  </h3>
+  <p>Writes the text of the message to the local outbound file store</p>
+  Arguments:
+  <ul>
+    <li>
+      body - full string of message
+    </li>
+  </ul>
+  Returns
+  <ul>
+    <li>
+      msgHash - the hash of the outbound message
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="freemail-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 1.1 on Sat Nov  1 17:22:14 2003</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

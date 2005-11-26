@@ -1,0 +1,684 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>FreeMail Documentation</title>
+  <style type="text/css" media="screen">
+<!--
+  body { text-decoration:none; background:#ffffe0;color:#008000;font-family:arial, helvetica, sans-serif }
+  .block { background:#ffffe0;border-width:0 }
+  input { background:#ffffc0;color:#008000;font-family:arial, helvetica, sans-serif }
+  .textbutton { color:#ffffe0;background-color:#008000;padding: 2px 2px:border-width: medium:border-color:#008000 }
+  a { color:#008000;background-color:#ffffe0}
+  a:hover { text-decoration:none; color:#ffffe0;background-color:#008000 }
+  table.block { background:#ffffe0;border-width:0 }
+  select { background:#ffffe0;color:#008000;font-family:arial, helvetica, sans-serif }
+  table.main { background:#ffffe0;border-width:0 }
+  table { background:#ffffe0;border-width:0 }
+  .mainblock { background:#ffffe0;border-width:0;height:100% }
+  option { background:#ffffe0;color:#008000;font-family:arial, helvetica, sans-serif }
+-->
+  </style>
+</head>
+<body>
+<div style="text-align: center;">
+<div style="text-align: left;"><a name="top"></a><br>
+</div>
+<h1><br>
+</h1>
+<h1>FreeMail</h1>
+<h3>Your private and confidential in-<a
+ href="http://www.freenetproject.org" target="_blank">Freenet</a>
+Mailserver</h3>
+<h1>User and Administrator Manual</h1>
+</div>
+<br>
+<br>
+<div style="text-align: center;">FreeMail is Copyright (c) 2003 by
+David McNab<br>
+Released under the <a href="http://www.gnu.org/licenses/gpl.html"
+ target="_blank">GNU General Public License</a><br>
+<div style="text-align: left;"><br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="requirements"></a><br>
+<h1>Requirements</h1>
+<br>
+To run FreeMail, you will need one of the three following setups:<br>
+<ul>
+  <li>Windows 98SE, 2000, NT4 or XP<br>
+  </li>
+</ul>
+OR<br>
+<ul>
+  <li>Linux or, BSD operating system<br>
+  </li>
+  <li>Python 2.2.1 or later (Python 2.3 is fine :))</li>
+  <li>Standard C libraries vers 2.3.1 or later</li>
+</ul>
+OR<br>
+<ul>
+  <li>Windows 98SE, 2000, NT4 or XP</li>
+  <li>Python 2.3 or later (binary modules only available for 2.3 sorry)<br>
+  </li>
+</ul>
+You will <span style="font-weight: bold;">also</span> need:<br>
+<ul>
+  <li>A <span style="font-weight: bold;">Freenet or Entropy node</span>
+running on your local machine, or one of the machines in your LAN</li>
+  <li>A reasonably standards-compliant <span style="font-weight: bold;">email
+client program</span>, such as Mozilla, Mutt, KMail, Evolution, Eudora,
+Pegasus or (if you really must) Outlook or Outlook Express.</li>
+  <li>A reasonably standards-compliant <span style="font-weight: bold;">web
+browser</span>, such as Mozilla, Galeon, Konqueror, Firebird, Lynx,
+Links, Opera or (if you really must) Internet Explorer.<br>
+  </li>
+</ul>
+We recommend that you:<br>
+<ul>
+  <li>Run FreeMail on the same machine that Freenet or Entropy is
+running on</li>
+  <li>Have your Freenet or Entropy node running as permanent, 24/7</li>
+  <li>Have FreeMail running 24/7</li>
+</ul>
+If you want to run FreeMail on a different machine to that which is
+running your Freenet or Entropy node, you'll have to configure your
+node to allow the remote connection to the node's FCP port. You should
+also have your machines behind a firewall, and take steps to prevent
+sniffing of your internal network traffic.<br>
+<br>
+FreeMail should work ok, even if your Freenet/Entropy node is
+transient, and even if FreeMail is not running full-time. If you run
+FreeMail transiently, you should run it at least once every 2 or 3 days.<br>
+<br>
+However, FreeMail's use of resources is tiny compared to that of
+Freenet. So you shouldn't see any undue performance/bandwidth hit if
+you have FreeMail running all the time.<br>
+<hr style="width: 100%; height: 2px;"><br>
+<a name="installation"></a><br>
+<h1>Installing FreeMail</h1>
+If you're in a Windows environment, this is easy. You only have to run
+the installer EXE file and go with the defaults. The Windows installer
+is fully self-contained, and doesn't require any third-party software
+(except, of course, access to a Freenet or Entropy node).<br>
+<br>
+If you're in a Linux or BSD environment, it's not much harder. All you
+need to do is unpack the tarball you downloaded.<br>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="running"></a><br>
+<h1>Running FreeMail</h1>
+If you installed FreeMail using the <span style="font-weight: bold;">Windows
+installer EXE</span> file:<br>
+<ul>
+  <li>You should be able to click the <span style="font-weight: bold;">Start</span>
+button, then <span style="font-weight: bold;">Programs</span>, and see
+a program group called <span style="font-weight: bold;">Freemail</span>
+(or <span style="font-weight: bold;">FreeMail-0.1</span>. Open this
+program group, and just click on FreeMail.</li>
+  <li>In early test versions of FreeMail, you should see that ugly
+black DOS command window open up, and a messages telling you to point
+your browser to http://localhost:8889</li>
+</ul>
+If you installed FreeMail using the <span style="font-weight: bold;">tarball</span>
+(on either Linux/BSD or windows):<br>
+<ul>
+  <li>You should see three scripts:<br>
+    <ul>
+      <li>start-freemail.sh</li>
+      <li>stop-freemail.sh</li>
+      <li>start-freemail.bat</li>
+    </ul>
+  </li>
+  <li>If you're on Windows, then open up a DOS Command window. If
+running Linux or BSD, just open up (or switch to) a shell console</li>
+  <li>'cd' in to the directory containing the FreeMail files</li>
+  <li>If running Linux or BSD, type '<span style="font-weight: bold;">./start-freemail.sh</span>'</li>
+  <li>If running Windows, type <span style="font-weight: bold;">start-freemail.bat</span></li>
+  <li>You should now see a message telling you to point your web
+browser to <span style="font-weight: bold;">http://localhost:8889</span></li>
+</ul>
+If you've got this far, then FreeMail is now ready to be configured.
+Run a web browser, and type into the address bar the URL <span
+ style="font-weight: bold;">http://localhost:8889</span><br>
+<br>
+You should then see a welcome page, telling you to start the <span
+ style="font-weight: bold;">FreeMail Configuration Wizard</span>.<br>
+<br>
+<span style="font-weight: bold;">Note</span> - FreeMail has a rich
+range of startup options. You can view these options by typing:<br>
+<ul>
+  <li><span style="font-weight: bold;">freemail.exe -h </span>(if you
+installed the EXE installer), or</li>
+  <li><span style="font-weight: bold;">python freemail.py -h</span> (if
+you installed from the tarball)<br>
+  </li>
+</ul>
+(please read on)<br>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="configuration"></a><br>
+<h1>Configuration</h1>
+All FreeMail configuration and administration is done through the web
+interface, which by default listens on port <span
+ style="font-weight: bold;">8889</span> (think - Fproxy port plus 1).<br>
+<br>
+When FreeMail is run for the first time, you'll have to complete the <span
+ style="font-weight: bold;">FreeMail Configuration Wizard</span>, which
+should only take a minute or two.<br>
+<br>
+During the Wizard, you'll be prompted to enter a bare minumum of
+configuration items, such as:<br>
+<ul>
+  <li>setting a password for future web-based interaction</li>
+  <li>hostname and FCP port number for your Freenet/Entropy node</li>
+  <li>ports to listen on for POP3/SMTP/HTTP access</li>
+</ul>
+Also, you'll be given an opportunity to review all of the advanced
+settings.<br>
+<br>
+In most cases, you should be able to just accept the defaults.<br>
+<br>
+Once you complete the configuration, all your settings will be saved in
+the FreeMail database. You'll be taken to the FreeMail Web Login
+screen, where you should enter the userid and password you chose.<br>
+<br>
+(read on)<br>
+<hr style="width: 100%; height: 2px;">
+<h1>Using FreeMail</h1>
+<h2><a name="usageoverview"></a><br>
+</h2>
+<h2>Usage Overview</h2>
+To send or receive email messages with FreeMail, you must:<br>
+<ul>
+  <li>Create one or more <span style="font-weight: bold;">FreeMail
+mailing identities</span>, using the FreeMail Web Interface</li>
+  <li>Add these identities into your <span style="font-weight: bold;">Email
+client</span>, and set the relevant email address and POP3/SMTP access
+details</li>
+</ul>
+Then, you can use FreeMail just like you use your normal ISP's
+mailserver:<br>
+<ul>
+  <li>Compose messages in your mail client, and click Send</li>
+  <li>Click 'Get Messages' (or whatever) to receive messages others
+have sent you.<br>
+  </li>
+</ul>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="creatingidentities"></a><br>
+<h2>Creating Identities</h2>
+Creating a <span style="font-weight: bold;">mailing identity</span> in
+FreeMail is easy. Just log in to the web interface. When you see the
+main page, click the <span style="font-weight: bold;">Manage Identities</span>
+button.<br>
+<br>
+On the <span style="font-weight: bold;">Manage Mailing Identities</span>
+page, click on <span style="font-weight: bold;">Create New Identity.<br>
+<br>
+</span>Now, you have 2 options:<br>
+<ol>
+  <li>create a completely independent identity, <span
+ style="font-style: italic;">or</span><br>
+  </li>
+  <li>create an identity linked to an existing Freenet/Entropy <span
+ style="font-weight: bold;">freesite</span><br>
+  </li>
+</ol>
+Creating an independent identity is simple:<br>
+<ol>
+  <li>Click on <span style="font-weight: bold;">Generate New Keys</span>,
+to generate your own Freenet keypair. (Having a freenet keypair is
+roughly similar to owning a 'domain' on the regular internet).</li>
+  <li>Enter a <span style="font-weight: bold;">short name</span> -
+letters/digits/hyphen/underscore only - something like '<span
+ style="font-weight: bold;">John</span>', '<span
+ style="font-weight: bold;">Alice</span>' (or '<span
+ style="font-weight: bold;">FelchMeister</span>' if you're that way
+inclined).</li>
+  <li>Choose a <span style="font-weight: bold;">password</span> for
+POP3 access (ie access from your email client program)</li>
+  <li>Click <span style="font-weight: bold;">Save New Identity</span>
+to save your new identity to the FreeMail database.</li>
+  <li>Wait a few seconds - FreeMail is generating your private
+encryption keys for your identity. If you chose a large encrypton key
+size (3072- or 4096-bit) in your FreeMail setup, this key generation
+could take up to 3 minutes, (or longer if you have a slow machine).
+Thankfully, this only needs to happen once, when you generate each new
+identity</li>
+  <li>When FreeMail has set up this identity, you should see a screen
+with the heading '<span style="font-weight: bold;">Success</span>'.<br>
+    <span style="font-weight: bold;">NOTE!! - </span>Don't click on
+anything yet - open up your email client program now, and create within
+it a mailing identity with the details FreeMail has given you. Do
+please make sure to get everything right, including the POP3 and SMTP
+port numbers. All decent mail clients allow you to specify different
+POP/SMTP hostnames and port numbers on a per-account basis.</li>
+  <li>When you've finished creating the mailing identity in your email
+client, go back to your web browser window and click on <span
+ style="font-weight: bold;">Return to Identities</span>. You should now
+see the identities list, updated to show the new identity you've just
+created.</li>
+</ol>
+Creating a FreeMail identity that is linked to an existing freesite is
+almost as simple. The only differences are:<br>
+<ul>
+  <li>You must not click on <span style="font-weight: bold;">Generate
+New Keys</span></li>
+  <li>You need to get the SSK public and private keys that you use for
+inserting your freesite, and paste them into the Create New Mailing
+Identity web page. <span style="font-weight: bold;">Note - you have to
+paste in the SSK public key twice, as shown on the page</span>.</li>
+</ul>
+Once you've created one or more <span style="font-weight: bold;">Mailing
+Identities</span>, FreeMail will insert data into Freenet to enable you
+to send and receive messages.<br>
+<br>
+<span style="font-weight: bold; font-style: italic;">** Handy Tip </span>-
+You can test whether your new mailing identity (and your mail client)
+are properly configured by:<br>
+<ol>
+  <li>Composing a message in your email client, and addressing it to <span
+ style="font-weight: bold;">freemail-ping</span>.</li>
+  <li>Making sure you send this message using your FreeMail mailing
+identity (this is usually shown in your email client as a combo-box on
+the <span style="font-weight: bold;">From:</span> field</li>
+  <li>Wait a bit, then click on '<span style="font-weight: bold;">Receive
+Messages</span>'<span style="font-weight: bold;">. </span>You should
+receive a <span style="font-weight: bold;">pong</span> message,
+containing whatever text you sent in the <span
+ style="font-weight: bold;">ping</span>.</li>
+</ol>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="sending"></a><br>
+<h2>Sending Messages</h2>
+To send a FreeMail message (let's cut it short, and say '<span
+ style="font-weight: bold;">send someone a freemail</span>'), it's just
+like sending a regular email. You just need their <span
+ style="font-weight: bold;">freemail address</span>.<br>
+<br>
+Just as with regular email, you can get freemail addresses from
+websites or freesites, or someone may first send you a message, or give
+you their freemail address in a chat room.<br>
+<br>
+[aside on chat rooms - FreeMail should prove invaluable for users of
+IIP]<br>
+<br>
+<span style="font-weight: bold;">** Security Note **</span> - do be
+careful of how you give out your freemail address:<br>
+<ul>
+  <li><span style="font-weight: bold;">don't</span> mention your or
+anyone else's freemail address in a normal email message (ie, messages
+sent as normal email), unless the message is encrypted (or unless you
+securely hide the freemail address with steganography).<br>
+  </li>
+  <li><span style="font-weight: bold;">don't</span> post your freemail
+address on any website, if the website can be traced back to you</li>
+  <li><span style="font-weight: bold;">do</span> feel free to post your
+freemail address on freesites (if you so desire) - since the freesite
+is anonymous, exposure of your freemail address won't breach your
+anonymity</li>
+  <li><span style="font-weight: bold;">don't</span> give out your
+freemail address over the phone - best to assume your phones are tapped</li>
+  <li><span style="font-weight: bold;">do</span> feel free to give your
+freemail address to people you trust, in writing and in person</li>
+  <li><span style="font-weight: bold;">do</span> feel free to give your
+freemail address in IIP (Invisible IRC) Chat channels or privmsg
+sessions<br>
+  </li>
+</ul>
+<br>
+<hr style="width: 100%; height: 2px;">
+<h1>Freenet Interaction</h1>
+<a name="freenetoverview"></a><br>
+<h2>Overview</h2>
+The protocol with which FreeMail sends and receives messages to/from
+other users' FreeMail servers is fairly elaborate, and has been
+carefully through through to try to achieve the ideal balance between
+anonymity/privacy,&nbsp; defense atainst attackers, reliability and
+performance (in that order of priority).<br>
+<br>
+Before messages can be sent from one identity to another, a <span
+ style="font-weight: bold;">mailing relationship</span> between these
+two identities must be created.<br>
+<br>
+Once this relationship is in place, a private SSK queue will be
+created, and agreed upon, between sender and recipient.<br>
+<hr style="width: 100%; height: 2px;"><a name="mailsite"></a><br>
+<h2>What is a MailSite?</h2>
+When you create a mailing identity, FreeMail inserts a special kind of
+'freesite' called a <span style="font-weight: bold;">MailSite</span>.<br>
+As a DBR-based freesite, mailsites are very simple:<br>
+<ul>
+  <li>refresh period of the freesite is typically 7 days, to eliminate
+the requirement to run FreeMail daily</li>
+  <li>the mailsite freesite contains at least the following documents:<br>
+    <ul>
+      <li>//index.html - a small HTML page that simply identifies the
+freesite as a mailsite</li>
+      <li>//session - a small document which contains:<br>
+        <ul>
+          <li>A <span style="font-weight: bold;">KSK prefix URI</span>,
+which acts as an incoming queue for <span style="font-style: italic;">session
+messages</span> (ie RTS/CTS messages)</li>
+          <li>A <span style="font-weight: bold;">slot number</span>,
+which correspondents use as a starting index for inserting messages</li>
+          <li>A <span style="font-weight: bold;">public encryption key</span>,
+for encrypting messages sent to the mailsite<br>
+          </li>
+        </ul>
+For instance, if the KSK URI Prefix is <span style="font-weight: bold;">KSK@blahblahblah-,
+        </span>and the Slot Number is <span style="font-weight: bold;">47</span>,
+then a correspondent will try to insert its message as <span
+ style="font-weight: bold;">KSK@blahblahblah-47</span>, <span
+ style="font-weight: bold;">KSK@blahblahblah-48</span>, and so on until
+it completes an insert without a key collision</li>
+    </ul>
+  </li>
+  <li>There is an isomorphic (1:1) relationship between a <span
+ style="font-weight: bold;">freemail address</span> and the
+corresponding <span style="font-weight: bold;">mailsite URI</span>.
+It's just a simple munge.<br>
+For example, if the freemail address is <span
+ style="font-weight: bold;">alice@blahaliceblahPAgM</span>, the
+mailsite's freesite URI will be <span style="font-weight: bold;">SSK@blahaliceblahPAgM/alice-freemail//</span>'.<br>
+The requirement for the '<span style="font-weight: bold;">-freemail</span>'
+SSK path suffix is to prevent clashes with Freesite URIs.<br>
+For instance, if the TFE Freesite owner wanted an email address linked
+to the site, s/he could post the address <span
+ style="font-weight: bold;">TFE@rBjVda8pC-Kq04jUurIAb8IzAGcPAgM </span>as
+a FreeMail address. FreeMail would maintain the freesite <span
+ style="font-weight: bold;">SSK@rBjVda8pC-Kq04jUurIAb8IzAGcPAgM/TFE-freemail//
+- </span>since only the TFE freesite owner has the private SSK key for
+the site, s/he and other can feel confident that nobody can spoof their
+own freemail freesite under that URI.<br>
+  </li>
+  <li>the reasons for a mailsite being inserted as a DBR-based freesite
+are:<br>
+    <ul>
+      <li>A minor level of protection against spammers - in case of
+spam attack, the KSK key can be readily changed</li>
+      <li>Facilitate (somewhat) faster delivery of session messages, by
+recommending a slot number for starting with the insert attempts</li>
+    </ul>
+  </li>
+</ul>
+Now here's where the security kicks in:<br>
+<ul>
+  <li>All messages sent to a mailsite (or inserted into a mailsite's
+KSK queue) are <span style="font-weight: bold;">encrypted to the
+recipient mailsite</span></li>
+  <li>All messages sent to a mailsite are <span
+ style="font-weight: bold;">signed by the sending mailsite</span></li>
+  <li>The receiving mailsite verifies the signature by fetching the <span
+ style="font-weight: bold;">//session</span> document of the sending
+mailsite, and using the sending mailsite's public encryption key</li>
+  <li>If the receiving mailsite cannot decrypt an incoming message
+using its own decryption key, the message gets discarded</li>
+  <li>If the receiving mailsite can't fetch the <span
+ style="font-weight: bold;">//session</span> document from the sending
+mailsite, or if the signature verification fails, the message is
+discarded.</li>
+</ul>
+This feels to the author like a pragmatic independent level of
+peer2peer security. No need for an external certification authority
+(CA), thus a vulnerability eliminated.<br>
+<br>
+So if Alice (<span style="font-weight: bold;">Alice@blahalicePAgM</span>)
+receives a valid encrypted signed session message from Bob (<span
+ style="font-weight: bold;">Bob@blahbobPAgM</span>), she (or her
+FreeMail engine) will know the message has actually arrived from Bob.<br>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="rtscts"></a><br>
+<h2>RTS/CTS Protocol</h2>
+With apologies to the creators of the RS-232 link-layer protocol,
+FreeMail creates mailing relationships with an initial <span
+ style="font-weight: bold;">Request To Send (RTS) / Clear To Send (CTS)</span>
+interaction.<br>
+<br>
+As mentioned earlier, a freemail identity can not send messages to
+another freemail identity until it has received permission to send from
+this identity.<br>
+<br>
+A freemail identity sends a RTS message, effectively saying "<span
+ style="font-weight: bold;">Hi Alice, my name is Bob, and I'd like to
+send you freemail messages, and I'd like you to listen for them on this
+queue...</span>'.<br>
+<br>
+In the <span style="font-weight: bold;">RTS </span>message, the
+proposing sender (Bob) includes the following information in the
+message to the recipient (Alice).<br>
+<ul>
+  <li>Bob's own freemail address</li>
+  <li>Alice's freemail address<br>
+  </li>
+  <li>the URI of an SSK@ message queue, which Bob asks Alice to poll
+for subsequent actual mail messages</li>
+</ul>
+When Alice gets this RTS message, she retrieves Bob's freemail
+freesite, and gets his public encryption key. If the message checks
+out, she forms a CTS message and sends it back to Bob. This CTS message
+effectively says, "<span style="font-weight: bold;">Hi Bob, Alice here,
+your RTS message checks out fine, I know it's you, I agree to poll the
+messsage queue you suggested - now here's a key for encrypting the
+messages you send</span>'.<br>
+<br>
+In other words, the CTS message contains the following:<br>
+<ul>
+  <li>Alice's freemail address</li>
+  <li>Bob's freemail address</li>
+  <li>the URI of the SSK@ message queue, which Bob originally proposed</li>
+  <li>an ASCII-armoured public encryption key, which Bob should use for
+encrypting messages to Alice.<br>
+  </li>
+</ul>
+<h3>Summary</h3>
+This RTS/CTS protocol has a built-in certification mechanism, and is
+the only place where KSK@ freenet keys (with all their vulnerabilities)
+are used.<br>
+<br>
+Once a sending relationship has been confirmed, there is no more need
+for security checks. Messages sent from the sender to the recipient are
+encrypted to the recipient and placed on the agreed SSK queue.
+Signatures are not necessary, since the SSK Queue URI was agreed upon
+in the context of signed dialogue.<br>
+<hr style="width: 100%; height: 2px;"><a name="transfer"></a><br>
+<h2>Normal Message Transfer</h2>
+Once a 'sending relationship' has been established (see previous
+section), Bob will have 2 things:<br>
+<ul>
+  <li>an SSK@ private key uri prefix (say, <span
+ style="font-weight: bold;">SSK@bob2alicepriv/</span>), for inserting
+messages to Alice into <span style="font-weight: bold;">SSK@bob2alicepriv/0</span>,
+    <span style="font-weight: bold;">SSK@bob2alicepriv/1,</span>...,
+which Alice will retrieve as <span style="font-weight: bold;">SSK@bob2alicepubPAgM/0,
+SSK@bob2alicepubPAgM/1, ...</span></li>
+  <li>a public asymmetrical encryption key, which Bob should use for
+encrypting messages to Alice</li>
+</ul>
+On the 'receiving end' of the relationship, Alice will have 2 things:<br>
+<ul>
+  <li>an SSK@ public key uri prefix (say, <span
+ style="font-weight: bold;">SSK@bob2alicepubPAgM/</span>), for polling
+for messages from Bob</li>
+  <li>a private asymmetrical decryption key, which she uses for
+decrypting messages inserted by Bob</li>
+</ul>
+Alice will periodically attempt fetches of <span
+ style="font-weight: bold;">SSK@bob2alicepubPAgM/n</span>. Most of the
+time these fetches will return KeyNotFound. But when Bob sends a
+message, one of these fetches will yield this message.<br>
+<br>
+Once Alice gets this message, she decrypts it. If it decrypts OK, her
+FreeMail will then send a reciept to Bob, containing a hash of Bob's
+message.<br>
+<br>
+When Bob gets this receipt, his FreeMail will mark the message in the
+database as 'successfully delivered'.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-style: italic;">Astute
+readers will notice at this point that, since a 'sending relationship'
+is one-way, there will not yet be any channel for Alice to send the
+receipt for the first message back to Bob. Therefore, when her FreeMail
+sends this receipt, it will first go through an RTS/CTS cycle with
+Bob's FreeMail, after which her receipt will find its way back to Bob.
+Don't sweat this though, because it's totally automatic and transparent
+to both Bob and Alice.<br>
+</span></div>
+<br>
+After Alice's FreeMail has receipted the message back to Bob, the
+message will be sitting in her private message queue, ready to be
+retrieved by her email client via the FreeMail POP3 interface.<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<h1>Technical Notes</h1>
+<a name="binary"></a><br>
+<h2>Binary Modules</h2>
+Astute users will notice that FreeMail - even in the source tarball,
+comes with two binary python modules:<br>
+<ul>
+  <li>Mk4py.so (also, Mk4py.dll for windows) - Metakit database back-end<br>
+  </li>
+  <li>SSLCrypto.so (also, SSLCrypto.pyd for windows) - Python-based
+strong encryption<br>
+  </li>
+</ul>
+We have distributed these third-party modules in binary form to make
+your installation of FreeMail much easier. Also, since these modules
+are not yet part of most mainstream Linux/BSD distributions. Without
+these modules distributed in binary, you'd be on a wild-goose-chase of
+downloading endless dev packages and other 3rd party software, and
+compiling reams of code - fun for some, soul-destroying pain for others.<br>
+<br>
+<div style="margin-left: 40px;"><span style="font-style: italic;">If
+you feel wary of installing these binaries, please know that we
+understand and respect your feelings, and extend our best wishes to you
+for a trouble-free compilation experience. Please do understand that
+with the relentless pressures on our time, we may not be able to
+respond to support requests if you have trouble compiling any of this
+stuff.</span><br style="font-style: italic;">
+<br style="font-style: italic;">
+<span style="font-style: italic;">You can get the Metakit source from
+the Metakit Website - </span><a
+ href="http://www.equi4.com/metakit.html" target="_blank"
+ style="font-style: italic;">http://www.equi4.com/metakit.html</a><br
+ style="font-style: italic;">
+<br style="font-style: italic;">
+<span style="font-style: italic;">You can get the SSLCrypto source from
+the author's own Python website - </span><a
+ href="http://www.freenet.org.nz/python/SSLCrypto" target="_blank"
+ style="font-style: italic;">http://www.freenet.org.nz/python/SSLCrypto</a><span
+ style="font-style: italic;">. (that website contains links for the
+Pyrex compiler, plus OpenSSL sources as required).</span><br>
+</div>
+<br>
+<hr style="width: 100%; height: 2px;"><a name="database"></a><br>
+<h2>FreeMail Database Format</h2>
+For speed, convenience and the reduction of 3rd party software traumas,
+FreeMail has been written to use the Metakit database for storage of
+your mailing identities, keys, queue and status information.<br>
+<br>
+Metakit is a wonderful, flexible database in a class of its own - it
+feels like a cross between RDBMS and OODBMS. It has proven extremely
+convenient to use from Python, because there is no need to formulate
+SQL query strings. Tables, records and fields in Metakit databases are
+all python-friendly objects, with methods and attributes, which has
+saved me a shit-load of time and effort.<br>
+<br>
+In using Metakit, the whole database engine and python interface can be
+distributed in a small set of files. No need for testing/probing the
+destination machine's MySQL, PosgreSQL or MS-SQL or
+FuckingHellYetAnotherBloodySQL installation (or lack thereof). No need
+to hassle with permissions, account creation etc. The entire database
+gets created into a single file - in this case, <span
+ style="font-weight: bold;">freemail.db</span>.<br>
+<br>
+If you're curious about what's in the database tables, you can simply
+run a Python shell, import metakit or metakitplus, open the file in a
+storage constructor and nosey away to your heart's content.<br>
+<br>
+I really recommend you have a look at Metakit - their website is at <a
+ href="http://www.equi4.com/metakit.html" target="_blank">http://www.equi4.com/metakit.html</a><br>
+<br>
+Note too that there's a directory called <span
+ style="font-weight: bold;">freemail.store</span>. This simply contains
+a queue of sent/received messages, in subdirectories <span
+ style="font-weight: bold;">tx</span> and <span
+ style="font-weight: bold;">rx</span> respectively. The filenames are
+the hashes of these messages, according to the SHA1 hashing done in the
+global <span style="font-weight: bold;">hash()</span> function in <span
+ style="font-weight: bold;">freemail.py</span>.<br>
+<hr style="width: 100%; height: 2px;"><a name="extending"></a><br>
+<h2>Extending FreeMail</h2>
+FreeMail has been written with third-party extensions in mind. Since
+it's written in Python, all you have to do is familiarise yourself with
+the main <span style="font-weight: bold;">freemail.mailServer </span>class,
+its methods and attributes.<br>
+<br>
+Writing extensions for FreeMail is just a matter of writing subclasses
+and/or mixin-classes for the basic <span style="font-weight: bold;">mailServer</span>
+class, and sticking in your custom methods. Extensive epydoc-generated
+documentation of this and all the other classes is included with this
+package, and is available if you click on the <span
+ style="font-weight: bold;">Detailed API Manual</span> in the left pane.<br>
+<br>
+Why would one want to write FreeMail extensions?<br>
+<br>
+Well, for all kinds of reasons. For instance, if you have a whole new
+application in mind, that requires secure certified data transfer
+between distributed nodes (not just email), you can subclass the <span
+ style="font-weight: bold;">mailServer</span>, stick in your own
+configuration, not bother launching the POP or SMTP servers, and just
+use the engine to shove data around.<br>
+<br>
+<div style="margin-left: 40px;">One example where this would be useful
+is if you're trying to crack the access restrictions for a piece of
+hardware you've bought. You own the hardware, but the manufacturer
+would hunt you down and DMCA you to death if they caught you running
+any kind of distributed cracking project. But you can use FreeMail to
+co-ordinate a distributed automatic cracking effort within Freenet, and
+there's nothing the pigs can do to stop you! :)<br>
+</div>
+<br>
+In time, we'll add some more formal hooks to the classes which will
+simplify the task of extension programmers. As well as this, we hope to
+implement some kind of comfortable black-box plugins interface.<br>
+<hr style="width: 100%; height: 2px;"><a name="support"></a><br>
+<h1>Getting Support for FreeMail</h1>
+As yet, there is no bugzilla or formal dev/support mailing list for
+FreeMail.<br>
+<br>
+If you have any meaningful questions, or are stuck in a situation where
+the info in this manual is not helping you, then&nbsp; please send a
+(mainstream email) message to <span style="font-weight: bold;">david
+at freenet dot org dot nz. (</span>I won't insult your intelligence by
+asking you to send support requests via FreeMail - not a smart thing to
+suggest if your FreeMail is not working ;])<br>
+<span style="font-weight: bold;"><br>
+</span>If you're reporting a bug, (or sending a patch for fixing a
+bug), then we'd really appreciate you enclosing your <span
+ style="font-weight: bold;">freemail.log</span> file (don't forget to
+compress the file if it is large). Also, please specify:<br>
+<ul>
+  <li>What operating system you're running, and what distribution (if
+Linux or BSD)<br>
+  </li>
+  <li>What version of Python you are using (not relevant if you
+installed from Windows Installer EXE)</li>
+  <li>What version of FreeMail you're running (running freemail with
+the '-v' argument will tell you)</li>
+  <li>What stage you have got to in the configuration process</li>
+  <li>What is going wrong</li>
+  <li>What are the symptoms</li>
+  <li>If there's a way to reproduce the problem</li>
+</ul>
+<br>
+<hr style="width: 100%; height: 2px;">
+<div style="text-align: center;"><small><small><br>
+This manual is Copyright (c) 2003 by David McNab<br>
+All rights reserved. Released under the GNU General Public License<br>
+</small></small></div>
+<br>
+</div>
+</div>
+</body>
+</html>

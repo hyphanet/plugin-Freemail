@@ -1,0 +1,130 @@
+#@+leo
+#@+node:0::@file README
+#@+body
+Welcome to the maiden release of FreeMail!
+
+---------------------
+* What is 'FreeMail'?
+
+Freemail is a Mail Transfer Agent (MTA), or Mailserver, that supports you
+in enjoying an unprecedented level of privacy and anonymity in sending
+and receiving email messages.
+
+It uses strong encryption and powerful anonymity features to make it nigh
+impossible for an attacker to determine the contents of your email messages,
+who you're sending to or when.
+
+----------------------
+* Freemail features
+
+   * disguises your email addresses
+   * avoids detection of who you're sending email to or receiving from
+   * makes it almost impossible to detect even *if* or when you're sending or
+     receiving messages
+   * works 100% peer to peer
+   * uses the Freenet network for high-grade privacy protection
+   * totally compatible with your email client program, since it runs
+
+----------------------------------
+* How does FreeMail compare to PGP?
+
+It's way more secure. No comparison.
+
+With PGP, an attacker can still determine:
+ * who you are sending email messages to and receiving messages from
+ * when you are sending and receiving these messages
+ * the subject lines of these messages
+
+With FreeMail, all this information is hidden.
+
+----------------------------------------
+* How does FreeMail compare to Hushmail?
+
+Arguably much better.
+
+With Hushmail, it is possible for an attacker to detect that you're
+sending or receiving Hushmail messages, and when. This alone can
+give a lot of information in many cases.
+
+Also, Hushmail is only as good as the operators of the Hushmail
+service. Hushmail works with 'managed keys', which means that your
+private encryption keys get stored as plaintext on the Hushmail
+servers. It is not inconceivable that even now, attackers (eg 
+government agencies) have gotten access to these keys. Which takes
+away much of the very reason for using Hushmail in the first place.
+
+With Freemail, your decryption keys are stored only your own hard disk.
+You can even store them on an encrypted virtual disk (using PGPDisk or
+BestCrypt etc).
+
+Also, since Freemail uses Freenet as its transport, it becomes almost
+impossible to determine even *if* you're sending or receiving messages.
+
+--------------------------------------------
+* What do I need to run FreeMail?
+
+Requirements are:
+
+ * A graphical web browser
+ * A standard POP/SMTP-capable email client program, like Mozilla,
+   Eudora, KMail, Evolution, Pine, Mutt or (if you must) Outlook (Express).
+ * Freenet software installed and running (or, access to a Freenet FCP
+   connection on another system). See www.freenetproject.org
+ * Linux, BSD or an insecure, proprietary Microsoft operating system
+ * If running Linux or BSD, you'll also need:
+    * Python 2.2 or later installed
+    * glibc 2.3 or later
+
+-------------------------------------
+* How do I run FreeMail?
+
+If you're running on Linux or BSD, type:
+
+  ./start-freemail.sh -h
+
+to see the available options.
+
+Once you've chosen your options, then launch the FreeMail program.
+
+If you're running FreeMail on one box, but want to access it with an
+email client or web browser on another host, then the first time you
+run it, you'll have to specify the '--listen-hosts' argument. From then
+on, the listen hosts will be saved in database so you won't have to
+specify this again.
+
+When you first run FreeMail, you'll see a message giving an address
+to point your web browser, so you can complete the initial configuration
+process.
+
+------------------------------
+* How do I configure FreeMail?
+
+FreeMail has a web-based administrative interface.
+
+By default, this interface can be reached by pointing your web browser
+to port 8889.
+
+For example, if you're running FreeMail on your local machine, then
+point your web browser to http://127.0.0.1:8889
+
+
+--------------------------------
+* Can I extend FreeMail?
+
+Sure. If you're adept with Python, then look at the freemail.py
+source file, and study the freemailServer class.
+
+By deriving from this class, and providing some method overrides,
+you can get FreeMail to do anything that turns you on.
+
+If you're opening up the .leo file, please first set the tabs in your
+preferences to -4. Otherwise, Leo will munge up the indentation and trash
+your py files.
+
+
+--------------------------------
+* Where can I get help?
+
+#@-body
+#@-node:0::@file README
+#@-leo

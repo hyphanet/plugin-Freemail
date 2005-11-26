@@ -1,0 +1,1252 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>freemail</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th bgcolor="#70b0f0" class="navselect">&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+<font size="-1"><b class="breadcrumbs">
+  Module&nbsp;freemail</b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/freemail-module.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="freemail-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td></tr></table>
+
+<!-- =========== START OF MODULE DESCRIPTION =========== -->
+<h2 class="module">Module freemail</h2>
+
+<p>FreeMail - the Freenet Mail Transfer Agent software.</p>
+<p>Written from Sep 2003 by David McNab &lt;david@freenet.org.nz&gt; 
+Copyright (c) 2003 by David McNab</p>
+<p>Released under the GNU General Public License, the text of which can 
+be found at http://www.gnu.org</p>
+<p>This program is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General 
+Public License for more details.</p>
+You should have received a copy of the GNU General Public License 
+along with this program; if not, write to the Free Software Foundation, 
+Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+<hr/>
+
+<!-- =========== START OF CLASSES =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Classes</th></tr>
+<tr><td width="15%">
+  <b><a href="freemail.cell-class.html"><code>cell</code></a></b></td>
+  <td>Generic storage object, a kind-of cross between an attributed object 
+and a sequence, with some metakit-style methods</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.DynamicSemaphore-class.html"><code>DynamicSemaphore</code></a></b></td>
+  <td>Extension of Semaphore that provides for dynamic resizing of the 
+semaphore.</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.freemailConsole-class.html"><code>freemailConsole</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.freemailServer-class.html"><code>freemailServer</code></a></b></td>
+  <td>This is the uber-class that runs a freemail server.</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.HTTPRequestHandler-class.html"><code>HTTPRequestHandler</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.HTTPServer-class.html"><code>HTTPServer</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.POPMaildrop-class.html"><code>POPMaildrop</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.POPRequestHandler-class.html"><code>POPRequestHandler</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.POPserver-class.html"><code>POPserver</code></a></b></td>
+  <td>Don't run more than one instance of this in a single process.</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.POPSession-class.html"><code>POPSession</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.slotmap-class.html"><code>slotmap</code></a></b></td>
+  <td>Implements a kind of sparse list for queue slots</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.SMTPServer-class.html"><code>SMTPServer</code></a></b></td>
+  <td>A single threaded SMTP Server connection manager.</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.SMTPSession-class.html"><code>SMTPSession</code></a></b></td>
+  <td>Server engine that calls methods on the SMTPServerInterface object 
+passed at construction time.</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.TelnetRequestHandler-class.html"><code>TelnetRequestHandler</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.TelnetServer-class.html"><code>TelnetServer</code></a></b></td>
+  <td>Implements the FreeMail telnet interface</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.WebUI-class.html"><code>WebUI</code></a></b></td>
+  <td>Handles each incoming HTTP hist</td></tr>
+</table><br />
+
+
+<!-- =========== START OF EXCEPTIONS =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Exceptions</th></tr>
+<tr><td width="15%">
+  <b><a href="freemail.Error-class.html"><code>Error</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.FreeMailCannotSend-class.html"><code>FreeMailCannotSend</code></a></b></td>
+  <td>Cannot insert outbound message onto peer queue</td></tr>
+<tr><td width="15%">
+  <b><a href="freemail.FreeMailNoPeerInfo-class.html"><code>FreeMailNoPeerInfo</code></a></b></td>
+  <td>Cannot retrieve peer info</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#b64dec" class="summary-sig-name"><code>b64dec</code></a>(<span class=summary-sig-arg>s</span>)</span></code>
+<br />Decodes a single-line base64 encoded string</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#b64enc" class="summary-sig-name"><code>b64enc</code></a>(<span class=summary-sig-arg>s</span>)</span></code>
+<br />Returns a base-64 encoding of a string, all one one line</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#btn" class="summary-sig-name"><code>btn</code></a>(<span class=summary-sig-arg>label</span>)</span></code>
+<br />Creates and returns a styled text button</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#btnForm" class="summary-sig-name"><code>btnForm</code></a>(<span class=summary-sig-arg>label</span>,
+               <span class=summary-sig-arg>action</span>,
+               <span class=summary-sig-kwarg>**kw</span>)</span></code>
+<br />Returns a styled button in its own form</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#dbrStartTime" class="summary-sig-name"><code>dbrStartTime</code></a>(<span class=summary-sig-arg>interval</span>,
+               <span class=summary-sig-arg>nperiods</span>)</span></code>
+<br />Returns the seconds since epoch at which a dbr period began.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#dhms" class="summary-sig-name"><code>dhms</code></a>(<span class=summary-sig-arg>secs</span>)</span></code>
+<br />Formats a number of seconds into a human readable string, 'n days, n 
+hours, n minutes, n seconds</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#exceptionString" class="summary-sig-name"><code>exceptionString</code></a>()</span></code>
+<br />Gets a traceback of the last exception and returns it as a string Also 
+writes the stacktrace to 'freemail.log.crash'</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#freemailAddrToUri" class="summary-sig-name"><code>freemailAddrToUri</code></a>(<span class=summary-sig-arg>addr</span>)</span></code>
+<br />Converts a freemail address to the URI of the corresponding 
+mailsite</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="getNewTid"></a><span class=summary-sig><span class=summary-sig-name>getNewTid</span>()</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#hash" class="summary-sig-name"><code>hash</code></a>(<span class=summary-sig-arg>raw</span>)</span></code>
+<br />Hashes a string into a hex string</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="help"></a><span class=summary-sig><span class=summary-sig-name>help</span>()</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="main"></a><span class=summary-sig><span class=summary-sig-name>main</span>(<span class=summary-sig-vararg>*args</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="mydebug"></a><span class=summary-sig><span class=summary-sig-name>mydebug</span>(<span class=summary-sig-arg>msg</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="POP3Logger"></a><span class=summary-sig><span class=summary-sig-name>POP3Logger</span>(<span class=summary-sig-arg>message</span>,
+               <span class=summary-sig-arg>loglevel</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#randstring" class="summary-sig-name"><code>randstring</code></a>()</span></code>
+<br />Outputs a 16-char random string</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#stackString" class="summary-sig-name"><code>stackString</code></a>()</span></code>
+<br />Gets a traceback of the stack</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#stripAddress" class="summary-sig-name"><code>stripAddress</code></a>(<span class=summary-sig-arg>address</span>)</span></code>
+<br />Strip the leading &amp; trailing &lt;&gt; from an address.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="ulFromList"></a><span class=summary-sig><span class=summary-sig-name>ulFromList</span>(<span class=summary-sig-arg>lst</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="freemail-module.html#uriToFreemailAddr" class="summary-sig-name"><code>uriToFreemailAddr</code></a>(<span class=summary-sig-arg>uri</span>)</span></code>
+<br />Converts a mailsite URI to a freemail address</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="usage"></a><span class=summary-sig><span class=summary-sig-name>usage</span>(<span class=summary-sig-arg>msg</span>,
+               <span class=summary-sig-arg>exitcode</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="_digest"></a><span class=summary-sig><span class=summary-sig-name>_digest</span>(<span class=summary-sig-arg>msg</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="_get_no"></a><span class=summary-sig><span class=summary-sig-name>_get_no</span>(<span class=summary-sig-arg>msgno</span>)</span></code>
+</td></tr>
+</table><br />
+
+
+<!-- =========== START OF VARIABLE SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Variable Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#build">build</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#canImportSSLCrypto">canImportSSLCrypto</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#createDebugText">createDebugText</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#days">days</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>lock</code></font></td>
+  <td><code><b><a href="#exceptionLogLock">exceptionLogLock</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#fcpAntiThrashTime">fcpAntiThrashTime</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#fcpCycleMinTime">fcpCycleMinTime</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#fcpRunInThreads">fcpRunInThreads</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#fcpRunServerInThread">fcpRunServerInThread</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#fcpThreadLaunchDelay">fcpThreadLaunchDelay</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#interactivePrompt">interactivePrompt</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#mailsiteInsertRetryTime">mailsiteInsertRetryTime</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#major">major</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#micro">micro</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#minor">minor</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#newTid">newTid</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>file</code></font></td>
+  <td><code><b><a href="#oldStdout">oldStdout</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#pickleCompressLevel">pickleCompressLevel</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#pickleSignatureKey">pickleSignatureKey</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#protocolVersion">protocolVersion</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#pyversOk">pyversOk</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#pyweb_version">pyweb_version</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#receiptSendDelay">receiptSendDelay</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#reportLocks">reportLocks</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#rlevel">rlevel</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#serial">serial</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#SLOT_STATE_BUSY">SLOT_STATE_BUSY</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#SLOT_STATE_EMPTY">SLOT_STATE_EMPTY</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#SLOT_STATE_USED">SLOT_STATE_USED</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#socketTimeout">socketTimeout</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#tmp">tmp</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#TX_STATUS_AWAITING_RECEIPT">TX_STATUS_AWAITING_RECEIPT</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#TX_STATUS_CONFIRMED">TX_STATUS_CONFIRMED</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#TX_STATUS_DEAD">TX_STATUS_DEAD</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+  <td><code><b><a href="#TX_STATUS_NOT_SENT">TX_STATUS_NOT_SENT</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+  <td><code><b><a href="#version">version</a></b></code>
+  </td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>builtin_function_or_method</code></font></td>
+  <td><code><b><a href="#write">write</a></b></code>
+  </td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="b64dec"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>b64dec</span>(<span class=sig-arg>s</span>)</span>
+  </h3>
+  Decodes a single-line base64 encoded string
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="b64enc"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>b64enc</span>(<span class=sig-arg>s</span>)</span>
+  </h3>
+  Returns a base-64 encoding of a string, all one one line
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="btn"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>btn</span>(<span class=sig-arg>label</span>)</span>
+  </h3>
+  <p>Creates and returns a styled text button</p>
+  Arguments:
+  <ul>
+    <li>
+      label - text of button label
+    </li>
+    <li>
+      action - relative/absolute URL for action
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="btnForm"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>btnForm</span>(<span class=sig-arg>label</span>,
+               <span class=sig-arg>action</span>=<span class=sig-default>''</span>,
+               <span class=sig-kwarg>**kw</span>)</span>
+  </h3>
+  Returns a styled button in its own form
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dbrStartTime"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dbrStartTime</span>(<span class=sig-arg>interval</span>=<span class=sig-default>86400</span>,
+               <span class=sig-arg>nperiods</span>=<span class=sig-default>0</span>)</span>
+  </h3>
+  <p>Returns the seconds since epoch at which a dbr period began.</p>
+  Arguments:
+  <ul>
+    <li>
+      interval - the length of the dbr interval in seconds, default 1 
+      day
+    </li>
+    <li>
+      nperiods - the number of periods to go *forward*
+    </li>
+  </ul>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dhms"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>dhms</span>(<span class=sig-arg>secs</span>)</span>
+  </h3>
+  Formats a number of seconds into a human readable string, 'n days, n 
+  hours, n minutes, n seconds
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="exceptionString"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>exceptionString</span>()</span>
+  </h3>
+  Gets a traceback of the last exception and returns it as a string Also 
+  writes the stacktrace to 'freemail.log.crash'
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="freemailAddrToUri"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>freemailAddrToUri</span>(<span class=sig-arg>addr</span>)</span>
+  </h3>
+  <p>Converts a freemail address to the URI of the corresponding 
+  mailsite</p>
+  For example:
+  <ul>
+    <li>
+      fred@blahblah.freemail =&gt; SSK@blahblahPAgM/freemail/fred
+    </li>
+  </ul>
+  Returns a freenet.uri object
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="hash"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>hash</span>(<span class=sig-arg>raw</span>)</span>
+  </h3>
+  Hashes a string into a hex string
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="randstring"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>randstring</span>()</span>
+  </h3>
+  Outputs a 16-char random string
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="stackString"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>stackString</span>()</span>
+  </h3>
+  Gets a traceback of the stack
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="stripAddress"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>stripAddress</span>(<span class=sig-arg>address</span>)</span>
+  </h3>
+  Strip the leading &amp; trailing &lt;&gt; from an address. Handy for 
+  getting FROM: addresses.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="uriToFreemailAddr"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>uriToFreemailAddr</span>(<span class=sig-arg>uri</span>)</span>
+  </h3>
+  <p>Converts a mailsite URI to a freemail address</p>
+  For example:
+  <ul>
+    <li>
+      SSK@blahblahblahPAgM/freemail/alice[//] =&gt; 
+      alice@blahblahblah.freemail
+    </li>
+  </ul>
+  The uri can be expressed as a string, or a freenet.uri object
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF VARIABLE DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Variable Details</th></tr>
+</table><table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="build"></a>
+<h3>build</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>020<span class="variable-quote">'</span>                                                                  </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="canImportSSLCrypto"></a>
+<h3>canImportSSLCrypto</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="createDebugText"></a>
+<h3>createDebugText</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="days"></a>
+<h3>days</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+86400                                                                  </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="exceptionLogLock"></a>
+<h3>exceptionLogLock</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>lock</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+&lt;thread.lock object at 0x85f1a18&gt;                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="fcpAntiThrashTime"></a>
+<h3>fcpAntiThrashTime</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+10                                                                     </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="fcpCycleMinTime"></a>
+<h3>fcpCycleMinTime</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+10                                                                     </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="fcpRunInThreads"></a>
+<h3>fcpRunInThreads</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="fcpRunServerInThread"></a>
+<h3>fcpRunServerInThread</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="fcpThreadLaunchDelay"></a>
+<h3>fcpThreadLaunchDelay</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="interactivePrompt"></a>
+<h3>interactivePrompt</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>FreeMail&gt; <span class="variable-quote">'</span>                                                           </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="mailsiteInsertRetryTime"></a>
+<h3>mailsiteInsertRetryTime</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+300                                                                    </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="major"></a>
+<h3>major</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+2                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="micro"></a>
+<h3>micro</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+3                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="minor"></a>
+<h3>minor</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+2                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="newTid"></a>
+<h3>newTid</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="oldStdout"></a>
+<h3>oldStdout</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>file</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+&lt;open file '&lt;stdout&gt;', mode 'w' at 0x8109d40&gt;                          </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="pickleCompressLevel"></a>
+<h3>pickleCompressLevel</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+7                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="pickleSignatureKey"></a>
+<h3>pickleSignatureKey</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>try to guess this, asshole!<span class="variable-quote">'</span>                                          </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="protocolVersion"></a>
+<h3>protocolVersion</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>1<span class="variable-quote">'</span>                                                                    </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="pyversOk"></a>
+<h3>pyversOk</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="pyweb_version"></a>
+<h3>pyweb_version</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>0.1.0<span class="variable-quote">'</span>                                                                </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="receiptSendDelay"></a>
+<h3>receiptSendDelay</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="reportLocks"></a>
+<h3>reportLocks</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="rlevel"></a>
+<h3>rlevel</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>final<span class="variable-quote">'</span>                                                                </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="serial"></a>
+<h3>serial</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="SLOT_STATE_BUSY"></a>
+<h3>SLOT_STATE_BUSY</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+2                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="SLOT_STATE_EMPTY"></a>
+<h3>SLOT_STATE_EMPTY</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="SLOT_STATE_USED"></a>
+<h3>SLOT_STATE_USED</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="socketTimeout"></a>
+<h3>socketTimeout</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1800                                                                   </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="tmp"></a>
+<h3>tmp</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="TX_STATUS_AWAITING_RECEIPT"></a>
+<h3>TX_STATUS_AWAITING_RECEIPT</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+1                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="TX_STATUS_CONFIRMED"></a>
+<h3>TX_STATUS_CONFIRMED</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+2                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="TX_STATUS_DEAD"></a>
+<h3>TX_STATUS_DEAD</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+3                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="TX_STATUS_NOT_SENT"></a>
+<h3>TX_STATUS_NOT_SENT</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+0                                                                      </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="version"></a>
+<h3>version</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>0.1-alpha<span class="variable-quote">'</span>                                                            </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="write"></a>
+<h3>write</h3>
+<code>write</code> = <code>__builtin__.file.write</code>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>builtin_function_or_method</code>
+
+      </dd>
+      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+&lt;built-in method write of file object at 0x8109d40&gt;                    </pre>
+        </td></tr></table></dd>
+    </dl>
+  </dd>
+</dl></td></tr></table>
+<br />
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th bgcolor="#70b0f0" class="navselect">&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 1.1 on Sat Nov  1 17:22:15 2003</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

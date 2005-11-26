@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>code.InteractiveConsole</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="freemail-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+<font size="-1"><b class="breadcrumbs">
+  Module&nbsp;code ::
+  Class&nbsp;InteractiveConsole</b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/code.InteractiveConsole-class.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="code.InteractiveConsole-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td></tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class InteractiveConsole</h2>
+
+<pre class="base-tree">
+<a href="code.InteractiveInterpreter-class.html"><code>InteractiveInterpreter</code></a> --+
+                         |
+                        <b>InteractiveConsole</b>
+</pre><br />
+
+<dl><dt><b>Known Subclasses:</b></dt>
+<dd>    <a href="freemail.freemailConsole-class.html"><code>freemailConsole</code></a></dd></dl>
+
+<hr/>
+<p>Closely emulate the behavior of the interactive Python 
+interpreter.</p>
+This class builds on InteractiveInterpreter and adds prompting using 
+the familiar sys.ps1 and sys.ps2, and input buffering.
+
+
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveConsole-class.html#__init__" class="summary-sig-name"><code>__init__</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>locals</span>,
+               <span class=summary-sig-arg>filename</span>)</span></code>
+<br />Constructor.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveConsole-class.html#interact" class="summary-sig-name"><code>interact</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>banner</span>)</span></code>
+<br />Closely emulate the interactive Python console.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveConsole-class.html#push" class="summary-sig-name"><code>push</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>line</span>)</span></code>
+<br />Push a line to the interpreter.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveConsole-class.html#raw_input" class="summary-sig-name"><code>raw_input</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>prompt</span>)</span></code>
+<br />Write a prompt and read a line.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveConsole-class.html#resetbuffer" class="summary-sig-name"><code>resetbuffer</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Reset the input buffer.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveInterpreter-class.html#runcode" class="summary-sig-name"><code>runcode</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>code</span>)</span></code>
+<br />Execute a code object.    <i>(inherited from <a href="code.InteractiveInterpreter-class.html"><code>InteractiveInterpreter</code></a>)</i>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveInterpreter-class.html#runsource" class="summary-sig-name"><code>runsource</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>source</span>,
+               <span class=summary-sig-arg>filename</span>,
+               <span class=summary-sig-arg>symbol</span>)</span></code>
+<br />Compile and run some source in the interpreter.    <i>(inherited from <a href="code.InteractiveInterpreter-class.html"><code>InteractiveInterpreter</code></a>)</i>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveInterpreter-class.html#showsyntaxerror" class="summary-sig-name"><code>showsyntaxerror</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>filename</span>)</span></code>
+<br />Display the syntax error that just occurred.    <i>(inherited from <a href="code.InteractiveInterpreter-class.html"><code>InteractiveInterpreter</code></a>)</i>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveInterpreter-class.html#showtraceback" class="summary-sig-name"><code>showtraceback</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />Display the exception that just occurred.    <i>(inherited from <a href="code.InteractiveInterpreter-class.html"><code>InteractiveInterpreter</code></a>)</i>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class=summary-sig><a href="code.InteractiveInterpreter-class.html#write" class="summary-sig-name"><code>write</code></a>(<span class=summary-sig-arg>self</span>,
+               <span class=summary-sig-arg>data</span>)</span></code>
+<br />Write a string.    <i>(inherited from <a href="code.InteractiveInterpreter-class.html"><code>InteractiveInterpreter</code></a>)</i>
+</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="__init__"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>__init__</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>locals</span>=<span class=sig-default>None</span>,
+               <span class=sig-arg>filename</span>=<span class=sig-default>'&lt;console&gt;'</span>)</span>
+    <br /><i>(Constructor)</i>
+  </h3>
+  <p>Constructor.</p>
+  <p>The optional locals argument will be passed to the 
+  InteractiveInterpreter base class.</p>
+  The optional filename argument should specify the (file)name of the 
+  input stream; it will show up in tracebacks.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="interact"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>interact</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>banner</span>=<span class=sig-default>None</span>)</span>
+  </h3>
+  <p>Closely emulate the interactive Python console.</p>
+  The optional banner argument specify the banner to print before the 
+  first interaction; by default it prints a banner similar to the one 
+  printed by the real Python interpreter, followed by the current class 
+  name in parentheses (so as not to confuse this with the real 
+  interpreter -- since it's so close!).
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="push"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>push</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>line</span>)</span>
+  </h3>
+  <p>Push a line to the interpreter.</p>
+  The line should not have a trailing newline; it may have internal 
+  newlines. The line is appended to a buffer and the interpreter's 
+  runsource() method is called with the concatenated contents of the 
+  buffer as source. If this indicates that the command was executed or 
+  invalid, the buffer is reset; otherwise, the command is incomplete, and 
+  the buffer is left as it was after the line was appended. The return 
+  value is 1 if more input is required, 0 if the line was dealt with in 
+  some way (this is the same as runsource()).
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="raw_input"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>raw_input</span>(<span class=sig-arg>self</span>,
+               <span class=sig-arg>prompt</span>=<span class=sig-default>''</span>)</span>
+  </h3>
+  <p>Write a prompt and read a line.</p>
+  <p>The returned line does not include the trailing newline. When the user 
+  enters the EOF key sequence, EOFError is raised.</p>
+  The base implementation uses the built-in function raw_input(); a 
+  subclass may replace this with a different implementation.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="resetbuffer"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class=sig><span class=sig-name>resetbuffer</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Reset the input buffer.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="freemail-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 1.1 on Sat Nov  1 17:22:15 2003</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>
