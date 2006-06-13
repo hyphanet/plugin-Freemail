@@ -1,49 +1,67 @@
 <?xml version="1.0"?>
-<project name="fnmail" default="compile" basedir=".">
-<!-- set global properties for this build -->
-  	<property name="src" location="src"/>
+<project name="Freemail" default="compile" basedir=".">
+	<!-- set global properties for this build -->
+	<property name="src" location="src"/>
 	<property name="build" location="build"/>
-	<property name="lib"	location="lib"/>
+	<property name="lib" location="lib"/>
+	<property name="deps" location="deps"/>
+	
+	<property name="bcdist" value="lcrypto-jdk14-133"/>
 
-	<target name="mkdir">
-		<mkdir dir="${build}"/>
-		<mkdir dir="${lib}"/>
+	<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
+	<available file="${build}/org/bouncycastle" property="bouncycastle-bin.present" />
+
+	<target name="bouncycastle-fetch" unless="bouncycastle-dist.present">
+		<mkdir dir="${deps}" />
+		<get src="http://www.bouncycastle.org/download/${bcdist}.zip" 
+		dest="${deps}/${bcdist}.zip" 
+		verbose="true"
+		usetimestamp="true" />
+
+		<unzip src="${deps}/${bcdist}.zip" dest="${deps}" />
 	</target>
 
-	<target name="compile" depends="mkdir">
-		<!-- Create the time stamp -->
-		<tstamp/>
-		<!-- Create the build directory structure used by compile -->
-		
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4" compiler="jikes">
-		<include name="fnmail/*.java"/>
-		<include name="fnmail/*/*.java"/>
-		<include name="thirdparty/*.java"/>
-		<include name="freenet/support/io/*.java"/>
+	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
+		<mkdir dir="build" />
+		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="off" optimize="on" source="1.4" nowarn="true">
+			<exclude name="**/test/*" />
 		</javac>
+	</target>
+
+	<target name="compile" depends="bouncycastle-compile">
+		<mkdir dir="${build}"/>
+
+		<tstamp/>
+		
+		<!-- Bundle the whole lot together, unless anyone whinges.
+		     It makes it much easier to run -->
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4" compiler="jikes" />
 	</target>
 
 
 	<target name="dist" depends="compile">
-	<jar jarfile="${lib}/fnmail.jar" basedir="${build}">
-	<manifest>
-	<attribute name="Main-Class" value="fnmail.FNMail"/>
-		<attribute name="Built-By" value="${user.name}"/>
-		<section name="common">
-			<attribute name="Implementation-Title" value="fnmail"/>
-			<attribute name="Implementation-Version" value="0.0"/> 
-			<attribute name="Implementation-Vendor" value="Dave Baker"/>
-		</section>
-	</manifest>
-	</jar>    
+		<mkdir dir="${lib}"/>
+		<jar jarfile="${lib}/Freemail.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Main-Class" value="freemail.Freemail"/>
+				<attribute name="Built-By" value="${user.name}"/>
+				<section name="common">
+					<attribute name="Implementation-Title" value="Freemail"/>
+					<attribute name="Implementation-Version" value="0.0"/> 
+					<attribute name="Implementation-Vendor" value="Dave Baker"/>
+				</section>
+			</manifest>
+		</jar>    
 	</target>
 
 	<target name="clean">
 		<delete dir="${build}"/>
 		<delete dir="${lib}"/>
 	</target>
-	<target name="distclean" description="Delete class files, lib dir and docs dir.">
+
+	<target name="distclean" description="Delete everything and restore to the original state.">
 		<delete dir="${build}"/>
 		<delete dir="${lib}"/>
+		<delete dir="${deps}"/>
 	</target>
 </project>

@@ -57,6 +57,8 @@ public class PropsFile {
 	}
 	
 	public String get(String key) {
+		if (this.data == null) return null;
+		
 		return (String)this.data.get(key);
 	}
 	

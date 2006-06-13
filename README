@@ -11,7 +11,7 @@ addresses and whatnot.
 Proper, secure implemenations of the Freemail protocol will come later.
 
 All the data, including your passwd file, will most likley end up world
-readable. Under unix, you could try running fnmail with a modified umask
+readable. Under unix, you could try running Freemail with a modified umask
 if this bothers you, but I don't believe there is a portable way of doing
 this in Java (or I haven't found it).
 
@@ -23,28 +23,28 @@ Now you've read that (you have read that, right?):
 compile: (however you compile Java, an ant buildfile is supplied)
 run with --newaccount <account name> to create an account, eg:
 
-java -cp build/ fnmail.FNMail --newaccount fred
+java -cp build/ freemail.Freemail --newaccount fred
 
 Use --passwd <account> <passwd> to set your password
 
-java -cp build/ fnmail.FNMail --passwd fred fredspassword
+java -cp build/ freemail.Freemail --passwd fred fredspassword
 
 Run:
 
-java -cp build/ fnmail.FNMail
+java -cp build/ Freemail.FNMail
 
 Set up your email client to point at IMAP port 3143 and SMTP port 3025.
 
-Your address is <accountname>@nim.fnmail
+Your address is <accountname>@nim.Freemail
 
 And yes, in case you were wondering, no - there's nothing to stop someone
 else using the same address. I did say it was insecure ;)
 
 Send me a message if you like, I promise to reply if it works :)
 
-dbkr@nim.fnmail
+dbkr@nim.Freemail
 
-(and since anyone can read fnmail message right now, my fnmail public key
+(and since anyone can read Freemail messages right now, my Freemail public key
 can be found at USK@vjETpEgDH-6EzlngZoO8KgOZm-B8AAlvZ-6oP6aQmow,DZYYfhpOxIrtdCNJiflIPjd0Qy8nA1d3Dwy86dcdhu0,AQABAAE/dbkr/10/contact/pubkey.fnmail.asc, or failing that, http://accidentalegg.co.uk/contact/pubkey.fnmail)
 
 If it doesn't, dbkr@freenetproject.org!

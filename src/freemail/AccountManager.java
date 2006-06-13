@@ -9,6 +9,13 @@ import java.io.IOException;
 import java.util.Random;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.math.BigInteger;
+
+import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
+import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import java.security.SecureRandom;
 
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
@@ -21,6 +28,10 @@ public class AccountManager {
 	
 	private static final String ACCOUNT_FILE = "accprops";
 	private static final int RTS_KEY_LENGTH = 32;
+	
+	private static final int ASYM_KEY_MODULUS_LENGTH = 4096;
+	private static final BigInteger ASYM_KEY_EXPONENT = new BigInteger("17", 10);
+	private static final int ASYM_KEY_CERTAINTY = 80;
 	
 
 	public static void Create(String username) throws IOException {
@@ -141,6 +152,26 @@ public class AccountManager {
 		} catch (IOException ioe) {
 			System.out.println("Couldn't create mailsite key file! "+ioe.getMessage());
 		}
+		
+		// generate an RSA keypair
+		System.out.println("Generating cryptographic keypair (this could take a few minutes)...");
+		
+		SecureRandom rand = new SecureRandom();
+
+		RSAKeyGenerationParameters kparams = new RSAKeyGenerationParameters(ASYM_KEY_EXPONENT, rand, ASYM_KEY_MODULUS_LENGTH, ASYM_KEY_CERTAINTY);
+
+		RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
+		kpg.init(kparams);
+		
+		AsymmetricCipherKeyPair keypair = kpg.generateKeyPair();
+		RSAKeyParameters pub = (RSAKeyParameters) keypair.getPublic();
+		RSAKeyParameters priv = (RSAKeyParameters) keypair.getPrivate();
+
+		accfile.put("asymkey.modulus=", pub.getModulus().toString());
+		accfile.put("asymkey.pubexponent=", pub.getExponent().toString());
+		accfile.put("asymkey.privexponent=", priv.getExponent().toString());
+		
+		System.out.println("Account creation completed.");
 	}
 	
 	public static boolean authenticate(String username, String password) {
