@@ -3,6 +3,8 @@ package freemail;
 import java.io.File;
 import java.lang.InterruptedException;
 
+import freemail.util.PropsFile;
+
 public class SingleAccountWatcher implements Runnable {
 	public static final String CONTACTS_DIR = "contacts";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
@@ -13,8 +15,9 @@ public class SingleAccountWatcher implements Runnable {
 	SingleAccountWatcher(File accdir) {
 		File contacts_dir = new File(accdir, CONTACTS_DIR);
 		
-		/////////////////
-		AccountManager.getMailsitePrivkey(accdir);
+		PropsFile accprops = AccountManager.getAccountFile(accdir);
+		MailSite ms = new MailSite(accprops);
+		ms.Publish();
 		
 		this.mb = new MessageBank(accdir.getName());
 		this.mf = new MailFetcher(this.mb, contacts_dir, Freemail.getFCPConnection());

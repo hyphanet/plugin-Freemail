@@ -86,34 +86,12 @@ public class AccountManager {
 		accfile.put("md5passwd", strmd5);
 	}
 	
-	public static String getMailsitePubkey(File accdir) {
-		PropsFile accfile = getAccountFile(accdir);
-		
-		String retval = accfile.get("mailsite.pubkey");
-		
-		if (retval == null) {
-			initAccFile(accfile);
-			retval = accfile.get("mailsite.pubkey");
-		}
-		
-		return retval;
-	}
-	
-	public static String getMailsitePrivkey(File accdir) {
-		PropsFile accfile = getAccountFile(accdir);
-		
-		String retval = accfile.get("mailsite.pubkey");
-		
-		if (retval == null) {
-			initAccFile(accfile);
-			retval = accfile.get("mailsite.privkey");
-		}
-		
-		return retval;
-	}
-	
-	private static PropsFile getAccountFile(File accdir) {
+	public static PropsFile getAccountFile(File accdir) {
 		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
+		
+		if (!accfile.exists()) {
+			initAccFile(accfile);
+		}
 		
 		return accfile;
 	}
@@ -121,17 +99,17 @@ public class AccountManager {
 	private static void initAccFile(PropsFile accfile) {
 		try {
 			System.out.println("Generating mailsite keys...");
-			HighLevelFCPClient fcpcli = new HighLevelFCPClient(Freemail.getFCPConnection());
+			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
 			SSKKeyPair keypair = fcpcli.makeSSK();
 			
 			// write private key
-			if (!accfile.put("mailsite.privkey", keypair.privkey)) {
+			if (!accfile.put("mailsite.privkey", keypair.privkey+"mailsite")) {
 				throw new IOException("Unable to write account file");
 			}
 			
 			// write public key
-			if (!accfile.put("mailsite.pubkey", keypair.pubkey)) {
+			if (!accfile.put("mailsite.pubkey", keypair.pubkey+"mailsite")) {
 				throw new IOException("Unable to write account file");
 			}
 			
@@ -167,9 +145,9 @@ public class AccountManager {
 		RSAKeyParameters pub = (RSAKeyParameters) keypair.getPublic();
 		RSAKeyParameters priv = (RSAKeyParameters) keypair.getPrivate();
 
-		accfile.put("asymkey.modulus=", pub.getModulus().toString());
-		accfile.put("asymkey.pubexponent=", pub.getExponent().toString());
-		accfile.put("asymkey.privexponent=", priv.getExponent().toString());
+		accfile.put("asymkey.modulus", pub.getModulus().toString());
+		accfile.put("asymkey.pubexponent", pub.getExponent().toString());
+		accfile.put("asymkey.privexponent", priv.getExponent().toString());
 		
 		System.out.println("Account creation completed.");
 	}

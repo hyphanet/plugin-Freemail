@@ -117,44 +117,18 @@ public class MessageSender implements Runnable {
 		}
 		
 		if (addr.domain.equalsIgnoreCase("nim.freemail")) {
-			if (this.slotinsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString())) {
+			HighLevelFCPClient cli = new HighLevelFCPClient();
+			
+			FileInputStream fis;
+			try {
+				fis = new FileInputStream(msg);
+			} catch (FileNotFoundException fnfe) {
+				return;
+			}
+			
+			if (cli.SlotInsert(fis, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
 				msg.delete();
 			}
 		}
-	}
-	
-	private boolean slotinsert(File data, String basekey) {
-		HighLevelFCPClient cli = new HighLevelFCPClient(Freemail.getFCPConnection());
-		
-		int slot = 1;
-		boolean carryon = true;
-		while (carryon) {
-			System.out.println("trying slotinsert to "+basekey+"-"+slot);
-			FileInputStream fis;
-			try {
-				fis = new FileInputStream(data);
-			} catch (FileNotFoundException fnfe) {
-				// riiiiiight...
-				return false;
-			}
-			FCPInsertErrorMessage emsg;
-			try {
-				emsg = cli.put(fis, basekey+"-"+slot);
-			} catch (FCPBadFileException bfe) {
-				return false;
-			}
-			if (emsg == null) {
-				System.out.println("insert successful");
-				return true;
-			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
-				slot++;
-				System.out.println("collision");
-			} else {
-				System.out.println("nope - error code is "+emsg.errorcode);
-				// try again later
-				return false;
-			}
-		}
-		return false;
 	}
 }

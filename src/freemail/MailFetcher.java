@@ -65,7 +65,7 @@ public class MailFetcher {
 	
 	public void fetch_day(Contact contact, MailLog log, String date) {
 		HighLevelFCPClient fcpcli;
-		fcpcli = new HighLevelFCPClient(this.fcpconn);
+		fcpcli = new HighLevelFCPClient();
 		
 		String keybase;
 		try {

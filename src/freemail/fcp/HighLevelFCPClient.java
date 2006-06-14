@@ -3,12 +3,14 @@ package freemail.fcp;
 import java.io.File;
 import java.io.InputStream;
 
+import freemail.Freemail;
+
 public class HighLevelFCPClient implements FCPClient {
 	private FCPConnection conn;
 	private FCPMessage donemsg;
 	
-	public HighLevelFCPClient(FCPConnection c) {
-		this.conn = c;
+	public HighLevelFCPClient() {
+		this.conn = Freemail.getFCPConnection();
 	}
 	
 	// It's up to the client to delete this File once they're
@@ -118,6 +120,33 @@ public class HighLevelFCPClient implements FCPClient {
 		} else {
 			return new FCPInsertErrorMessage(donemsg);
 		}
+	}
+	
+	public int SlotInsert(InputStream data, String basekey, int minslot, String suffix) {
+		int slot = minslot;
+		boolean carryon = true;
+		while (carryon) {
+			System.out.println("trying slotinsert to "+basekey+"-"+slot+suffix);
+			
+			FCPInsertErrorMessage emsg;
+			try {
+				emsg = this.put(data, basekey+"-"+slot+suffix);
+			} catch (FCPBadFileException bfe) {
+				return -1;
+			}
+			if (emsg == null) {
+				System.out.println("insert successful");
+				return slot;
+			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
+				slot++;
+				System.out.println("collision");
+			} else {
+				System.out.println("nope - error code is "+emsg.errorcode);
+				// try again later
+				return -1;
+			}
+		}
+		return -1;
 	}
 	
 	public void requestStatus(FCPMessage msg) {
