@@ -1,4 +1,4 @@
-package freemail.util;
+package freemail.utils;
 
 import java.io.File;
 import java.io.FileReader;

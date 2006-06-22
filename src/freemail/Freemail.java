@@ -26,36 +26,29 @@ public class Freemail {
 		String fcphost = "localhost";
 		int fcpport = 9481;
 		
+		String action = "";
+		String account = null;
+		String newpasswd = null;
+		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("--newaccount")) {
+				action = args[i];
 				i++;
 				if (args.length - 1 < i) {
 					System.out.println("Usage: --newaccount <account name>");
 					return;
 				}
-				try {
-					AccountManager.Create(args[i]);
-					// for now
-					AccountManager.setupNIM(args[i]);
-					System.out.println("Account created for "+args[i]+". You may now set a password with --passwd <password>");
-					System.out.println("For the time being, you address is "+args[i]+"@nim.freemail");
-				} catch (IOException ioe) {
-					System.out.println("Couldn't create account. Please check write access to Freemail's working directory. Error: "+ioe.getMessage());
-				}
-				return;
+				
+				account = args[i];
 			} else if (args[i].equals("--passwd")) {
+				action = args[i];
 				i = i + 2;
 				if (args.length - 1 < i) {
 					System.out.println("Usage: --passwd <account name> <password>");
 					return;
 				}
-				try {
-					AccountManager.ChangePassword(args[i - 1], args[i]);
-					System.out.println("Password changed.");
-				} catch (Exception e) {
-					System.out.println("Couldn't change password for "+args[i - 1]+". "+e.getMessage());
-				}
-				return;
+				account = args[i - 1];
+				newpasswd = args[i];
 			} else if (args[i].equals("-h")) {
 				i++;
 				if (args.length - 1 < i) {
@@ -83,6 +76,28 @@ public class Freemail {
 		Thread fcpthread  = new Thread(fcpconn);
 		fcpthread.setDaemon(true);
 		fcpthread.start();
+		
+		if (action.equals("--newaccount")) {
+			try {
+				AccountManager.Create(account);
+				// for now
+				AccountManager.setupNIM(account);
+				System.out.println("Account created for "+account+". You may now set a password with --passwd <password>");
+				System.out.println("For the time being, you address is "+account+"@nim.freemail");
+			} catch (IOException ioe) {
+				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. Error: "+ioe.getMessage());
+			}
+			return;
+		} else if (action.equals("--passwd")) {
+			try {
+				AccountManager.ChangePassword(account, newpasswd);
+				System.out.println("Password changed.");
+			} catch (Exception e) {
+				System.out.println("Couldn't change password for "+account+". "+e.getMessage());
+				e.printStackTrace();
+			}
+			return;
+		}
 		
 		// start a SingleAccountWatcher for each account
 		Freemail.datadir = new File("data");

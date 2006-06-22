@@ -16,7 +16,7 @@ import freemail.utils.DateStringFactory;
 
 public class MessageSender implements Runnable {
 	public static final String OUTBOX_DIR = "outbox";
-	public static final int MIN_RUN_TIME = 60000;
+	private static final int MIN_RUN_TIME = 60000;
 	public static final String NIM_KEY_PREFIX = "KSK@freemail-nim-";
 	private final File datadir;
 	private Thread senderthread;
@@ -77,7 +77,7 @@ public class MessageSender implements Runnable {
 				if (!outbox.exists())
 					outbox.mkdir();
 				
-				this.sendDir(outbox);
+				this.sendDir(files[i], outbox);
 			}
 			// don't spin around the loop if nothing's
 			// going on
@@ -92,17 +92,17 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
-	private void sendDir(File dir) {
+	private void sendDir(File accdir, File dir) {
 		File[] files = dir.listFiles();
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().startsWith("."))
 				continue;
 			
-			this.sendSingle(files[i]);
+			this.sendSingle(accdir, files[i]);
 		}
 	}
 	
-	private void sendSingle(File msg) {
+	private void sendSingle(File accdir, File msg) {
 		String parts[] = msg.getName().split(":", 2);
 		EmailAddress addr;
 		if (parts.length < 2) {
@@ -129,6 +129,39 @@ public class MessageSender implements Runnable {
 			if (cli.SlotInsert(fis, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
 				msg.delete();
 			}
+		} else {
+			if (this.sendSecure(accdir, addr, msg)) {
+				msg.delete();
+			}
 		}
+	}
+	
+	private boolean sendSecure(File accdir, EmailAddress addr, File msg) {
+		System.out.println("sending secure");
+		OutboundContact ct;
+		try {
+			ct = new OutboundContact(accdir, addr);
+		} catch (BadFreemailAddressException bfae) {
+			// TODO: bounce
+			return true;
+		}
+		boolean ready;
+		if (!ct.exists()) {
+			try {
+				System.out.println("initing outbound contact");
+				ready = ct.init();
+			} catch (OutboundContactFatalException fe) {
+				// will never succeed, so report success to delete the message
+				// TODO: send a bounce message or something
+				return true;
+			}
+		} else {
+			System.out.println("ready");
+			ready = true;
+		}
+		
+		if (!ready) return false;
+		
+		return false;
 	}
 }

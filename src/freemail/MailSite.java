@@ -3,11 +3,12 @@ package freemail;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 
-import freemail.util.PropsFile;
+import freemail.utils.PropsFile;
 import freemail.fcp.HighLevelFCPClient;
 
 public class MailSite {
 	private final PropsFile accprops;
+	public static final String MAILPAGE = "mailpage";
 
 	MailSite(PropsFile a) {
 		this.accprops = a;
@@ -67,7 +68,7 @@ public class MailSite {
 			minslot = 1;
 		}
 		
-		int actualslot = cli.SlotInsert(bis, key, 1, "/mailpage");
+		int actualslot = cli.SlotInsert(bis, key, 1, "/"+MAILPAGE);
 		
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
 		

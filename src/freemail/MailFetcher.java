@@ -16,6 +16,8 @@ import java.util.TimeZone;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.bouncycastle.util.encoders.Hex;
+
 public class MailFetcher {
 	private final MessageBank mb;
 	private File contact_dir;
@@ -127,6 +129,6 @@ public class MailFetcher {
 		file.delete();
 		
 		byte[] checksum = md.digest();
-		return AccountManager.bytestoHex(checksum);
+		return new String(Hex.encode(checksum));
 	}
 }

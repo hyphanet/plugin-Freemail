@@ -23,8 +23,8 @@
 
 	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
 		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="off" optimize="on" source="1.4" nowarn="true">
-			<exclude name="**/test/*" />
+		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.4" nowarn="true">
+			<!--<exclude name="**/test/*" />-->
 		</javac>
 	</target>
 

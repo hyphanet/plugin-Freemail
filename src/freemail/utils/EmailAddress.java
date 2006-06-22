@@ -1,5 +1,7 @@
 package freemail.utils;
 
+import org.bouncycastle.util.encoders.Hex;
+
 public class EmailAddress {
 	public String realname;
 	public String user;
@@ -47,6 +49,26 @@ public class EmailAddress {
 	
 	public boolean is_freemail_address() {
 		if (this.domain == null) return false;
-		return this.domain.equalsIgnoreCase("nim.freemail");
+		if (!this.domain.endsWith(".freemail")) return false;
+		if (this.getMailsiteKey() == null) return false;
+		return true;
+	}
+	
+	public String getMailsiteKey() {
+		String[] domparts = this.domain.split("\\.", 2);
+		
+		if (domparts.length < 2) return null;
+		
+		try {
+			return new String (Hex.decode(domparts[0].getBytes()));
+		} catch (ArrayIndexOutOfBoundsException aiobe) {
+			// the Hex decoder just generates this exception if the input is not hex
+			// (since it looks up a non-hex charecter in the decoding table)
+			return null;
+		}
+	}
+	
+	public String toString() {
+		return this.user+"@"+this.domain;
 	}
 }

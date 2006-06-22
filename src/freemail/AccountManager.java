@@ -9,17 +9,18 @@ import java.io.IOException;
 import java.util.Random;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.math.BigInteger;
 
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
-import java.security.SecureRandom;
+import org.bouncycastle.util.encoders.Hex;
 
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
-import freemail.util.PropsFile;
+import freemail.utils.PropsFile;
 
 public class AccountManager {
 	public static final String DATADIR = "data";
@@ -33,6 +34,8 @@ public class AccountManager {
 	private static final BigInteger ASYM_KEY_EXPONENT = new BigInteger("17", 10);
 	private static final int ASYM_KEY_CERTAINTY = 80;
 	
+	public static final String MAILSITE_SUFFIX = "mailsite";
+	
 
 	public static void Create(String username) throws IOException {
 		File datadir = new File(DATADIR);
@@ -42,6 +45,7 @@ public class AccountManager {
 		
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+DATADIR);
+		getAccountFile(accountdir);
 	}
 	
 	public static void setupNIM(String username) throws IOException {
@@ -52,7 +56,12 @@ public class AccountManager {
 			if (!contacts_dir.mkdir()) throw new IOException("Failed to create contacts directory");
 		}
 		
-		File nimdir = new File(contacts_dir, NIMDIR);
+		File inbound_dir = new File(contacts_dir, SingleAccountWatcher.INBOUND_DIR);
+		if (!inbound_dir.exists()) {
+			if (!inbound_dir.mkdir()) throw new IOException("Failed to create inbound contacts directory");
+		}
+		
+		File nimdir = new File(inbound_dir, NIMDIR);
 		if (!nimdir.exists()) {
 			if (!nimdir.mkdir()) throw new IOException("Failed to create nim directory");
 		}
@@ -81,7 +90,7 @@ public class AccountManager {
 		PropsFile accfile = getAccountFile(accountdir);
 		
 		byte[] md5passwd = md.digest(newpassword.getBytes());
-		String strmd5 = bytestoHex(md5passwd);
+		String strmd5 = new String(Hex.encode(md5passwd));
 		
 		accfile.put("md5passwd", strmd5);
 	}
@@ -96,6 +105,20 @@ public class AccountManager {
 		return accfile;
 	}
 	
+	public static RSAKeyParameters getPrivateKey(File accdir) {
+		PropsFile props = getAccountFile(accdir);
+		
+		String mod_str = props.get("asymkey.modulus");
+		String privexp_str = props.get("asymkey.privexponent");
+		
+		if (mod_str == null || privexp_str == null) {
+			System.out.println("Couldn't get private key - account file corrupt?");
+			return null;
+		}
+		
+		return new RSAKeyParameters(true, new BigInteger(mod_str, 10), new BigInteger(privexp_str, 10));
+	}
+	
 	private static void initAccFile(PropsFile accfile) {
 		try {
 			System.out.println("Generating mailsite keys...");
@@ -103,13 +126,18 @@ public class AccountManager {
 			
 			SSKKeyPair keypair = fcpcli.makeSSK();
 			
+			if (keypair == null) {
+				System.out.println("Unable to connect to the Freenet nodenode");
+				return;
+			}
+			
 			// write private key
-			if (!accfile.put("mailsite.privkey", keypair.privkey+"mailsite")) {
+			if (!accfile.put("mailsite.privkey", keypair.privkey+MAILSITE_SUFFIX)) {
 				throw new IOException("Unable to write account file");
 			}
 			
 			// write public key
-			if (!accfile.put("mailsite.pubkey", keypair.pubkey+"mailsite")) {
+			if (!accfile.put("mailsite.pubkey", keypair.pubkey+MAILSITE_SUFFIX)) {
 				throw new IOException("Unable to write account file");
 			}
 			
@@ -175,7 +203,7 @@ public class AccountManager {
 		}
 		byte[] givenmd5 = md.digest(password.getBytes());
 		
-		String givenmd5str = bytestoHex(givenmd5);
+		String givenmd5str = new String(Hex.encode(givenmd5));
 		
 		if (realmd5str.equals(givenmd5str)) {
 			return true;
@@ -186,18 +214,5 @@ public class AccountManager {
 	private static boolean validate_username(String username) {
 		if (username.matches("[\\w_]*")) return true;
 		return false;
-	}
-	
-	public static String bytestoHex(byte[] bytes) {
-		String retval = new String("");
-		
-		for (int i = 0; i < bytes.length; i++) {
-			String b = Integer.toHexString((int)(bytes[i] & 0xFF));
-			if (b.length() < 2) {
-				b = "0" + b;
-			}
-			retval += b;
-		}
-		return retval;
 	}
 }
