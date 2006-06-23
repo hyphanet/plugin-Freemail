@@ -2,6 +2,9 @@ package freemail.fcp;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 
 import freemail.Freemail;
 
@@ -122,15 +125,52 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public int SlotInsert(InputStream data, String basekey, int minslot, String suffix) {
+	public int SlotInsert(File data, String basekey, int minslot, String suffix) {
 		int slot = minslot;
 		boolean carryon = true;
+		FileInputStream fis;
 		while (carryon) {
 			System.out.println("trying slotinsert to "+basekey+"-"+slot+suffix);
 			
+			try {
+				fis = new FileInputStream(data);
+			} catch (FileNotFoundException fnfe) {
+				return -1;
+			}
+			
 			FCPInsertErrorMessage emsg;
 			try {
-				emsg = this.put(data, basekey+"-"+slot+suffix);
+				emsg = this.put(fis, basekey+"-"+slot+suffix);
+			} catch (FCPBadFileException bfe) {
+				return -1;
+			}
+			if (emsg == null) {
+				System.out.println("insert successful");
+				return slot;
+			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
+				slot++;
+				System.out.println("collision");
+			} else {
+				System.out.println("nope - error code is "+emsg.errorcode);
+				// try again later
+				return -1;
+			}
+		}
+		return -1;
+	}
+	
+	public int SlotInsert(byte[] data, String basekey, int minslot, String suffix) {
+		int slot = minslot;
+		boolean carryon = true;
+		ByteArrayInputStream bis;
+		while (carryon) {
+			System.out.println("trying slotinsert to "+basekey+"-"+slot+suffix);
+			
+			bis = new ByteArrayInputStream(data);
+			
+			FCPInsertErrorMessage emsg;
+			try {
+				emsg = this.put(bis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
 				return -1;
 			}

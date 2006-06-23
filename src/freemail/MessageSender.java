@@ -119,14 +119,7 @@ public class MessageSender implements Runnable {
 		if (addr.domain.equalsIgnoreCase("nim.freemail")) {
 			HighLevelFCPClient cli = new HighLevelFCPClient();
 			
-			FileInputStream fis;
-			try {
-				fis = new FileInputStream(msg);
-			} catch (FileNotFoundException fnfe) {
-				return;
-			}
-			
-			if (cli.SlotInsert(fis, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
+			if (cli.SlotInsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
 				msg.delete();
 			}
 		} else {
@@ -146,7 +139,7 @@ public class MessageSender implements Runnable {
 			return true;
 		}
 		boolean ready;
-		if (!ct.exists()) {
+		if (!ct.ready()) {
 			try {
 				System.out.println("initing outbound contact");
 				ready = ct.init();

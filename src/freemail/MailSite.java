@@ -53,8 +53,6 @@ public class MailSite {
 			mailpage = mailsite_s.getBytes();
 		}
 		
-		ByteArrayInputStream bis = new ByteArrayInputStream(mailpage);
-		
 		String key = this.accprops.get("mailsite.privkey");
 		if (key == null) return -1;
 		
@@ -68,7 +66,7 @@ public class MailSite {
 			minslot = 1;
 		}
 		
-		int actualslot = cli.SlotInsert(bis, key, 1, "/"+MAILPAGE);
+		int actualslot = cli.SlotInsert(mailpage, key, 1, "/"+MAILPAGE);
 		
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
 		

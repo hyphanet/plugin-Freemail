@@ -24,7 +24,7 @@ public class OutboundContact {
 	private final File accdir;
 	private final EmailAddress address;
 	private static final String OUTBOUND_DIR = "outbound";
-
+	
 	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException {
 		this.address = a;
 		
@@ -46,8 +46,72 @@ public class OutboundContact {
 		}
 	}
 	
-	public boolean exists() {
-		return this.contactfile.exists();
+	/*
+	 * Whether or not we're ready to communicate with the other party
+	 */
+	public boolean ready() {
+		if (!this.contactfile.exists()) return false;
+		
+		String status = this.contactfile.get("status");
+		if (status == null) return false;
+		// don't wait for an ack before inserting the message, but be ready to insert it again
+		// if the ack never arrives
+		if (status.equals("rts-sent")) return true;
+		return false;
+	}
+	
+	private SSKKeyPair getCommKeyPair() {
+		SSKKeyPair ssk = new SSKKeyPair();
+		
+		ssk.pubkey = this.contactfile.get("commssk.privkey");
+		ssk.privkey = this.contactfile.get("commssk.pubkey");
+		
+		
+		if (ssk.pubkey == null || ssk.privkey == null) {
+			HighLevelFCPClient cli = new HighLevelFCPClient();
+			ssk = cli.makeSSK();
+			
+			this.contactfile.put("commssk.privkey", ssk.privkey);
+			this.contactfile.put("commssk.pubkey", ssk.pubkey);
+			// we've just generated a new SSK, so the other party definately doesn't know about it
+			this.contactfile.put("status", "notsent");
+		} else {
+			ssk = new SSKKeyPair();
+		}
+		
+		return ssk;
+	}
+	
+	private RSAKeyParameters getPubKey() throws OutboundContactFatalException {
+		String mod_str = this.contactfile.get("asymkey.modulus");
+		String exp_str = this.contactfile.get("asymkey.pubexponent");
+		
+		if (mod_str == null || exp_str == null) {
+			// we don't have their mailsite - fetch it
+			if (this.fetchMailSite()) {
+				mod_str = this.contactfile.get("asymkey.modulus");
+				exp_str = this.contactfile.get("asymkey.pubexponent");
+				
+				// must be present now, or exception would have been thrown
+			} else {
+				return null;
+			}
+		}
+		
+		return new RSAKeyParameters(false, new BigInteger(mod_str, 10), new BigInteger(exp_str, 10));
+	}
+	
+	private String getRtsKsk() throws OutboundContactFatalException {
+		String rtsksk = this.contactfile.get("rtsksk");
+		
+		if (rtsksk == null) {
+			// get it from their mailsite
+			if (!this.fetchMailSite()) return null;
+			
+			rtsksk = this.contactfile.get("rtsksk");
+		}
+		
+		return rtsksk;
 	}
 	
 	/**
@@ -57,33 +121,13 @@ public class OutboundContact {
 	 * @return true for success
 	 */
 	public boolean init() throws OutboundContactFatalException {
-		HighLevelFCPClient cli = new HighLevelFCPClient();
-		
-		System.out.println("Attempting to fetch "+this.getMailpageKey());
-		File mailsite_file = cli.fetch(this.getMailpageKey());
-		
-		if (mailsite_file == null) {
-			// TODO: Give up for now, try later, count number of and limit attempts
-			System.out.println("Failed to retrieve mailsite for "+this.address);
-			return false;
-		}
-		
-		System.out.println("got mailsite");
-		
-		PropsFile mailsite = new PropsFile(mailsite_file);
-		
-		String rtskey = mailsite.get("rtsksk");
-		String keymod_str = mailsite.get("asymkey.modulus");
-		String keyexp_str = mailsite.get("asymkey.pubexponent");
-		
-		if (rtskey == null || keymod_str == null || keyexp_str == null) {
-			// TODO: More failure mechanisms - this is fatal.
-			System.out.println("Mailsite for "+this.address+" does not contain all necessary iformation!");
-			throw new OutboundContactFatalException("Mailsite for "+this.address+" does not contain all necessary iformation!");
-		}
-		mailsite_file.delete();
-		
-		SSKKeyPair ssk = cli.makeSSK();
+		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
+		SSKKeyPair ssk = this.getCommKeyPair();
+		if (ssk == null) return false;
+		RSAKeyParameters their_pub_key = this.getPubKey();
+		if (their_pub_key == null) return false;
+		String rtsksk = this.getRtsKsk();
+		if (rtsksk == null) return false;
 		
 		StringBuffer rtsmessage = new StringBuffer();
 		
@@ -137,13 +181,6 @@ public class OutboundContact {
 		}
 		
 		// now encrypt it
-		
-		BigInteger keymodulus = new BigInteger(keymod_str, 10);
-		BigInteger keyexponent = new BigInteger(keyexp_str, 10);
-		
-		//                                               is not private
-		RSAKeyParameters their_pub_key = new RSAKeyParameters(false, keymodulus, keyexponent);
-		
 		AsymmetricBlockCipher enccipher = new RSAEngine();
 		enccipher.init(true, their_pub_key);
 		byte[] encmsg = null;
@@ -155,17 +192,49 @@ public class OutboundContact {
 		}
 		
 		// insert it!
-		ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-		
-		if (cli.SlotInsert(bis, "KSK@"+rtskey+"-"+DateStringFactory.getKeyString(), 1, "") < 0) {
+		HighLevelFCPClient cli = new HighLevelFCPClient();
+		if (cli.SlotInsert(encmsg, "KSK@"+rtsksk+"-"+DateStringFactory.getKeyString(), 1, "") < 0) {
 			return false;
 		}
 		
-		// now we can create a new outbound contact file
-		this.contactfile.put("rtskey", rtskey);
+		// remember the fact that we have successfully inserted the rts
+		this.contactfile.put("status", "rts-sent");
+		
+		return true;
+	}
+	
+	private boolean fetchMailSite() throws OutboundContactFatalException {
+		HighLevelFCPClient cli = new HighLevelFCPClient();
+		
+		System.out.println("Attempting to fetch "+this.getMailpageKey());
+		File mailsite_file = cli.fetch(this.getMailpageKey());
+		
+		if (mailsite_file == null) {
+			// TODO: Give up for now, try later, count number of and limit attempts
+			System.out.println("Failed to retrieve mailsite for "+this.address);
+			return false;
+		}
+		
+		System.out.println("got mailsite");
+		
+		PropsFile mailsite = new PropsFile(mailsite_file);
+		
+		String rtsksk = mailsite.get("rtsksk");
+		String keymod_str = mailsite.get("asymkey.modulus");
+		String keyexp_str = mailsite.get("asymkey.pubexponent");
+		
+		mailsite_file.delete();
+		
+		if (rtsksk == null || keymod_str == null || keyexp_str == null) {
+			// TODO: More failure mechanisms - this is fatal.
+			System.out.println("Mailsite for "+this.address+" does not contain all necessary iformation!");
+			throw new OutboundContactFatalException("Mailsite for "+this.address+" does not contain all necessary iformation!");
+		}
+		
+		// add this to a new outbound contact file
+		this.contactfile.put("rtsksk", rtsksk);
 		this.contactfile.put("asymkey.modulus", keymod_str);
-		this.contactfile.put("asymnkey.exponent", keyexp_str);
-		this.contactfile.put("commssk", ssk.privkey);
+		this.contactfile.put("asymkey.pubexponent", keyexp_str);
 		
 		return true;
 	}
