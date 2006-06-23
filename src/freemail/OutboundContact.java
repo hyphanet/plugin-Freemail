@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
+import freemail.utils.ChainedAsymmetricBlockCipher;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 
@@ -131,6 +132,10 @@ public class OutboundContact {
 		
 		StringBuffer rtsmessage = new StringBuffer();
 		
+		// the public part of the SSK keypair we generated
+		// put this first to avoid messages with the same first block, since we don't (currently) use CBC
+		rtsmessage.append("commssk="+ssk.pubkey+"\r\n");
+		
 		rtsmessage.append("messagetype=rts\r\n");
 		
 		// must include who this RTS is to, otherwise we're vulnerable to surruptitious forwarding
@@ -140,9 +145,6 @@ public class OutboundContact {
 		String our_mailsite_uri = AccountManager.getAccountFile(this.accdir).get("mailsite.pubkey");
 		
 		rtsmessage.append("mailsite="+our_mailsite_uri+"\r\n");
-		
-		// the public part of the SSK keypair we generated
-		rtsmessage.append("commssk="+ssk.pubkey+"\r\n");
 		
 		rtsmessage.append("\r\n");
 		
@@ -185,7 +187,7 @@ public class OutboundContact {
 		enccipher.init(true, their_pub_key);
 		byte[] encmsg = null;
 		try {
-			encmsg = sigcipher.processBlock(bos.toByteArray(), 0, bos.toByteArray().length);
+			encmsg = ChainedAsymmetricBlockCipher.encrypt(sigcipher, bos.toByteArray());
 		} catch (InvalidCipherTextException e) {
 			e.printStackTrace();
 			return false;
