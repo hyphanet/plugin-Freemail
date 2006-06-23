@@ -2,6 +2,8 @@ package freemail.utils;
 
 import org.bouncycastle.util.encoders.Hex;
 
+import org.archive.util.Base32;
+
 public class EmailAddress {
 	public String realname;
 	public String user;
@@ -59,13 +61,7 @@ public class EmailAddress {
 		
 		if (domparts.length < 2) return null;
 		
-		try {
-			return new String (Hex.decode(domparts[0].getBytes()));
-		} catch (ArrayIndexOutOfBoundsException aiobe) {
-			// the Hex decoder just generates this exception if the input is not hex
-			// (since it looks up a non-hex charecter in the decoding table)
-			return null;
-		}
+		return new String (Base32.decode(domparts[0]));
 	}
 	
 	public String toString() {

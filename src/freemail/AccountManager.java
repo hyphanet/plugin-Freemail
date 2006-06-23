@@ -18,6 +18,8 @@ import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 
+import org.archive.util.Base32;
+
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 import freemail.utils.PropsFile;
@@ -155,6 +157,12 @@ public class AccountManager {
 			}
 			
 			System.out.println("Mailsite keys generated.");
+			
+			FreenetURI puburi = new FreenetURI(keypair.pubkey);
+			
+			String base32body = Base32.encode(puburi.getKeyBody().getBytes());
+			
+			System.out.println("Your Freemail address is: <anything>@"+base32body+".freemail");
 		} catch (IOException ioe) {
 			System.out.println("Couldn't create mailsite key file! "+ioe.getMessage());
 		}
