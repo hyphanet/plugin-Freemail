@@ -1,0 +1,80 @@
+\documentclass[12pt,a4paper]{article}
+\begin{document}
+\title{Freemail - Specification and Protocol Documentation}
+\date{July 2006}
+\maketitle
+
+This is a working draft of the Freemail spcification. All parts of this document are subject to change.
+
+\section{Introduction}
+\subsection{What is Freemail}
+Freemail is an email-like messaging system that transports all messages over Freenet 0.7 in order to achieve anoymity and cencorship-resillience. Its protocol is designed to be as resistant as possible to attacks such as message floods and denial of service.
+
+Freemail uses IMAP and SMTP to interface with standard email clients, making taking advantage of interfaces that people are already accustomed to.
+
+\section{Channel Setup}
+\subsection{Mailsites}
+Before any communication occurs between a sender and a recipient (who, in accordance with cryptography tradition shall be called Alice and Bob, respectively), a channel is setup that is used between those two and only those two parties. This channel comprises a Freenet SSK keypair to which Alice has the private key and Bob has the public key. This permits one-way communication between those two parties - if communication the other way is required, a separate channel is used.
+
+All Freemail users have an Freemail address, which one may give out to others in order to allow them to contact you. From this Freemail address, it is possible to derive a Freenet SSK URI. This is the user's 'mailsite'.
+
+A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the mailsite. The string '.freenet' is appended to the whole address. An example Freemail address follows:
+
+bob@KVJUWQCMJ53UI6KEGJKFI2JQIZZFKY3XG4YE4QRSMUYWYV2PLJ4U27TLGR4DI3TLNZXW6QTSJIYCYNKSOR4XK23MGZDS2UDRKVCTITBXJJWDQYKIOFMWC33VONTFOZTQMJZTS5LCONEWGY3WGQWECUKBIJAUCRJPNVQWS3DTNF2GKLZNGEXQ.freemail
+
+The base 32 encoded mailsite in this case is: USK@LOwDyD2TTi0FrUcw70NB2e1lWOZyM~k4x4nknooBrJ0,5Rtyukl6G-PqUE4L7Jl8aHqYaousfWfpbs9ubsIccv4,AQABAAE/mailsite/-1/
+
+(this is liable to change to make the addresses shorter)
+
+Once the mailsite address has been obtained from the Freemail address, the string 'mailpage' is appended to obtain the URI for the mailpage. This mailpage contains all information required to contact the owner. The format of a mailpage is a 'Props File', which is used repeatedly in Freemail as a trivial format for storing short pieces of information. See section \ref{PropsFile}.
+
+\subsection{Mailpages}
+The following pieces of information are required in a mailpage:
+
+\begin{itemize}
+\item rtskey - This is an arbitrary string of alphanumeric characters which is used to derive a KSK that can be used to send messages to the owner of the mailsite.
+\item asymkey.modulus - The modulus of the owner's RSA encryption key, as an integer in base 10.
+\item asymkey.pubexponent - The public exponent of the owner's RSA encruption key, as an integer in base 10.
+\end{itemize}
+
+\subsection{RTS Messages}
+Once Alice has retrieved the recipient's mailpage, she sends an RTS message to Bob. This RTS message is, again, a props file, with the following keys:
+
+\begin{itemize}
+\item commssk - The SSK URI to which messages will be inserted.
+\item messagetype - This should be 'rts', to indicate that this message is an RTS.
+\item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in order to prevent surreptitious forwarding to support the enryption explained later.
+\item mailsite - Alice's mailsite URI
+\end{itemize}
+
+Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes. The resulting message is then RSA encrypted with Bob's public key. If the resulting message is longer than a single RSA block, the message is encoded in chunks equal to the maximum block size and the ciphertext blocks are concatenated to form the final message.
+
+The 'to' field is included to prevent surreptitious forwarding. That is, to prevent Bob from decrypting the message, leaving Alice's signature intact and encrypting it to someone else (say, Charlie), who would then be lead in to believing that Alice wished to communicate with him, which is fact not the case.
+
+This RTS message is then inserted to Freenet. The URI which it inserted to is derived from the 'rtskey' value in Bob's mailsite. The string, 'KSK@' is prepended a hyphen, the current date in the standard date format (see section \ref{standard_date}) is appended, followed by another hypen and a slot number. The slot number should be set to the lowest integer starting from 1, that does not cause a collision.
+
+\subsection{CTS Messages}
+
+\section{Message Exchange}
+\subsection{The Messages}
+
+\subsection{Message Acknowledgements}
+
+\appendix
+
+\section{Props Files}
+\label{PropsFile}
+A props file is a sequence of keys and values. Keys and values are separated by a single equals sign ('=') and lines are separated by a carrriage return and line feed ($\backslash$r$\backslash$n), with the exception that if the propsfile will only be read locally, it is permissable to use the line separator native to the local machine. For example, for props files that are never transmitted over the network, it is permissable to use just a line feed ($\backslash$n) to separate lines. It is recommended for simplicity, though not required, that the keys be lowercase and contain only alphanumeric characters. The keys must not contain the equals sign.
+
+An example of a propsfile is below: \\
+\\
+name=Bob Burton \\
+age=39 \\
+occupation=Builder \\
+Pet's Name=Stevie the Sycophantic Squirrel \\
+
+\section{Standard Date Format}
+\label{standard_date}
+A date in the standard format is the four digit year, two digit month and two digit day of the month. That is, "yyyyMMdd" in Java's SimpleDateFormat class notation. This is used to encode the day upon which and Freenet KSK key is inserted. For the purposes of considering when a key is inserted, this should be done accoring to Universal Standard Time, and not any local timezone or daylight saving time.
+
+\end{document}
