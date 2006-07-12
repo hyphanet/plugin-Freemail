@@ -8,7 +8,7 @@ This is a working draft of the Freemail spcification. All parts of this document
 
 \section{Introduction}
 \subsection{What is Freemail}
-Freemail is an email-like messaging system that transports all messages over Freenet 0.7 in order to achieve anoymity and cencorship-resillience. Its protocol is designed to be as resistant as possible to attacks such as message floods and denial of service.
+Freemail is an email-like messaging system that transports all messages over Freenet 0.7 in order to achieve anonymity and cencorship-resillience. Its protocol is designed to be as resistant as possible to attacks such as message floods and denial of service. Unlike traditional email, it makes it extremely difficult for others to doscover what you have been communicating, who you have been communicating with, and even that you have been communicating at all.
 
 Freemail uses IMAP and SMTP to interface with standard email clients, making taking advantage of interfaces that people are already accustomed to.
 
@@ -32,7 +32,7 @@ Once the mailsite address has been obtained from the Freemail address, the strin
 The following pieces of information are required in a mailpage:
 
 \begin{itemize}
-\item rtskey - This is an arbitrary string of alphanumeric characters which is used to derive a KSK that can be used to send messages to the owner of the mailsite.
+\item rtskey - This is an arbitrary string of alphanumeric characters which is used to derive a KSK that can be used to send data to the owner of the mailsite in order to establish a communication channel.
 \item asymkey.modulus - The modulus of the owner's RSA encryption key, as an integer in base 10.
 \item asymkey.pubexponent - The public exponent of the owner's RSA encruption key, as an integer in base 10.
 \end{itemize}
@@ -64,7 +64,7 @@ This RTS message is then inserted to Freenet. The URI which it inserted to is de
 
 \section{Props Files}
 \label{PropsFile}
-A props file is a sequence of keys and values. Keys and values are separated by a single equals sign ('=') and lines are separated by a carrriage return and line feed ($\backslash$r$\backslash$n), with the exception that if the propsfile will only be read locally, it is permissable to use the line separator native to the local machine. For example, for props files that are never transmitted over the network, it is permissable to use just a line feed ($\backslash$n) to separate lines. It is recommended for simplicity, though not required, that the keys be lowercase and contain only alphanumeric characters. The keys must not contain the equals sign.
+A props file is a sequence of keys and values. Keys and values are separated by a single equals sign ('=') and lines are separated by a carrriage return and line feed ($\backslash$r$\backslash$n), with the exception that if the propsfile will only be read locally, it is permissable to use the line separator native to the local machine. For example, for props files that are never transmitted over the network, it is permissable to use just a line feed ($\backslash$n) to separate lines. It is recommended for simplicity, though not required, that the keys be lowercase and contain only alphanumeric characters. The keys must not contain the equals sign, as there is no mechanism for escaping equals signs. The value may contain equals signs and therefore parsers of this format must treat and equals signs after the first on any line as part of the value text.
 
 An example of a propsfile is below: \\
 \\
