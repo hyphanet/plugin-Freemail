@@ -45,6 +45,7 @@ Once Alice has retrieved the recipient's mailpage, she sends an RTS message to B
 \item messagetype - This should be 'rts', to indicate that this message is an RTS.
 \item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in order to prevent surreptitious forwarding to support the enryption explained later.
 \item mailsite - Alice's mailsite URI
+\item ctsssk - A randomly generated KSK that Bob should insert to once he has recieved Alice's RTS message in order to acknoweldge that he is ready to recieve messages. This should be randomly generated and un-guessable so that only Bob knows which key to insert to.
 \end{itemize}
 
 Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes. The resulting message is then RSA encrypted with Bob's public key. If the resulting message is longer than a single RSA block, the message is encoded in chunks equal to the maximum block size and the ciphertext blocks are concatenated to form the final message.
@@ -53,7 +54,22 @@ The 'to' field is included to prevent surreptitious forwarding. That is, to prev
 
 This RTS message is then inserted to Freenet. The URI which it inserted to is derived from the 'rtskey' value in Bob's mailsite. The string, 'KSK@' is prepended a hyphen, the current date in the standard date format (see section \ref{standard_date}) is appended, followed by another hypen and a slot number. The slot number should be set to the lowest integer starting from 1, that does not cause a collision.
 
+Alice then regularly polls the KSK she put as the value of 'ctsssk' until she retrives a CTS message (see next section).
+
 \subsection{CTS Messages}
+When Bob recieves an RTS message from Alice, he decrypts the message using his RSA private key. He then retrives the mailsite advertised in the RTS message. Having done this, he reads the signature on the end and decrypts the signature with the public key he just retrieved from the mailsite. He then calculates a SHA-256 checksum of the message and checks that his checksum is identical to the one he has decrypted. If it is not, he must discard the message. This ensures that the message is really from Alice. He must then read the 'to' field and ensure that its value is identical to his mailsite URI. If it is not, he must discard the message. This ensures that he is the intended recipient of the message.
+
+Bob then records the value of the 'commssk' key so that he can poll this SSK for messages periodicaly. Before doing so, he creates another propfile with the following values:
+
+\begin{itemize}
+\item messagetype - This should be 'cts' to indicate that this is a clear-to-send message
+\end{itemize}
+
+Bob inserts this file to the value of the 'ctsssk' key in the RTS message.
+
+This message contains no valuable information and so does not need to be encrypted. It also does not need to be signed since only Alice and Bob know the KSK to which it must be inserted, so Alice knows that Bob must have inserted the message. The KSK that Bob inserts this message to tells Alice what RTS it relates to if there is any ambiguity.
+
+TODO: Polling of commssks.
 
 \section{Message Exchange}
 \subsection{The Messages}
