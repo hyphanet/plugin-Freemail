@@ -20,9 +20,10 @@ All Freemail users have an Freemail address, which one may give out to others in
 
 A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the mailsite. The URI must be base 32 encoded in order to make the address case insensitive to maintain compatability with traditional email clients. The string '.freenet' is appended to the whole address. An example Freemail address follows:
 
-bob@KVJUWQCMJ53UI6KEGJKFI2JQIZZFKY3XG4YE4QRSMUYWYV2PLJ4U27TLGR4DI3TLNZXW6QTSJIYCYNKSOR4XK23MGZDS2UDRKVCTITBXJJWDQYKIOFMWC33VONTFOZTQMJZTS5LCONEWGY3WGQWECUKBIJAUCRJPNVQWS3DTNF2GKLZNGEXQ.freemail
+bob@KVJUWQCMJ53UI6KEGJKFI2JQIZZFKY3XG\-4YE4QRSMUYWYV2PLJ4U27TLG\-R4DI3TLNZXW6QTSJIYCYNKS\-OR4XK23MGZDS2UDRKVCTIT\-BXJJWDQYKIOFM\-WC33VONTFOZTQMJZTS5LCO\-NEWGY3WGQWECUKBIJA\-UCRJPNVQWS3DTNF\-2GKLZNGEXQ.freemail
 
-The base 32 encoded mailsite in this case is: USK@LOwDyD2TTi0FrUcw70NB2e1lWOZyM~k4x4nknooBrJ0,5Rtyukl6G-PqUE4L7Jl8aHqYaousfWfpbs9ubsIccv4,AQABAAE/mailsite/-1/
+
+The base 32 encoded mailsite in this case is: USK@LOwDyD2TTi0FrUcw70N\-B2e1lWOZyM~k4x4n\-knooBrJ0,5Rtyu\-kl6G-PqUE4L7\-Jl8aHqYaous\-fWfpbs9ubsI\-ccv4,AQABAAE/mailsite/-1/
 
 (this is liable to change to make the addresses shorter)
 
@@ -41,7 +42,8 @@ The following pieces of information are required in a mailpage:
 Once Alice has retrieved the recipient's mailpage, she sends an RTS message to Bob. This RTS message is, again, a props file, with the following keys:
 
 \begin{itemize}
-\item commssk - The SSK URI to which messages will be inserted.
+\item commssk - The public SSK URI to which messages will be inserted.
+\item ackssk - A fresh SSK private (insert) key that Bob will insert to in order to acknowledge his reciept of each message.
 \item messagetype - This should be 'rts', to indicate that this message is an RTS.
 \item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in order to prevent surreptitious forwarding to support the enryption explained later.
 \item mailsite - Alice's mailsite URI
@@ -49,6 +51,8 @@ Once Alice has retrieved the recipient's mailpage, she sends an RTS message to B
 \end{itemize}
 
 Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes. The resulting message is then RSA encrypted with Bob's public key. If the resulting message is longer than a single RSA block, the message is encoded in chunks equal to the maximum block size and the ciphertext blocks are concatenated to form the final message.
+
+It is the sender's responsibility to keep the private part of the 'commssk' key private. It is valid to assume that any message inserted on 'commssk' was written by Alice and intended for Bob, since only Alice has the private key and only they have the public key.
 
 The 'to' field is included to prevent surreptitious forwarding. That is, to prevent Bob from decrypting the message, leaving Alice's signature intact and encrypting it to someone else (say, Charlie), who would then be lead in to believing that Alice wished to communicate with him, which is fact not the case.
 
@@ -65,16 +69,61 @@ Bob then records the value of the 'commssk' key so that he can poll this SSK for
 \item messagetype - This should be 'cts' to indicate that this is a clear-to-send message
 \end{itemize}
 
-Bob inserts this file to the value of the 'ctsssk' key in the RTS message.
+Bob inserts this file to the value of the 'ctsssk' key in the RTS message. This completes Bob's part of the channel setup procedure.
 
 This message contains no valuable information and so does not need to be encrypted. It also does not need to be signed since only Alice and Bob know the KSK to which it must be inserted, so Alice knows that Bob must have inserted the message. The KSK that Bob inserts this message to tells Alice what RTS it relates to if there is any ambiguity.
 
-TODO: Polling of commssks.
+Alice should check periodically for the insertion of this CTS message. If it does not arrive, Alice should re-send the RTS message with a different 'ctsssk', in order that she can be certain which RRS message any given CTS message corresponds to. All other field should be the same. The client may try several times before declaring the message undeliverable.
 
 \section{Message Exchange}
 \subsection{The Messages}
+Once Bob has inserted this CTS message, he begins polling for messages on keys derived from the value of the 'commssk' key which he obtained from the RTS message. These keys are the value of 'comssk' with the string 'message-' and a natural number appended, where the number is the lowest number that does not form a key on which Bob has already received a message (the 'lowest free slot'). For example:
+
+SSK@9GXtGxN4CEJD~8a30\-7V6yzyhl8Gx5UYb\-WVDTEyUXH6o,gDWfr2CqVmDAeJ\-urKF2iieM5AkjXs\-tOl2V5jyuTHeo4,AQABAAE/message-1
+
+Once Bob has successfully retrived this key, he begins to periodically request the key:
+
+SSK@9GXtGxN4CEJD~8a30\-7V6yzyhl8Gx5UYbW\-VDTEyUXH6o,gDWfr2CqVmDAeJ\-urKF2iieM5AkjXs\-tOl2V5jyuTHeo4,AQABAAE/message-2
+
+It is recommended that clients poll several messages ahead rather than just the immediately next message, since simulations suggest that it is possible for single keys not to be retrivable in this kind of circumstance. So for example, once Bob has sent his CTS messages, he should start polling for the keys:
+
+number that does not form a key on which Bob has already received a message (the 'lowest free slot'). For example: \\
+\\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-1 \\
+\\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-2 \\
+\\
+and \\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-3
+
+Alice can insert a message to the lowest numbered key of this pattern that does not cause a collision whenever she chooses. These comprise a number of properties (in the same way as a props file) followed by a double carriage-return-line-feed. Following this is the standard MIME mail messages. No signing or encryption is used here, since at this stage it is achieved inside Freenet by virtue of only Alice and Bob knowing the SSK upon which they communicate.
+
+The only mandatory property is 'id' which may be any integer, but must uniquely identify the message from any other past or future message transported using the same 'commssk'. Bob must check this value and ensure that he has not already recieved this message id. If he has, he discards the message, but still ackowledges his reciept of it. All clients must ignore any unknown keys and begin reading the message only at the double line break in order that extra properties can be added in the future.
 
 \subsection{Message Acknowledgements}
+When Bob recieves a message on the 'commssk', he reads it and passes it onto the user. He then inserts some data to the key 'ackssk' (which he obtains from the original RTS message) with 'ack-' and the value of 'id' from the message in question. For example, if Bob has just fetched a message from key: \\
+\\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-1 \\
+\\
+With the contents: \\
+\\
+
+\fbox{\begin{minipage}[h]{400pt}
+id=657488664753 \\
+
+To: Bob Burton $<$bob@longkey.freemail$>$ \\
+From: Alice Andrews $<$alice@anotherlongkey.freemail$>$ \\
+Subject: Eve \\
+
+I think Eve from down the road might be trying to spy on us. I've never liked the looked of her, you know. It's always the quiet ones.
+\end{minipage}} \\
+\\
+Then he might insert an acknowledgement to the key: \\
+\\
+\\
+SSK@AJoZbUvGkXlAJwI\-jdbu9BLPhpIXBu6\-w6nGwKYBnMfNLi,ACEgE1uUIzJdC\-Xcsz1yjgW45u\-Az-KuMrXBFYG\-U8maqc/ack-1 \\
+\\
+The data that Bob publishes to this key is irrelevant - its mere existance in the network is sufficient to assert Bob's reciept of the message.
 
 \appendix
 
@@ -84,10 +133,12 @@ A props file is a sequence of keys and values. Keys and values are separated by 
 
 An example of a propsfile is below: \\
 \\
+\fbox{\begin{minipage}{400pt}
 name=Bob Burton \\
 age=39 \\
 occupation=Builder \\
 Pet's Name=Stevie the Sycophantic Squirrel \\
+\end{minipage}}
 
 \section{Standard Date Format}
 \label{standard_date}
