@@ -11,11 +11,16 @@ public class SingleAccountWatcher implements Runnable {
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final MessageBank mb;
-	private final MailFetcher mf;
+	private final NIMFetcher nf;
+	private final RTSFetcher rtsf;
 
 	SingleAccountWatcher(File accdir) {
 		File contacts_dir = new File(accdir, CONTACTS_DIR);
 		File inbound_dir = new File(contacts_dir, INBOUND_DIR);
+		
+		if (!inbound_dir.exists()) {
+			inbound_dir.mkdir();
+		}
 		
 		// TODO: do this in the loop, periodically
 		PropsFile accprops = AccountManager.getAccountFile(accdir);
@@ -23,14 +28,30 @@ public class SingleAccountWatcher implements Runnable {
 		ms.Publish();
 		
 		this.mb = new MessageBank(accdir.getName());
-		this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
+		
+		File nimdir = new File(contacts_dir, AccountManager.NIMDIR);
+		if (nimdir.exists()) {
+			this.nf = new NIMFetcher(this.mb, nimdir);
+		} else {
+			this.nf = null;
+		}
+		
+		this.rtsf = new RTSFetcher("KSK@"+accprops.get("rtskey")+"-", inbound_dir);
+		
+		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 	}
 	
 	public void run() {
 		while (true) {
 			long start = System.currentTimeMillis();
 			
-			mf.fetch_from_all();
+			if (this.nf != null) {
+				nf.fetch();
+			}
+			
+			this.rtsf.fetch();
+			
+			//mf.fetch_from_all();
 			
 			long runtime = System.currentTimeMillis() - start;
 			

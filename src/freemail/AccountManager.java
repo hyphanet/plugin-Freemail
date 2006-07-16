@@ -58,12 +58,7 @@ public class AccountManager {
 			if (!contacts_dir.mkdir()) throw new IOException("Failed to create contacts directory");
 		}
 		
-		File inbound_dir = new File(contacts_dir, SingleAccountWatcher.INBOUND_DIR);
-		if (!inbound_dir.exists()) {
-			if (!inbound_dir.mkdir()) throw new IOException("Failed to create inbound contacts directory");
-		}
-		
-		File nimdir = new File(inbound_dir, NIMDIR);
+		File nimdir = new File(contacts_dir, NIMDIR);
 		if (!nimdir.exists()) {
 			if (!nimdir.mkdir()) throw new IOException("Failed to create nim directory");
 		}

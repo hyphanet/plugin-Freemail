@@ -18,32 +18,23 @@ import java.security.NoSuchAlgorithmException;
 
 import org.bouncycastle.util.encoders.Hex;
 
-public class MailFetcher {
+public class NIMFetcher {
 	private final MessageBank mb;
 	private File contact_dir;
-	private final FCPConnection fcpconn;
 	private final SimpleDateFormat sdf;
 	private static final int POLL_AHEAD = 3;
 	private static int PASSES_PER_DAY = 3;
 	private static int MAX_DAYS_BACK = 30;
 
-	MailFetcher(MessageBank m, File ctdir, FCPConnection fcpc) {
+	NIMFetcher(MessageBank m, File ctdir) {
 		this.mb = m;
-		this.fcpconn = fcpc;
 		this.sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		this.contact_dir = ctdir;
 	}
 	
-	public void fetch_from_all() {
-		File[] contactfiles = contact_dir.listFiles();
+	public void fetch() {
+		Contact contact = new Contact(this.contact_dir);
 		
-		for (int i = 0; i < contactfiles.length; i++) {
-			Contact contact = new Contact(contactfiles[i]);
-			this.fetch_from(contact);
-		}
-	}
-	
-	private void fetch_from(Contact contact) {
 		int i;
 		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
 			String datestr = DateStringFactory.getOffsetKeyString(i);
@@ -65,7 +56,7 @@ public class MailFetcher {
 		contact.pruneLogs(cal.getTime());
 	}
 	
-	public void fetch_day(Contact contact, MailLog log, String date) {
+	private void fetch_day(Contact contact, MailLog log, String date) {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class PropsFile {
 	private final File file;
@@ -78,5 +79,13 @@ public class PropsFile {
 	
 	public boolean exists() {
 		return this.file.exists();
+	}
+	
+	public Set listProps() {
+		return this.data.keySet();
+	}
+	
+	public void remove(String key) {
+		this.data.remove(key);
 	}
 }
