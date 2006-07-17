@@ -32,4 +32,8 @@ public class ChainedAsymmetricBlockCipher {
 		
 		return bos.toByteArray();
 	}
+	
+	public static byte[] decrypt(AsymmetricBlockCipher cipher, byte[] in) throws InvalidCipherTextException {
+		return ChainedAsymmetricBlockCipher.encrypt(cipher, in);
+	}
 }

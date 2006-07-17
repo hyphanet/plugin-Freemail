@@ -36,7 +36,7 @@ public class SingleAccountWatcher implements Runnable {
 			this.nf = null;
 		}
 		
-		this.rtsf = new RTSFetcher("KSK@"+accprops.get("rtskey")+"-", inbound_dir);
+		this.rtsf = new RTSFetcher("KSK@"+accprops.get("rtskey")+"-", inbound_dir, accdir);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 	}
