@@ -12,6 +12,7 @@ public class RTSLog {
 	PropsFile logfile;
 	private static String NEXTID = "nextid-";
 	private static String PASSES = "passes-";
+	private static String UNPROC_NEXTID = "unproc-nextid";
 
 	public RTSLog(File f) {
 		this.logfile = new PropsFile(f);
@@ -27,7 +28,10 @@ public class RTSLog {
 	}
 	
 	public void incPasses(String day) {
-		this.logfile.put(PASSES+day, Integer.toString(this.getPasses(PASSES+day) + 1));
+		int passes = this.getPasses(day);
+		passes++;
+		
+		this.logfile.put(PASSES+day, Integer.toString(passes));
 	}
 	
 	public void pruneBefore(Date keepafter) {
@@ -67,5 +71,19 @@ public class RTSLog {
 	
 	public void incNextId(String day) {
 		this.logfile.put(NEXTID+day, Integer.toString(this.getNextId(day) + 1));
+	}
+	
+	public int getAndIncUnprocNextId() {
+		String nid = this.logfile.get(UNPROC_NEXTID);
+		int retval;
+		if (nid == null) {
+			retval = 1;
+		} else {
+			retval = Integer.parseInt(nid);
+		}
+		
+		this.logfile.put(UNPROC_NEXTID, Integer.toString(retval + 1));
+		
+		return retval;
 	}
 }

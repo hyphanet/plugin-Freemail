@@ -20,6 +20,8 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.math.BigInteger;
+import java.net.MalformedURLException;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -34,10 +36,12 @@ public class RTSFetcher {
 	private File contact_dir;
 	private final SimpleDateFormat sdf;
 	private static final int POLL_AHEAD = 3;
-	private static int PASSES_PER_DAY = 3;
-	private static int MAX_DAYS_BACK = 30;
-	private static String LOGFILE = "rtslog";
-	private static int RTS_MAX_SIZE = 2 * 1024 * 1024;
+	private static final int PASSES_PER_DAY = 3;
+	private static final int MAX_DAYS_BACK = 30;
+	private static final String LOGFILE = "rtslog";
+	private static final int RTS_MAX_SIZE = 2 * 1024 * 1024;
+	private static final String RTS_UNPROC_PREFIX = "unprocessed_rts";
+	private static final int RTS_MAX_ATTEMPTS = 15;
 	private File accdir;
 	private PropsFile accprops;
 
@@ -49,7 +53,42 @@ public class RTSFetcher {
 		this.accprops = AccountManager.getAccountFile(this.accdir);
 	}
 	
-	public void fetch() {
+	public void poll() {
+		this.fetch();
+		this.handle_unprocessed();
+	}
+	
+	private void handle_unprocessed() {
+		File[] files = this.contact_dir.listFiles();
+		
+		int i;
+		for (i = 0; i < files.length; i++) {
+			if (files[i].getName().startsWith(RTS_UNPROC_PREFIX)) {
+				if (this.handle_rts(files[i])) {
+					files[i].delete();
+				} else {
+					String[] parts = files[i].getName().split(":", 2);
+					
+					int tries;
+					if (parts.length < 2) {
+						tries = 0;
+					} else {
+						tries = Integer.parseInt(parts[1]);
+					}
+					tries++;
+					if (tries > RTS_MAX_ATTEMPTS) {
+						System.out.println("Maximum attempts at handling RTS reached - deleting RTS");
+						files[i].delete();
+					} else {
+						File newname = new File(this.contact_dir, RTS_UNPROC_PREFIX + ":" + tries);
+						files[i].renameTo(newname);
+					}
+				}
+			}
+		}
+	}
+	
+	private void fetch() {
 		int i;
 		RTSLog log = new RTSLog(new File(this.contact_dir, LOGFILE));
 		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
@@ -88,11 +127,14 @@ public class RTSFetcher {
 			
 			if (result != null) {
 				System.out.println(keybase+i+": got RTS!");
-				// if we didn't successfully handle (or fatally fail to handle) the RTS message, don't increment the id, so we'll get it again in a bit
-				if (this.handle_rts(result)) {
+				
+				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+":0");
+				
+				// stick this message in the RTS 'inbox'
+				if (result.renameTo(rts_dest)) {
+					// provided that worked, we can move on to the next RTS message
 					log.incNextId(date);
 				}
-				result.delete();
 			} else {
 				System.out.println(keybase+i+": no RTS.");
 			}
@@ -122,8 +164,8 @@ public class RTSFetcher {
 			return true;
 		}
 		
-		File rtsfile;
-		byte[] sig;
+		File rtsfile = null;
+		byte[] their_encrypted_sig;
 		int messagebytes = 0;
 		try {
 			rtsfile = File.createTempFile("rtstmp", "tmp", Freemail.getTempDir());
@@ -148,20 +190,22 @@ public class RTSFetcher {
 				// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
 				
 				System.out.println("Couldn't find signature on RTS message - ignoring!");
+				rtsfile.delete();
 				return true;
 			}
 			
-			sig = new byte[bis.available()];
+			their_encrypted_sig = new byte[bis.available()];
 			
 			int read = 0;
 			while (true) {
-				read = bis.read(sig, 0, bis.available());
+				read = bis.read(their_encrypted_sig, 0, bis.available());
 				if (read == 0) break;
 			}
 			bis.close();
 		} catch (IOException ioe) {
 			System.out.println("IO error whilst handling RTS message. "+ioe.getMessage());
 			ioe.printStackTrace();
+			if (rtsfile != null) rtsfile.delete();
 			return false;
 		}
 		
@@ -171,6 +215,7 @@ public class RTSFetcher {
 			validate_rts(rtsprops);
 		} catch (Exception e) {
 			System.out.println("RTS message does not contain vital information: "+e.getMessage()+" - discarding");
+			rtsfile.delete();
 			return true;
 		}
 		
@@ -182,21 +227,98 @@ public class RTSFetcher {
 			md = MessageDigest.getInstance("MD5");
 		} catch (NoSuchAlgorithmException alge) {
 			System.out.println("No MD5 implementation available - sorry, Freemail cannot work!");
+			rtsfile.delete();
 			return false;
 		}
 		md.update(plaintext, 0, messagebytes);
 		byte[] our_hash = md.digest();
 		
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
-		fcpcli.fetch(their_mailsite);
 		
-		// TODO: finish.
+		File msfile = fcpcli.fetch(their_mailsite);
+		if (msfile == null) {
+			// oh well, try again in a bit
+			return false;
+		}
 		
-		// verify the message is for us
+		PropsFile mailsite = new PropsFile(msfile);
+		String their_exponent = mailsite.get("asymkey.pubexponent");
+		String their_modulus = mailsite.get("asymkey.modulus");
+		
+		if (their_exponent == null || their_modulus == null) {
+			System.out.println("Mailsite fetched successfully but missing vital information! Discarding this RTS.");
+			msfile.delete();
+			rtsfile.delete();
+			return true;
+		}
+		
+		RSAKeyParameters their_pubkey = new RSAKeyParameters(false, new BigInteger(their_modulus, 10), new BigInteger(their_exponent, 10));
+		AsymmetricBlockCipher deccipher = new RSAEngine();
+		deccipher.init(false, their_pubkey);
+		
+		byte[] their_hash;
+		try {
+			their_hash = deccipher.processBlock(their_encrypted_sig, 0, their_encrypted_sig.length);
+		} catch (InvalidCipherTextException icte) {
+			System.out.println("It was not possible to decrypt the signature of this RTS message. Discarding the RTS message.");
+			msfile.delete();
+			rtsfile.delete();
+			return true;
+		}
+		
+		// finally we can now check that our hash and their hash
+		// match!
+		if (their_hash.length != our_hash.length) {
+			System.out.println("The signature of the RTS message is not valid. Discarding the RTS message.");
+			msfile.delete();
+			rtsfile.delete();
+			return true;
+		}
+		int i;
+		for (i = 0; i < their_hash.length; i++) {
+			if (their_hash[i] != our_hash[i]) {
+				System.out.println("The signature of the RTS message is not valid. Discarding the RTS message.");
+				msfile.delete();
+				rtsfile.delete();
+				return true;
+			}
+		}
+		// the signature is valid! Hooray!
+		// Now verify the message is for us
+		String our_mailsite_keybody;
+		try {
+			our_mailsite_keybody = new FreenetURI(this.accprops.get("mailsite.pubkey")).getKeyBody();
+		} catch (MalformedURLException mfue) {
+			System.out.println("Local mailsite URI is invalid! Corrupt account file?");
+			msfile.delete();
+			rtsfile.delete();
+			return false;
+		}
+		if (!rtsprops.get("to").equals(our_mailsite_keybody)) {
+			System.out.println("Recieved an RTS message that was not intended for the recipient. Discarding.");
+			msfile.delete();
+			rtsfile.delete();
+			return true;
+		}
 		
 		// create the inbound contact
+		FreenetURI their_mailsite_furi;
+		try {
+			their_mailsite_furi = new FreenetURI(their_mailsite);
+		} catch (MalformedURLException mfue) {
+			System.out.println("Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
+			msfile.delete();
+			rtsfile.delete();
+			return true;
+		}
+		InboundContact ibct = new InboundContact(this.contact_dir, their_mailsite_furi);
 		
-		// move the props file to the right place
+		ibct.setProp("commssk", rtsprops.get("commssk"));
+		ibct.setProp("ackssk", rtsprops.get("ackssk"));
+		ibct.setProp("ctsksk", rtsprops.get("ctsksk"));
+		
+		msfile.delete();
+		rtsfile.delete();
 		
 		return true;
 	}
@@ -229,7 +351,7 @@ public class RTSFetcher {
 		if (rts.get("commssk") == null) {
 			missing.append("commssk");
 		}
-		if (rts.get("ackssk") == null) {
+		if (rts.get("ackksk") == null) {
 			missing.append("ackssk");
 		}
 		if (rts.get("messagetype") == null) {
@@ -241,7 +363,7 @@ public class RTSFetcher {
 		if (rts.get("mailsite") == null) {
 			missing.append("mailsite");
 		}
-		if (rts.get("ctsssk") == null) {
+		if (rts.get("ctsksk") == null) {
 			missing.append("ctsssk");
 		}
 		

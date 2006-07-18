@@ -49,7 +49,7 @@ public class SingleAccountWatcher implements Runnable {
 				nf.fetch();
 			}
 			
-			this.rtsf.fetch();
+			this.rtsf.poll();
 			
 			//mf.fetch_from_all();
 			

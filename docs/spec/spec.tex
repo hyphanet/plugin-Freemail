@@ -20,10 +20,9 @@ All Freemail users have an Freemail address, which one may give out to others in
 
 A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the mailsite. The URI must be base 32 encoded in order to make the address case insensitive to maintain compatability with traditional email clients. The string '.freenet' is appended to the whole address. An example Freemail address follows:
 
-bob@KVJUWQCMJ53UI6KEGJKFI2JQIZZFKY3XG\-4YE4QRSMUYWYV2PLJ4U27TLG\-R4DI3TLNZXW6QTSJIYCYNKS\-OR4XK23MGZDS2UDRKVCTIT\-BXJJWDQYKIOFM\-WC33VONTFOZTQMJZTS5LCO\-NEWGY3WGQWECUKBIJA\-UCRJPNVQWS3DTNF\-2GKLZNGEXQ.freemail
+bob@JRHXORDZIQZFIVDJ\-GBDHEVLDO43TATSCGJST\-C3CXJ5NHSTL6NM2HQ\-NDONNXG632COJFD\-ALBVKJ2HS5LLNQ3E\-OLKQOFKUKNCMG5F\-GYODBJBYVSYLPOVZ\-WMV3GOBRHGOLVMJ\-ZUSY3DOY2CY\-QKRIFBECQKF.freemail
 
-
-The base 32 encoded mailsite in this case is: USK@LOwDyD2TTi0FrUcw70N\-B2e1lWOZyM~k4x4n\-knooBrJ0,5Rtyu\-kl6G-PqUE4L7\-Jl8aHqYaous\-fWfpbs9ubsI\-ccv4,AQABAAE/mailsite/-1/
+The base 32 encoded mailsite in this case is: LOwDyD2TTi0FrUcw70N\-B2e1lWOZyM~k4x4n\-knooBrJ0,5Rtyu\-kl6G-PqUE4L7\-Jl8aHqYaous\-fWfpbs9ubsI\-ccv4,AQABAAE
 
 (this is liable to change to make the addresses shorter)
 
@@ -47,7 +46,7 @@ Once Alice has retrieved the recipient's mailpage, she sends an RTS message to B
 \item messagetype - This should be 'rts', to indicate that this message is an RTS.
 \item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in order to prevent surreptitious forwarding to support the enryption explained later.
 \item mailsite - Alice's mailsite URI
-\item ctsssk - A randomly generated KSK that Bob should insert to once he has recieved Alice's RTS message in order to acknoweldge that he is ready to recieve messages. This should be randomly generated and un-guessable so that only Bob knows which key to insert to.
+\item ctsksk - A randomly generated KSK that Bob should insert to once he has recieved Alice's RTS message in order to acknoweldge that he is ready to recieve messages. This should be randomly generated and un-guessable so that only Bob knows which key to insert to.
 \end{itemize}
 
 Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes. The resulting message is then RSA encrypted with Bob's public key. If the resulting message is longer than a single RSA block, the message is encoded in chunks equal to the maximum block size and the ciphertext blocks are concatenated to form the final message.
@@ -63,13 +62,9 @@ Alice then regularly polls the KSK she put as the value of 'ctsssk' until she re
 \subsection{CTS Messages}
 When Bob recieves an RTS message from Alice, he decrypts the message using his RSA private key. He then retrives the mailsite advertised in the RTS message. Having done this, he reads the signature on the end and decrypts the signature with the public key he just retrieved from the mailsite. He then calculates a SHA-256 checksum of the message and checks that his checksum is identical to the one he has decrypted. If it is not, he must discard the message. This ensures that the message is really from Alice. He must then read the 'to' field and ensure that its value is identical to his mailsite URI. If it is not, he must discard the message. This ensures that he is the intended recipient of the message.
 
-Bob then records the value of the 'commssk' key so that he can poll this SSK for messages periodicaly. Before doing so, he creates another propfile with the following values:
+Bob then records the value of the 'commssk' key so that he can poll this SSK for messages periodicaly.
 
-\begin{itemize}
-\item messagetype - This should be 'cts' to indicate that this is a clear-to-send message
-\end{itemize}
-
-Bob inserts this file to the value of the 'ctsssk' key in the RTS message. This completes Bob's part of the channel setup procedure.
+Before doing so, Bob inserts some data to the value of the 'ctsksk' key in the RTS message. The data he inserts is irrelevant - the presence of the key is sufficient to prove to Alice that he has received the message. This completes Bob's part of the channel setup procedure.
 
 This message contains no valuable information and so does not need to be encrypted. It also does not need to be signed since only Alice and Bob know the KSK to which it must be inserted, so Alice knows that Bob must have inserted the message. The KSK that Bob inserts this message to tells Alice what RTS it relates to if there is any ambiguity.
 
