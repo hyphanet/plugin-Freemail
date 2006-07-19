@@ -187,7 +187,7 @@ public class OutboundContact {
 		enccipher.init(true, their_pub_key);
 		byte[] encmsg = null;
 		try {
-			encmsg = ChainedAsymmetricBlockCipher.encrypt(sigcipher, bos.toByteArray());
+			encmsg = ChainedAsymmetricBlockCipher.encrypt(enccipher, bos.toByteArray());
 		} catch (InvalidCipherTextException e) {
 			e.printStackTrace();
 			return false;
