@@ -63,26 +63,26 @@ public class RTSFetcher {
 		
 		int i;
 		for (i = 0; i < files.length; i++) {
-			if (files[i].getName().startsWith(RTS_UNPROC_PREFIX)) {
-				if (this.handle_rts(files[i])) {
+			if (!files[i].getName().startsWith(RTS_UNPROC_PREFIX))
+				continue;
+			if (this.handle_rts(files[i])) {
+				files[i].delete();
+			} else {
+				String[] parts = files[i].getName().split(":", 2);
+				
+				int tries;
+				if (parts.length < 2) {
+					tries = 0;
+				} else {
+					tries = Integer.parseInt(parts[1]);
+				}
+				tries++;
+				if (tries > RTS_MAX_ATTEMPTS) {
+					System.out.println("Maximum attempts at handling RTS reached - deleting RTS");
 					files[i].delete();
 				} else {
-					String[] parts = files[i].getName().split(":", 2);
-					
-					int tries;
-					if (parts.length < 2) {
-						tries = 0;
-					} else {
-						tries = Integer.parseInt(parts[1]);
-					}
-					tries++;
-					if (tries > RTS_MAX_ATTEMPTS) {
-						System.out.println("Maximum attempts at handling RTS reached - deleting RTS");
-						files[i].delete();
-					} else {
-						File newname = new File(this.contact_dir, RTS_UNPROC_PREFIX + ":" + tries);
-						files[i].renameTo(newname);
-					}
+					File newname = new File(this.contact_dir, RTS_UNPROC_PREFIX + ":" + tries);
+					files[i].renameTo(newname);
 				}
 			}
 		}
@@ -164,6 +164,8 @@ public class RTSFetcher {
 			return true;
 		}
 		
+		System.out.println("RTS decrypted to: "+new String(plaintext));
+		
 		File rtsfile = null;
 		byte[] their_encrypted_sig;
 		int messagebytes = 0;
@@ -235,6 +237,8 @@ public class RTSFetcher {
 		
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 		
+		System.out.println("Trying to fetch sender's mailsite: "+their_mailsite);
+		
 		File msfile = fcpcli.fetch(their_mailsite);
 		if (msfile == null) {
 			// oh well, try again in a bit
@@ -283,6 +287,7 @@ public class RTSFetcher {
 				return true;
 			}
 		}
+		System.out.println("Signature valid :)");
 		// the signature is valid! Hooray!
 		// Now verify the message is for us
 		String our_mailsite_keybody;
@@ -300,6 +305,8 @@ public class RTSFetcher {
 			rtsfile.delete();
 			return true;
 		}
+		
+		System.out.println("Original message intended for us :)");
 		
 		// create the inbound contact
 		FreenetURI their_mailsite_furi;
@@ -319,6 +326,8 @@ public class RTSFetcher {
 		
 		msfile.delete();
 		rtsfile.delete();
+		
+		System.out.println("Inbound contact created!");
 		
 		return true;
 	}

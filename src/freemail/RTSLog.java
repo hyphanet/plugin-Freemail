@@ -3,6 +3,8 @@ package freemail;
 import java.util.Date;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.Vector;
+import java.util.Enumeration;
 import java.io.File;
 
 import freemail.utils.PropsFile;
@@ -36,6 +38,7 @@ public class RTSLog {
 	
 	public void pruneBefore(Date keepafter) {
 		Set props = this.logfile.listProps();
+		Vector hitlist = new Vector();
 		
 		Iterator i = props.iterator();
 		while (i.hasNext()) {
@@ -53,10 +56,17 @@ public class RTSLog {
 			Date logdate = DateStringFactory.DateFromKeyString(datestr);
 			if (logdate == null) {
 				// couldn't parse the date... hmm
-				this.logfile.remove(cur);
+				hitlist.add(cur);
 			} else if (logdate.before(keepafter)) {
-				this.logfile.remove(cur);
+				hitlist.add(cur);
 			}
+		}
+		
+		Enumeration e = hitlist.elements();
+		while (e.hasMoreElements()) {
+			String victim = (String) e.nextElement();
+			
+			this.logfile.remove(victim);
 		}
 	}
 	
