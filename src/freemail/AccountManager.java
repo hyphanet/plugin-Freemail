@@ -138,7 +138,7 @@ public class AccountManager {
 				throw new IOException("Unable to write account file");
 			}
 			
-			// initialise RTS/CTS KSK
+			// initialise RTS KSK
 			Random rnd = new Random();
 			String rtskey = new String();
 			

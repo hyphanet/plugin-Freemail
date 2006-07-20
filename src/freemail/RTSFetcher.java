@@ -164,8 +164,6 @@ public class RTSFetcher {
 			return true;
 		}
 		
-		System.out.println("RTS decrypted to: "+new String(plaintext));
-		
 		File rtsfile = null;
 		byte[] their_encrypted_sig;
 		int messagebytes = 0;
@@ -182,6 +180,7 @@ public class RTSFetcher {
 				messagebytes += lis.getLastBytesRead();
 				
 				if (line == null || line.equals("")) break;
+				System.out.println(line);
 				
 				ps.println(line);
 			}
@@ -198,11 +197,15 @@ public class RTSFetcher {
 			
 			their_encrypted_sig = new byte[bis.available()];
 			
-			int read = 0;
+			int totalread = 0;
 			while (true) {
-				read = bis.read(their_encrypted_sig, 0, bis.available());
-				if (read == 0) break;
+				int read = bis.read(their_encrypted_sig, totalread, bis.available());
+				if (read <= 0) break;
+				totalread += read;
 			}
+			
+			System.out.println("read "+totalread+" bytes of signature");
+			
 			bis.close();
 		} catch (IOException ioe) {
 			System.out.println("IO error whilst handling RTS message. "+ioe.getMessage());
@@ -210,6 +213,8 @@ public class RTSFetcher {
 			if (rtsfile != null) rtsfile.delete();
 			return false;
 		}
+		
+		
 		
 		PropsFile rtsprops = new PropsFile(rtsfile);
 		
@@ -358,25 +363,25 @@ public class RTSFetcher {
 		StringBuffer missing = new StringBuffer();
 		
 		if (rts.get("commssk") == null) {
-			missing.append("commssk");
+			missing.append("commssk, ");
 		}
-		if (rts.get("ackksk") == null) {
-			missing.append("ackssk");
+		if (rts.get("ackssk") == null) {
+			missing.append("ackssk, ");
 		}
 		if (rts.get("messagetype") == null) {
-			missing.append("messagetype");
+			missing.append("messagetype, ");
 		}
 		if (rts.get("to") == null) {
-			missing.append("to");
+			missing.append("to, ");
 		}
 		if (rts.get("mailsite") == null) {
-			missing.append("mailsite");
+			missing.append("mailsite, ");
 		}
 		if (rts.get("ctsksk") == null) {
-			missing.append("ctsssk");
+			missing.append("ctsksk, ");
 		}
 		
 		if (missing.length() == 0) return;
-		throw new Exception(missing.toString());
+		throw new Exception(missing.toString().substring(0, missing.length() - 2));
 	}
 }

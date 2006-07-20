@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
@@ -25,6 +26,7 @@ public class OutboundContact {
 	private final File accdir;
 	private final EmailAddress address;
 	private static final String OUTBOUND_DIR = "outbound";
+	private static final int CTS_KSK_LENGTH = 32;
 	
 	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException {
 		this.address = a;
@@ -76,8 +78,24 @@ public class OutboundContact {
 			this.contactfile.put("commssk.pubkey", ssk.pubkey);
 			// we've just generated a new SSK, so the other party definately doesn't know about it
 			this.contactfile.put("status", "notsent");
-		} else {
-			ssk = new SSKKeyPair();
+		}
+		
+		return ssk;
+	}
+	
+	private SSKKeyPair getAckKeyPair() {
+		SSKKeyPair ssk = new SSKKeyPair();
+		
+		ssk.pubkey = this.contactfile.get("ackssk.privkey");
+		ssk.privkey = this.contactfile.get("ackssk.pubkey");
+		
+		
+		if (ssk.pubkey == null || ssk.privkey == null) {
+			HighLevelFCPClient cli = new HighLevelFCPClient();
+			ssk = cli.makeSSK();
+			
+			this.contactfile.put("ackssk.privkey", ssk.privkey);
+			this.contactfile.put("ackssk.pubkey", ssk.pubkey);
 		}
 		
 		return ssk;
@@ -123,8 +141,9 @@ public class OutboundContact {
 	 */
 	public boolean init() throws OutboundContactFatalException {
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
-		SSKKeyPair ssk = this.getCommKeyPair();
-		if (ssk == null) return false;
+		SSKKeyPair commssk = this.getCommKeyPair();
+		if (commssk == null) return false;
+		SSKKeyPair ackssk = this.getAckKeyPair();
 		RSAKeyParameters their_pub_key = this.getPubKey();
 		if (their_pub_key == null) return false;
 		String rtsksk = this.getRtsKsk();
@@ -134,7 +153,19 @@ public class OutboundContact {
 		
 		// the public part of the SSK keypair we generated
 		// put this first to avoid messages with the same first block, since we don't (currently) use CBC
-		rtsmessage.append("commssk="+ssk.pubkey+"\r\n");
+		rtsmessage.append("commssk="+commssk.pubkey+"\r\n");
+		
+		rtsmessage.append("ackssk="+ackssk.privkey+"\r\n");
+		
+		Random rnd = new Random();
+		String ctsksk = new String("KSK@");
+			
+		int i;
+		for (i = 0; i < CTS_KSK_LENGTH; i++) {
+			ctsksk += (char)(rnd.nextInt(25) + (int)'a');
+		}
+		
+		rtsmessage.append("ctsksk="+ctsksk+"\r\n");
 		
 		rtsmessage.append("messagetype=rts\r\n");
 		
