@@ -227,20 +227,36 @@ public class RTSFetcher {
 		}
 		
 		// verify the signature
-		String their_mailsite = rtsprops.get("mailsite");
+		String their_mailsite_raw = rtsprops.get("mailsite");
 		
-		MessageDigest md;
+		MessageDigest md = null;
 		try {
-			md = MessageDigest.getInstance("MD5");
+			md = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException alge) {
-			System.out.println("No MD5 implementation available - sorry, Freemail cannot work!");
-			rtsfile.delete();
+			System.out.println("No SHA 256 implementation available - Freemail cannot work!");
 			return false;
 		}
 		md.update(plaintext, 0, messagebytes);
 		byte[] our_hash = md.digest();
 		
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
+		
+		FreenetURI their_mailsite_furi;
+		try {
+			their_mailsite_furi = new FreenetURI(their_mailsite_raw);
+		} catch (MalformedURLException mfue) {
+			System.out.println("Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
+			rtsfile.delete();
+			return true;
+		}
+		
+		String their_mailsite = "USK@"+their_mailsite_furi.getKeyBody()+"/"+their_mailsite_furi.getSuffix();
+		
+		if (!their_mailsite.endsWith("/")) {
+			their_mailsite += "/";
+		}
+		their_mailsite += "1/"+MailSite.MAILPAGE;
+		
 		
 		System.out.println("Trying to fetch sender's mailsite: "+their_mailsite);
 		
@@ -278,7 +294,7 @@ public class RTSFetcher {
 		// finally we can now check that our hash and their hash
 		// match!
 		if (their_hash.length != our_hash.length) {
-			System.out.println("The signature of the RTS message is not valid. Discarding the RTS message.");
+			System.out.println("The signature of the RTS message is not valid (our hash: "+our_hash.length+"bytes, their hash: "+their_hash.length+"bytes. Discarding the RTS message.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -314,15 +330,6 @@ public class RTSFetcher {
 		System.out.println("Original message intended for us :)");
 		
 		// create the inbound contact
-		FreenetURI their_mailsite_furi;
-		try {
-			their_mailsite_furi = new FreenetURI(their_mailsite);
-		} catch (MalformedURLException mfue) {
-			System.out.println("Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
-			msfile.delete();
-			rtsfile.delete();
-			return true;
-		}
 		InboundContact ibct = new InboundContact(this.contact_dir, their_mailsite_furi);
 		
 		ibct.setProp("commssk", rtsprops.get("commssk"));
