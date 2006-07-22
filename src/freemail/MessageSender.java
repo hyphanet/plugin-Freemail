@@ -3,14 +3,11 @@ package freemail;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
 import java.util.Enumeration;
 
 import freemail.fcp.HighLevelFCPClient;
-import freemail.fcp.FCPInsertErrorMessage;
-import freemail.fcp.FCPBadFileException;
 import freemail.utils.EmailAddress;
 import freemail.utils.DateStringFactory;
 

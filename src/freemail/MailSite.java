@@ -1,6 +1,5 @@
 package freemail;
 
-import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 
 import freemail.utils.PropsFile;
@@ -66,7 +65,7 @@ public class MailSite {
 			minslot = 1;
 		}
 		
-		int actualslot = cli.SlotInsert(mailpage, key, 1, "/"+MAILPAGE);
+		int actualslot = cli.SlotInsert(mailpage, key, minslot, "/"+MAILPAGE);
 		
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
 		

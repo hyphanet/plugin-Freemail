@@ -1,6 +1,5 @@
 package freemail;
 
-import freemail.fcp.FCPConnection;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.DateStringFactory;
 
@@ -13,10 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.TimeZone;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import org.bouncycastle.util.encoders.Hex;
 
 public class NIMFetcher {
 	private final MessageBank mb;
@@ -78,8 +73,8 @@ public class NIMFetcher {
 			if (result != null) {
 				System.out.println(keybase+i+": got message!");
 				try {
-					String checksum = this.storeMessage(result);
-					log.addMessage(i, checksum);
+					this.storeMessage(result);
+					log.addMessage(i, "received");
 				} catch (IOException ioe) {
 					continue;
 				}
@@ -89,16 +84,8 @@ public class NIMFetcher {
 		}
 	}
 	
-	private String storeMessage(File file) throws IOException {
+	private void storeMessage(File file) throws IOException {
 		MailMessage newmsg = this.mb.createMessage();
-		
-		MessageDigest md;
-		try {
-			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException alge) {
-			System.out.println("No MD5 implementation available - can't checksum messages - not storing message.");
-			return null;
-		}
 		
 		// add our own headers first
 		// recieved and date
@@ -118,8 +105,5 @@ public class NIMFetcher {
 		newmsg.commit();
 		rdr.close();
 		file.delete();
-		
-		byte[] checksum = md.digest();
-		return new String(Hex.encode(checksum));
 	}
 }

@@ -72,6 +72,7 @@ public class PropsFile {
 		try {
 			this.write();
 		} catch (IOException ioe) {
+			ioe.printStackTrace();
 			return false;
 		}
 		return true;

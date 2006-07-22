@@ -2,11 +2,8 @@ package freemail;
 
 import java.io.File;
 import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import freemail.utils.EmailAddress;
@@ -16,6 +13,7 @@ import freemail.utils.ChainedAsymmetricBlockCipher;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 
+import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.engines.RSAEngine;
@@ -181,15 +179,10 @@ public class OutboundContact {
 		
 		// sign the message
 		
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException alge) {
-			System.out.println("No SHA 256 implementation available - no mail can be sent!");
-			return false;
-		}
-		
-		byte[] hash = md.digest(rtsmessage.toString().getBytes());
+		SHA256Digest sha256 = new SHA256Digest();
+		sha256.update(rtsmessage.toString().getBytes(), 0, rtsmessage.toString().getBytes().length);
+		byte[] hash = new byte[sha256.getDigestSize()];
+		sha256.doFinal(hash, 0);
 		
 		RSAKeyParameters our_priv_key = AccountManager.getPrivateKey(this.accdir);
 		

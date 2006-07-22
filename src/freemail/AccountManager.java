@@ -1,17 +1,14 @@
 package freemail;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.math.BigInteger;
 
+import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -72,12 +69,7 @@ public class AccountManager {
 	}
 	
 	public static void ChangePassword(String username, String newpassword) throws Exception {
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException alge) {
-			throw new Exception("No MD5 implementation available - sorry, Freemail cannot work!");
-		}
+		MD5Digest md5 = new MD5Digest();
 		
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.exists()) {
@@ -86,7 +78,9 @@ public class AccountManager {
 		
 		PropsFile accfile = getAccountFile(accountdir);
 		
-		byte[] md5passwd = md.digest(newpassword.getBytes());
+		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
+		byte[] md5passwd = new byte[md5.getDigestSize()];
+		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
 		
 		accfile.put("md5passwd", strmd5);
@@ -197,14 +191,10 @@ public class AccountManager {
 		String realmd5str = accfile.get("md5passwd");
 		if (realmd5str == null) return false;
 		
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException alge) {
-			System.out.println("No MD5 implementation available - logins will not work!");
-			return false;
-		}
-		byte[] givenmd5 = md.digest(password.getBytes());
+		MD5Digest md5 = new MD5Digest();
+		md5.update(password.getBytes(), 0, password.getBytes().length);
+		byte[] givenmd5 = new byte[md5.getDigestSize()];
+		md5.doFinal(givenmd5, 0);
 		
 		String givenmd5str = new String(Hex.encode(givenmd5));
 		

@@ -10,6 +10,9 @@ import freemail.smtp.SMTPListener;
 
 public class Freemail {
 	private static final String TEMPDIRNAME = "temp";
+	private static final String DATADIR = "data";
+	private static final String GLOBALDATADIR = "globaldata";
+	private static final String ACKDIR = "delayedacks";
 	private static File datadir;
 	private static File tempdir;
 	private static FCPConnection fcpconn;
@@ -99,8 +102,13 @@ public class Freemail {
 			return;
 		}
 		
+		File globaldatadir = new File(GLOBALDATADIR);
+		if (!globaldatadir.exists()) {
+			globaldatadir.mkdir();
+		}
+		
 		// start a SingleAccountWatcher for each account
-		Freemail.datadir = new File("data");
+		Freemail.datadir = new File(DATADIR);
 		if (!Freemail.datadir.exists()) {
 			System.out.println("Starting Freemail for the first time.");
 			System.out.println("You will probably want to add an account by running Freemail with arguments --newaccount <username>");
@@ -122,22 +130,31 @@ public class Freemail {
 			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
 				continue;
 			
-			Thread t = new Thread(new SingleAccountWatcher(files[i]));
+			Thread t = new Thread(new SingleAccountWatcher(files[i]), "Account Watcher for "+files[i].getName());
 			t.setDaemon(true);
 			t.start();
 		}
 		
 		// and a sender thread
 		MessageSender sender = new MessageSender(Freemail.datadir);
-		Thread senderthread = new Thread(sender);
+		Thread senderthread = new Thread(sender, "Message sender");
 		senderthread.setDaemon(true);
 		senderthread.start();
 		
 		// start the SMTP Listener
 		SMTPListener smtpl = new SMTPListener(sender);
-		Thread smtpthread = new Thread(smtpl);
+		Thread smtpthread = new Thread(smtpl, "SMTP Listener");
 		smtpthread.setDaemon(true);
 		smtpthread.start();
+		
+		// start the delayed ACK inserter
+		File ackdir = new File(globaldatadir, ACKDIR);
+		AckProcrastinator.setAckDir(ackdir);
+		AckProcrastinator ackinserter = new AckProcrastinator();
+		Thread ackinsthread = new Thread(ackinserter, "Delayed ACK Inserter");
+		ackinsthread.setDaemon(true);
+		ackinsthread.start();
+		
 		
 		// start the IMAP listener
 		IMAPListener imapl = new IMAPListener();

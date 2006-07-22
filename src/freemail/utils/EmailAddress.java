@@ -1,7 +1,5 @@
 package freemail.utils;
 
-import org.bouncycastle.util.encoders.Hex;
-
 import org.archive.util.Base32;
 
 public class EmailAddress {

@@ -1,6 +1,5 @@
 package freemail;
 
-import freemail.fcp.FCPConnection;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.DateStringFactory;
 import freemail.utils.PropsFile;
@@ -11,30 +10,25 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.BufferedReader;
 import java.io.PrintStream;
-import java.io.FileReader;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.TimeZone;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 
-import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import freenet.support.io.LineReadingInputStream;
+import freenet.support.io.TooLongException;
 
 public class RTSFetcher {
 	private String rtskey;
 	private File contact_dir;
-	private final SimpleDateFormat sdf;
 	private static final int POLL_AHEAD = 3;
 	private static final int PASSES_PER_DAY = 3;
 	private static final int MAX_DAYS_BACK = 30;
@@ -47,7 +41,6 @@ public class RTSFetcher {
 
 	RTSFetcher(String key, File ctdir, File ad) {
 		this.rtskey = key;
-		this.sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		this.contact_dir = ctdir;
 		this.accdir = ad;
 		this.accprops = AccountManager.getAccountFile(this.accdir);
@@ -176,7 +169,13 @@ public class RTSFetcher {
 			
 			String line;
 			while (true) {
-				line = lis.readLine(200, 200);
+				try {
+					line = lis.readLine(200, 200);
+				} catch (TooLongException tle) {
+					System.out.println("RTS message has lines that are too long. Discarding.");
+					rtsfile.delete();
+					return true;
+				}
 				messagebytes += lis.getLastBytesRead();
 				
 				if (line == null || line.equals("")) break;
@@ -229,15 +228,10 @@ public class RTSFetcher {
 		// verify the signature
 		String their_mailsite_raw = rtsprops.get("mailsite");
 		
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException alge) {
-			System.out.println("No SHA 256 implementation available - Freemail cannot work!");
-			return false;
-		}
-		md.update(plaintext, 0, messagebytes);
-		byte[] our_hash = md.digest();
+		SHA256Digest sha256 = new SHA256Digest();
+		sha256.update(plaintext, 0, messagebytes);
+		byte[] our_hash = new byte[sha256.getDigestSize()];
+		sha256.doFinal(our_hash, 0);
 		
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 		
@@ -334,7 +328,10 @@ public class RTSFetcher {
 		
 		ibct.setProp("commssk", rtsprops.get("commssk"));
 		ibct.setProp("ackssk", rtsprops.get("ackssk"));
-		ibct.setProp("ctsksk", rtsprops.get("ctsksk"));
+		//ibct.setProp("ctsksk", rtsprops.get("ctsksk"));
+		
+		// insert the cts at some point
+		AckProcrastinator.put(rtsprops.get("ctsksk"), "messagetype=cts");
 		
 		msfile.delete();
 		rtsfile.delete();

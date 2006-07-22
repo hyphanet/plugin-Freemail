@@ -27,4 +27,8 @@ public class InboundContact {
 	public void setProp(String key, String val) {
 		this.ibct_props.put(key, val);
 	}
+	
+	public String getProp(String key) {
+		return this.ibct_props.get(key);
+	}
 }
