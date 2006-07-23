@@ -13,19 +13,18 @@ public class SingleAccountWatcher implements Runnable {
 	private final MessageBank mb;
 	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
+	private long mailsite_last_upload;
+	private final PropsFile accprops;
 
 	SingleAccountWatcher(File accdir) {
+		this.accprops = AccountManager.getAccountFile(accdir);
 		File contacts_dir = new File(accdir, CONTACTS_DIR);
 		File inbound_dir = new File(contacts_dir, INBOUND_DIR);
+		this.mailsite_last_upload = 0;
 		
 		if (!inbound_dir.exists()) {
 			inbound_dir.mkdir();
 		}
-		
-		// TODO: do this in the loop, periodically
-		PropsFile accprops = AccountManager.getAccountFile(accdir);
-		MailSite ms = new MailSite(accprops);
-		ms.Publish();
 		
 		this.mb = new MessageBank(accdir.getName());
 		
@@ -36,7 +35,8 @@ public class SingleAccountWatcher implements Runnable {
 			this.nf = null;
 		}
 		
-		this.rtsf = new RTSFetcher("KSK@"+accprops.get("rtskey")+"-", inbound_dir, accdir);
+		
+		this.rtsf = new RTSFetcher("KSK@"+this.accprops.get("rtskey")+"-", inbound_dir, accdir);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 	}
@@ -44,6 +44,13 @@ public class SingleAccountWatcher implements Runnable {
 	public void run() {
 		while (true) {
 			long start = System.currentTimeMillis();
+			
+			if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
+				MailSite ms = new MailSite(this.accprops);
+				if (ms.Publish() > 0) {
+					this.mailsite_last_upload = System.currentTimeMillis();
+				}
+			}
 			
 			if (this.nf != null) {
 				nf.fetch();

@@ -61,14 +61,10 @@ public class OutboundContact {
 		this.contactfile = new PropsFile(ctfile);
 	}
 	
-	public void checkCTS() {
+	public void checkCTS() throws OutboundContactFatalException {
 		String status = this.contactfile.get("status");
 		if (status == null) {
-			try {
-				this.init();
-			} catch (OutboundContactFatalException obctfe) {
-				// impossible
-			}
+			this.init();
 		}
 		
 		if (status.equals("cts-received")) {
@@ -78,11 +74,7 @@ public class OutboundContact {
 			
 			String ctsksk = this.contactfile.get("ctsksk");
 			if (ctsksk == null) {
-				try {
-					this.init();
-				} catch (OutboundContactFatalException obctfe) {
-					// impossible
-				}
+				this.init();
 			}
 			
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
@@ -95,11 +87,7 @@ public class OutboundContact {
 				
 				if (senttime == null || Long.parseLong(senttime) > System.currentTimeMillis() + CTS_WAIT_TIME) {
 					// yes, send another RTS
-					try {
-						this.init();
-					} catch (OutboundContactFatalException obctfe) {
-						// impossible
-					}
+					this.init();
 				}
 				
 			} else {
@@ -108,11 +96,7 @@ public class OutboundContact {
 				this.contactfile.put("status", "cts-received");
 			}
 		} else {
-			try {
-				this.init();
-			} catch (OutboundContactFatalException obctfe) {
-				// impossible
-			}
+			this.init();
 		}
 	}
 	
@@ -127,6 +111,7 @@ public class OutboundContact {
 		// don't wait for an ack before inserting the message, but be ready to insert it again
 		// if the ack never arrives
 		if (status.equals("rts-sent")) return true;
+		if (status.equals("cts-received")) return true;
 		return false;
 	}
 	

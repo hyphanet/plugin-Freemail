@@ -145,7 +145,7 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				System.out.println("insert successful");
+				System.out.println("insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
 				slot++;
@@ -175,7 +175,7 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				System.out.println("insert successful");
+				System.out.println("insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
 				slot++;

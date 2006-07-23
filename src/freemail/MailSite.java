@@ -67,6 +67,8 @@ public class MailSite {
 		
 		int actualslot = cli.SlotInsert(mailpage, key, minslot, "/"+MAILPAGE);
 		
+		if (actualslot < 0) return -1;
+		
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
 		
 		return actualslot;

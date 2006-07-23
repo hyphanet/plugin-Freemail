@@ -101,7 +101,10 @@ public class MessageSender implements Runnable {
 		for (i = 0; i < contacts.length; i++) {
 			OutboundContact outboundcontact = new OutboundContact(accdir, contacts[i]);
 			
-			outboundcontact.checkCTS();
+			try {
+				outboundcontact.checkCTS();
+			} catch (OutboundContactFatalException obctfe) {
+			}
 		}
 	}
 	
