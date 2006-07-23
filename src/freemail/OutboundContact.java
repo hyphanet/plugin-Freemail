@@ -13,6 +13,8 @@ import freemail.utils.ChainedAsymmetricBlockCipher;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 
+import org.archive.util.Base32;
+
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
@@ -20,11 +22,15 @@ import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 public class OutboundContact {
+	public static final String OUTBOUND_DIR = "outbound";
 	private final PropsFile contactfile;
 	private final File accdir;
 	private final EmailAddress address;
-	private static final String OUTBOUND_DIR = "outbound";
 	private static final int CTS_KSK_LENGTH = 32;
+	// how long to wait for a CTS before sending the message again
+	// slightly over 24 hours since some people are likley to fire Freemail
+	// up and roughly the same time every day
+	private static final long CTS_WAIT_TIME = 26 * 60 * 60 * 1000;
 	
 	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException {
 		this.address = a;
@@ -44,6 +50,69 @@ public class OutboundContact {
 				outbounddir.mkdir();
 			
 			this.contactfile = new PropsFile(new File(outbounddir, this.address.getMailsiteKey()));
+		}
+	}
+	
+	public OutboundContact(File accdir, File ctfile) {
+		this.accdir = accdir;
+		this.address = new EmailAddress();
+		this.address.domain = Base32.encode(ctfile.getName().getBytes())+".freemail";
+		
+		this.contactfile = new PropsFile(ctfile);
+	}
+	
+	public void checkCTS() {
+		String status = this.contactfile.get("status");
+		if (status == null) {
+			try {
+				this.init();
+			} catch (OutboundContactFatalException obctfe) {
+				// impossible
+			}
+		}
+		
+		if (status.equals("cts-received")) {
+			return;
+		} else if (status.equals("rts-sent")) {
+			// poll for the CTS message
+			
+			String ctsksk = this.contactfile.get("ctsksk");
+			if (ctsksk == null) {
+				try {
+					this.init();
+				} catch (OutboundContactFatalException obctfe) {
+					// impossible
+				}
+			}
+			
+			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
+			
+			File cts = fcpcli.fetch(ctsksk);
+			
+			if (cts == null) {
+				// haven't got the CTS message. should we give up yet?
+				String senttime = this.contactfile.get("rts-sent-at");
+				
+				if (senttime == null || Long.parseLong(senttime) > System.currentTimeMillis() + CTS_WAIT_TIME) {
+					// yes, send another RTS
+					try {
+						this.init();
+					} catch (OutboundContactFatalException obctfe) {
+						// impossible
+					}
+				}
+				
+			} else {
+				System.out.println("Sucessfully received CTS for "+this.address.getMailsiteKey());
+				cts.delete();
+				this.contactfile.put("status", "cts-received");
+			}
+		} else {
+			try {
+				this.init();
+			} catch (OutboundContactFatalException obctfe) {
+				// impossible
+			}
 		}
 	}
 	
@@ -131,6 +200,21 @@ public class OutboundContact {
 		return rtsksk;
 	}
 	
+	private String getCTSKSK() {
+		String retval = this.contactfile.get("ctsksk");
+		
+		if (retval != null) return retval;
+		
+		Random rnd = new Random();
+		retval = new String("KSK@");
+			
+		int i;
+		for (i = 0; i < CTS_KSK_LENGTH; i++) {
+			retval += (char)(rnd.nextInt(25) + (int)'a');
+		}
+		return retval;
+	}
+	
 	/**
 	 * Set up an outbound contact. Fetch the mailsite, generate a new SSK keypair and post an RTS message to the appropriate KSK.
 	 * Will block for mailsite retrieval and RTS insertion
@@ -155,14 +239,9 @@ public class OutboundContact {
 		
 		rtsmessage.append("ackssk="+ackssk.privkey+"\r\n");
 		
-		Random rnd = new Random();
-		String ctsksk = new String("KSK@");
-			
-		int i;
-		for (i = 0; i < CTS_KSK_LENGTH; i++) {
-			ctsksk += (char)(rnd.nextInt(25) + (int)'a');
-		}
+		String ctsksk = this.getCTSKSK();
 		
+		this.contactfile.put("ctsksk", ctsksk);
 		rtsmessage.append("ctsksk="+ctsksk+"\r\n");
 		
 		rtsmessage.append("messagetype=rts\r\n");
@@ -225,6 +304,8 @@ public class OutboundContact {
 		
 		// remember the fact that we have successfully inserted the rts
 		this.contactfile.put("status", "rts-sent");
+		// and remember when we sent it!
+		this.contactfile.put("rts-sent-at", Long.toString(System.currentTimeMillis()));
 		
 		return true;
 	}

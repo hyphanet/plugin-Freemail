@@ -75,6 +75,7 @@ public class MessageSender implements Runnable {
 					outbox.mkdir();
 				
 				this.sendDir(files[i], outbox);
+				this.checkCTSs(files[i]);
 			}
 			// don't spin around the loop if nothing's
 			// going on
@@ -86,6 +87,21 @@ public class MessageSender implements Runnable {
 				} catch (InterruptedException ie) {
 				}
 			}
+		}
+	}
+	
+	private void checkCTSs(File accdir) {
+		File contactsdir = new File(accdir, SingleAccountWatcher.CONTACTS_DIR);
+		
+		File outbounddir = new File(contactsdir, OutboundContact.OUTBOUND_DIR);
+		
+		File[] contacts = outbounddir.listFiles();
+		
+		int i;
+		for (i = 0; i < contacts.length; i++) {
+			OutboundContact outboundcontact = new OutboundContact(accdir, contacts[i]);
+			
+			outboundcontact.checkCTS();
 		}
 	}
 	

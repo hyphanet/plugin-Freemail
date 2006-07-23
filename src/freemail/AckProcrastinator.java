@@ -9,6 +9,7 @@ import java.util.Random;
 import freemail.utils.PropsFile;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPBadFileException;
+import freemail.fcp.FCPInsertErrorMessage;
 
 /** Takes simple pieces of data to insert to keys and inserts them at some point
  * randomly within a given time frame in order to disguise the time at which messages
@@ -62,9 +63,14 @@ public class AckProcrastinator implements Runnable {
 					
 					ByteArrayInputStream bis = new ByteArrayInputStream(data.getBytes());
 					
+					System.out.println("Inserting ack to "+key);
 					try {
-						if (fcpcli.put(bis, key) != null)
+						FCPInsertErrorMessage err = fcpcli.put(bis, key);
+						if (err == null) {
 							acks[i].delete();
+						} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
+							acks[i].delete();
+						}
 					} catch (FCPBadFileException bfe) {
 						// won't occur
 					}
