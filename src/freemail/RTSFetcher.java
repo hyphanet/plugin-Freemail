@@ -327,11 +327,12 @@ public class RTSFetcher {
 		InboundContact ibct = new InboundContact(this.contact_dir, their_mailsite_furi);
 		
 		ibct.setProp("commssk", rtsprops.get("commssk"));
-		ibct.setProp("ackssk", rtsprops.get("ackssk"));
-		//ibct.setProp("ctsksk", rtsprops.get("ctsksk"));
+		String ackssk = rtsprops.get("ackssk");
+		if (!ackssk.endsWith("/")) ackssk += "/";
+		ibct.setProp("ackssk", ackssk);
 		
 		// insert the cts at some point
-		AckProcrastinator.put(rtsprops.get("ctsksk"), "messagetype=cts");
+		AckProcrastinator.put(ackssk+"cts");
 		
 		msfile.delete();
 		rtsfile.delete();
@@ -381,8 +382,8 @@ public class RTSFetcher {
 		if (rts.get("mailsite") == null) {
 			missing.append("mailsite, ");
 		}
-		if (rts.get("ctsksk") == null) {
-			missing.append("ctsksk, ");
+		if (rts.get("initialslot") == null) {
+			missing.append("initialslot, ");
 		}
 		
 		if (missing.length() == 0) return;

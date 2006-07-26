@@ -95,6 +95,9 @@ public class MessageSender implements Runnable {
 		
 		File outbounddir = new File(contactsdir, OutboundContact.OUTBOUND_DIR);
 		
+		if (!outbounddir.exists())
+			outbounddir.mkdir();
+		
 		File[] contacts = outbounddir.listFiles();
 		
 		int i;
@@ -171,6 +174,6 @@ public class MessageSender implements Runnable {
 		
 		if (!ready) return false;
 		
-		return false;
+		return ct.sendMessage(msg);
 	}
 }

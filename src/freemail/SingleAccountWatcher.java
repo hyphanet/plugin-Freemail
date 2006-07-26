@@ -39,6 +39,9 @@ public class SingleAccountWatcher implements Runnable {
 		this.rtsf = new RTSFetcher("KSK@"+this.accprops.get("rtskey")+"-", inbound_dir, accdir);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
+		
+		// temporary info message until there's a nicer UI :)
+		System.out.println("Freemail address: "+AccountManager.getFreemailAddress(accdir));
 	}
 	
 	public void run() {

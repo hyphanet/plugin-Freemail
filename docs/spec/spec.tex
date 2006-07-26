@@ -10,7 +10,7 @@ This is a working draft of the Freemail specification. All parts of this documen
 \subsection{What is Freemail}
 Freemail is an email-like messaging system that transports all messages over Freenet 0.7 in order to achieve anonymity and censorship-resilience. Its protocol is designed to be as resistant as possible to attacks such as message floods and denial of service. Unlike traditional email, it makes it extremely difficult for others to discover what you have been communicating, who you have been communicating with, and even that you have been communicating at all.
 
-Freemail uses IMAP and SMTP to interface with standard email clients, making taking advantage of interfaces that people are already accustomed to.
+Freemail uses IMAP and SMTP to interface with standard email clients, taking advantage of interfaces that people are already accustomed to.
 
 \section{Channel Setup}
 \subsection{Mailsites}
@@ -18,7 +18,7 @@ Before any communication occurs between a sender and a recipient (who, in accord
 
 All Freemail users have an Freemail address, which one may give out to others in order to allow them to contact you. From this Freemail address, it is possible to derive a Freenet SSK URI. This is the user's 'mailsite'.
 
-A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the mailsite. The URI must be base 32 encoded in order to make the address case insensitive to maintain compatibility with traditional email clients. The string '.freenet' is appended to the whole address. An example Freemail address follows:
+A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the mailsite. The URI must be base 32 encoded in order to make the address case insensitive to maintain compatibility with traditional email clients. The string '.freemail' is appended to the whole address. An example Freemail address follows:
 
 bob@JRHXORDZIQZFIVDJ\-GBDHEVLDO43TATSCGJST\-C3CXJ5NHSTL6NM2HQ\-NDONNXG632COJFD\-ALBVKJ2HS5LLNQ3E\-OLKQOFKUKNCMG5F\-GYODBJBY\-VSYLPOVZ\-WMV3GOBRHGOLVMJ\-ZUSY3DOY2CY\-QKRIFBECQKF.freemail
 
@@ -46,6 +46,7 @@ Once Alice has retrieved the recipient's mailpage, she sends an RTS message to B
 \item messagetype - This should be 'rts', to indicate that this message is an RTS.
 \item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in order to prevent surreptitious forwarding to support the encryption explained later.
 \item mailsite - Alice's mailsite URI
+\item initialslot - 256 bits of random data, encoded in base32. Used to form the message slots on the commssk.
 \end{itemize}
 
 Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes.
@@ -65,9 +66,7 @@ When Bob receives an RTS message from Alice, he decrypts the message using his R
 
 Bob then records the value of the 'commssk' key so that he can poll this SSK for messages periodically.
 
-Before doing so, Bob inserts some data to the value of 'ackssk', followed by the string 'cts'. That is, he inserts to "SSK@<long SSK key base>/cts". The data he inserts is irrelevant - the presence of the key is sufficient to prove to Alice that he has received the message. This completes Bob's part of the channel setup procedure.
-
-This message contains no valuable information and so does not need to be encrypted. It also does not need to be signed since only Alice and Bob know the KSK to which it must be inserted, so Alice knows that Bob must have inserted the message. The KSK that Bob inserts this message to tells Alice what RTS it relates to if there is any ambiguity.
+Before doing so, Bob inserts some data to the value of 'ackssk', followed by the string 'cts'. That is, he inserts to "SSK@$<$long SSK key base$>$/cts". The data he inserts is irrelevant - the presence of the key is sufficient to prove to Alice that he has received the message. This completes Bob's part of the channel setup procedure.
 
 Alice should check periodically for the insertion of this CTS message. If it does not arrive, Alice should re-send the RTS message. The client may try several times before declaring the message undeliverable.
 
@@ -75,11 +74,11 @@ Alice should check periodically for the insertion of this CTS message. If it doe
 \subsection{The Messages}
 Once Bob has inserted this CTS message, he begins polling for messages on keys derived from the value of the 'commssk' key which he obtained from the RTS message. These keys are the value of 'commssk' a 256 bit base32 encoded hash appended. The hash is initially the value of 'initialslot' in the RTS message. Each subsequent slot's hash is the SHA-256 digest of the previous slot's hash, forming a seqence of message slots. This hash sequence gives forward security, provided that clients destroy values of the hash, and 'initialslot' once they have been used. Alice should insert a new message to the first slot to which inserting does not causes a collision. Formulaically, Bob first polls the key:
 
-SSK@<SSK key base>/<initialslot>
+SSK@$<$SSK key base$>$/$<$initialslot$>$
 
 Once Bob has successfully retrieved this key, he begins to periodically request the key:
 
-SSK@<SSK key base>/<H(initialslot)>
+SSK@$<$SSK key base$>$/$<$H(initialslot)$>$
 
 It is recommended that clients poll several messages ahead rather than just the immediately next message, since simulations suggest that it is possible for single keys not to be retrievable in this kind of circumstance. So for example, once Bob has sent his CTS messages, he should start polling for the keys: \\
 \\

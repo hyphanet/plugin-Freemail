@@ -86,7 +86,7 @@ public class Freemail {
 				// for now
 				AccountManager.setupNIM(account);
 				System.out.println("Account created for "+account+". You may now set a password with --passwd <password>");
-				System.out.println("For the time being, you address is "+account+"@nim.freemail");
+				//System.out.println("For the time being, you address is "+account+"@nim.freemail");
 			} catch (IOException ioe) {
 				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. Error: "+ioe.getMessage());
 			}

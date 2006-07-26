@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Random;
 import java.security.SecureRandom;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
@@ -17,9 +18,11 @@ import org.bouncycastle.util.encoders.Hex;
 
 import org.archive.util.Base32;
 
+import freemail.FreenetURI;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 import freemail.utils.PropsFile;
+import freemail.utils.EmailAddress;
 
 public class AccountManager {
 	public static final String DATADIR = "data";
@@ -96,6 +99,24 @@ public class AccountManager {
 		return accfile;
 	}
 	
+	public static EmailAddress getFreemailAddress(File accdir) {
+		PropsFile accfile = getAccountFile(accdir);
+		
+		return getFreemailAddress(accfile);
+	}
+	
+	public static EmailAddress getFreemailAddress(PropsFile accfile) {
+		FreenetURI mailsite;
+		try {
+			mailsite = new FreenetURI(accfile.get("mailsite.pubkey"));
+		} catch (MalformedURLException mfue) {
+			System.out.println("Warning: Couldn't fetch mailsite public key from account file! Your account file is probably corrupt.");
+			return null;
+		}
+		
+		return new EmailAddress("anything@"+Base32.encode(mailsite.getKeyBody().getBytes())+".freemail");
+	}
+	
 	public static RSAKeyParameters getPrivateKey(File accdir) {
 		PropsFile props = getAccountFile(accdir);
 		
@@ -146,12 +167,7 @@ public class AccountManager {
 			}
 			
 			System.out.println("Mailsite keys generated.");
-			
-			FreenetURI puburi = new FreenetURI(keypair.pubkey);
-			
-			String base32body = Base32.encode(puburi.getKeyBody().getBytes());
-			
-			System.out.println("Your Freemail address is: <anything>@"+base32body+".freemail");
+			System.out.println("Your Freemail address is: "+getFreemailAddress(accfile));
 		} catch (IOException ioe) {
 			System.out.println("Couldn't create mailsite key file! "+ioe.getMessage());
 		}

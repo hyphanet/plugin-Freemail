@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.lang.InterruptedException;
 import java.util.Random;
+import java.security.SecureRandom;
 
 import freemail.utils.PropsFile;
 import freemail.fcp.HighLevelFCPClient;
@@ -18,6 +19,7 @@ import freemail.fcp.FCPInsertErrorMessage;
  */
 public class AckProcrastinator implements Runnable {
 	private static final long MAX_DELAY = 12 * 60 * 60 * 1000;
+	private static final int RANDOM_ACK_SIZE = 512;
 	
 	private static File ackdir;
 	private static Random rnd;
@@ -51,17 +53,26 @@ public class AckProcrastinator implements Runnable {
 				
 				String s_it  = ack.get("nominalInsertTime");
 				String key = ack.get("key");
-				String data = ack.get("data");
-				if (s_it == null || key == null || data == null) {
+				String s_data = ack.get("data");
+				if (s_it == null || key == null) {
 					acks[i].delete();
 					continue;
+				}
+				byte[] data;
+				if (s_data == null) {
+					SecureRandom rnd = new SecureRandom();
+					
+					data = new byte[RANDOM_ACK_SIZE];
+					rnd.nextBytes(data);
+				} else {
+					data = s_data.getBytes();
 				}
 				long instime = Long.parseLong(s_it);
 				
 				if (instime < System.currentTimeMillis()) {
 					HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 					
-					ByteArrayInputStream bis = new ByteArrayInputStream(data.getBytes());
+					ByteArrayInputStream bis = new ByteArrayInputStream(data);
 					
 					System.out.println("Inserting ack to "+key);
 					try {
@@ -84,6 +95,12 @@ public class AckProcrastinator implements Runnable {
 		}
 	}
 	
+	/** As put(String key, String data), but insert random data
+	 */
+	public static synchronized void put(String key) {
+		put(key, null);
+	}
+	
 	/** Insert some data at some random point in the future, but ideally before
 	 * 'by' (in milliseconds).
 	 */
@@ -95,7 +112,8 @@ public class AckProcrastinator implements Runnable {
 			PropsFile ackfile= new PropsFile(File.createTempFile("delayed-ack", "", getAckDir()));
 			 
 			 ackfile.put("key", key);
-			 ackfile.put("data", data);
+			 if (data != null)
+				 ackfile.put("data", data);
 			 ackfile.put("by", Long.toString(by));
 			 
 			 long insertTime = System.currentTimeMillis();
