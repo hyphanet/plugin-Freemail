@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
@@ -13,6 +14,8 @@ import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
 import freemail.utils.ChainedAsymmetricBlockCipher;
 import freemail.fcp.HighLevelFCPClient;
+import freemail.fcp.FCPInsertErrorMessage;
+import freemail.fcp.FCPBadFileException;
 import freemail.fcp.SSKKeyPair;
 
 import org.archive.util.Base32;
@@ -24,8 +27,7 @@ import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 public class OutboundContact {
-	public static final String OUTBOUND_DIR = "outbound";
-	private static final String OUTBOX_DIR = "outbox";
+	public static final String OUTBOX_DIR = "outbox";
 	private final PropsFile contactfile;
 	private final File accdir;
 	private final File ctoutbox;
@@ -48,7 +50,7 @@ public class OutboundContact {
 			File contactsdir = new File(accdir, SingleAccountWatcher.CONTACTS_DIR);
 			if (!contactsdir.exists())
 				contactsdir.mkdir();
-			File outbounddir = new File(contactsdir, OUTBOUND_DIR);
+			File outbounddir = new File(contactsdir, SingleAccountWatcher.OUTBOUND_DIR);
 			
 			if (!outbounddir.exists())
 				outbounddir.mkdir();
@@ -65,13 +67,14 @@ public class OutboundContact {
 		}
 	}
 	
-	public OutboundContact(File accdir, File ctfile) {
+	public OutboundContact(File accdir, File ctdir) {
 		this.accdir = accdir;
 		this.address = new EmailAddress();
-		this.address.domain = Base32.encode(ctfile.getName().getBytes())+".freemail";
+		this.address.domain = Base32.encode(ctdir.getName().getBytes())+".freemail";
 		
-		this.contactfile = new PropsFile(new File(ctfile, PROPSFILE_NAME));
-		this.ctoutbox = new File(accdir, OUTBOX_DIR);
+		this.contactfile = new PropsFile(new File(ctdir, PROPSFILE_NAME));
+		
+		this.ctoutbox = new File(ctdir, OUTBOX_DIR);
 		if (!this.ctoutbox.exists())
 			this.ctoutbox.mkdir();
 	}
@@ -422,5 +425,107 @@ public class OutboundContact {
 			return true;
 		
 		return false;
+	}
+	
+	public void doComm() {
+		this.sendQueued();
+		this.pollAcks();
+	}
+	
+	private void sendQueued() {
+		HighLevelFCPClient fcpcli = null;
+		
+		QueuedMessage[] msgs = this.getSendQueue();
+		
+		int i;
+		for (i = 0; i < msgs.length; i++) {
+			if (msgs[i].uid == -1) continue;
+			if (msgs[i].status != QueuedMessage.STATUS_NOTSENT) continue;
+			
+			if (fcpcli == null) fcpcli = new HighLevelFCPClient();
+			
+			String key = this.contactfile.get("commssk.privkey");
+			
+			if (key == null) {
+				System.out.println("Contact file does not contain private communication key! It appears that your Freemail directory is corrupt!");
+				continue;
+			}
+			
+			key += msgs[i].slot;
+			
+			FileInputStream fis;
+			try {
+				fis = new FileInputStream(msgs[i].file);
+			} catch (FileNotFoundException fnfe) {
+				continue;
+			}
+			
+			System.out.println("Inserting message to "+key);
+			FCPInsertErrorMessage err;
+			try {
+				err = fcpcli.put(fis, key);
+			} catch (FCPBadFileException bfe) {
+				System.out.println("Failed sending message. Will try again soon.");
+				continue;
+			}
+			if (err == null) {
+				System.out.println("Successfully inserted "+key);
+				File newfile = new File(this.ctoutbox, msgs[i].uid+","+msgs[i].slot+",awaitingack");
+				msgs[i].file.renameTo(newfile);
+			} else {
+				System.out.println("Failed to insert "+key+" will try again soon.");
+			}
+		}
+	}
+	
+	private void pollAcks() {
+		QueuedMessage[] msgs = this.getSendQueue();
+		
+		int i;
+		for (i = 0; i < msgs.length; i++) {
+			if (msgs[i].uid == -1) continue;
+			
+			
+		}
+	}
+	
+	private QueuedMessage[] getSendQueue() {
+		File[] files = this.ctoutbox.listFiles();
+		QueuedMessage[] msgs = new QueuedMessage[files.length];
+		
+		int i;
+		for (i = 0; i < files.length; i++) {
+			String[] parts = files[i].getName().split(",", 3);
+			msgs[i] = new QueuedMessage();
+			if (parts.length < 2) {
+				// how did that get there? just delete it
+				System.out.println("Found spurious file in send queue - deleting.");
+				files[i].delete();
+				msgs[i].uid = -1;
+				continue;
+			}
+			msgs[i].uid = Integer.parseInt(parts[0]);
+			msgs[i].slot = parts[1];
+			if (parts.length < 3) {
+				msgs[i].status = QueuedMessage.STATUS_NOTSENT;
+			} else if (parts[2].equals("awaitingack")) {
+				msgs[i].status = QueuedMessage.STATUS_ACKWAIT;
+			} else {
+				msgs[i].status = QueuedMessage.STATUS_NOTSENT;
+			}
+			msgs[i].file = files[i];
+		}
+		
+		return msgs;
+	}
+	
+	private class QueuedMessage {
+		int uid;
+		String slot;
+		int status;
+		File file;
+		
+		static final int STATUS_NOTSENT = 0;
+		static final int STATUS_ACKWAIT = 1;
 	}
 }

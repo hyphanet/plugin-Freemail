@@ -8,6 +8,7 @@ import freemail.utils.PropsFile;
 public class SingleAccountWatcher implements Runnable {
 	public static final String CONTACTS_DIR = "contacts";
 	public static final String INBOUND_DIR = "inbound";
+	public static final String OUTBOUND_DIR = "outbound";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final MessageBank mb;
@@ -15,11 +16,15 @@ public class SingleAccountWatcher implements Runnable {
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
 	private final PropsFile accprops;
+	private final File obctdir;
+	private final File accdir;
 
 	SingleAccountWatcher(File accdir) {
+		this.accdir = accdir;
 		this.accprops = AccountManager.getAccountFile(accdir);
 		File contacts_dir = new File(accdir, CONTACTS_DIR);
 		File inbound_dir = new File(contacts_dir, INBOUND_DIR);
+		this.obctdir = new File(contacts_dir, OUTBOUND_DIR);
 		this.mailsite_last_upload = 0;
 		
 		if (!inbound_dir.exists()) {
@@ -52,6 +57,17 @@ public class SingleAccountWatcher implements Runnable {
 				MailSite ms = new MailSite(this.accprops);
 				if (ms.Publish() > 0) {
 					this.mailsite_last_upload = System.currentTimeMillis();
+				}
+			}
+			
+			// send any messages queued in contact outboxes
+			File[] obcontacts = this.obctdir.listFiles();
+			if (obcontacts != null) {
+				int i;
+				for (i = 0; i < obcontacts.length; i++) {
+					OutboundContact obct = new OutboundContact(this.accdir, obcontacts[i]);
+					
+					obct.doComm();
 				}
 			}
 			
