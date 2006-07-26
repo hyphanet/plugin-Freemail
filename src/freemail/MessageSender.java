@@ -93,7 +93,7 @@ public class MessageSender implements Runnable {
 	private void checkCTSs(File accdir) {
 		File contactsdir = new File(accdir, SingleAccountWatcher.CONTACTS_DIR);
 		
-		File outbounddir = new File(contactsdir, OutboundContact.OUTBOUND_DIR);
+		File outbounddir = new File(contactsdir, SingleAccountWatcher.OUTBOUND_DIR);
 		
 		if (!outbounddir.exists())
 			outbounddir.mkdir();
@@ -168,7 +168,6 @@ public class MessageSender implements Runnable {
 				return true;
 			}
 		} else {
-			System.out.println("ready");
 			ready = true;
 		}
 		

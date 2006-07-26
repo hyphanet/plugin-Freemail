@@ -118,7 +118,7 @@ public class AckProcrastinator implements Runnable {
 			 
 			 long insertTime = System.currentTimeMillis();
 			 
-			 insertTime += rnd.nextFloat() * by;
+			 insertTime += rnd.nextFloat() * (by - insertTime);
 			 
 			 ackfile.put("nominalInsertTime", Long.toString(insertTime));
 		} catch (IOException ioe) {

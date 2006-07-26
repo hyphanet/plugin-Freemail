@@ -37,6 +37,10 @@ public class OutboundContact {
 	// up and roughly the same time every day
 	private static final long CTS_WAIT_TIME = 26 * 60 * 60 * 1000;
 	private static final String PROPSFILE_NAME = "props";
+	// how long do we wait before retransmitting the message? 26 hours allows for people starting Freemail at roughly the same time every day
+	private static final long RETRANSMIT_DELAY = 26 * 60 * 60 * 1000;
+	// how long do we wait before we give up all hope and just bounce the message back? 5 days is fairly standard, so we'll go with that for now, except that means things bounce when the recipient goes to the Bahamas for a fortnight. Could be longer if we have a GUI to see what messages are in what delivery state.
+	private static final long FAIL_DELAY = 5 * 24 * 60 * 60 * 1000;
 	
 	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException {
 		this.address = a;
@@ -385,12 +389,10 @@ public class OutboundContact {
 		
 		// create a new file that contains the complete Freemail
 		// message, with Freemail headers
-		File msg;
+		QueuedMessage qm = new QueuedMessage(uid);
 		FileOutputStream fos;
 		try {
-			msg = File.createTempFile("ogm", "msg", Freemail.getTempDir());
-			
-			fos = new FileOutputStream(msg);
+			fos = qm.getOutputStream();
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			return false;
@@ -411,19 +413,18 @@ public class OutboundContact {
 			fos.close();
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
-			msg.delete();
+			qm.delete();
 			return false;
 		}
 		
 		String slot = this.popNextSlot();
 		
-		File outbox_msg = new File(this.ctoutbox, Integer.toString(uid)+","+slot+",notsent");
+		qm.slot = slot;
 		
-		System.out.println("renaming temp file to "+outbox_msg);
-		
-		if (msg.renameTo(outbox_msg))
+		if (qm.saveProps()) {
+			body.delete();
 			return true;
-		
+		}
 		return false;
 	}
 	
@@ -439,8 +440,8 @@ public class OutboundContact {
 		
 		int i;
 		for (i = 0; i < msgs.length; i++) {
-			if (msgs[i].uid == -1) continue;
-			if (msgs[i].status != QueuedMessage.STATUS_NOTSENT) continue;
+			if (msgs[i] == null) continue;
+			if (msgs[i].last_send_time > 0) continue;
 			
 			if (fcpcli == null) fcpcli = new HighLevelFCPClient();
 			
@@ -470,8 +471,9 @@ public class OutboundContact {
 			}
 			if (err == null) {
 				System.out.println("Successfully inserted "+key);
-				File newfile = new File(this.ctoutbox, msgs[i].uid+","+msgs[i].slot+",awaitingack");
-				msgs[i].file.renameTo(newfile);
+				msgs[i].first_send_time = System.currentTimeMillis();
+				msgs[i].last_send_time = System.currentTimeMillis();
+				msgs[i].saveProps();
 			} else {
 				System.out.println("Failed to insert "+key+" will try again soon.");
 			}
@@ -479,53 +481,128 @@ public class OutboundContact {
 	}
 	
 	private void pollAcks() {
+		HighLevelFCPClient fcpcli = null;
 		QueuedMessage[] msgs = this.getSendQueue();
 		
 		int i;
 		for (i = 0; i < msgs.length; i++) {
-			if (msgs[i].uid == -1) continue;
+			if (msgs[i] == null) continue;
+			if (msgs[i].first_send_time < 0) continue;
 			
+			if (fcpcli == null) fcpcli = new HighLevelFCPClient();
 			
+			String key = this.contactfile.get("ackssk.pubkey");
+			if (key == null) {
+				System.out.println("Contact file does not contain public ack key! It appears that your Freemail directory is corrupt!");
+				continue;
+			}
+			
+			key += msgs[i].uid;
+			
+			File ack = fcpcli.fetch(key);
+			if (ack != null) {
+				System.out.println("Ack received for message "+msgs[i].uid+" on contact "+this.address.domain+". Now that's a job well done.");
+				ack.delete();
+				msgs[i].delete();
+				// treat the ACK as a CTS too
+				this.contactfile.put("status", "cts-received");
+			} else {
+				if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
+					// give up and bounce the message
+					// TODO: bounce message
+					System.out.println("Giving up on message - been trying for too long.");
+					msgs[i].delete();
+				} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
+					// no ack yet - retransmit on another slot
+					msgs[i].slot = this.popNextSlot();
+					// mark for re-insertion
+					msgs[i].last_send_time = -1;
+					msgs[i].saveProps();
+				}
+			}
 		}
 	}
 	
 	private QueuedMessage[] getSendQueue() {
-		File[] files = this.ctoutbox.listFiles();
+		File[] files = ctoutbox.listFiles();
 		QueuedMessage[] msgs = new QueuedMessage[files.length];
 		
 		int i;
 		for (i = 0; i < files.length; i++) {
-			String[] parts = files[i].getName().split(",", 3);
-			msgs[i] = new QueuedMessage();
-			if (parts.length < 2) {
+			if (files[i].getName().equals(QueuedMessage.INDEX_FILE)) continue;
+				
+			int uid;
+			try {
+				uid = Integer.parseInt(files[i].getName());
+			} catch (NumberFormatException nfe) {
 				// how did that get there? just delete it
 				System.out.println("Found spurious file in send queue - deleting.");
 				files[i].delete();
-				msgs[i].uid = -1;
+				msgs[i] = null;
 				continue;
 			}
-			msgs[i].uid = Integer.parseInt(parts[0]);
-			msgs[i].slot = parts[1];
-			if (parts.length < 3) {
-				msgs[i].status = QueuedMessage.STATUS_NOTSENT;
-			} else if (parts[2].equals("awaitingack")) {
-				msgs[i].status = QueuedMessage.STATUS_ACKWAIT;
-			} else {
-				msgs[i].status = QueuedMessage.STATUS_NOTSENT;
-			}
-			msgs[i].file = files[i];
+			
+			msgs[i] = new QueuedMessage(uid);
 		}
 		
 		return msgs;
 	}
 	
 	private class QueuedMessage {
-		int uid;
-		String slot;
-		int status;
-		File file;
+		static final String INDEX_FILE = "_index";
+	
+		PropsFile index;
 		
-		static final int STATUS_NOTSENT = 0;
-		static final int STATUS_ACKWAIT = 1;
+		final int uid;
+		String slot;
+		long first_send_time;
+		long last_send_time;
+		private final File file;
+		
+		public QueuedMessage(int uid) {
+			this.uid = uid;
+			this.file = new File(ctoutbox, Integer.toString(uid));
+			
+			this.index = new PropsFile(new File(ctoutbox, INDEX_FILE));
+			
+			this.slot = this.index.get(uid+".slot");
+			String s_first = this.index.get(uid+".first_send_time");
+			if (s_first == null)
+				this.first_send_time = -1;
+			else
+				this.first_send_time = Long.parseLong(s_first);
+			
+			String s_last = this.index.get(uid+".last_send_time");
+			if (s_last == null)
+				this.last_send_time = -1;
+			else
+				this.last_send_time = Long.parseLong(s_last);
+			
+		}
+		
+		public FileInputStream getInputStream() throws FileNotFoundException {
+			return new FileInputStream(this.file);
+		}
+		
+		public FileOutputStream getOutputStream() throws FileNotFoundException {
+			return new FileOutputStream(this.file);
+		}
+	
+		public boolean saveProps() {
+			boolean suc = true;
+			suc &= this.index.put(uid+".slot", this.slot);
+			suc &= this.index.put(uid+".first_send_time", this.first_send_time);
+			suc &= this.index.put(uid+".last_send_time", this.last_send_time);
+			
+			return suc;
+		}
+		
+		public boolean delete() {
+			this.index.remove(this.uid+".slot");
+			this.index.remove(this.uid+".first_send_time");
+			this.index.remove(this.uid+".last_send_time");
+			
+			return this.file.delete();
+		}
 	}
 }

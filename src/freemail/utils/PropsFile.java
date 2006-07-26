@@ -78,6 +78,10 @@ public class PropsFile {
 		return true;
 	}
 	
+	public boolean put(String key, long val) {
+		return this.put(key, Long.toString(val));
+	}
+	
 	public boolean exists() {
 		return this.file.exists();
 	}
@@ -86,7 +90,14 @@ public class PropsFile {
 		return this.data.keySet();
 	}
 	
-	public void remove(String key) {
+	public boolean remove(String key) {
 		this.data.remove(key);
+		try {
+			this.write();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 }
