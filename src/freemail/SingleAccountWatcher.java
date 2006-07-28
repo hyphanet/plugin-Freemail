@@ -17,18 +17,19 @@ public class SingleAccountWatcher implements Runnable {
 	private long mailsite_last_upload;
 	private final PropsFile accprops;
 	private final File obctdir;
+	private final File ibctdir;
 	private final File accdir;
 
 	SingleAccountWatcher(File accdir) {
 		this.accdir = accdir;
 		this.accprops = AccountManager.getAccountFile(accdir);
 		File contacts_dir = new File(accdir, CONTACTS_DIR);
-		File inbound_dir = new File(contacts_dir, INBOUND_DIR);
+		this.ibctdir = new File(contacts_dir, INBOUND_DIR);
 		this.obctdir = new File(contacts_dir, OUTBOUND_DIR);
 		this.mailsite_last_upload = 0;
 		
-		if (!inbound_dir.exists()) {
-			inbound_dir.mkdir();
+		if (!this.ibctdir.exists()) {
+			this.ibctdir.mkdir();
 		}
 		
 		this.mb = new MessageBank(accdir.getName());
@@ -41,7 +42,7 @@ public class SingleAccountWatcher implements Runnable {
 		}
 		
 		
-		this.rtsf = new RTSFetcher("KSK@"+this.accprops.get("rtskey")+"-", inbound_dir, accdir);
+		this.rtsf = new RTSFetcher("KSK@"+this.accprops.get("rtskey")+"-", this.ibctdir, accdir);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 		
@@ -77,7 +78,18 @@ public class SingleAccountWatcher implements Runnable {
 			
 			this.rtsf.poll();
 			
-			//mf.fetch_from_all();
+			// poll for incoming message from all inbound contacts
+			File[] ibcontacts = this.ibctdir.listFiles();
+			if (ibcontacts != null) {
+				int i;
+				for (i = 0; i < ibcontacts.length; i++) {
+					if (ibcontacts[i].getName().equals(RTSFetcher.LOGFILE)) continue;
+					
+					InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
+					
+					ibct.fetch(this.mb);
+				}
+			}
 			
 			long runtime = System.currentTimeMillis() - start;
 			

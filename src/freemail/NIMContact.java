@@ -8,13 +8,13 @@ import java.util.Date;
 
 import freemail.utils.DateStringFactory;
 
-public class Contact {
+public class NIMContact {
 	public static final String KEYFILE = "key";
 	private static final String LOGFILE_PREFIX = "log-";
 	private final File contact_dir;
 	private final File keyfile;
 
-	Contact(File dir) {
+	NIMContact(File dir) {
 		this.contact_dir = dir;
 		this.keyfile = new File(dir, KEYFILE);
 	}

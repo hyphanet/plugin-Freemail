@@ -117,6 +117,8 @@ public class OutboundContact {
 				System.out.println("Sucessfully received CTS for "+this.address.getMailsiteKey());
 				cts.delete();
 				this.contactfile.put("status", "cts-received");
+				// delete inital slot for forward secrecy
+				this.contactfile.remove("initialslot");
 			}
 		} else {
 			this.init();
@@ -250,7 +252,6 @@ public class OutboundContact {
 		
 		String initialslot = this.getInitialSlot();
 		
-		this.contactfile.put("nextslot", initialslot);
 		rtsmessage.append("initialslot="+initialslot+"\r\n");
 		
 		rtsmessage.append("messagetype=rts\r\n");
@@ -362,8 +363,11 @@ public class OutboundContact {
 	
 	private String popNextSlot() {
 		String slot = this.contactfile.get("nextslot");
+		if (slot == null) {
+			slot = this.contactfile.get("initialslot");
+		}
 		SHA256Digest sha256 = new SHA256Digest();
-		sha256.update(slot.getBytes(), 0, Base32.decode(slot).length);
+		sha256.update(Base32.decode(slot), 0, Base32.decode(slot).length);
 		byte[] nextslot = new byte[sha256.getDigestSize()];
 		sha256.doFinal(nextslot, 0);
 		this.contactfile.put("nextslot", Base32.encode(nextslot));
@@ -390,9 +394,13 @@ public class OutboundContact {
 		// create a new file that contains the complete Freemail
 		// message, with Freemail headers
 		QueuedMessage qm = new QueuedMessage(uid);
+		
+		File msg;
 		FileOutputStream fos;
 		try {
-			fos = qm.getOutputStream();
+			msg = File.createTempFile("ogm", "msg", Freemail.getTempDir());
+			
+			fos = new FileOutputStream(msg);
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			return false;
@@ -414,6 +422,7 @@ public class OutboundContact {
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			qm.delete();
+			msg.delete();
 			return false;
 		}
 		
@@ -421,7 +430,7 @@ public class OutboundContact {
 		
 		qm.slot = slot;
 		
-		if (qm.saveProps()) {
+		if (qm.setMessageFile(msg) && qm.saveProps()) {
 			body.delete();
 			return true;
 		}
@@ -506,6 +515,8 @@ public class OutboundContact {
 				msgs[i].delete();
 				// treat the ACK as a CTS too
 				this.contactfile.put("status", "cts-received");
+				// delete inital slot for forward secrecy
+				this.contactfile.remove("initialslot");
 			} else {
 				if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
 					// give up and bounce the message
@@ -584,8 +595,8 @@ public class OutboundContact {
 			return new FileInputStream(this.file);
 		}
 		
-		public FileOutputStream getOutputStream() throws FileNotFoundException {
-			return new FileOutputStream(this.file);
+		public boolean setMessageFile(File newfile) {
+			return newfile.renameTo(this.file);
 		}
 	
 		public boolean saveProps() {

@@ -14,32 +14,57 @@ import java.util.Set;
 public class PropsFile {
 	private final File file;
 	private HashMap data;
+	private BufferedReader bufrdr;
 
-	public PropsFile(File f) {
+	/** Pass true into stopAtBlank to cause the reader to stop upon encountering
+	 * a blank line. It's the the caller's responsibility to get
+	 * (using the getReader() method) the stream and close it properly.
+	 */
+	public PropsFile(File f, boolean stopAtBlank) {
 		this.file = f;
 		this.data = null;
 		
 		if (f.exists()) {
 			try {
-				this.read();
+				this.bufrdr = this.read(stopAtBlank);
 			} catch (IOException ioe) {
 			}
 		}
 	}
 	
-	private void read() throws IOException {
+	public PropsFile(File f) {
+		this(f, false);
+	}
+	
+	private BufferedReader read(boolean stopAtBlank) throws IOException {
 		this.data = new HashMap();
 		
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
 		
 		String line = null;
 		while ( (line = br.readLine()) != null) {
+			if (stopAtBlank && line.length() == 0) {
+				return br;
+			}
 			String[] parts = line.split("=", 2);
 			if (parts.length < 2) continue;
 			this.data.put(parts[0], parts[1]);
 		}
 		
 		br.close();
+		return null;
+	}
+	
+	public BufferedReader getReader() {
+		return this.bufrdr;
+	}
+	
+	public void closeReader() {
+		if (this.bufrdr == null) return;
+		try {
+			this.bufrdr.close();
+		} catch (IOException ioe) {
+		}
 	}
 	
 	private void write() throws IOException {

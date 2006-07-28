@@ -4,31 +4,27 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.DateStringFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.PrintStream;
 import java.io.FileReader;
-import java.text.SimpleDateFormat;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-public class NIMFetcher {
+public class NIMFetcher extends Postman {
 	private final MessageBank mb;
 	private File contact_dir;
-	private final SimpleDateFormat sdf;
 	private static final int POLL_AHEAD = 3;
 	private static int PASSES_PER_DAY = 3;
 	private static int MAX_DAYS_BACK = 30;
 
 	NIMFetcher(MessageBank m, File ctdir) {
 		this.mb = m;
-		this.sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		this.contact_dir = ctdir;
 	}
 	
 	public void fetch() {
-		Contact contact = new Contact(this.contact_dir);
+		NIMContact contact = new NIMContact(this.contact_dir);
 		
 		int i;
 		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
@@ -51,7 +47,7 @@ public class NIMFetcher {
 		contact.pruneLogs(cal.getTime());
 	}
 	
-	private void fetch_day(Contact contact, MailLog log, String date) {
+	private void fetch_day(NIMContact contact, MailLog log, String date) {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		
@@ -73,7 +69,8 @@ public class NIMFetcher {
 			if (result != null) {
 				System.out.println(keybase+i+": got message!");
 				try {
-					this.storeMessage(result);
+					this.storeMessage(new BufferedReader(new FileReader(result)), this.mb);
+					result.delete();
 					log.addMessage(i, "received");
 				} catch (IOException ioe) {
 					continue;
@@ -82,28 +79,5 @@ public class NIMFetcher {
 				System.out.println(keybase+i+": no message.");
 			}
 		}
-	}
-	
-	private void storeMessage(File file) throws IOException {
-		MailMessage newmsg = this.mb.createMessage();
-		
-		// add our own headers first
-		// recieved and date
-		newmsg.addHeader("Received", "(Freemail); "+this.sdf.format(new Date()));
-		
-		BufferedReader rdr = new BufferedReader(new FileReader(file));
-		
-		newmsg.readHeaders(rdr);
-		
-		PrintStream ps = newmsg.writeHeadersAndGetStream();
-		
-		String line;
-		while ( (line = rdr.readLine()) != null) {
-			ps.println(line);
-		}
-		
-		newmsg.commit();
-		rdr.close();
-		file.delete();
 	}
 }

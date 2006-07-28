@@ -32,7 +32,7 @@ public class RTSFetcher {
 	private static final int POLL_AHEAD = 3;
 	private static final int PASSES_PER_DAY = 3;
 	private static final int MAX_DAYS_BACK = 30;
-	private static final String LOGFILE = "rtslog";
+	public static final String LOGFILE = "rtslog";
 	private static final int RTS_MAX_SIZE = 2 * 1024 * 1024;
 	private static final String RTS_UNPROC_PREFIX = "unprocessed_rts";
 	private static final int RTS_MAX_ATTEMPTS = 15;
@@ -330,6 +330,7 @@ public class RTSFetcher {
 		String ackssk = rtsprops.get("ackssk");
 		if (!ackssk.endsWith("/")) ackssk += "/";
 		ibct.setProp("ackssk", ackssk);
+		ibct.setProp("slots", rtsprops.get("initialslot"));
 		
 		// insert the cts at some point
 		AckProcrastinator.put(ackssk+"cts");

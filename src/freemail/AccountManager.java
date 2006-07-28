@@ -63,7 +63,7 @@ public class AccountManager {
 			if (!nimdir.mkdir()) throw new IOException("Failed to create nim directory");
 		}
 		
-		File keyfile = new File(nimdir, Contact.KEYFILE);
+		File keyfile = new File(nimdir, NIMContact.KEYFILE);
 		PrintWriter pw = new PrintWriter(new FileOutputStream(keyfile));
 		
 		pw.println(MessageSender.NIM_KEY_PREFIX + username + "-");
