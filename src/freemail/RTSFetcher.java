@@ -278,7 +278,7 @@ public class RTSFetcher {
 			return true;
 		}
 		
-		RSAKeyParameters their_pubkey = new RSAKeyParameters(false, new BigInteger(their_modulus, 10), new BigInteger(their_exponent, 10));
+		RSAKeyParameters their_pubkey = new RSAKeyParameters(false, new BigInteger(their_modulus, 32), new BigInteger(their_exponent, 32));
 		AsymmetricBlockCipher deccipher = new RSAEngine();
 		deccipher.init(false, their_pubkey);
 		

@@ -128,7 +128,7 @@ public class AccountManager {
 			return null;
 		}
 		
-		return new RSAKeyParameters(true, new BigInteger(mod_str, 10), new BigInteger(privexp_str, 10));
+		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
 	
 	private static void initAccFile(PropsFile accfile) {
@@ -186,9 +186,9 @@ public class AccountManager {
 		RSAKeyParameters pub = (RSAKeyParameters) keypair.getPublic();
 		RSAKeyParameters priv = (RSAKeyParameters) keypair.getPrivate();
 
-		accfile.put("asymkey.modulus", pub.getModulus().toString());
-		accfile.put("asymkey.pubexponent", pub.getExponent().toString());
-		accfile.put("asymkey.privexponent", priv.getExponent().toString());
+		accfile.put("asymkey.modulus", pub.getModulus().toString(32));
+		accfile.put("asymkey.pubexponent", pub.getExponent().toString(32));
+		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
 		
 		System.out.println("Account creation completed.");
 	}

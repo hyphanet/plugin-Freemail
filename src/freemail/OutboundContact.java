@@ -205,7 +205,7 @@ public class OutboundContact {
 			}
 		}
 		
-		return new RSAKeyParameters(false, new BigInteger(mod_str, 10), new BigInteger(exp_str, 10));
+		return new RSAKeyParameters(false, new BigInteger(mod_str, 32), new BigInteger(exp_str, 32));
 	}
 	
 	private String getRtsKsk() throws OutboundContactFatalException {
@@ -301,7 +301,6 @@ public class OutboundContact {
 		//System.out.println(rtsmessage.toString());
 		
 		// sign the message
-		
 		SHA256Digest sha256 = new SHA256Digest();
 		sha256.update(rtsmessage.toString().getBytes(), 0, rtsmessage.toString().getBytes().length);
 		byte[] hash = new byte[sha256.getDigestSize()];
