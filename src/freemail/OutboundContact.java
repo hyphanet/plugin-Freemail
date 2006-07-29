@@ -12,7 +12,6 @@ import java.security.SecureRandom;
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
-import freemail.utils.ChainedAsymmetricBlockCipher;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.FCPBadFileException;
@@ -25,6 +24,13 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.crypto.paddings.PKCS7Padding;
+import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.util.encoders.Base64;
 
 public class OutboundContact {
 	public static final String OUTBOX_DIR = "outbox";
@@ -41,6 +47,11 @@ public class OutboundContact {
 	private static final long RETRANSMIT_DELAY = 26 * 60 * 60 * 1000;
 	// how long do we wait before we give up all hope and just bounce the message back? 5 days is fairly standard, so we'll go with that for now, except that means things bounce when the recipient goes to the Bahamas for a fortnight. Could be longer if we have a GUI to see what messages are in what delivery state.
 	private static final long FAIL_DELAY = 5 * 24 * 60 * 60 * 1000;
+	private static final int AES_KEY_LENGTH = 256 / 8;
+	// this is defined in the AES standard (although the Rijndael
+	// algorithm does support other block sizes.
+	// we read 128 bytes for our IV, so it needs to be constant.
+	private static final int AES_BLOCK_LENGTH = 128 / 8;
 	
 	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException {
 		this.address = a;
@@ -226,6 +237,28 @@ public class OutboundContact {
 		return Base32.encode(buf);
 	}
 	
+	private byte[] getAESParams() {
+		byte[] retval = new byte[AES_KEY_LENGTH + AES_BLOCK_LENGTH];
+		
+		String params = this.contactfile.get("aesparams");
+		if (params != null) {
+			return Base64.decode(params);
+		}
+		
+		SecureRandom rnd = new SecureRandom();
+		
+		byte[] aes_iv_and_key = new byte[AES_KEY_LENGTH + AES_BLOCK_LENGTH];
+		
+		rnd.nextBytes(retval);
+		
+		// save them for next time (if insertion fails) so we can
+		// generate the same message, otherwise they'll collide
+		// unnecessarily.
+		this.contactfile.put("aesparams", new String(Base64.encode(retval)));
+		
+		return retval;
+	}
+	
 	/**
 	 * Set up an outbound contact. Fetch the mailsite, generate a new SSK keypair and post an RTS message to the appropriate KSK.
 	 * Will block for mailsite retrieval and RTS insertion
@@ -265,7 +298,7 @@ public class OutboundContact {
 		rtsmessage.append("mailsite="+our_mailsite_uri+"\r\n");
 		
 		rtsmessage.append("\r\n");
-		System.out.println(rtsmessage.toString());
+		//System.out.println(rtsmessage.toString());
 		
 		// sign the message
 		
@@ -296,14 +329,44 @@ public class OutboundContact {
 			return false;
 		}
 		
-		// now encrypt it
+		// make up a symmetric key
+		PaddedBufferedBlockCipher aescipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
+		
+		// quick paranoia check!
+		if (aescipher.getBlockSize() != AES_BLOCK_LENGTH) {
+			// bouncycastle must have changed their implementation, so 
+			// we're in trouble
+			System.out.println("Incompatible block size change detected in cryptography API! Are you using a newer version of the bouncycastle libraries? If so, we suggest you downgrade for now, or check for a newer version of Freemail.");
+			return false;
+		}
+		
+		byte[] aes_iv_and_key = this.getAESParams();
+		
+		// now encrypt that with our recipient's public key
 		AsymmetricBlockCipher enccipher = new RSAEngine();
 		enccipher.init(true, their_pub_key);
-		byte[] encmsg = null;
+		byte[] encrypted_aes_params = null;
 		try {
-			encmsg = ChainedAsymmetricBlockCipher.encrypt(enccipher, bos.toByteArray());
+			encrypted_aes_params = enccipher.processBlock(aes_iv_and_key, 0, aes_iv_and_key.length);
 		} catch (InvalidCipherTextException e) {
 			e.printStackTrace();
+			return false;
+		}
+		
+		// now encrypt the message with the symmetric key
+		KeyParameter kp = new KeyParameter(aes_iv_and_key, aescipher.getBlockSize(), AES_KEY_LENGTH);
+		ParametersWithIV kpiv = new ParametersWithIV(kp, aes_iv_and_key, 0, aescipher.getBlockSize());
+		aescipher.init(true, kpiv);
+		
+		byte[] encmsg = new byte[aescipher.getOutputSize(bos.toByteArray().length)+encrypted_aes_params.length];
+		System.arraycopy(encrypted_aes_params, 0, encmsg, 0, encrypted_aes_params.length);
+		int offset = encrypted_aes_params.length;
+		offset += aescipher.processBytes(bos.toByteArray(), 0, bos.toByteArray().length, encmsg, offset);
+		
+		try {
+			aescipher.doFinal(encmsg, offset);
+		} catch (InvalidCipherTextException icte) {
+			icte.printStackTrace();
 			return false;
 		}
 		
@@ -317,6 +380,9 @@ public class OutboundContact {
 		this.contactfile.put("status", "rts-sent");
 		// and remember when we sent it!
 		this.contactfile.put("rts-sent-at", Long.toString(System.currentTimeMillis()));
+		// and since that's been sucessfully inserted to that key, we can
+		// throw away the symmetric key
+		this.contactfile.remove("aesparams");
 		
 		return true;
 	}

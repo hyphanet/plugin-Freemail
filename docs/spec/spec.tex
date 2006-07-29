@@ -51,7 +51,7 @@ Once Alice has retrieved the recipient's mailpage, she sends an RTS message to B
 
 Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes.
 
-The final message comprises a randomly generated AES session key, encrypted with Bob's public RSA key, followed by this message-signature combination encrypted with this sessions key. The encrypted session key must be precicely one RSA block of ciphertext. All bytes after this are part of the symmetrically encrypted message.
+The final message comprises a randomly generated IV, followed by an AES session key, encrypted with Bob's public RSA key, followed by this message-signature combination encrypted with this session key. The encrypted session key must be precicely one RSA block of ciphertext. All bytes after this are part of the symmetrically encrypted message. The main message is encoded with a block size of 128 bits in CBC mode, with PKCS7 padding.
 
 It is the sender's responsibility to keep the private part of the 'commssk' key private. It is valid to assume that any message inserted on 'commssk' was written by Alice and intended for Bob, since only Alice has the private key and only they have the public key.
 
