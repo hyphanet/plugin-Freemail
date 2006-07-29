@@ -12,21 +12,43 @@ import freemail.utils.DateStringFactory;
 
 public class RTSLog {
 	PropsFile logfile;
-	private static String NEXTID = "nextid-";
+	private static String SLOTS = "slots-";
 	private static String PASSES = "passes-";
 	private static String UNPROC_NEXTID = "unproc-nextid";
 
 	public RTSLog(File f) {
 		this.logfile = new PropsFile(f);
+		if (!this.logfile.exists()) {
+			String birth = DateStringFactory.getOffsetKeyString(0);
+			this.logfile.put("birth", birth);
+		}
 	}
 	
 	public int getPasses(String day) {
+		if (this.isBeforeBirth(day)) return Integer.MAX_VALUE;
+		
 		String val = this.logfile.get(PASSES+day);
 		
 		if (val == null)
 			return 0;
 		else
 			return Integer.parseInt(val);
+	}
+	
+	private boolean isBeforeBirth(String daystr) {
+		Date day = DateStringFactory.DateFromKeyString(daystr);
+		String birth_s = this.logfile.get("birth");
+		Date birth;
+		if (birth_s == null) {
+			birth = new Date();
+			birth_s = DateStringFactory.getOffsetKeyString(0);
+			this.logfile.put("birth", birth_s);
+		} else {
+			birth = DateStringFactory.DateFromKeyString(birth_s);
+		}
+		
+		if (day.before(birth)) return true;
+		return false;
 	}
 	
 	public void incPasses(String day) {
@@ -47,8 +69,8 @@ public class RTSLog {
 			String datestr;
 			if (cur.startsWith(PASSES)) {
 				datestr = cur.substring(PASSES.length());
-			} else if (cur.startsWith(NEXTID)) {
-				datestr = cur.substring(NEXTID.length());
+			} else if (cur.startsWith(SLOTS)) {
+				datestr = cur.substring(SLOTS.length());
 			} else {
 				continue;
 			}
@@ -70,17 +92,17 @@ public class RTSLog {
 		}
 	}
 	
-	public int getNextId(String day) {
-		String nid = this.logfile.get(NEXTID+day);
-		if (nid == null) {
-			return 1;
+	public String getSlots(String day) {
+		String slots = this.logfile.get(SLOTS+day);
+		if (slots == null) {
+			return "1";
 		} else {
-			return Integer.parseInt(nid);
+			return slots;
 		}
 	}
 	
-	public void incNextId(String day) {
-		this.logfile.put(NEXTID+day, Integer.toString(this.getNextId(day) + 1));
+	public void putSlots(String day, String slots) {
+		this.logfile.put(SLOTS+day, slots);
 	}
 	
 	public int getAndIncUnprocNextId() {

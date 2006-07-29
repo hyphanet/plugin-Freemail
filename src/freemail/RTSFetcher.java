@@ -31,7 +31,7 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import freenet.support.io.LineReadingInputStream;
 import freenet.support.io.TooLongException;
 
-public class RTSFetcher {
+public class RTSFetcher implements SlotSaveCallback {
 	private String rtskey;
 	private File contact_dir;
 	private static final int POLL_AHEAD = 3;
@@ -109,6 +109,11 @@ public class RTSFetcher {
 		log.pruneBefore(cal.getTime());
 	}
 	
+	private class MySlotSaveData {
+		RTSLog log;
+		String date;
+	}
+	
 	private void fetch_day(RTSLog log, String date) {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
@@ -116,30 +121,39 @@ public class RTSFetcher {
 		String keybase;
 		keybase = this.rtskey + date + "-";
 		
-		int startnum = log.getNextId(date);
+		MySlotSaveData cbdata = new MySlotSaveData();
+		cbdata.log = log;
+		cbdata.date = date;
 		
-		for (int i = startnum; i < startnum + POLL_AHEAD; i++) {
-			System.out.println("trying to fetch "+keybase+i);
+		NaturalSlotManager sm = new NaturalSlotManager(this, cbdata, log.getSlots(date));
+		
+		int slot;
+		while ( (slot = sm.getNextSlotNat()) > 0) {
+			System.out.println("trying to fetch "+keybase+slot);
 			
-			File result = fcpcli.fetch(keybase+i);
+			File result = fcpcli.fetch(keybase+slot);
 			
 			if (result != null) {
-				System.out.println(keybase+i+": got RTS!");
+				System.out.println(keybase+slot+": got RTS!");
 				
 				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+":0");
 				
 				// stick this message in the RTS 'inbox'
 				if (result.renameTo(rts_dest)) {
 					// provided that worked, we can move on to the next RTS message
-					log.incNextId(date);
+					sm.slotUsed();
 				}
 			} else {
-				System.out.println(keybase+i+": no RTS.");
+				System.out.println(keybase+slot+": no RTS.");
 			}
 		}
 	}
 	
-	
+	public void saveSlots(String slots, Object userdata) {
+		MySlotSaveData cbdata = (MySlotSaveData) userdata;
+		
+		cbdata.log.putSlots(cbdata.date, slots);
+	}
 	
 	private boolean handle_rts(File rtsmessage) {
 		// sanity check!

@@ -134,7 +134,6 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 	}
 	
 	public void saveSlots(String s, Object userdata) {
-		System.out.println("putting "+s+" into slots");
 		this.ibct_props.put("slots", s);
 	}
 	

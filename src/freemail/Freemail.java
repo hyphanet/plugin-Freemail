@@ -83,8 +83,8 @@ public class Freemail {
 		if (action.equals("--newaccount")) {
 			try {
 				AccountManager.Create(account);
-				// for now
-				AccountManager.setupNIM(account);
+				// by default, we'll not setup NIM now real mode works
+				//AccountManager.setupNIM(account);
 				System.out.println("Account created for "+account+". You may now set a password with --passwd <password>");
 				//System.out.println("For the time being, you address is "+account+"@nim.freemail");
 			} catch (IOException ioe) {

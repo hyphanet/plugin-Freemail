@@ -123,10 +123,10 @@ public abstract class SlotManager {
 				// we're into the unused slots. make one up.
 				Slot s = (Slot)this.slots.lastElement();
 				int i;
-				for (i = this.slots.size(); i <= this.nextSlotNum; i++) {
-					s.slot = this.incSlot(s.slot);
-				}
 				retval = s.slot;
+				for (i = this.slots.size(); i <= this.nextSlotNum; i++) {
+					retval = this.incSlot(retval);
+				}
 			} else {
 				// we're looking at an unused slot
 				Slot s = (Slot) this.slots.get(this.nextSlotNum);
