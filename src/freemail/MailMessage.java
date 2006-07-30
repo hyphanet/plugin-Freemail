@@ -105,6 +105,14 @@ public class MailMessage {
 		}
 	}
 	
+	public void cancel() {
+		try {
+			this.os.close();
+		} catch (IOException ioe) {
+		}
+		this.file.delete();
+	}
+	
 	public void readHeaders() throws IOException {
 		BufferedReader bufrdr = new BufferedReader(new FileReader(this.file));
 		

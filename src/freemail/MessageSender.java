@@ -154,24 +154,9 @@ public class MessageSender implements Runnable {
 		try {
 			ct = new OutboundContact(accdir, addr);
 		} catch (BadFreemailAddressException bfae) {
-			// TODO: bounce
-			return true;
+			// bounce
+			return Postman.bounceMessage(msg, new MessageBank(accdir.getName()), "The address that this message was destined for ("+addr+") is not a valid Freemail address.");
 		}
-		boolean ready;
-		if (!ct.ready()) {
-			try {
-				System.out.println("initing outbound contact");
-				ready = ct.init();
-			} catch (OutboundContactFatalException fe) {
-				// will never succeed, so report success to delete the message
-				// TODO: send a bounce message or something
-				return true;
-			}
-		} else {
-			ready = true;
-		}
-		
-		if (!ready) return false;
 		
 		return ct.sendMessage(msg);
 	}

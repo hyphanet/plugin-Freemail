@@ -79,8 +79,10 @@ public class AckProcrastinator implements Runnable {
 						FCPInsertErrorMessage err = fcpcli.put(bis, key);
 						if (err == null) {
 							acks[i].delete();
+							System.out.println("ACK insertion to "+key+" sucessful");
 						} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
 							acks[i].delete();
+							System.out.println("ACK insertion to "+key+" sucessful");
 						}
 					} catch (FCPBadFileException bfe) {
 						// won't occur

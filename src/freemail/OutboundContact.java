@@ -113,9 +113,11 @@ public class OutboundContact {
 			
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
+			System.out.println("polling for CTS message: "+ctskey);
 			File cts = fcpcli.fetch(ctskey);
 			
 			if (cts == null) {
+				System.out.println("CTS not received");
 				// haven't got the CTS message. should we give up yet?
 				String senttime = this.contactfile.get("rts-sent-at");
 				
@@ -134,21 +136,6 @@ public class OutboundContact {
 		} else {
 			this.init();
 		}
-	}
-	
-	/*
-	 * Whether or not we're ready to communicate with the other party
-	 */
-	public boolean ready() {
-		if (!this.contactfile.exists()) return false;
-		
-		String status = this.contactfile.get("status");
-		if (status == null) return false;
-		// don't wait for an ack before inserting the message, but be ready to insert it again
-		// if the ack never arrives
-		if (status.equals("rts-sent")) return true;
-		if (status.equals("cts-received")) return true;
-		return false;
 	}
 	
 	private SSKKeyPair getCommKeyPair() {
@@ -265,8 +252,9 @@ public class OutboundContact {
 	 *
 	 * @return true for success
 	 */
-	public boolean init() throws OutboundContactFatalException {
+	private boolean init() throws OutboundContactFatalException {
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
+		String initialslot = this.getInitialSlot();
 		SSKKeyPair commssk = this.getCommKeyPair();
 		if (commssk == null) return false;
 		SSKKeyPair ackssk = this.getAckKeyPair();
@@ -282,8 +270,6 @@ public class OutboundContact {
 		rtsmessage.append("commssk="+commssk.pubkey+"\r\n");
 		
 		rtsmessage.append("ackssk="+ackssk.privkey+"\r\n");
-		
-		String initialslot = this.getInitialSlot();
 		
 		rtsmessage.append("initialslot="+initialslot+"\r\n");
 		
@@ -372,6 +358,7 @@ public class OutboundContact {
 		// insert it!
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		if (cli.SlotInsert(encmsg, "KSK@"+rtsksk+"-"+DateStringFactory.getKeyString(), 1, "") < 0) {
+			// safe to copy the message into the contact outbox though
 			return false;
 		}
 		
@@ -382,7 +369,6 @@ public class OutboundContact {
 		// and since that's been sucessfully inserted to that key, we can
 		// throw away the symmetric key
 		this.contactfile.remove("aesparams");
-		
 		return true;
 	}
 	
@@ -454,6 +440,16 @@ public class OutboundContact {
 	}
 	
 	public boolean sendMessage(File body) {
+		if (!this.contactfile.exists()) {
+			try {
+				this.init();
+			} catch (OutboundContactFatalException fe) {
+				if (Postman.bounceMessage(body, new MessageBank(this.accdir.getName()), fe.getMessage())) {
+					return true;
+				}
+			}
+		}
+		
 		int uid = this.popNextUid();
 		
 		// create a new file that contains the complete Freemail
@@ -508,6 +504,19 @@ public class OutboundContact {
 	}
 	
 	private void sendQueued() {
+		boolean ready;
+		String ctstatus = this.contactfile.get("status");
+		if (ctstatus == null) ctstatus = "notsent";
+		if (ctstatus.equals("rts-sent") || ctstatus.equals("cts-received")) {
+			ready = true;
+		} else {
+			try {
+				ready = this.init();
+			} catch (OutboundContactFatalException fe) {
+				ready = false;
+			}
+		}
+		
 		HighLevelFCPClient fcpcli = null;
 		
 		QueuedMessage[] msgs = this.getSendQueue();
@@ -516,6 +525,15 @@ public class OutboundContact {
 		for (i = 0; i < msgs.length; i++) {
 			if (msgs[i] == null) continue;
 			if (msgs[i].last_send_time > 0) continue;
+			
+			if (!ready) {
+				if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
+					if (Postman.bounceMessage(msgs[i].getMessageFile(), new MessageBank(this.accdir.getName()), "Freemail has been trying to establish a communication channel with this party for too long without success. Check that the Freemail address is valid, and that the recipient still runs Freemail on at least a semi-regular basis.", true)) {
+						msgs[i].delete();
+					}
+				}
+				continue;
+			}
 			
 			if (fcpcli == null) fcpcli = new HighLevelFCPClient();
 			
@@ -548,6 +566,11 @@ public class OutboundContact {
 				msgs[i].first_send_time = System.currentTimeMillis();
 				msgs[i].last_send_time = System.currentTimeMillis();
 				msgs[i].saveProps();
+			} else if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
+				System.out.println("Giving up on a message - been trying to send for too long. Bouncing.");
+				if (Postman.bounceMessage(msgs[i].getMessageFile(), new MessageBank(this.accdir.getName()), "Freemail has been trying to deliver this message for too long without success. This is likley to be due to a poor connection to Freenet. Check your Freenet node.", true)) {
+					msgs[i].delete();
+				}
 			} else {
 				System.out.println("Failed to insert "+key+" will try again soon.");
 			}
@@ -585,7 +608,9 @@ public class OutboundContact {
 			} else {
 				if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
 					// give up and bounce the message
-					// TODO: bounce message
+					File m = msgs[i].getMessageFile();
+					
+					Postman.bounceMessage(m, new MessageBank(this.accdir.getName()), "Freemail has been trying for too long to deliver this message, and has received no acknowledgement. It is possivle that the recipient has not run Freemail since you sent the message. If you believe this is likely, try resending the message.", true);
 					System.out.println("Giving up on message - been trying for too long.");
 					msgs[i].delete();
 				} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
@@ -631,6 +656,7 @@ public class OutboundContact {
 		
 		final int uid;
 		String slot;
+		long added_time;
 		long first_send_time;
 		long last_send_time;
 		private final File file;
@@ -654,10 +680,19 @@ public class OutboundContact {
 			else
 				this.last_send_time = Long.parseLong(s_last);
 			
+			String s_added = this.index.get(uid+".added_time");
+			if (s_added == null)
+				this.added_time = System.currentTimeMillis();
+			else
+				this.added_time = Long.parseLong(s_added);
 		}
 		
 		public FileInputStream getInputStream() throws FileNotFoundException {
 			return new FileInputStream(this.file);
+		}
+		
+		public File getMessageFile() {
+			return this.file;
 		}
 		
 		public boolean setMessageFile(File newfile) {
@@ -669,6 +704,7 @@ public class OutboundContact {
 			suc &= this.index.put(uid+".slot", this.slot);
 			suc &= this.index.put(uid+".first_send_time", this.first_send_time);
 			suc &= this.index.put(uid+".last_send_time", this.last_send_time);
+			suc &= this.index.put(uid+".added_time", this.added_time);
 			
 			return suc;
 		}
