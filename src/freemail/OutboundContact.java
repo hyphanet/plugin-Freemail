@@ -225,17 +225,13 @@ public class OutboundContact {
 	}
 	
 	private byte[] getAESParams() {
-		byte[] retval = new byte[AES_KEY_LENGTH + AES_BLOCK_LENGTH];
-		
 		String params = this.contactfile.get("aesparams");
 		if (params != null) {
 			return Base64.decode(params);
 		}
 		
 		SecureRandom rnd = new SecureRandom();
-		
-		byte[] aes_iv_and_key = new byte[AES_KEY_LENGTH + AES_BLOCK_LENGTH];
-		
+		byte[] retval = new byte[AES_KEY_LENGTH + AES_BLOCK_LENGTH];
 		rnd.nextBytes(retval);
 		
 		// save them for next time (if insertion fails) so we can
@@ -266,7 +262,6 @@ public class OutboundContact {
 		StringBuffer rtsmessage = new StringBuffer();
 		
 		// the public part of the SSK keypair we generated
-		// put this first to avoid messages with the same first block, since we don't (currently) use CBC
 		rtsmessage.append("commssk="+commssk.pubkey+"\r\n");
 		
 		rtsmessage.append("ackssk="+ackssk.privkey+"\r\n");
@@ -375,12 +370,11 @@ public class OutboundContact {
 	private boolean fetchMailSite() throws OutboundContactFatalException {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
-		System.out.println("Attempting to fetch "+this.getMailpageKey());
-		File mailsite_file = cli.fetch(this.getMailpageKey());
+		System.out.println("Attempting to fetch "+this.address.getMailpageKey());
+		File mailsite_file = cli.fetch(this.address.getMailpageKey());
 		
 		if (mailsite_file == null) {
-			// TODO: Give up for now, try later, count number of and limit attempts
-			System.out.println("Failed to retrieve mailsite for "+this.address);
+			System.out.println("Failed to retrieve mailsite "+this.address.getMailpageKey());
 			return false;
 		}
 		
@@ -408,14 +402,10 @@ public class OutboundContact {
 		return true;
 	}
 	
-	private String getMailpageKey() {
-		return "USK@"+this.address.getMailsiteKey()+"/"+AccountManager.MAILSITE_SUFFIX+"/1/"+MailSite.MAILPAGE;
-	}
-	
 	private String popNextSlot() {
 		String slot = this.contactfile.get("nextslot");
 		if (slot == null) {
-			slot = this.contactfile.get("initialslot");
+			slot = this.getInitialSlot();
 		}
 		SHA256Digest sha256 = new SHA256Digest();
 		sha256.update(Base32.decode(slot), 0, Base32.decode(slot).length);
@@ -440,16 +430,6 @@ public class OutboundContact {
 	}
 	
 	public boolean sendMessage(File body) {
-		if (!this.contactfile.exists()) {
-			try {
-				this.init();
-			} catch (OutboundContactFatalException fe) {
-				if (Postman.bounceMessage(body, new MessageBank(this.accdir.getName()), fe.getMessage())) {
-					return true;
-				}
-			}
-		}
-		
 		int uid = this.popNextUid();
 		
 		// create a new file that contains the complete Freemail
@@ -501,6 +481,10 @@ public class OutboundContact {
 	public void doComm() {
 		this.sendQueued();
 		this.pollAcks();
+		try {
+			this.checkCTS();
+		} catch (OutboundContactFatalException fe) {
+		}
 	}
 	
 	private void sendQueued() {

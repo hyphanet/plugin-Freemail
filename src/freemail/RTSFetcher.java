@@ -127,6 +127,8 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		NaturalSlotManager sm = new NaturalSlotManager(this, cbdata, log.getSlots(date));
 		
+		sm.setPollAhead(POLL_AHEAD);
+		
 		int slot;
 		while ( (slot = sm.getNextSlotNat()) > 0) {
 			System.out.println("trying to fetch "+keybase+slot);
@@ -270,7 +272,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		if (!their_mailsite.endsWith("/")) {
 			their_mailsite += "/";
 		}
-		their_mailsite += "1/"+MailSite.MAILPAGE;
+		their_mailsite += AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
 		
 		
 		System.out.println("Trying to fetch sender's mailsite: "+their_mailsite);
@@ -335,7 +337,10 @@ public class RTSFetcher implements SlotSaveCallback {
 			rtsfile.delete();
 			return false;
 		}
-		if (!rtsprops.get("to").equals(our_mailsite_keybody)) {
+		
+		String our_domain_alias = this.accprops.get("domain_alias");
+		
+		if (!rtsprops.get("to").equals(our_mailsite_keybody) && our_domain_alias != null && !rtsprops.get("to").equals(our_domain_alias)) {
 			System.out.println("Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();

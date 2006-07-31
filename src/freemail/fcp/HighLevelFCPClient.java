@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import freemail.Freemail;
 
 public class HighLevelFCPClient implements FCPClient {
+	private static final int FCP_PERMANANT_REDIRECT = 27;
+
 	private FCPConnection conn;
 	private FCPMessage donemsg;
 	
@@ -50,6 +52,16 @@ public class HighLevelFCPClient implements FCPClient {
 		
 		if (this.donemsg.getType().equalsIgnoreCase("AllData")) {
 			return this.donemsg.getData();
+		} else if (this.donemsg.getType().equalsIgnoreCase("GetFailed")) {
+			String s_code = (String)this.donemsg.headers.get("Code");
+			if (s_code == null) return null;
+			int code = Integer.parseInt(s_code);
+			if (code == FCP_PERMANANT_REDIRECT) {
+				String newuri = (String) this.donemsg.headers.get("RedirectURI");
+				if (newuri == null) return null;
+				return this.fetch(newuri);
+			}
+			return null;
 		} else {
 			return null;
 		}
@@ -107,6 +119,42 @@ public class HighLevelFCPClient implements FCPClient {
 					Thread.sleep(5000);
 				} catch (InterruptedException ie) {
 				}
+			}
+		}
+		
+		this.donemsg = null;
+		while (this.donemsg == null) {
+			try {
+				this.wait();
+			} catch (InterruptedException ie) {
+			}
+		}
+		
+		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
+			return null;
+		} else {
+			return new FCPInsertErrorMessage(donemsg);
+		}
+	}
+	
+	public synchronized FCPInsertErrorMessage putRedirect(String fromKey, String targetKey) {
+		FCPMessage msg = this.conn.getMessage("ClientPut");
+		msg.headers.put("URI", fromKey);
+		msg.headers.put("Persistence", "connection");
+		msg.headers.put("UploadFrom", "redirect");
+		msg.headers.put("TargetURI", targetKey);
+		
+		while (true) {
+			try {
+				this.conn.doRequest(this, msg);
+				break;
+			} catch (NoNodeConnectionException nnce) {
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException ie) {
+				}
+			} catch (FCPBadFileException bfe) {
+				// impossible
 			}
 		}
 		

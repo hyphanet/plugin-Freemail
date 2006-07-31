@@ -1,8 +1,13 @@
 package freemail.utils;
 
+import freemail.AccountManager;
+import freemail.MailSite;
+
 import org.archive.util.Base32;
 
 public class EmailAddress {
+	private static final int SSK_PART_LENGTH = 43;
+
 	public String realname;
 	public String user;
 	public String domain;
@@ -53,16 +58,55 @@ public class EmailAddress {
 	public boolean is_freemail_address() {
 		if (this.domain == null) return false;
 		if (!this.domain.endsWith(".freemail")) return false;
-		if (this.getMailsiteKey() == null) return false;
 		return true;
 	}
 	
-	public String getMailsiteKey() {
+	public boolean is_nim_address() {
+		if (!this.is_freemail_address()) {
+			return false;
+		}
+		return this.getSubDomain().equalsIgnoreCase("nim");
+	}
+	
+	private boolean is_ssk_address() {
+		if (!this.is_freemail_address()) return false;
+		String key;
+		try {
+			key = new String(Base32.decode(this.getSubDomain()));
+		} catch (Exception e) {
+			return false;
+		}
+		
+		String[] parts = key.split(",", 3);
+		
+		if (parts.length < 3) return false;
+		if (parts[0].length() != SSK_PART_LENGTH || parts[1].length() != SSK_PART_LENGTH) return false;
+		return true;
+	}
+	
+	// get the part of the domain before the '.freemail'
+	private String getSubDomain() {
 		String[] domparts = this.domain.split("\\.", 2);
 		
 		if (domparts.length < 2) return null;
 		
-		return new String (Base32.decode(domparts[0]));
+		return domparts[0];
+	}
+	
+	public String getMailsiteKey() {
+		if (this.is_ssk_address()) {
+			return new String (Base32.decode(this.getSubDomain()));
+		} else {
+			return this.getSubDomain();
+		}
+	}
+	
+	public String getMailpageKey() {
+		if (this.is_ssk_address()) {
+			return "USK@"+new String (Base32.decode(this.getSubDomain()))+"/"+AccountManager.MAILSITE_SUFFIX+"/"+AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
+		} else {
+			return "KSK@"+this.getSubDomain()+MailSite.ALIAS_SUFFIX;
+		}
 	}
 	
 	public String toString() {

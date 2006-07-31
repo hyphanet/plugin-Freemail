@@ -75,7 +75,6 @@ public class MessageSender implements Runnable {
 					outbox.mkdir();
 				
 				this.sendDir(files[i], outbox);
-				this.checkCTSs(files[i]);
 			}
 			// don't spin around the loop if nothing's
 			// going on
@@ -86,27 +85,6 @@ public class MessageSender implements Runnable {
 					Thread.sleep(MIN_RUN_TIME - runtime);
 				} catch (InterruptedException ie) {
 				}
-			}
-		}
-	}
-	
-	private void checkCTSs(File accdir) {
-		File contactsdir = new File(accdir, SingleAccountWatcher.CONTACTS_DIR);
-		
-		File outbounddir = new File(contactsdir, SingleAccountWatcher.OUTBOUND_DIR);
-		
-		if (!outbounddir.exists())
-			outbounddir.mkdir();
-		
-		File[] contacts = outbounddir.listFiles();
-		
-		int i;
-		for (i = 0; i < contacts.length; i++) {
-			OutboundContact outboundcontact = new OutboundContact(accdir, contacts[i]);
-			
-			try {
-				outboundcontact.checkCTS();
-			} catch (OutboundContactFatalException obctfe) {
 			}
 		}
 	}
@@ -135,7 +113,7 @@ public class MessageSender implements Runnable {
 			return;
 		}
 		
-		if (addr.domain.equalsIgnoreCase("nim.freemail")) {
+		if (addr.is_nim_address()) {
 			HighLevelFCPClient cli = new HighLevelFCPClient();
 			
 			if (cli.SlotInsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {

@@ -24,6 +24,11 @@ public class SingleAccountWatcher implements Runnable {
 		this.accdir = accdir;
 		this.accprops = AccountManager.getAccountFile(accdir);
 		File contacts_dir = new File(accdir, CONTACTS_DIR);
+		
+		if (!contacts_dir.exists()) {
+			contacts_dir.mkdir();
+		}
+		
 		this.ibctdir = new File(contacts_dir, INBOUND_DIR);
 		this.obctdir = new File(contacts_dir, OUTBOUND_DIR);
 		this.mailsite_last_upload = 0;
@@ -54,6 +59,7 @@ public class SingleAccountWatcher implements Runnable {
 		while (true) {
 			long start = System.currentTimeMillis();
 			
+			// is it time we inserted the mailsite?
 			if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
 				MailSite ms = new MailSite(this.accprops);
 				if (ms.Publish() > 0) {
