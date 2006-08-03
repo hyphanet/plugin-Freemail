@@ -7,10 +7,14 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 
 import freemail.FreenetURI;
 import freemail.utils.PropsFile;
+import freemail.utils.EmailAddress;
 import freemail.fcp.HighLevelFCPClient;
+
+import org.archive.util.Base32;
 
 public class InboundContact extends Postman implements SlotSaveCallback {
 	private static final String IBCT_PROPSFILE = "props";
@@ -136,6 +140,47 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 	public void saveSlots(String s, Object userdata) {
 		this.ibct_props.put("slots", s);
 	}
+	
+	public boolean validateFrom(EmailAddress from) throws IOException {
+		String sd = from.getSubDomain();
+		
+		if (from.is_ssk_address()) {
+			return Base32.encode(this.ibct_dir.getName().getBytes()).equalsIgnoreCase(sd);
+		} else {
+			// try to fetch that KSK redirect address
+			HighLevelFCPClient cli = new HighLevelFCPClient();
+			
+			// quick sanity check
+			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) return false;
+			
+			File result = cli.fetch("KSK@"+sd+MailSite.ALIAS_SUFFIX);
+			
+			if (result == null) {
+				// we just received the message so we can assume our
+				// network connection is healthy, and the mailsite
+				// ought to be easily retrievable, so fail.
+				// If this proves to be an issue, change it.
+				return false;
+			}
+			if (result.length() > 512) {
+				result.delete();
+				return false;
+			}
+			BufferedReader br = new BufferedReader(new FileReader(result));
+			
+			String line = br.readLine();
+			br.close();
+			result.delete();
+			FreenetURI furi;
+			try {
+				furi = new FreenetURI(line);
+			} catch (MalformedURLException mfue) {
+				return false;
+			}
+			return this.ibct_dir.getName().equals(furi.getKeyBody());
+		}
+	}
+	
 	
 	private class MessageLog {
 		private static final String LOGFILE = "log";

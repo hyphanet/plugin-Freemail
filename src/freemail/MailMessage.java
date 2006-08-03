@@ -78,6 +78,45 @@ public class MailMessage {
 		return buf.toString();
 	}
 	
+	public String[] getHeadersAsArray(String name) {
+		Vector hdrs = new Vector();
+		
+		Enumeration e = this.headers.elements();
+		
+		while (e.hasMoreElements()) {
+			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			
+			if (h.name.equalsIgnoreCase(name)) {
+				hdrs.add(h.val);
+			}
+		}
+		
+		String[] retval = new String[hdrs.size()];
+		
+		e = hdrs.elements();
+		
+		int i = 0;
+		while (e.hasMoreElements()) {
+			retval[i] = (String)e.nextElement();
+			i++;
+		}
+		
+		return retval;
+	}
+	
+	public void removeHeader(String name, String val) {
+		int i;
+		
+		for (i = 0; i < this.headers.size(); i++) {
+			MailMessageHeader h = (MailMessageHeader) this.headers.elementAt(i);
+			
+			if (h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
+				this.headers.remove(i);
+				i--;
+			}
+		}
+	}
+	
 	public PrintStream writeHeadersAndGetStream() throws FileNotFoundException {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);

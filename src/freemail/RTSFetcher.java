@@ -31,6 +31,8 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import freenet.support.io.LineReadingInputStream;
 import freenet.support.io.TooLongException;
 
+import org.archive.util.Base32;
+
 public class RTSFetcher implements SlotSaveCallback {
 	private String rtskey;
 	private File contact_dir;
@@ -339,8 +341,15 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 		
 		String our_domain_alias = this.accprops.get("domain_alias");
+		FreenetURI mailsite_furi;
+		try {
+			mailsite_furi = new FreenetURI(our_mailsite_keybody);
+		} catch (MalformedURLException mfe) {
+			return false;
+		}
+		String our_subdomain = Base32.encode(mailsite_furi.getKeyBody().getBytes());
 		
-		if (!rtsprops.get("to").equals(our_mailsite_keybody) && our_domain_alias != null && !rtsprops.get("to").equals(our_domain_alias)) {
+		if (!rtsprops.get("to").equalsIgnoreCase(our_subdomain) && our_domain_alias != null && !rtsprops.get("to").equals(our_domain_alias)) {
 			System.out.println("Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();

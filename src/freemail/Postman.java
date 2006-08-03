@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.IOException;
 
+import freemail.utils.EmailAddress;
+
 /** A postman is any class that delivers mail to an inbox. Simple,
  *  if not politically correct.
  */
@@ -25,6 +27,20 @@ public class Postman {
 		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
 		
 		newmsg.readHeaders(brdr);
+		
+		// validate the from header - or headers. There could be several.
+		String[] froms = newmsg.getHeadersAsArray("From");
+		
+		int i;
+		for (i = 0; i < froms.length; i++) {
+			EmailAddress addr = new EmailAddress(froms[i]);
+			
+			if (!this.validateFrom(addr)) {
+				newmsg.removeHeader("From", froms[i]);
+				newmsg.addHeader("From", "**SPOOFED!** "+froms[i]);
+			}
+		}
+		
 		
 		PrintStream ps = newmsg.writeHeadersAndGetStream();
 		
@@ -135,5 +151,10 @@ public class Postman {
 		} catch (IOException ioe) {
 		}
 		return null;
+	}
+	
+	public boolean validateFrom(EmailAddress from) throws IOException {
+		// override me!
+		return true;
 	}
 }

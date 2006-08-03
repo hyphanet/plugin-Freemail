@@ -95,13 +95,8 @@ public class EmailAddress {
 	
 	public String getMailpageKey() {
 		if (this.is_ssk_address()) {
-			System.out.println("detected ssk address");
-			
 			return "USK@"+new String (Base32.decode(this.getSubDomain()))+"/"+AccountManager.MAILSITE_SUFFIX+"/"+AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
 		} else {
-			System.out.println("detected ksk address");
-			System.out.println("KSK@"+this.getSubDomain()+MailSite.ALIAS_SUFFIX);
-			
 			return "KSK@"+this.getSubDomain()+MailSite.ALIAS_SUFFIX;
 		}
 	}

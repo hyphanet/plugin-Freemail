@@ -37,7 +37,7 @@ public class AccountManager {
 	private static final int ASYM_KEY_CERTAINTY = 80;
 	
 	public static final String MAILSITE_SUFFIX = "mailsite";
-	public static final String MAILSITE_VERSION = "1";
+	public static final String MAILSITE_VERSION = "-1";
 	
 
 	public static void Create(String username) throws IOException {

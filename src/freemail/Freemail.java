@@ -118,7 +118,7 @@ public class Freemail {
 				e.printStackTrace();
 				return;
 			}
-			System.out.println("Your short Freemail address is: 'anything"+alias+".freemail'. Your long address will continue to work.");
+			System.out.println("Your short Freemail address is: 'anything@"+alias+".freemail'. Your long address will continue to work.");
 			return;
 		}
 		
