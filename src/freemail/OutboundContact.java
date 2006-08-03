@@ -3,6 +3,8 @@ package freemail;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -58,7 +60,7 @@ public class OutboundContact {
 		
 		this.accdir = accdir;
 		
-		if (this.address.getMailsiteKey() == null) {
+		if (!this.address.is_freemail_address()) {
 			this.contactfile = null;
 			throw new BadFreemailAddressException();
 		} else {
@@ -70,7 +72,7 @@ public class OutboundContact {
 			if (!outbounddir.exists())
 				outbounddir.mkdir();
 			
-			File obctdir = new File(outbounddir, this.address.getMailsiteKey());
+			File obctdir = new File(outbounddir, this.address.getSubDomain());
 			
 			if (!obctdir.exists())
 				obctdir.mkdir();
@@ -85,7 +87,7 @@ public class OutboundContact {
 	public OutboundContact(File accdir, File ctdir) {
 		this.accdir = accdir;
 		this.address = new EmailAddress();
-		this.address.domain = Base32.encode(ctdir.getName().getBytes())+".freemail";
+		this.address.domain = ctdir.getName()+".freemail";
 		
 		this.contactfile = new PropsFile(new File(ctdir, PROPSFILE_NAME));
 		
@@ -127,7 +129,7 @@ public class OutboundContact {
 				}
 				
 			} else {
-				System.out.println("Sucessfully received CTS for "+this.address.getMailsiteKey());
+				System.out.println("Sucessfully received CTS for "+this.address.getSubDomain());
 				cts.delete();
 				this.contactfile.put("status", "cts-received");
 				// delete inital slot for forward secrecy
@@ -271,7 +273,7 @@ public class OutboundContact {
 		rtsmessage.append("messagetype=rts\r\n");
 		
 		// must include who this RTS is to, otherwise we're vulnerable to surruptitious forwarding
-		rtsmessage.append("to="+this.address.getMailsiteKey()+"\r\n");
+		rtsmessage.append("to="+this.address.getSubDomain()+"\r\n");
 		
 		// get our mailsite URI
 		String our_mailsite_uri = AccountManager.getAccountFile(this.accdir).get("mailsite.pubkey");
@@ -376,6 +378,36 @@ public class OutboundContact {
 		if (mailsite_file == null) {
 			System.out.println("Failed to retrieve mailsite "+this.address.getMailpageKey());
 			return false;
+		}
+		
+		if (!this.address.is_ssk_address()) {
+			// presumably a KSK 'redirect'. Follow it.
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new FileReader(mailsite_file));
+			} catch (FileNotFoundException fnfe) {
+				// impossible
+			}
+			
+			if (mailsite_file.length() > 512) {
+				System.out.println("Fatal: mailsite redirect too long. Ignoring.");
+				throw new OutboundContactFatalException("Mailsite redirect too long.");
+			}
+			
+			String addr;
+			try {
+				addr = br.readLine();
+				br.close();
+			} catch (IOException ioe) {
+				System.out.println("Warning: IO exception whilst reading mailsite redirect file: "+ioe.getMessage());
+				return false;
+			}
+			mailsite_file.delete();
+			mailsite_file = cli.fetch(addr);
+			if (mailsite_file == null) {
+				System.out.println("Failed to retrieve redirected mailsite "+addr);
+				return false;
+			}
 		}
 		
 		System.out.println("got mailsite");

@@ -137,42 +137,6 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public synchronized FCPInsertErrorMessage putRedirect(String fromKey, String targetKey) {
-		FCPMessage msg = this.conn.getMessage("ClientPut");
-		msg.headers.put("URI", fromKey);
-		msg.headers.put("Persistence", "connection");
-		msg.headers.put("UploadFrom", "redirect");
-		msg.headers.put("TargetURI", targetKey);
-		
-		while (true) {
-			try {
-				this.conn.doRequest(this, msg);
-				break;
-			} catch (NoNodeConnectionException nnce) {
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException ie) {
-				}
-			} catch (FCPBadFileException bfe) {
-				// impossible
-			}
-		}
-		
-		this.donemsg = null;
-		while (this.donemsg == null) {
-			try {
-				this.wait();
-			} catch (InterruptedException ie) {
-			}
-		}
-		
-		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
-			return null;
-		} else {
-			return new FCPInsertErrorMessage(donemsg);
-		}
-	}
-	
 	public int SlotInsert(File data, String basekey, int minslot, String suffix) {
 		int slot = minslot;
 		boolean carryon = true;

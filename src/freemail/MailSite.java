@@ -1,11 +1,13 @@
 package freemail;
 
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
 import freemail.utils.PropsFile;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPInsertErrorMessage;
+import freemail.fcp.FCPBadFileException;
 
 public class MailSite {
 	private final PropsFile accprops;
@@ -77,31 +79,47 @@ public class MailSite {
 		// leave this out for now, until we know whether we're doing it
 		// with real USK redirects or fake put-a-USK-in-a-KSK redirect
 		// are we set up to use a KSK domain alias too?
-		/*String alias = this.accprops.get("domain_alias");
+		String alias = this.accprops.get("domain_alias");
 		if (alias != null) {
-			String targetKey = this.accprops.get("mailsite.pubkey");
-			if (targetKey == null) return -1;
-			FreenetURI furi;
-			try {
-				furi = new FreenetURI(targetKey);
-			} catch (MalformedURLException mfue) {
-				return -1;
-			}
-			targetKey = "USK@"+furi.getKeyBody()+"/"+AccountManager.MAILSITE_SUFFIX+"/-1/"+MAILPAGE;
-			
-			System.out.println("Inserting mailsite redirect from "+"KSK@"+alias+ALIAS_SUFFIX+" to "+targetKey);
-			
-			FCPInsertErrorMessage err = cli.putRedirect("KSK@"+alias+ALIAS_SUFFIX, targetKey);
-			
-			if (err == null) {
-				System.out.println("Mailsite redirect inserted successfully");
-			} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
-				System.out.println("Mailsite alias collided - somebody is already using that alias! Choose another one!");
-			} else {
-				System.out.println("Mailsite redirect insert failed, but did not collide.");
-			}
-		}*/
+			if (!this.insertAlias(alias)) return -1;
+		}
 		
 		return actualslot;
+	}
+	
+	public boolean insertAlias(String alias) {
+		String targetKey = this.accprops.get("mailsite.pubkey");
+		if (targetKey == null) return false;
+		FreenetURI furi;
+		try {
+			furi = new FreenetURI(targetKey);
+		} catch (MalformedURLException mfue) {
+			return false;
+		}
+		targetKey = "USK@"+furi.getKeyBody()+"/"+AccountManager.MAILSITE_SUFFIX+"/-1/"+MAILPAGE;
+			
+		ByteArrayInputStream bis = new ByteArrayInputStream(targetKey.getBytes());
+			
+		System.out.println("Inserting mailsite redirect from "+"KSK@"+alias+ALIAS_SUFFIX+" to "+targetKey);
+		
+		HighLevelFCPClient cli = new HighLevelFCPClient();
+			
+		FCPInsertErrorMessage err = null;
+		try {
+			err = cli.put(bis, "KSK@"+alias+ALIAS_SUFFIX);
+		} catch (FCPBadFileException bfe) {
+				// impossible
+		}
+			
+		if (err == null) {
+			System.out.println("Mailsite redirect inserted successfully");
+			return true;
+		} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
+			System.out.println("Mailsite alias collided - somebody is already using that alias! Choose another one!");
+			return false;
+		} else {
+			System.out.println("Mailsite redirect insert failed, but did not collide.");
+			return false;
+		}
 	}
 }

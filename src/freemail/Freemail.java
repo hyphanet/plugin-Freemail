@@ -32,6 +32,7 @@ public class Freemail {
 		String action = "";
 		String account = null;
 		String newpasswd = null;
+		String alias = null;
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("--newaccount")) {
@@ -52,6 +53,15 @@ public class Freemail {
 				}
 				account = args[i - 1];
 				newpasswd = args[i];
+			} else if (args[i].equals("--shortaddress")) {
+				action = args[i];
+				i = i + 2;
+				if (args.length - 1 < i) {
+					System.out.println("Usage: --shortaddress <name>");
+					return;
+				}
+				account = args[i - 1];
+				alias = args[i];
 			} else if (args[i].equals("-h")) {
 				i++;
 				if (args.length - 1 < i) {
@@ -99,6 +109,16 @@ public class Freemail {
 				System.out.println("Couldn't change password for "+account+". "+e.getMessage());
 				e.printStackTrace();
 			}
+			return;
+		} else if (action.equals("--shortaddress")) {
+			try {
+				AccountManager.addShortAddress(account, alias);
+			} catch (Exception e) {
+				System.out.println("Couldn't add short address for "+account+". "+e.getMessage());
+				e.printStackTrace();
+				return;
+			}
+			System.out.println("Your short Freemail address is: 'anything"+alias+".freemail'. Your long address will continue to work.");
 			return;
 		}
 		

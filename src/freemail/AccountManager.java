@@ -118,6 +118,16 @@ public class AccountManager {
 		return new EmailAddress("anything@"+Base32.encode(mailsite.getKeyBody().getBytes())+".freemail");
 	}
 	
+	public static EmailAddress getKSKFreemailAddress(File accdir) {
+		PropsFile accfile = getAccountFile(accdir);
+		
+		String alias = accfile.get("domain_alias");
+		
+		if (alias == null) return null;
+		
+		return new EmailAddress("anything@"+alias+".freemail");
+	}
+	
 	public static RSAKeyParameters getPrivateKey(File accdir) {
 		PropsFile props = getAccountFile(accdir);
 		
@@ -192,6 +202,21 @@ public class AccountManager {
 		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
 		
 		System.out.println("Account creation completed.");
+	}
+	
+	public static void addShortAddress(String username, String alias) throws Exception {
+		File accountdir = new File(DATADIR, username);
+		if (!accountdir.exists()) {
+			throw new Exception("No such account - "+username+".");
+		}
+		
+		PropsFile accfile = getAccountFile(accountdir);
+		
+		MailSite ms = new MailSite(accfile);
+		
+		if (ms.insertAlias(alias)) {
+			accfile.put("domain_alias", alias);
+		}
 	}
 	
 	public static boolean authenticate(String username, String password) {
