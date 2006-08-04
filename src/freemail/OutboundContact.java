@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
@@ -52,10 +53,10 @@ public class OutboundContact {
 	private static final int AES_KEY_LENGTH = 256 / 8;
 	// this is defined in the AES standard (although the Rijndael
 	// algorithm does support other block sizes.
-	// we read 128 bytes for our IV, so it needs to be constant.
+	// we read 128 bytes for our IV, so it needs to be constant.)
 	private static final int AES_BLOCK_LENGTH = 128 / 8;
 	
-	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException {
+	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException, IOException, OutboundContactFatalException {
 		this.address = a;
 		
 		this.accdir = accdir;
@@ -72,7 +73,22 @@ public class OutboundContact {
 			if (!outbounddir.exists())
 				outbounddir.mkdir();
 			
-			File obctdir = new File(outbounddir, this.address.getSubDomain());
+			if (!this.address.is_ssk_address()) {
+				String ssk_mailsite = this.fetchKSKRedirect(this.address.getMailpageKey());
+				
+				if (ssk_mailsite == null) throw new IOException();
+				
+				FreenetURI furi;
+				try {
+					furi = new FreenetURI(ssk_mailsite);
+				} catch (MalformedURLException mfue) {
+					throw new OutboundContactFatalException("The Freemail address points to an invalid redirect, and is therefore useless.");
+				}
+				
+				this.address.domain = Base32.encode(furi.getKeyBody().getBytes())+".freemail";
+			}
+			
+			File obctdir = new File(outbounddir, this.address.getSubDomain().toLowerCase());
 			
 			if (!obctdir.exists())
 				obctdir.mkdir();
@@ -111,7 +127,7 @@ public class OutboundContact {
 			if (ctskey == null) {
 				this.init();
 			}
-			ctskey += "ack";
+			ctskey += "cts";
 			
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
@@ -369,6 +385,43 @@ public class OutboundContact {
 		return true;
 	}
 	
+	// fetch the redirect (assumes that this is a KSK address)
+	private String fetchKSKRedirect(String key) throws OutboundContactFatalException {
+		HighLevelFCPClient cli = new HighLevelFCPClient();
+		
+		System.out.println("Attempting to fetch mailsite redirect "+key);
+		File result = cli.fetch(key);
+		
+		if (result == null) {
+			System.out.println("Failed to retrieve mailsite redirect "+key);
+			return null;
+		}
+		
+		if (result.length() > 512) {
+			System.out.println("Fatal: mailsite redirect too long. Ignoring.");
+			result.delete();
+			throw new OutboundContactFatalException("Mailsite redirect too long.");
+		}
+		
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(result));
+		} catch (FileNotFoundException fnfe) {
+			// impossible
+		}
+		
+		String addr;
+		try {
+			addr = br.readLine();
+			br.close();
+		} catch (IOException ioe) {
+			System.out.println("Warning: IO exception whilst reading mailsite redirect file: "+ioe.getMessage());
+			return null;
+		}
+		result.delete();
+		return addr;
+	}
+	
 	private boolean fetchMailSite() throws OutboundContactFatalException {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
@@ -378,36 +431,6 @@ public class OutboundContact {
 		if (mailsite_file == null) {
 			System.out.println("Failed to retrieve mailsite "+this.address.getMailpageKey());
 			return false;
-		}
-		
-		if (!this.address.is_ssk_address()) {
-			// presumably a KSK 'redirect'. Follow it.
-			BufferedReader br = null;
-			try {
-				br = new BufferedReader(new FileReader(mailsite_file));
-			} catch (FileNotFoundException fnfe) {
-				// impossible
-			}
-			
-			if (mailsite_file.length() > 512) {
-				System.out.println("Fatal: mailsite redirect too long. Ignoring.");
-				throw new OutboundContactFatalException("Mailsite redirect too long.");
-			}
-			
-			String addr;
-			try {
-				addr = br.readLine();
-				br.close();
-			} catch (IOException ioe) {
-				System.out.println("Warning: IO exception whilst reading mailsite redirect file: "+ioe.getMessage());
-				return false;
-			}
-			mailsite_file.delete();
-			mailsite_file = cli.fetch(addr);
-			if (mailsite_file == null) {
-				System.out.println("Failed to retrieve redirected mailsite "+addr);
-				return false;
-			}
 		}
 		
 		System.out.println("got mailsite");
@@ -610,7 +633,9 @@ public class OutboundContact {
 				continue;
 			}
 			
-			key += msgs[i].uid;
+			key += "ack-"+msgs[i].uid;
+			
+			System.out.println("Looking for message ack on "+key);
 			
 			File ack = fcpcli.fetch(key);
 			if (ack != null) {
@@ -622,6 +647,7 @@ public class OutboundContact {
 				// delete inital slot for forward secrecy
 				this.contactfile.remove("initialslot");
 			} else {
+				System.out.println("Failed to receive ack on "+key);
 				if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
 					// give up and bounce the message
 					File m = msgs[i].getMessageFile();

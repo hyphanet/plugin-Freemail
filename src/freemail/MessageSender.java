@@ -15,6 +15,7 @@ public class MessageSender implements Runnable {
 	public static final String OUTBOX_DIR = "outbox";
 	private static final int MIN_RUN_TIME = 60000;
 	public static final String NIM_KEY_PREFIX = "KSK@freemail-nim-";
+	private static final int MAX_TRIES = 10;
 	private final File datadir;
 	private Thread senderthread;
 	
@@ -35,7 +36,7 @@ public class MessageSender implements Runnable {
 		this.senderthread.interrupt();
 	}
 	
-	private synchronized void copyToOutbox(File src, File outbox, String to) throws IOException {
+	private void copyToOutbox(File src, File outbox, String to) throws IOException {
 		File tempfile = File.createTempFile("fmail-msg-tmp", null, Freemail.getTempDir());
 		
 		FileOutputStream fos = new FileOutputStream(tempfile);
@@ -49,15 +50,22 @@ public class MessageSender implements Runnable {
 		fis.close();
 		fos.close();
 		
+		this.moveToOutbox(tempfile, 0, to, outbox);
+	}
+	
+	// save a file to the outbox handling name collisions and atomicity
+	private void moveToOutbox(File f, int tries, String to, File outbox) {
 		File destfile;
 		int prefix = 1;
-		do {
-			String filename = prefix + ":" + to;
-			destfile = new File(outbox, filename);
-			prefix++;
-		} while (destfile.exists());
+		synchronized (this.senderthread) {
+			do {
+				String filename = prefix + ":" + tries + ":" + to;
+				destfile = new File(outbox, filename);
+				prefix++;
+			} while (destfile.exists());
 			
-		tempfile.renameTo(destfile);
+			f.renameTo(destfile);
+		}
 	}
 	
 	public void run() {
@@ -100,12 +108,16 @@ public class MessageSender implements Runnable {
 	}
 	
 	private void sendSingle(File accdir, File msg) {
-		String parts[] = msg.getName().split(":", 2);
+		String parts[] = msg.getName().split(":", 3);
 		EmailAddress addr;
-		if (parts.length < 2) {
-			addr = new EmailAddress(parts[0]);
+		int tries;
+		if (parts.length < 3) {
+			System.out.println("Warning invalid file in outbox - deleting.");
+			msg.delete();
+			return;
 		} else {
-			addr = new EmailAddress(parts[1]);
+			tries = Integer.parseInt(parts[1]);
+			addr = new EmailAddress(parts[2]);
 		}
 		
 		if (addr.domain == null || addr.domain.length() == 0) {
@@ -122,6 +134,15 @@ public class MessageSender implements Runnable {
 		} else {
 			if (this.sendSecure(accdir, addr, msg)) {
 				msg.delete();
+			} else {
+				tries++;
+				if (tries > MAX_TRIES) {
+					if (Postman.bounceMessage(msg, new MessageBank(accdir.getName()), "Tried too many times to deliver this message, but it doesn't apear that this address even exists. If you're sure that it does, check your Freenet connection.")) {
+						msg.delete();
+					}
+				} else {
+					this.moveToOutbox(msg, tries, parts[2], msg.getParentFile());
+				}
 			}
 		}
 	}
@@ -134,6 +155,13 @@ public class MessageSender implements Runnable {
 		} catch (BadFreemailAddressException bfae) {
 			// bounce
 			return Postman.bounceMessage(msg, new MessageBank(accdir.getName()), "The address that this message was destined for ("+addr+") is not a valid Freemail address.");
+		} catch (OutboundContactFatalException obfe) {
+			// bounce
+			return Postman.bounceMessage(msg, new MessageBank(accdir.getName()), obfe.getMessage());
+		} catch (IOException ioe) {
+			// couldn't get the mailsite - try again if you're not ready
+			//to give up yet
+			return false;
 		}
 		
 		return ct.sendMessage(msg);

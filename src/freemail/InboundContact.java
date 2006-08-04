@@ -134,6 +134,13 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			}
 			System.out.println("You've got mail!");
 			sm.slotUsed();
+			String ack_key = this.ibct_props.get("ackssk");
+			if (ack_key == null) {
+				System.out.println("Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
+				continue;
+			}
+			ack_key += "ack-"+id;
+			AckProcrastinator.put(ack_key);
 		}
 	}
 	

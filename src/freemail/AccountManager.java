@@ -212,6 +212,8 @@ public class AccountManager {
 		
 		PropsFile accfile = getAccountFile(accountdir);
 		
+		alias = alias.toLowerCase();
+		
 		MailSite ms = new MailSite(accfile);
 		
 		if (ms.insertAlias(alias)) {
