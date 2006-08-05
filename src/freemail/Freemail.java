@@ -9,6 +9,12 @@ import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
 
 public class Freemail {
+	// version info
+	public static final int VER_MAJOR = 0;
+	public static final int VER_MINOR = 1;
+	public static final int BUILD_NO = 1;
+	public static final String VERSION_TAG = "Pet Shop";
+
 	private static final String TEMPDIRNAME = "temp";
 	private static final String DATADIR = "data";
 	private static final String GLOBALDATADIR = "globaldata";
@@ -33,6 +39,10 @@ public class Freemail {
 		String account = null;
 		String newpasswd = null;
 		String alias = null;
+		
+		System.out.println("This is Freemail version "+VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")");
+		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
+		System.out.println("");
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("--newaccount")) {

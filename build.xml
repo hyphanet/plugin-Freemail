@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="Freemail" default="compile" basedir=".">
+<project name="Freemail" default="dist" basedir=".">
 	<!-- set global properties for this build -->
 	<property name="src" location="src"/>
 	<property name="build" location="build"/>
@@ -35,7 +35,7 @@
 		
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4" compiler="jikes" />
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4" />
 	</target>
 
 
@@ -55,6 +55,15 @@
 	</target>
 
 	<target name="clean">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${build}">
+				<exclude name="org/bouncycastle/**"/>
+			</fileset>
+		</delete>
+		<delete dir="${lib}"/>
+	</target>
+
+	<target name="squeakyclean">
 		<delete dir="${build}"/>
 		<delete dir="${lib}"/>
 	</target>
