@@ -32,13 +32,19 @@ public class Postman {
 		String[] froms = newmsg.getHeadersAsArray("From");
 		
 		int i;
+		boolean first = true;
 		for (i = 0; i < froms.length; i++) {
 			EmailAddress addr = new EmailAddress(froms[i]);
 			
-			if (!this.validateFrom(addr)) {
+			if (first) {
+				if (!this.validateFrom(addr)) {
+					newmsg.removeHeader("From", froms[i]);
+					newmsg.addHeader("From", "**SPOOFED!** "+froms[i]);
+				}
+			} else {
 				newmsg.removeHeader("From", froms[i]);
-				newmsg.addHeader("From", "**SPOOFED!** "+froms[i]);
 			}
+			first = false;
 		}
 		
 		
