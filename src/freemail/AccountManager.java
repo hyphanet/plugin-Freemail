@@ -2,9 +2,12 @@ package freemail;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.security.SecureRandom;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -48,7 +51,9 @@ public class AccountManager {
 		
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+DATADIR);
-		getAccountFile(accountdir);
+		PropsFile accfile = getAccountFile(accountdir);
+		
+		putWelcomeMessage(username, getFreemailAddress(accountdir));
 	}
 	
 	public static void setupNIM(String username) throws IOException {
@@ -218,6 +223,34 @@ public class AccountManager {
 		
 		if (ms.insertAlias(alias)) {
 			accfile.put("domain_alias", alias);
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+			EmailAddress to = getKSKFreemailAddress(accountdir);
+		
+			MessageBank mb = new MessageBank(username);
+		
+			MailMessage m = mb.createMessage();
+		
+			m.addHeader("From", "Freemail Daemon <nowhere@dontreply>");
+			m.addHeader("To", to.toString());
+			m.addHeader("Subject", "Your New Address");
+			m.addHeader("Date", sdf.format(new Date()));
+			m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
+			m.addHeader("Content-Transfer-Encoding", "7bit");
+			m.addHeader("Content-Disposition", "inline");
+		
+			PrintStream ps = m.writeHeadersAndGetStream();
+		
+			ps.println("Hi!");
+			ps.println("");
+			ps.println("This is to inform you that your new short Freemail address is:");
+			ps.println("");
+			ps.println(to);
+			ps.println("");
+			ps.println("Your long Freemail address will continue to work. If you have had previous short addresses, you should not rely on them working any longer.");
+			
+		
+			m.commit();
 		}
 	}
 	
@@ -251,5 +284,48 @@ public class AccountManager {
 	private static boolean validate_username(String username) {
 		if (username.matches("[\\w_]*")) return true;
 		return false;
+	}
+	
+	private static void putWelcomeMessage(String username, EmailAddress to) throws IOException {
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+		
+		MessageBank mb = new MessageBank(username);
+		
+		MailMessage m = mb.createMessage();
+		
+		m.addHeader("From", "Dave Baker <dave@dbkr.freemail>");
+		m.addHeader("To", to.toString());
+		m.addHeader("Subject", "Welcome to Freemail!");
+		m.addHeader("Date", sdf.format(new Date()));
+		m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
+		m.addHeader("Content-Transfer-Encoding", "7bit");
+		m.addHeader("Content-Disposition", "inline");
+		
+		PrintStream ps = m.writeHeadersAndGetStream();
+		
+		ps.println("Welcome to Freemail!");
+		ps.println("");
+		ps.println("Thanks for downloading and testing Freemail. You can get started and send me a Freemail now by hitting 'reply'.");
+		ps.println("Your new Freemail address is:");
+		ps.println("");
+		ps.println(to);
+		ps.println("");
+		ps.println("But you'll probably want a shorter one. To do this, run Freemail with the --shortaddress argument, followed by your account name and the part you'd like before the '.freemail'. For example:");
+		ps.println("");
+		ps.println("java -jar freemail.jar --shortaddress bob bobshouse");
+		ps.println("");
+		ps.println("Try to pick something unique - Freemail will tell you if somebody has already taken the address you want. These short addresses are *probably* secure, but not absolutely. If you want to be sure, use the long address.");
+		ps.println("");
+		ps.println("If you find a bug, or would like something changed in Freemail, visit our bug tracker at https://bugs.freenetproject.org/(and select 'Freemail' in the top right). You can also drop into #freemail on irc.freenode.net to discuss, or sign up tp the mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
+		ps.println("");
+		ps.println("Happy Freemailing!");
+		ps.println("");
+		ps.println("");
+		ps.println("");
+		ps.println("");
+		ps.println("Dave Baker");
+		ps.println("(Freemail developer)");
+		
+		m.commit();
 	}
 }

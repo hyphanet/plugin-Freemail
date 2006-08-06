@@ -1,52 +1,40 @@
-This is the start of an email-over-Freenet 0.7 implementation. It's by no means
-finished yet, and hence is only provided as source through subversion.
+Thanks for trying Freemail!
 
-Currently only 'NIM Mode' is supported, 'NIM' coming from the concept of a
-'nearly instant message' which was simply messages posted to KSKs, usually
-used on freesites in older versions of Freenet. I'd also suggest 'Notably
-Insecure Messaging'. It's not secure. At all. Anyone can read your mail.
-You can use PGP or equivalent, but it's still easy to spam and hijack
-addresses and whatnot.
+This is the first release of Freemail, and so may (read: does) have bugs that I haven't found yet. Please do report them at http://bugs.freenetproject.org/.
 
-Proper, secure implemenations of the Freemail protocol will come later.
-
-All the data, including your passwd file, will most likley end up world
-readable. Under unix, you could try running Freemail with a modified umask
-if this bothers you, but I don't believe there is a portable way of doing
-this in Java (or I haven't found it).
-
-Finally, there *will* be backwards incompatable changes, so don't get
-attatched to anything just yet.
-
-Now you've read that (you have read that, right?):
+Using Freemail
+==============
+You can compile from source:
 
 compile: (however you compile Java, an ant buildfile is supplied)
 run with --newaccount <account name> to create an account, eg:
 
-java -cp build/ freemail.Freemail --newaccount fred
+...or you can fetch the most recent Freemail jar from: http://downloads.freenetproject.org/alpha/Freemail/Freemail.jar
+
+Once you've done one of those steps, create an account (replace java -jar with however you run jar files on your system):
+
+java -jar Freemail.jar --newaccount fred
 
 Use --passwd <account> <passwd> to set your password
 
-java -cp build/ freemail.Freemail --passwd fred fredspassword
+java -jar Freemail.jar --passwd fred fredspassword
 
 Run:
 
-java -cp build/ Freemail.FNMail
+java -jar Freemail.jar
+
+(You can also specify the address and port of your Freenet node using -h and -p
+respectively, if they are not the defaults).
 
 Set up your email client to point at IMAP port 3143 and SMTP port 3025.
 
-Your address is <accountname>@nim.Freemail
+You can get a short address by doing:
 
-And yes, in case you were wondering, no - there's nothing to stop someone
-else using the same address. I did say it was insecure ;)
+java -jar Freemail.jar --shortaddress bob bobshome
 
-Send me a message if you like, I promise to reply if it works :)
+...which will give you the address <anything>@bobshome.freemail
 
-dbkr@nim.Freemail
 
-(and since anyone can read Freemail messages right now, my Freemail public key
-can be found at USK@vjETpEgDH-6EzlngZoO8KgOZm-B8AAlvZ-6oP6aQmow,DZYYfhpOxIrtdCNJiflIPjd0Qy8nA1d3Dwy86dcdhu0,AQABAAE/dbkr/10/contact/pubkey.fnmail.asc, or failing that, http://accidentalegg.co.uk/contact/pubkey.fnmail)
-
-If it doesn't, dbkr@freenetproject.org!
+Feel free to Freemail me on dave@dbkr.freemail! If that doesn't work, my real email address is dbkr@freenetproject.org.
 
 Good luck!
