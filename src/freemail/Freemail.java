@@ -108,7 +108,7 @@ public class Freemail {
 				System.out.println("Account created for "+account+". You may now set a password with --passwd <password>");
 				//System.out.println("For the time being, you address is "+account+"@nim.freemail");
 			} catch (IOException ioe) {
-				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. Error: "+ioe.getMessage());
+				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
 			}
 			return;
 		} else if (action.equals("--passwd")) {
