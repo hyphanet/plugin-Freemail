@@ -67,7 +67,7 @@ public class Freemail {
 				action = args[i];
 				i = i + 2;
 				if (args.length - 1 < i) {
-					System.out.println("Usage: --shortaddress <name>");
+					System.out.println("Usage: --shortaddress <name> <domain prefix>");
 					return;
 				}
 				account = args[i - 1];
@@ -159,6 +159,7 @@ public class Freemail {
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
 				continue;
+			if (!files[i].isDirectory()) continue;
 			
 			Thread t = new Thread(new SingleAccountWatcher(files[i]), "Account Watcher for "+files[i].getName());
 			t.setDaemon(true);
