@@ -96,7 +96,6 @@ public class AccountManager {
 	}
 	
 	public static PropsFile getAccountFile(File accdir) {
-		System.out.println("==="+accdir);
 		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (accdir.exists() && !accfile.exists()) {

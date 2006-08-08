@@ -117,6 +117,22 @@ public class MailMessage {
 		}
 	}
 	
+	public String getAllHeadersAsString() {
+		Enumeration e = this.headers.elements();
+		StringBuffer buf = new StringBuffer();
+		
+		while (e.hasMoreElements()) {
+			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			
+			buf.append(h.name);
+			buf.append(": ");
+			buf.append(h.val);
+			buf.append("\r\n");
+		}
+		
+		return buf.toString();
+	}
+	
 	public PrintStream writeHeadersAndGetStream() throws FileNotFoundException {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
