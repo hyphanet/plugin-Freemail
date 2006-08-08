@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.SortedMap;
 import java.lang.NumberFormatException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import freemail.MessageBank;
 import freemail.MailMessage;
@@ -15,6 +17,8 @@ import freemail.AccountManager;
 import freemail.utils.EmailAddress;
 
 public class IMAPHandler implements Runnable {
+	private static final String CAPABILITY = "IMAP4rev1 AUTH=LOGIN";
+
 	final Socket client;
 	final OutputStream os;
 	final PrintStream ps;
@@ -53,7 +57,7 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	private void sendWelcome() {
-		this.ps.print("* OK [CAPABILITY IMAP4rev1] Freemail ready - hit me with your rhythm stick.\r\n");
+		this.ps.print("* OK [CAPABILITY "+CAPABILITY+"] Freemail ready - hit me with your rhythm stick.\r\n");
 	}
 	
 	private void dispatch(IMAPMessage msg) {
@@ -84,6 +88,8 @@ public class IMAPHandler implements Runnable {
 			this.handle_namespace(msg);
 		} else if (msg.type.equals("lsub")) {
 			this.handle_lsub(msg);
+		} else if (msg.type.equals("status")) {
+			this.handle_status(msg);
 		} else {
 			this.reply(msg, "NO Sorry - not implemented");
 		}
@@ -110,7 +116,7 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	private void handle_capability(IMAPMessage msg) {
-		this.sendState("CAPABILITY IMAP4rev1 AUTH=LOGIN");
+		this.sendState("CAPABILITY "+CAPABILITY);
 		
 		this.reply(msg, "OK Capability completed");
 	}
@@ -147,7 +153,7 @@ public class IMAPHandler implements Runnable {
 		if (mbname == null) {
 			// return hierarchy delimiter
 			this.sendState("LIST (\\Noselect) \".\" \"\"");
-		} else if (mbname.equals("%") || mbname.equals("INBOX")) {
+		} else if (mbname.equals("%") || mbname.equals("INBOX") || mbname.equals("*") || mbname.equals("INBOX*")) {
 			this.sendState("LIST (\\NoInferiors) \".\" \"INBOX\"");
 		}
 		
@@ -169,8 +175,8 @@ public class IMAPHandler implements Runnable {
 		mbname = trimQuotes(msg.args[0]).toLowerCase();
 		
 		if (mbname.equals("inbox")) {
-			this.sendState("FLAGS (\\Recent \\Seen)");
-			this.sendState("OK [PERMANENTFLAGS (\\*)]");
+			this.sendState("FLAGS ("+IMAPMessageFlags.getAllFlagsAsString()+")");
+			this.sendState("OK [PERMANENTFLAGS (\\* "+IMAPMessageFlags.getPermanentFlagsAsString()+")] Limited");
 			
 			SortedMap msgs = this.mb.listMessages();
 			
@@ -193,6 +199,7 @@ public class IMAPHandler implements Runnable {
 			this.sendState(numexists+" EXISTS");
 			this.sendState(numrecent+" RECENT");
 			
+			this.sendState("OK [UIDVALIDITY 1] Ok");
 			
 			this.reply(msg, "OK [READ-WRITE] Done");
 		} else {
@@ -316,7 +323,9 @@ public class IMAPHandler implements Runnable {
 		
 		int msgnum = 1;
 		if (msg.args[0].toLowerCase().equals("fetch")) {
+			int oldsize = msgs.size();
 			msgs = msgs.tailMap(new Integer(from));
+			msgnum += (oldsize - msgs.size());
 			while (msgs.size() > 0) {
 				Integer curuid = (Integer)msgs.firstKey();
 				if (curuid.intValue() > to) {
@@ -444,6 +453,15 @@ public class IMAPHandler implements Runnable {
 			this.ps.print(a.substring(0, "rfc822.header".length()));
 			this.ps.flush();
 			return this.sendBody(mmsg, "header");
+		} else if (attr.startsWith("internaldate")) {
+			val = mmsg.getFirstHeader("Date");
+			if (val == null) {
+				// possibly should keep our own dates...
+				SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+				
+				val = sdf.format(new Date());
+			}
+			val = "\""+val+"\"";
 		}
 		
 		if (val == null)
@@ -497,6 +515,7 @@ public class IMAPHandler implements Runnable {
 				for (int j = 0; j < fields.length; j++) {
 					buf.append(mmsg.getHeaders(fields[j]));
 				}
+				if (buf.length() == 0) buf.append("\r\n");
 			} else if (parts[i].equalsIgnoreCase("header")) {
 				// send all the header fields
 				try {
@@ -650,6 +669,83 @@ public class IMAPHandler implements Runnable {
 	private void handle_namespace(IMAPMessage msg) {
 		this.sendState("NAMESPACE ((\"\" \"/\")) NIL NIL");
 		this.reply(msg, "OK Namespace completed");
+	}
+	
+	private void handle_status(IMAPMessage msg) {
+		if (!this.verify_auth(msg)) {
+			return;
+		}
+		
+		if (msg.args.length < 2) {
+			this.reply(msg, "BAD Not enough arguments");
+			return;
+		}
+		
+		String mbname = trimQuotes(msg.args[0]);
+		
+		// for now
+		if (!mbname.equalsIgnoreCase("INBOX")) {
+			this.reply(msg, "BAD No such mailbox");
+			return;
+		}
+		
+		SortedMap msgs = this.mb.listMessages();
+		
+		// gather statistics
+		int numrecent = 0;
+		int numunseen = 0;
+		int nummessages = msgs.size();
+		int lastuid = 0;
+		while (msgs.size() > 0) {
+			Integer current = (Integer)(msgs.firstKey());
+			MailMessage m =(MailMessage)msgs.get(msgs.firstKey());
+				
+			// if it's recent, add to the tally
+			if (m.flags.get("\\Recent")) numrecent++;
+			
+			// is it unseen?
+			if (!m.flags.get("\\Seen")) numunseen++;
+			
+			if (m.getUID() > lastuid) lastuid = m.getUID();
+				
+			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+		}
+		
+		StringBuffer buf = new StringBuffer();
+		buf.append("STATUS ");
+		buf.append(msg.args[0]);
+		buf.append(" (");
+		
+		
+		// output the required information
+		int i;
+		boolean first = true;
+		for (i = 1; i < msg.args.length; i++) {
+			String arg = msg.args[i];
+			
+			if (arg.startsWith("(")) arg = arg.substring(1);
+			if (arg.endsWith(")")) arg = arg.substring(0, arg.length() - 1);
+			
+			if (!first) buf.append(" ");
+			first = false;
+			buf.append(arg);
+			buf.append(" ");
+			if (arg.equalsIgnoreCase("messages")) {
+				buf.append(Integer.toString(nummessages));
+			} else if (arg.equalsIgnoreCase("recent")) {
+				buf.append(Integer.toString(numrecent));
+			} else if (arg.equalsIgnoreCase("unseen")) {
+				buf.append(Integer.toString(numunseen));
+			} else if (arg.equalsIgnoreCase("uidnext")) {
+				buf.append(Integer.toString(lastuid + 1));
+			} else if (arg.equalsIgnoreCase("uidvalidity")) {
+				buf.append("1");
+			}
+		}
+		
+		buf.append(")");
+		this.sendState(buf.toString());
+		this.reply(msg, "OK STATUS completed");
 	}
 	
 	private String getEnvelope(MailMessage mmsg) {

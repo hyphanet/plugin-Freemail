@@ -22,6 +22,44 @@ public class IMAPMessageFlags {
 		"\\Draft",
 		"\\Recent",
 	};
+	
+	public static final String[] permanentFlags = {
+		"\\Answered",
+		"\\Flagged",
+		"\\Deleted",
+		"\\Draft",
+		"\\Recent",
+	};
+	
+	public static String getAllFlagsAsString() {
+		int i;
+		StringBuffer buf = new StringBuffer();
+		boolean first = true;
+		
+		for (i = 0; i < allFlags.length; i++) {
+			if (!first)
+				buf.append(" ");
+			first = false;
+			buf.append(allFlags[i]);
+		}
+		
+		return buf.toString();
+	}
+	
+	public static String getPermanentFlagsAsString() {
+		int i;
+		StringBuffer buf = new StringBuffer();
+		boolean first = true;
+		
+		for (i = 0; i < permanentFlags.length; i++) {
+			if (!first)
+				buf.append(" ");
+			first = false;
+			buf.append(permanentFlags[i]);
+		}
+		
+		return buf.toString();
+	}
 
 	private Vector flags;
 	
