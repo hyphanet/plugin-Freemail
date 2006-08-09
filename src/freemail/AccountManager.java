@@ -282,6 +282,7 @@ public class AccountManager {
 	}
 	
 	private static boolean validate_username(String username) {
+		if (username.length() < 1) return false;
 		if (username.matches("[\\w_]*")) return true;
 		return false;
 	}

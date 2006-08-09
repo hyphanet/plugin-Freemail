@@ -161,6 +161,10 @@ public class SMTPHandler implements Runnable {
 			// username twice. Some think only once.
 			// This will work either way.
 			uname = creds[0];
+			// there may be a null first (is this always the case?)
+			if (uname.length() < 1) {
+				uname = creds[1];
+			}
 			password = creds[creds.length - 1];
 		} else {
 			this.ps.print("504 Auth type unimplemented - weren't you listening?\r\n");

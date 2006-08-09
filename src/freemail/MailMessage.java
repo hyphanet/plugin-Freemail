@@ -176,6 +176,8 @@ public class MailMessage {
 	}
 	
 	public void readHeaders(BufferedReader bufrdr) throws IOException {
+		if (this.headers.size() > 0) return;
+		
 		String line;
 		String[] parts = null;
 		while ( (line = bufrdr.readLine()) != null) {

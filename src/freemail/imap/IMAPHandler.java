@@ -144,6 +144,11 @@ public class IMAPHandler implements Runnable {
 			mbname = msg.args[1];
 		}
 		
+		String replyprefix = "LIST";
+		if (msg.type.equals("lsub")) {
+			replyprefix = "LSUB";
+		}
+		
 		refname = trimQuotes(refname);
 		if (refname.length() == 0) refname = null;
 		
@@ -152,12 +157,12 @@ public class IMAPHandler implements Runnable {
 		
 		if (mbname == null) {
 			// return hierarchy delimiter
-			this.sendState("LIST (\\Noselect) \".\" \"\"");
+			this.sendState(replyprefix+" (\\Noselect) \".\" \"\"");
 		} else if (mbname.equals("%") || mbname.equals("INBOX") || mbname.equals("*") || mbname.equals("INBOX*")) {
-			this.sendState("LIST (\\NoInferiors) \".\" \"INBOX\"");
+			this.sendState(replyprefix+" (\\NoInferiors) \".\" \"INBOX\"");
 		}
 		
-		this.reply(msg, "OK LIST completed");
+		this.reply(msg, "OK "+replyprefix+" completed");
 	}
 	
 	private void handle_select(IMAPMessage msg) {
