@@ -22,11 +22,11 @@ public class Postman {
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		
-		// add our own headers first
+		newmsg.readHeaders(brdr);
+		
+		// add our own headers
 		// recieved and date
 		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
-		
-		newmsg.readHeaders(brdr);
 		
 		// validate the from header - or headers. There could be several.
 		String[] froms = newmsg.getHeadersAsArray("From");

@@ -12,7 +12,7 @@ public class Freemail {
 	// version info
 	public static final int VER_MAJOR = 0;
 	public static final int VER_MINOR = 1;
-	public static final int BUILD_NO = 4;
+	public static final int BUILD_NO = 5;
 	public static final String VERSION_TAG = "Pet Shop";
 
 	private static final String TEMPDIRNAME = "temp";
