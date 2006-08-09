@@ -190,7 +190,7 @@ public class MailMessage {
 				// contination of previous line
 				if (parts == null || parts[1] == null) 
 					continue;
-				parts[1] += line.trim();
+				parts[1] += " "+line.trim();
 			} else {
 				if (parts != null)
 					this.addHeader(parts[0], parts[1]);

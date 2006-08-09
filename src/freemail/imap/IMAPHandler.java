@@ -445,15 +445,15 @@ public class IMAPHandler implements Runnable {
 		} else if (attr.startsWith("body.peek")) {
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
-			attr = attr.substring("body.peek".length());
-			return this.sendBody(mmsg, attr);
+			a = a.substring("body.peek".length());
+			return this.sendBody(mmsg, a);
 		} else if (attr.startsWith("body")) {
 			mmsg.flags.set("\\Seen", true);
 			
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
-			attr = attr.substring("body".length());
-			return this.sendBody(mmsg, attr);
+			a = a.substring("body".length());
+			return this.sendBody(mmsg, a);
 		} else if (attr.startsWith("rfc822.header")) {
 			this.ps.print(a.substring(0, "rfc822.header".length()));
 			this.ps.flush();
@@ -520,7 +520,7 @@ public class IMAPHandler implements Runnable {
 				for (int j = 0; j < fields.length; j++) {
 					buf.append(mmsg.getHeaders(fields[j]));
 				}
-				if (buf.length() == 0) buf.append("\r\n");
+				buf.append("\r\n");
 			} else if (parts[i].equalsIgnoreCase("header")) {
 				// send all the header fields
 				try {
