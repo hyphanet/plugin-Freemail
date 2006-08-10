@@ -357,7 +357,7 @@ public class IMAPHandler implements Runnable {
 				targetmsgs[i] = (MailMessage)msgs.values().toArray()[i];
 			}
 			
-			this.do_store(msg.args, 2, targetmsgs, msg, true);
+			this.do_store(msg.args, 2, targetmsgs, msg, -1);
 			
 			this.reply(msg, "OK Store completed");
 		} else {
@@ -529,6 +529,22 @@ public class IMAPHandler implements Runnable {
 				}
 				
 				buf.append(mmsg.getAllHeadersAsString());
+			} else if (parts[i].equalsIgnoreCase("text")) {
+				// just send the text of the message without headers
+				mmsg.closeStream();
+				String line;
+				// fast forward past the headers
+				try {
+					while ( (line = mmsg.readLine()) != null) {
+						if (line.length() == 0) break;
+					}
+					while ( (line = mmsg.readLine()) != null) {
+						buf.append(line+"\r\n");
+					}
+					mmsg.closeStream();
+				} catch (IOException ioe) {
+					// just return whatever we got
+				}
 			}
 			
 			this.ps.print("{"+buf.length()+"}\r\n"+buf.toString());
@@ -575,27 +591,26 @@ public class IMAPHandler implements Runnable {
 			to = from;
 		}
 		
-		MailMessage[] msgs = new MailMessage[(to - from) + 1];
-		
 		// convert to zero based array
 		from--;
 		to--;
 		
-		if (from < 0 || to < 0 || from > msgs.length || to > msgs.length) {
+		if (from < 0 || to < 0 || from > allmsgs.length || to > allmsgs.length) {
 			this.reply(msg, "NO No such message");
 			return;
 		}
 		
+		MailMessage[] msgs = new MailMessage[(to - from) + 1];
 		for (int i = from; i <= to; i++) {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 		
-		do_store(msg.args, 1, msgs, msg, false);
+		do_store(msg.args, 1, msgs, msg, from + 1);
 		
 		this.reply(msg, "OK Store completed");
 	}
 	
-	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean UIDMode) {
+	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, int firstmsgnum) {
 		if (args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
@@ -635,10 +650,10 @@ public class IMAPHandler implements Runnable {
 			for (int i = 0; i < mmsgs.length; i++) {
 				StringBuffer buf = new StringBuffer("");
 				
-				if (UIDMode) {
+				if (firstmsgnum < 0) {
 					buf.append(mmsgs[i].getUID() + " FETCH FLAGS (");
 				} else {
-					buf.append((i+1) + " FETCH FLAGS (");
+					buf.append((i+firstmsgnum) + " FETCH FLAGS (");
 				}
 				
 				buf.append(mmsgs[i].flags.getFlags());
