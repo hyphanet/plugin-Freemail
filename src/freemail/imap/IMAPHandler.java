@@ -174,7 +174,7 @@ public class IMAPHandler implements Runnable {
 			mbname = mbname.replaceAll("\\*", ".*");
 			
 			// and % is a wildcard not inclusing the hierarchy delimiter
-			mbname = mbname.replace("%", "[^\\.]*");
+			mbname = mbname.replaceAll("%", "[^\\.]*");
 			
 			
 			this.list_matching_folders(this.inbox, mbname, replyprefix, "INBOX.");
