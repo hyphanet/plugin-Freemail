@@ -51,7 +51,6 @@ public class AccountManager {
 		
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+DATADIR);
-		PropsFile accfile = getAccountFile(accountdir);
 		
 		putWelcomeMessage(username, getFreemailAddress(accountdir));
 	}

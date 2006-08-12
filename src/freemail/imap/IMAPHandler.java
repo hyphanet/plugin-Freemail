@@ -17,13 +17,14 @@ import freemail.AccountManager;
 import freemail.utils.EmailAddress;
 
 public class IMAPHandler implements Runnable {
-	private static final String CAPABILITY = "IMAP4rev1 AUTH=LOGIN";
+	private static final String CAPABILITY = "IMAP4rev1 AUTH=LOGIN CHILDREN NAMESPACE";
 
-	final Socket client;
-	final OutputStream os;
-	final PrintStream ps;
-	final BufferedReader bufrdr;
-	MessageBank mb;
+	private final Socket client;
+	private final OutputStream os;
+	private final PrintStream ps;
+	private final BufferedReader bufrdr;
+	private MessageBank mb;
+	private MessageBank inbox;
 	
 
 	IMAPHandler(Socket client) throws IOException {
@@ -90,6 +91,14 @@ public class IMAPHandler implements Runnable {
 			this.handle_lsub(msg);
 		} else if (msg.type.equals("status")) {
 			this.handle_status(msg);
+		} else if (msg.type.equals("create")) {
+			this.handle_create(msg);
+		} else if (msg.type.equals("delete")) {
+			this.handle_delete(msg);
+		} else if (msg.type.equals("copy")) {
+			this.handle_copy(msg);
+		} else if (msg.type.equals("append")) {
+			this.handle_append(msg);
 		} else {
 			this.reply(msg, "NO Sorry - not implemented");
 		}
@@ -98,7 +107,7 @@ public class IMAPHandler implements Runnable {
 	private void handle_login(IMAPMessage msg) {
 		if (msg.args.length < 2) return;
 		if (AccountManager.authenticate(trimQuotes(msg.args[0]), trimQuotes(msg.args[1]))) {
-			this.mb = new MessageBank(trimQuotes(msg.args[0]));
+			this.inbox = new MessageBank(trimQuotes(msg.args[0]));
 			
 			this.reply(msg, "OK Logged in");
 		} else {
@@ -149,20 +158,67 @@ public class IMAPHandler implements Runnable {
 			replyprefix = "LSUB";
 		}
 		
-		refname = trimQuotes(refname);
+		if (refname != null) refname = trimQuotes(refname);
 		if (refname.length() == 0) refname = null;
 		
-		mbname = trimQuotes(mbname);
+		if (mbname != null) mbname = trimQuotes(mbname);
 		if (mbname.length() == 0) mbname = null;
 		
 		if (mbname == null) {
 			// return hierarchy delimiter
 			this.sendState(replyprefix+" (\\Noselect) \".\" \"\"");
-		} else if (mbname.equals("%") || mbname.equals("INBOX") || mbname.equals("*") || mbname.equals("INBOX*")) {
-			this.sendState(replyprefix+" (\\NoInferiors) \".\" \"INBOX\"");
+		} else {
+			// transform mailbox name into a regex
+			
+			// '*' needs to be '.*'
+			mbname = mbname.replace("*", ".*");
+			
+			// and % is a wildcard not inclusing the hierarchy delimiter
+			mbname = mbname.replace("%", "[^\\.]*");
+			
+			
+			this.list_matching_folders(this.inbox, mbname, replyprefix, "INBOX.");
+			
+			/// and send the inbox too, if it matches
+			if ("INBOX".matches(mbname)) {
+				this.sendState(replyprefix+" "+this.inbox.getFolderFlagsString()+" \".\" \"INBOX\"");
+			}
 		}
 		
 		this.reply(msg, "OK "+replyprefix+" completed");
+	}
+	
+	private void list_matching_folders(MessageBank folder, String pattern, String replyprefix, String folderpath) {
+		MessageBank[] folders = folder.listSubFolders();
+			
+		for (int i = 0; i < folders.length; i++) {
+			String fullpath = folderpath+folders[i].getName();
+			
+			this.list_matching_folders(folders[i], pattern, replyprefix, fullpath+".");
+			if (fullpath.matches(pattern)) {
+				this.sendState(replyprefix+" "+folders[i].getFolderFlagsString()+" \".\" \""+fullpath+"\"");
+			}
+		}
+	}
+	
+	private MessageBank getMailboxFromPath(String path) {
+		MessageBank tempmb = this.inbox;
+		
+		String[] mbparts = path.split("\\.");
+		
+		if (!mbparts[0].equalsIgnoreCase("inbox")) {
+			return null;
+		}
+		
+		int i;
+		for (i = 1; i < mbparts.length; i++) {
+			tempmb = tempmb.getSubFolder(mbparts[i]);
+			if (tempmb == null) {
+				return null;
+			}
+		}
+		
+		return tempmb;
 	}
 	
 	private void handle_select(IMAPMessage msg) {
@@ -177,39 +233,44 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		mbname = trimQuotes(msg.args[0]).toLowerCase();
+		mbname = trimQuotes(msg.args[0]);
 		
-		if (mbname.equals("inbox")) {
-			this.sendState("FLAGS ("+IMAPMessageFlags.getAllFlagsAsString()+")");
-			this.sendState("OK [PERMANENTFLAGS (\\* "+IMAPMessageFlags.getPermanentFlagsAsString()+")] Limited");
-			
-			SortedMap msgs = this.mb.listMessages();
-			
-			int numrecent = 0;
-			int numexists = msgs.size();
-			while (msgs.size() > 0) {
-				Integer current = (Integer)(msgs.firstKey());
-				MailMessage m =(MailMessage)msgs.get(msgs.firstKey());
-				
-				// if it's recent, add to the tally
-				if (m.flags.get("\\Recent")) numrecent++;
-				
-				// remove the recent flag
-				m.flags.set("\\Recent", false);
-				m.storeFlags();
-				
-				msgs = msgs.tailMap(new Integer(current.intValue()+1));
-			}
-			
-			this.sendState(numexists+" EXISTS");
-			this.sendState(numrecent+" RECENT");
-			
-			this.sendState("OK [UIDVALIDITY 1] Ok");
-			
-			this.reply(msg, "OK [READ-WRITE] Done");
-		} else {
+		MessageBank tempmb = this.getMailboxFromPath(mbname);
+		
+		if (tempmb == null) {
 			this.reply(msg, "NO No such mailbox");
+			return;
+		} else {
+			this.mb = tempmb;
 		}
+		
+		this.sendState("FLAGS ("+IMAPMessageFlags.getAllFlagsAsString()+")");
+		this.sendState("OK [PERMANENTFLAGS (\\* "+IMAPMessageFlags.getPermanentFlagsAsString()+")] Limited");
+			
+		SortedMap msgs = this.mb.listMessages();
+			
+		int numrecent = 0;
+		int numexists = msgs.size();
+		while (msgs.size() > 0) {
+			Integer current = (Integer)(msgs.firstKey());
+			MailMessage m =(MailMessage)msgs.get(msgs.firstKey());
+				
+			// if it's recent, add to the tally
+			if (m.flags.get("\\Recent")) numrecent++;
+				
+			// remove the recent flag
+			m.flags.set("\\Recent", false);
+			m.storeFlags();
+				
+			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+		}
+			
+		this.sendState(numexists+" EXISTS");
+		this.sendState(numrecent+" RECENT");
+			
+		this.sendState("OK [UIDVALIDITY 1] Ok");
+			
+		this.reply(msg, "OK [READ-WRITE] Done");
 	}
 	
 	private void handle_noop(IMAPMessage msg) {
@@ -221,6 +282,11 @@ public class IMAPHandler implements Runnable {
 		int to;
 		
 		if (!this.verify_auth(msg)) {
+			return;
+		}
+		
+		if (this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
 			return;
 		}
 		
@@ -293,6 +359,11 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
+		if (this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
+		}
+		
 		SortedMap msgs = this.mb.listMessages();
 		
 		if (msgs.size() == 0) {
@@ -327,7 +398,7 @@ public class IMAPHandler implements Runnable {
 		}
 		
 		int msgnum = 1;
-		if (msg.args[0].toLowerCase().equals("fetch")) {
+		if (msg.args[0].equalsIgnoreCase("fetch")) {
 			int oldsize = msgs.size();
 			msgs = msgs.tailMap(new Integer(from));
 			msgnum += (oldsize - msgs.size());
@@ -347,7 +418,7 @@ public class IMAPHandler implements Runnable {
 			}
 			
 			this.reply(msg, "OK Fetch completed");
-		} else if (msg.args[0].toLowerCase().equals("store")) {
+		} else if (msg.args[0].equalsIgnoreCase("store")) {
 			msgs = msgs.tailMap(new Integer(from));
 			msgs = msgs.headMap(new Integer(to + 1));
 			
@@ -360,6 +431,43 @@ public class IMAPHandler implements Runnable {
 			this.do_store(msg.args, 2, targetmsgs, msg, -1);
 			
 			this.reply(msg, "OK Store completed");
+		} else if (msg.args[0].equalsIgnoreCase("copy")) {
+			msgs = msgs.tailMap(new Integer(from));
+			
+			if (msg.args.length < 3) {
+				this.reply(msg, "BAD Not enough arguments");
+				return;
+			}
+			
+			MessageBank target = getMailboxFromPath(trimQuotes(msg.args[2]));
+			if (target == null) {
+				this.reply(msg, "NO [TRYCREATE] No such mailbox.");
+				return;
+			}
+			
+			int copied = 0;
+			
+			while (msgs.size() > 0) {
+				Integer curuid = (Integer)msgs.firstKey();
+				if (curuid.intValue() > to) {
+					break;
+				}
+				
+				MailMessage srcmsg = (MailMessage)msgs.get(msgs.firstKey());
+				
+				MailMessage copymsg = target.createMessage();
+				srcmsg.copyTo(copymsg);
+				
+				copied++;
+				
+				msgs = msgs.tailMap(new Integer(curuid.intValue()+1));
+				msgnum++;
+			}
+			
+			if (copied > 0)
+				this.reply(msg, "OK COPY completed");
+			else
+				this.reply(msg, "NO No messages copied");
 		} else {
 			this.reply(msg, "BAD Unknown command");
 		}
@@ -564,6 +672,11 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
+		if (this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
+		}
+		
 		String rangeparts[] = msg.args[0].split(":");
 		
 		Object[] allmsgs = this.mb.listMessages().values().toArray();
@@ -666,28 +779,39 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	private void handle_expunge(IMAPMessage msg) {
-		MailMessage[] mmsgs = this.mb.listMessagesArray();
-		
-		for (int i = 0; i < mmsgs.length; i++) {
-			if (mmsgs[i].flags.get("\\Deleted"))
-				mmsgs[i].delete();
-			this.sendState(i+" EXPUNGE");
+		if (this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
 		}
-		this.reply(msg, "OK Mailbox closed");
+		
+		this.expunge(true);
+		this.reply(msg, "OK Expunge complete");
 	}
 	
 	private void handle_close(IMAPMessage msg) {
+		if (this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
+		}
+		
+		this.expunge(false);
+		this.mb = null;
+		
+		this.reply(msg, "OK Mailbox closed");
+	}
+	
+	private void expunge(boolean verbose) {
 		MailMessage[] mmsgs = this.mb.listMessagesArray();
 		
 		for (int i = 0; i < mmsgs.length; i++) {
 			if (mmsgs[i].flags.get("\\Deleted"))
 				mmsgs[i].delete();
+			if (verbose) this.sendState(i+" EXPUNGE");
 		}
-		this.reply(msg, "OK Mailbox closed");
 	}
 	
 	private void handle_namespace(IMAPMessage msg) {
-		this.sendState("NAMESPACE ((\"\" \"/\")) NIL NIL");
+		this.sendState("NAMESPACE ((\"INBOX.\" \".\")) NIL NIL");
 		this.reply(msg, "OK Namespace completed");
 	}
 	
@@ -768,6 +892,198 @@ public class IMAPHandler implements Runnable {
 		this.reply(msg, "OK STATUS completed");
 	}
 	
+	private void handle_create(IMAPMessage msg) {
+		if (!this.verify_auth(msg)) {
+			return;
+		}
+		
+		if (msg.args.length < 1) {
+			this.reply(msg, "NO Not enough arguments");
+			return;
+		}
+		
+		msg.args[0] = trimQuotes(msg.args[0]);
+		
+		if (msg.args[0].endsWith(".")) {
+			// ends with a hierarchy delimiter. Ignore it
+			this.reply(msg, "OK Nothing done");
+			return;
+		}
+		
+		String[] mbparts = msg.args[0].split("\\.");
+		if (!mbparts[0].equalsIgnoreCase("inbox")) {
+			this.reply(msg, "NO Invalid mailbox name");
+			return;
+		}
+		
+		if (mbparts.length < 2) {
+			this.reply(msg, "NO Inbox already exists!");
+			return;
+		}
+		
+		int i;
+		MessageBank tempmb = this.inbox;
+		for (i = 1; i < mbparts.length; i++) {
+			tempmb = tempmb.makeSubFolder(mbparts[i]);
+			if (tempmb == null) {
+				this.reply(msg, "NO couldn't create mailbox");
+				return;
+			}
+		}
+		this.reply(msg, "OK Mailbox created");
+	}
+	
+	private void handle_delete(IMAPMessage msg) {
+		if (!this.verify_auth(msg)) {
+			return;
+		}
+		
+		if (msg.args.length < 1) {
+			this.reply(msg, "NO Not enough arguments");
+			return;
+		}
+		
+		MessageBank target = getMailboxFromPath(trimQuotes(msg.args[0]));
+		if (target == null) {
+			this.reply(msg, "NO No such mailbox.");
+			return;
+		}
+		
+		if (target.listSubFolders().length > 0) {
+			this.reply(msg, "NO Mailbox has inferiors.");
+			return;
+		}
+		
+		if (target.delete()) {
+			this.reply(msg, "OK Mailbox deleted");
+		} else {
+			this.reply(msg, "NO Unable to delete mailbox");	
+		}
+		return;
+	}
+	
+	private void handle_copy(IMAPMessage msg) {
+		if (!this.verify_auth(msg)) {
+			return;
+		}
+		
+		if (this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
+		}
+		
+		if (msg.args.length < 2) {
+			this.reply(msg, "NO Not enough arguments");
+			return;
+		}
+		
+		Object[] allmsgs = this.mb.listMessages().values().toArray();
+		String rangeparts[] = msg.args[0].split(":");
+		
+		int from;
+		int to;
+		try {
+			from = Integer.parseInt(rangeparts[0]);
+		} catch (NumberFormatException nfe) {
+			this.reply(msg, "BAD That's not a number!");
+			return;
+		}
+		if (rangeparts.length > 1) {
+			if (rangeparts[1].equals("*")) {
+				to = allmsgs.length;
+			} else {
+				try {
+					to = Integer.parseInt(rangeparts[1]);
+				} catch (NumberFormatException nfe) {
+					this.reply(msg, "BAD That's not a number!");
+					return;
+				}
+			}
+		} else {
+			to = from;
+		}
+		
+		// convert to zero based array
+		from--;
+		to--;
+		
+		if (from < 0 || to < 0 || from > allmsgs.length || to > allmsgs.length) {
+			this.reply(msg, "NO No such message");
+			return;
+		}
+		
+		MessageBank target = getMailboxFromPath(trimQuotes(msg.args[1]));
+		if (target == null) {
+			this.reply(msg, "NO [TRYCREATE] No such mailbox.");
+			return;
+		}
+		
+		for (int i = from; i <= to; i++) {
+			MailMessage src = (MailMessage)allmsgs[i];
+			MailMessage copy = target.createMessage();
+			
+			src.copyTo(copy);
+		}
+		this.reply(msg, "OK COPY completed");
+	}
+	
+	private void handle_append(IMAPMessage msg) {
+		if (msg.args.length < 3) {
+			this.reply(msg, "NO Not enough arguments");
+			return;
+		}
+		
+		String mbname = trimQuotes(msg.args[0]);
+		String sflags = msg.args[1];
+		if (sflags.startsWith("(")) sflags = sflags.substring(1);
+		if (sflags.endsWith(")")) sflags = sflags.substring(0, sflags.length() - 1);
+		String sdatalen = msg.args[2];
+		if (sdatalen.startsWith("{")) sdatalen = sdatalen.substring(1);
+		if (sdatalen.endsWith("}")) sdatalen = sdatalen.substring(0, sdatalen.length() - 1);
+		int datalen;
+		try {
+			datalen = Integer.parseInt(sdatalen);
+		} catch (NumberFormatException nfe) {
+			datalen = 0;
+		}
+		
+		MessageBank destmb = this.getMailboxFromPath(mbname);
+		if (destmb == null) {
+			this.reply(msg, "NO [TRYCREATE] No such mailbox");
+			return;
+		}
+		
+		MailMessage newmsg = destmb.createMessage();
+		this.ps.print("+ OK\r\n");
+		try {
+			PrintStream msgps = newmsg.getRawStream();
+			
+			String line;
+			int bytesread = 0;
+			while ( (line = this.bufrdr.readLine()) != null) {
+				msgps.println(line);
+				
+				bytesread += line.getBytes().length;
+				bytesread += "\r\n".length();
+				
+				if (bytesread >= datalen) break;
+			}
+			
+			newmsg.commit();
+		} catch (IOException ioe) {
+			this.reply(msg, "NO Failed to write message");
+			newmsg.cancel();
+			return;
+		}
+		
+		String[] flags = sflags.split(" ");
+		for (int i = 0; i < flags.length; i++) {
+			newmsg.flags.set(flags[i], true);
+		}
+		newmsg.storeFlags();
+		this.reply(msg, "OK APPEND completed");
+	}
+	
 	private String getEnvelope(MailMessage mmsg) {
 		StringBuffer buf = new StringBuffer("(");
 		
@@ -837,7 +1153,7 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	private boolean verify_auth(IMAPMessage msg) {
-		if (this.mb == null) {
+		if (this.inbox == null) {
 			this.reply(msg, "NO Must be authenticated");
 			return false;
 		}

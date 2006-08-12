@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.TreeMap;
 import java.util.SortedMap;
+import java.util.Vector;
+import java.util.Enumeration;
 
 public class MessageBank {
 	private static final String MESSAGES_DIR = "inbox";
@@ -23,6 +25,46 @@ public class MessageBank {
 		if (!this.dir.exists()) {
 			this.dir.mkdir();
 		}
+	}
+	
+	private MessageBank(File d) {
+		this.dir = d;
+	}
+	
+	public String getName() {
+		return this.dir.getName();
+	}
+	
+	public String getFolderFlagsString() {
+		StringBuffer retval = new StringBuffer("(");
+		
+		if (this.listSubFolders().length > 0) {
+			retval.append("\\HasChildren");
+		} else {
+			retval.append("\\HasNoChildren");
+		}
+		
+		retval.append(")");
+		return retval.toString();
+	}
+	
+	public boolean delete() {
+		File[] files = this.dir.listFiles();
+		
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].getName().equals(".")) continue;
+			if (files[i].getName().equals(NIDFILE)) continue;
+			if (files[i].getName().equals("..")) continue;
+			
+			// this method should will fail if there are directories
+			// here. It should never be called if this is the case.
+			if (!files[i].delete()) return false;
+		}
+		
+		// rename it with a dot in front - we need to preserve the UIDs
+		File newdir = new File(this.dir.getParent(), "."+this.dir.getName());
+		
+		return this.dir.renameTo(newdir);
 	}
 	
 	public MailMessage createMessage() {
@@ -54,6 +96,7 @@ public class MessageBank {
 		
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().startsWith(".")) continue;
+			if (files[i].isDirectory()) continue;
 			
 			MailMessage msg = new MailMessage(files[i]);
 			
@@ -77,6 +120,60 @@ public class MessageBank {
 		}
 		
 		return msgs;
+	}
+	
+	public MessageBank getSubFolder(String name) {
+		if (!name.matches("[\\w_]*")) return null;
+		
+		File targetdir = new File(this.dir, name);
+		return new MessageBank(targetdir);
+	}
+	
+	public MessageBank makeSubFolder(String name) {
+		if (!name.matches("[\\w_]*")) return null;
+		
+		File targetdir = new File(this.dir, name);
+		
+		// is there a 'deleted' instance of this folder?
+		File ghostdir = new File(this.dir, "."+name);
+		if (ghostdir.exists()) {
+			if (!ghostdir.renameTo(targetdir)) {
+				return null;
+			}
+			return new MessageBank(ghostdir);
+		}
+		
+		if (targetdir.exists()) {
+			return null;
+		}
+				   
+		if (targetdir.mkdir()) {
+			return new MessageBank(targetdir);
+		}
+		return null;
+	}
+	
+	public MessageBank[] listSubFolders() {
+		File[] files = this.dir.listFiles();
+		Vector subfolders = new Vector();
+		
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].getName().startsWith(".")) continue;
+			
+			if (files[i].isDirectory()) {
+				subfolders.add(files[i]);
+			}
+		}
+		
+		MessageBank[] retval = new MessageBank[subfolders.size()];
+		
+		Enumeration e = subfolders.elements();
+		int i = 0;
+		while (e.hasMoreElements()) {
+			retval[i] = new MessageBank((File)e.nextElement());
+			i++;
+		}
+		return retval;
 	}
 	
 	private long nextId() {

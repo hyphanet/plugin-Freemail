@@ -19,7 +19,7 @@ public class MailMessage {
 	private PrintStream ps;
 	private final Vector headers;
 	private BufferedReader brdr;
-	public final IMAPMessageFlags flags;
+	public IMAPMessageFlags flags;
 	
 	MailMessage(File f) {
 		this.file = f;
@@ -150,6 +150,13 @@ public class MailMessage {
 		return this.ps;
 	}
 	
+	public PrintStream getRawStream() throws FileNotFoundException {
+		this.os = new FileOutputStream(this.file);
+		this.ps = new PrintStream(this.os);
+		
+		return this.ps;
+	}
+	
 	public void commit() {
 		try {
 			this.os.close();
@@ -245,6 +252,25 @@ public class MailMessage {
 		}
 		
 		return this.brdr.readLine();
+	}
+	
+	public boolean copyTo(MailMessage msg) {
+		this.closeStream();
+		String line;
+		try {
+			PrintStream copyps = msg.getRawStream();
+			while ( (line = this.readLine()) != null) {
+				copyps.println(line);
+			}
+			msg.commit();
+		} catch (IOException ioe) {
+			msg.cancel();
+			return false;
+		}
+		
+		msg.flags = this.flags;
+		msg.storeFlags();
+		return true;
 	}
 	
 	// programming-by-contract - anything that tries to read the message
