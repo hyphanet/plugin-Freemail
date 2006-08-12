@@ -171,7 +171,7 @@ public class IMAPHandler implements Runnable {
 			// transform mailbox name into a regex
 			
 			// '*' needs to be '.*'
-			mbname = mbname.replace("*", ".*");
+			mbname = mbname.replaceAll("\\*", ".*");
 			
 			// and % is a wildcard not inclusing the hierarchy delimiter
 			mbname = mbname.replace("%", "[^\\.]*");
