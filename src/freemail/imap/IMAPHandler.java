@@ -924,10 +924,15 @@ public class IMAPHandler implements Runnable {
 		int i;
 		MessageBank tempmb = this.inbox;
 		for (i = 1; i < mbparts.length; i++) {
-			tempmb = tempmb.makeSubFolder(mbparts[i]);
-			if (tempmb == null) {
-				this.reply(msg, "NO couldn't create mailbox");
-				return;
+			MessageBank existingmb = tempmb.getSubFolder(mbparts[i]);
+			if (existingmb != null) {
+				tempmb = existingmb;
+			} else {
+				tempmb = tempmb.makeSubFolder(mbparts[i]);
+				if (tempmb == null) {
+					this.reply(msg, "NO couldn't create mailbox");
+					return;
+				}
 			}
 		}
 		this.reply(msg, "OK Mailbox created");

@@ -123,14 +123,17 @@ public class MessageBank {
 	}
 	
 	public MessageBank getSubFolder(String name) {
-		if (!name.matches("[\\w_]*")) return null;
+		if (!name.matches("[\\w\\s_]*")) return null;
 		
 		File targetdir = new File(this.dir, name);
+		if (!targetdir.exists()) {
+			return null;
+		}
 		return new MessageBank(targetdir);
 	}
 	
 	public MessageBank makeSubFolder(String name) {
-		if (!name.matches("[\\w_]*")) return null;
+		if (!name.matches("[\\w\\s_]*")) return null;
 		
 		File targetdir = new File(this.dir, name);
 		
@@ -146,7 +149,7 @@ public class MessageBank {
 		if (targetdir.exists()) {
 			return null;
 		}
-				   
+		   
 		if (targetdir.mkdir()) {
 			return new MessageBank(targetdir);
 		}

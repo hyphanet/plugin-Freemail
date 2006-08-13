@@ -1,6 +1,8 @@
 package freemail.imap;
 
 import java.util.Vector;
+import java.util.Stack;
+import java.util.Arrays;
 
 public class IMAPMessage {
 	public final String tag;
@@ -8,7 +10,10 @@ public class IMAPMessage {
 	public final String[] args;
 
 	IMAPMessage(String raw) throws IMAPBadMessageException {
-		String[] parts = doSplit(raw, '[', ']');
+		char[] a1 = {'[', '"'};
+		char[] a2 = {']', '"'};
+		
+		String[] parts = doSplit(raw, a1, a2);
 		if (parts.length < 2) {
 			throw new IMAPBadMessageException();
 		}
@@ -22,24 +27,42 @@ public class IMAPMessage {
 		}
 	}
 	
-	// split on spaces that aren't between two square given characters
 	public static String[] doSplit(String in, char c1, char c2) {
-		boolean in_brackets = false;
+		char[] a1 = new char[1];
+		a1[0] = c1;
+		char[] a2 = new char[1];
+		a2[0] = c2;
+		return doSplit(in, a1, a2);
+	}
+	
+	// split on spaces that aren't between two given characters
+	public static String[] doSplit(String in, char[] c1, char[] c2) {
 		Vector parts = new Vector();
 		StringBuffer buf = new StringBuffer("");
+		Stack context = new Stack();
 		
 		for (int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
 			
-			if (c == c1) {
-				in_brackets = true;
+			int pos = -1;
+			for (int j = 0; j < c1.length; j++) {
+				if (c1[j] == c) {
+					pos = j;
+					break;
+				}
+			}
+			
+			if (!context.empty() && c == ((Character)context.peek()).charValue()) {
+				context.pop();
 				buf.append(c);
-			} else if (c == c2) {
-				in_brackets = false;
+			} else if (pos >= 0) {
+				context.push(new Character(c2[pos]));
 				buf.append(c);
-			} else if (c == ' ' && !in_brackets) {
+			} else if (c == ' ' && context.empty()) {
 				parts.add(buf.toString());
 				buf = new StringBuffer("");
+			} else if (context.empty()) {
+				buf.append(c);
 			} else buf.append(c);
 		}
 		
