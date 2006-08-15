@@ -2,7 +2,6 @@ package freemail.imap;
 
 import java.util.Vector;
 import java.util.Stack;
-import java.util.Arrays;
 
 public class IMAPMessage {
 	public final String tag;

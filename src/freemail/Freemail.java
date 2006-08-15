@@ -7,8 +7,10 @@ import freemail.fcp.FCPContext;
 import freemail.fcp.FCPConnection;
 import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
+import freemail.config.Configurator;
+import freemail.config.ConfigClient;
 
-public class Freemail {
+public class Freemail implements ConfigClient {
 	// version info
 	public static final int VER_MAJOR = 0;
 	public static final int VER_MINOR = 1;
@@ -19,7 +21,9 @@ public class Freemail {
 	private static final String DATADIR = "data";
 	private static final String GLOBALDATADIR = "globaldata";
 	private static final String ACKDIR = "delayedacks";
+	private static final String CFGFILE = "globalconfig";
 	private static File datadir;
+	private static File globaldatadir;
 	private static File tempdir;
 	private static FCPConnection fcpconn;
 	
@@ -32,8 +36,7 @@ public class Freemail {
 	}
 
 	public static void main(String[] args) {
-		String fcphost = "localhost";
-		int fcpport = 9481;
+		String cfgfile = CFGFILE;
 		
 		String action = "";
 		String account = null;
@@ -72,28 +75,22 @@ public class Freemail {
 				}
 				account = args[i - 1];
 				alias = args[i];
-			} else if (args[i].equals("-h")) {
+			} else if (args[i].equals("-c")) {
 				i++;
 				if (args.length - 1 < i) {
-					System.out.println("No hostname supplied, using default");
+					System.out.println("No config file supplied, using default");
 					continue;
 				}
-				fcphost = args[i];
-			} else if (args[i].equals("-p")) {
-				i++;
-				if (args.length - 1 < i) {
-					System.out.println("No port supplied, using default");
-					continue;
-				}
-				try {
-					fcpport = Integer.parseInt(args[i]);
-				} catch (NumberFormatException nfe) {
-					System.out.println("Bad port supplied, using default");
-				}
+				cfgfile = args[i];
 			}
 		}
 		
-		FCPContext fcpctx = new FCPContext(fcphost, fcpport);
+		Configurator cfg = new Configurator(new File(cfgfile));
+		
+		FCPContext fcpctx = new FCPContext();
+		
+		cfg.register("fcp_host", fcpctx, "localhost");
+		cfg.register("fcp_port", fcpctx, "9481");
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		Thread fcpthread  = new Thread(fcpconn);
@@ -132,13 +129,13 @@ public class Freemail {
 			return;
 		}
 		
-		File globaldatadir = new File(GLOBALDATADIR);
+		cfg.register("globaldatadir", new Freemail(), GLOBALDATADIR);
 		if (!globaldatadir.exists()) {
 			globaldatadir.mkdir();
 		}
 		
 		// start a SingleAccountWatcher for each account
-		Freemail.datadir = new File(DATADIR);
+		cfg.register("datadir", new Freemail(), Freemail.DATADIR);
 		if (!Freemail.datadir.exists()) {
 			System.out.println("Starting Freemail for the first time.");
 			System.out.println("You will probably want to add an account by running Freemail with arguments --newaccount <username>");
@@ -147,7 +144,7 @@ public class Freemail {
 				System.exit(1);
 			}
 		}
-		Freemail.tempdir = new File(Freemail.TEMPDIRNAME);
+		cfg.register("tempdir", new Freemail(), Freemail.TEMPDIRNAME);
 		if (!Freemail.tempdir.exists()) {
 			if (!Freemail.tempdir.mkdir()) {
 				System.out.println("Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
@@ -173,7 +170,7 @@ public class Freemail {
 		senderthread.start();
 		
 		// start the SMTP Listener
-		SMTPListener smtpl = new SMTPListener(sender);
+		SMTPListener smtpl = new SMTPListener(sender, cfg);
 		Thread smtpthread = new Thread(smtpl, "SMTP Listener");
 		smtpthread.setDaemon(true);
 		smtpthread.start();
@@ -188,7 +185,17 @@ public class Freemail {
 		
 		
 		// start the IMAP listener
-		IMAPListener imapl = new IMAPListener();
+		IMAPListener imapl = new IMAPListener(cfg);
 		imapl.run();
+	}
+	
+	public void setConfigProp(String key, String val) {
+		if (key.equalsIgnoreCase("datadir")) {
+			Freemail.datadir = new File(val);
+		} else if (key.equalsIgnoreCase("tempdir")) {
+			Freemail.tempdir = new File(val);
+		} else if (key.equalsIgnoreCase("globaldatadir")) {
+			Freemail.globaldatadir = new File(val);
+		}
 	}
 }

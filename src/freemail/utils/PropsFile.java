@@ -15,6 +15,8 @@ public class PropsFile {
 	private final File file;
 	private HashMap data;
 	private BufferedReader bufrdr;
+	private String commentPrefix;
+	private String header;
 
 	/** Pass true into stopAtBlank to cause the reader to stop upon encountering
 	 * a blank line. It's the the caller's responsibility to get
@@ -30,10 +32,20 @@ public class PropsFile {
 			} catch (IOException ioe) {
 			}
 		}
+		this.commentPrefix = null;
+		this.header = null;
 	}
 	
 	public PropsFile(File f) {
 		this(f, false);
+	}
+	
+	public void setCommentPrefix(String cp) {
+		this.commentPrefix = cp;
+	}
+	
+	public void setHeader(String hdr) {
+		this.header = hdr;
 	}
 	
 	private BufferedReader read(boolean stopAtBlank) throws IOException {
@@ -43,6 +55,9 @@ public class PropsFile {
 		
 		String line = null;
 		while ( (line = br.readLine()) != null) {
+			if (this.commentPrefix != null && line.startsWith(this.commentPrefix)) {
+				continue;
+			}
 			if (stopAtBlank && line.length() == 0) {
 				return br;
 			}
@@ -69,6 +84,8 @@ public class PropsFile {
 	
 	private void write() throws IOException {
 		PrintWriter pw = new PrintWriter(new FileOutputStream(this.file));
+		
+		if (this.header != null) pw.println(this.header);
 		
 		Iterator i = this.data.entrySet().iterator();
 		while (i.hasNext()) {
