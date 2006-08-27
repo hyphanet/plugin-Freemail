@@ -36,6 +36,12 @@
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4" />
+		<copy todir="${build}/freemailgui/text">
+			<fileset dir="${src}/freemailgui/text" />
+		</copy>
+		<copy todir="${build}/freemailgui/images">
+			<fileset dir="${src}/freemailgui/images" />
+	       </copy>
 	</target>
 
 
