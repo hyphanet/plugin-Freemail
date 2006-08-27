@@ -22,7 +22,7 @@ public class SetupWizard implements ActionListener {
 	private JPanel subpanel;
 	private final JButton backbutton;
 	private final JButton cancelbutton;
-	private final JButton nextbutton;
+	public final JButton nextbutton;
 	private ResourceBundle bundle;
 	private final JLabel logolabel;
 	private int currentstep;
