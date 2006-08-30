@@ -7,11 +7,13 @@
 	<property name="deps" location="deps"/>
 	
 	<property name="bcdist" value="lcrypto-jdk14-133"/>
+	
+	<target name="bouncycastle-check">
+		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
+		<available file="${build}/org/bouncycastle" property="bouncycastle-bin.present" />
+	</target>
 
-	<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
-	<available file="${build}/org/bouncycastle" property="bouncycastle-bin.present" />
-
-	<target name="bouncycastle-fetch" unless="bouncycastle-dist.present">
+	<target name="bouncycastle-fetch" depends="bouncycastle-check" unless="bouncycastle-dist.present">
 		<mkdir dir="${deps}" />
 		<get src="http://www.bouncycastle.org/download/${bcdist}.zip" 
 		dest="${deps}/${bcdist}.zip" 
