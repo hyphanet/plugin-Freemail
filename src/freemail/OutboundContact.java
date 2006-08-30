@@ -602,7 +602,8 @@ public class OutboundContact {
 			}
 			if (err == null) {
 				System.out.println("Successfully inserted "+key);
-				msgs[i].first_send_time = System.currentTimeMillis();
+				if (msgs[i].first_send_time < 0)
+					msgs[i].first_send_time = System.currentTimeMillis();
 				msgs[i].last_send_time = System.currentTimeMillis();
 				msgs[i].saveProps();
 			} else if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {

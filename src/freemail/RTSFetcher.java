@@ -27,6 +27,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.paddings.PKCS7Padding;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.DataLengthException;
 
 import freenet.support.io.LineReadingInputStream;
 import freenet.support.io.TooLongException;
@@ -405,7 +406,11 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		KeyParameter kp = new KeyParameter(aes_iv_and_key, aescipher.getBlockSize(), aes_iv_and_key.length - aescipher.getBlockSize());
 		ParametersWithIV kpiv = new ParametersWithIV(kp, aes_iv_and_key, 0, aescipher.getBlockSize());
-		aescipher.init(false, kpiv);
+		try {
+			aescipher.init(false, kpiv);
+		} catch (IllegalArgumentException iae) {
+			throw new InvalidCipherTextException(iae.getMessage());
+		}
 		
 		byte[] plaintext = new byte[aescipher.getOutputSize((int)rtsmessage.length() - read)];
 		
@@ -420,7 +425,11 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		fis.close();
 		
-		aescipher.doFinal(plaintext, ptbytes);
+		try {
+			aescipher.doFinal(plaintext, ptbytes);
+		} catch (DataLengthException dle) {
+			throw new InvalidCipherTextException(dle.getMessage());
+		}
 		
 		return plaintext;
 	}

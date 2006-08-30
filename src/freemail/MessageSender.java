@@ -18,6 +18,7 @@ public class MessageSender implements Runnable {
 	private static final int MAX_TRIES = 10;
 	private final File datadir;
 	private Thread senderthread;
+	private static final String ATTR_SEP_CHAR = "_"; 
 	
 	public MessageSender(File d) {
 		this.datadir = d;
@@ -59,7 +60,7 @@ public class MessageSender implements Runnable {
 		int prefix = 1;
 		synchronized (this.senderthread) {
 			do {
-				String filename = prefix + ":" + tries + ":" + to;
+				String filename = prefix + ATTR_SEP_CHAR + tries + ATTR_SEP_CHAR + to;
 				destfile = new File(outbox, filename);
 				prefix++;
 			} while (destfile.exists());
@@ -109,7 +110,7 @@ public class MessageSender implements Runnable {
 	}
 	
 	private void sendSingle(File accdir, File msg) {
-		String parts[] = msg.getName().split(":", 3);
+		String parts[] = msg.getName().split(ATTR_SEP_CHAR, 3);
 		EmailAddress addr;
 		int tries;
 		if (parts.length < 3) {
