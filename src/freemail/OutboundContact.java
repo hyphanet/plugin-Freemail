@@ -514,6 +514,7 @@ public class OutboundContact {
 				fos.write(buf, 0, read);
 			}
 			
+			fis.close();
 			fos.close();
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
@@ -527,7 +528,6 @@ public class OutboundContact {
 		qm.slot = slot;
 		
 		if (qm.setMessageFile(msg) && qm.saveProps()) {
-			body.delete();
 			return true;
 		}
 		return false;

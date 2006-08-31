@@ -11,11 +11,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
-import thirdparty.Base64Coder;
 import freemail.Freemail;
 import freemail.AccountManager;
 import freemail.MessageSender;
 import freemail.utils.EmailAddress;
+
+import org.bouncycastle.util.encoders.Base64;
 
 public class SMTPHandler implements Runnable {
 	private final Socket client;
@@ -117,7 +118,7 @@ public class SMTPHandler implements Runnable {
 			this.ps.print("504 No auth type given\r\n");
 			return;
 		} else if (cmd.args[0].equalsIgnoreCase("login")) {
-			this.ps.print("334"+Base64Coder.encode("Username:")+"\r\n");
+			this.ps.print("334 "+new String(Base64.encode("Username:".getBytes()))+"\r\n");
 			
 			String b64username;
 			String b64password;
@@ -128,16 +129,18 @@ public class SMTPHandler implements Runnable {
 			}
 			if (b64username == null) return;
 			
-			this.ps.print("334"+Base64Coder.encode("Password:")+"\r\n");
+			this.ps.print("334 "+new String(Base64.encode("Password:".getBytes()))+"\r\n");
 			try {
 				b64password = this.bufrdr.readLine();
 			} catch (IOException ioe) {
 				return;
 			}
 			if (b64password == null) return;
+                        
+                        password = new String(Base64.decode(b64password.getBytes()));
 			
-			uname = Base64Coder.decode(b64username);
-			password = Base64Coder.decode(b64password);
+			uname = new String(Base64.decode(b64username.getBytes()));
+			password = new String(Base64.decode(b64password.getBytes()));
 		} else if (cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
 			
@@ -153,7 +156,8 @@ public class SMTPHandler implements Runnable {
 				}
 			}
 			
-			String[] creds = Base64Coder.decode(b64creds).split("\0");
+                        String creds_plain = new String(Base64.decode(b64creds.getBytes()));
+			String[] creds = creds_plain.split("\0");
 			
 			if (creds.length < 2) return;
 			
@@ -201,7 +205,12 @@ public class SMTPHandler implements Runnable {
 			return;
 		}
 		
-		String[] parts = cmd.args[0].split(":", 2);
+		String allargs = new String();
+		for (int i = 0; i < cmd.args.length; i++) {
+		    allargs += cmd.args[i];
+		}
+		
+		String[] parts = allargs.split(":", 2);
 		if (parts.length < 2) {
 			this.ps.print("504 Can't understand that syntax\r\n");
 			return;

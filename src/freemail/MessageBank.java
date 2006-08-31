@@ -210,7 +210,9 @@ public class MessageBank {
 			// make sure the old nextid file doesn't contain a
 			// value greater than our one
 			if (this.nextId() <= newid) {
-				nidfile.renameTo(new File(this.dir, NIDFILE));
+				File main_nid_file = new File(this.dir, NIDFILE);
+				main_nid_file.delete();
+				nidfile.renameTo(main_nid_file);
 			}
 		} catch (IOException ioe) {
 			// how to handle this?

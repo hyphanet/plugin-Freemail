@@ -39,7 +39,9 @@ public class Postman {
 			if (first) {
 				if (!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", froms[i]);
-					newmsg.addHeader("From", "**SPOOFED!** "+froms[i]);
+					EmailAddress e = new EmailAddress(froms[i]);
+					e.user = "**SPOOFED** "+e.user;
+					newmsg.addHeader("From", e.toString());
 				}
 			} else {
 				newmsg.removeHeader("From", froms[i]);

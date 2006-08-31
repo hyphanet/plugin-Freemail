@@ -50,6 +50,15 @@ public class EmailAddress {
 		if (this.realname == null && this.domain == null) {
 			this.domain = bank.toString();
 		}
+		
+		// trim quotes out of the real name field
+		this.user = this.user.trim();
+		if (this.user.substring(0,1).equals("\"")) {
+		    this.user = this.user.substring(1);
+		}
+		if (this.user.substring(this.user.length() - 1).equals("\"")) {
+		    this.user = this.user.substring(0, this.user.length() - 1);
+		}
 	}
 	
 	public EmailAddress() {

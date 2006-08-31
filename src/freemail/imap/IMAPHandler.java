@@ -827,13 +827,9 @@ public class IMAPHandler implements Runnable {
 		
 		String mbname = trimQuotes(msg.args[0]);
 		
-		// for now
-		if (!mbname.equalsIgnoreCase("INBOX")) {
-			this.reply(msg, "BAD No such mailbox");
-			return;
-		}
+                MessageBank mb = this.getMailboxFromPath(mbname);
 		
-		SortedMap msgs = this.mb.listMessages();
+		SortedMap msgs = mb.listMessages();
 		
 		// gather statistics
 		int numrecent = 0;

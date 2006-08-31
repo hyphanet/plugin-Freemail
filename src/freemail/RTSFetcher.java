@@ -69,7 +69,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			if (this.handle_rts(files[i])) {
 				files[i].delete();
 			} else {
-				String[] parts = files[i].getName().split(":", 2);
+				String[] parts = files[i].getName().split(",", 2);
 				
 				int tries;
 				if (parts.length < 2) {
@@ -141,7 +141,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			if (result != null) {
 				System.out.println(keybase+slot+": got RTS!");
 				
-				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+":0");
+				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+",0");
 				
 				// stick this message in the RTS 'inbox'
 				if (result.renameTo(rts_dest)) {
