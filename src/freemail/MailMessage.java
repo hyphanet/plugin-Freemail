@@ -193,7 +193,7 @@ public class MailMessage {
 					this.addHeader(parts[0], parts[1]);
 				parts = null;
 				break;
-			} else if (line.startsWith(" ")) {
+			} else if (line.startsWith(" ") || line.startsWith("\t")) {
 				// contination of previous line
 				if (parts == null || parts[1] == null) 
 					continue;

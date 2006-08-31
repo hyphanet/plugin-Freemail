@@ -134,6 +134,12 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			}
 			System.out.println("You've got mail!");
 			sm.slotUsed();
+			try {
+			    msglog.add(id);
+			} catch (IOException ioe) {
+			    // how should we handle this? Remove the message from the inbox again?
+			    System.out.println("warning: failed to write log file!");
+			}
 			String ack_key = this.ibct_props.get("ackssk");
 			if (ack_key == null) {
 				System.out.println("Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
