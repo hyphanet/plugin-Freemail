@@ -52,12 +52,14 @@ public class EmailAddress {
 		}
 		
 		// trim quotes out of the real name field
-		this.user = this.user.trim();
-		if (this.user.substring(0,1).equals("\"")) {
-		    this.user = this.user.substring(1);
-		}
-		if (this.user.substring(this.user.length() - 1).equals("\"")) {
-		    this.user = this.user.substring(0, this.user.length() - 1);
+		if (realname != null && realname.length() > 0) {
+		    this.realname = this.realname.trim();
+		    if (this.realname.substring(0,1).equals("\"")) {
+			this.realname = this.realname.substring(1);
+		    }
+		    if (this.realname.substring(this.realname.length() - 1).equals("\"")) {
+			this.realname = this.realname.substring(0, this.realname.length() - 1);
+		    }
 		}
 	}
 	
@@ -112,5 +114,9 @@ public class EmailAddress {
 	
 	public String toString() {
 		return this.user+"@"+this.domain;
+	}
+	
+	public String toLongString() {
+		return this.realname + " <"+this.user+"@"+this.domain+">";
 	}
 }

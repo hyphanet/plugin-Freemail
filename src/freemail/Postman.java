@@ -40,8 +40,10 @@ public class Postman {
 				if (!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", froms[i]);
 					EmailAddress e = new EmailAddress(froms[i]);
-					e.user = "**SPOOFED** "+e.user;
-					newmsg.addHeader("From", e.toString());
+					if (e.realname == null) e.realname = "";
+					e.realname = "**SPOOFED** "+e.realname;
+					e.realname = e.realname.trim();
+					newmsg.addHeader("From", e.toLongString());
 				}
 			} else {
 				newmsg.removeHeader("From", froms[i]);
