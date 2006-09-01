@@ -827,9 +827,9 @@ public class IMAPHandler implements Runnable {
 		
 		String mbname = trimQuotes(msg.args[0]);
 		
-                MessageBank mb = this.getMailboxFromPath(mbname);
+                MessageBank statmb = this.getMailboxFromPath(mbname);
 		
-		SortedMap msgs = mb.listMessages();
+		SortedMap msgs = statmb.listMessages();
 		
 		// gather statistics
 		int numrecent = 0;

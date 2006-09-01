@@ -14,7 +14,7 @@ public class Freemail implements ConfigClient {
 	// version info
 	public static final int VER_MAJOR = 0;
 	public static final int VER_MINOR = 1;
-	public static final int BUILD_NO = 7;
+	public static final int BUILD_NO = 8;
 	public static final String VERSION_TAG = "Pet Shop";
 
 	private static final String TEMPDIRNAME = "temp";
@@ -57,8 +57,8 @@ public class Freemail implements ConfigClient {
 				}
 				
 				account = args[i];
-			} else if (args[i].equals("--passwd")) {
-				action = args[i];
+			} else if (args[i].equals("--passwd") || args[i].equals("--password")) {
+				action = "--passwd";
 				i = i + 2;
 				if (args.length - 1 < i) {
 					System.out.println("Usage: --passwd <account name> <password>");
@@ -82,6 +82,9 @@ public class Freemail implements ConfigClient {
 					continue;
 				}
 				cfgfile = args[i];
+			} else {
+				System.out.println("Unknown option: '"+args[i]+"'");
+				return;
 			}
 		}
 		
