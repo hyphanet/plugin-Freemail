@@ -637,6 +637,7 @@ public class IMAPHandler implements Runnable {
 				}
 				
 				buf.append(mmsg.getAllHeadersAsString());
+				buf.append("\r\n");
 			} else if (parts[i].equalsIgnoreCase("text")) {
 				// just send the text of the message without headers
 				mmsg.closeStream();
