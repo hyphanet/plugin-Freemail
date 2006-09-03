@@ -75,6 +75,8 @@ public class IMAPHandler implements Runnable {
 			this.handle_select(msg);
 		} else if (msg.type.equals("noop")) {
 			this.handle_noop(msg);
+		} else if (msg.type.equals("check")) {
+			this.handle_check(msg);
 		} else if (msg.type.equals("uid")) {
 			this.handle_uid(msg);
 		} else if (msg.type.equals("fetch")) {
@@ -277,6 +279,10 @@ public class IMAPHandler implements Runnable {
 		this.reply(msg, "OK NOOP completed");
 	}
 	
+	private void handle_check(IMAPMessage msg) {
+		this.reply(msg, "OK Check completed");
+	}
+	
 	private void handle_fetch(IMAPMessage msg) {
 		int from;
 		int to;
@@ -419,7 +425,9 @@ public class IMAPHandler implements Runnable {
 			
 			this.reply(msg, "OK Fetch completed");
 		} else if (msg.args[0].equalsIgnoreCase("store")) {
+			int oldsize = msgs.size();
 			msgs = msgs.tailMap(new Integer(from));
+			int firstmsg = oldsize - msgs.size();
 			msgs = msgs.headMap(new Integer(to + 1));
 			
 			MailMessage[] targetmsgs = new MailMessage[msgs.size()];
@@ -428,7 +436,7 @@ public class IMAPHandler implements Runnable {
 				targetmsgs[i] = (MailMessage)msgs.values().toArray()[i];
 			}
 			
-			this.do_store(msg.args, 2, targetmsgs, msg, -1);
+			this.do_store(msg.args, 2, targetmsgs, msg, firstmsg, true);
 			
 			this.reply(msg, "OK Store completed");
 		} else if (msg.args[0].equalsIgnoreCase("copy")) {
@@ -561,7 +569,12 @@ public class IMAPHandler implements Runnable {
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
 			a = a.substring("body".length());
-			return this.sendBody(mmsg, a);
+			if (this.sendBody(mmsg, a)) {
+				mmsg.flags.set("\\Seen", true);
+				mmsg.storeFlags();
+				return true;
+			}
+			return false;
 		} else if (attr.startsWith("rfc822.header")) {
 			this.ps.print(a.substring(0, "rfc822.header".length()));
 			this.ps.flush();
@@ -719,12 +732,12 @@ public class IMAPHandler implements Runnable {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 		
-		do_store(msg.args, 1, msgs, msg, from + 1);
+		do_store(msg.args, 1, msgs, msg, from + 1, false);
 		
 		this.reply(msg, "OK Store completed");
 	}
 	
-	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, int firstmsgnum) {
+	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, int firstmsgnum, boolean senduid) {
 		if (args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
@@ -764,15 +777,19 @@ public class IMAPHandler implements Runnable {
 			for (int i = 0; i < mmsgs.length; i++) {
 				StringBuffer buf = new StringBuffer("");
 				
-				if (firstmsgnum < 0) {
-					buf.append(mmsgs[i].getUID() + " FETCH FLAGS (");
+				buf.append((i+firstmsgnum));
+				if (senduid) {
+					buf.append(" FETCH (UID ");
+					buf.append(mmsgs[i].getUID());
+					buf.append(" FLAGS (");
+					buf.append(mmsgs[i].flags.getFlags());
+					buf.append("))");
 				} else {
-					buf.append((i+firstmsgnum) + " FETCH FLAGS (");
+					
+					buf.append(" FETCH FLAGS (");
+					buf.append(mmsgs[i].flags.getFlags());
+					buf.append(")");
 				}
-				
-				buf.append(mmsgs[i].flags.getFlags());
-				
-				buf.append(")");
 				
 				this.sendState(buf.toString());
 			}
