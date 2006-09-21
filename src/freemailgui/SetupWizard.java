@@ -98,6 +98,9 @@ public class SetupWizard implements ActionListener {
 			case 1:
 				this.subpanel = new WizardChooseUsername(this.bundle);
 				break;
+			case 2:
+				this.subpanel = new WizardAskGenKeys(this.bundle);
+				break;
 		}
 		
 		if (this.currentstep == 0) {
@@ -129,12 +132,10 @@ public class SetupWizard implements ActionListener {
 			this.currentstep++;
 			this.makeGUI();
 			this.panel.repaint();
-			//this.show();
 		} else if (e.getSource() == this.backbutton) {
 			this.currentstep--;
 			this.makeGUI();
 			this.panel.repaint();
-			//this.show();
 		}
 	}
 }

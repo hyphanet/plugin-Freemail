@@ -46,7 +46,7 @@ public class WizardChooseUsername extends JPanel {
 		c.gridwidth = 1;
 		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
-		c.anchor = GridBagConstraints.EAST; 
+		c.anchor = GridBagConstraints.EAST;
 		gb.setConstraints(usernamelbl, c);
 		this.add(usernamelbl);
 		
