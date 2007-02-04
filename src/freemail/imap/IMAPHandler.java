@@ -128,7 +128,11 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	private void handle_login(IMAPMessage msg) {
-		if (msg.args.length < 2) return;
+		if (msg.args == null || msg.args.length < 2) {
+			this.reply(msg, "BAD Not enough arguments");
+			return;
+		}
+		
 		if (AccountManager.authenticate(trimQuotes(msg.args[0]), trimQuotes(msg.args[1]))) {
 			this.inbox = new MessageBank(trimQuotes(msg.args[0]));
 			
@@ -165,10 +169,10 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args.length < 1) {
+		if (msg.args != null && msg.args.length < 1) {
 			refname = null;
 			mbname = null;
-		} else if (msg.args.length < 2) {
+		} else if (msg.args != null && msg.args.length < 2) {
 			refname = msg.args[0];
 			mbname = null;
 		} else {
@@ -251,7 +255,7 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args.length < 1) {
+		if (msg.args == null || msg.args.length < 1) {
 			this.reply(msg, "NO What mailbox?");
 			return;
 		}
@@ -698,7 +702,7 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	public void handle_store(IMAPMessage msg) {
-		if (msg.args.length < 2) {
+		if (msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
@@ -859,7 +863,7 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args.length < 2) {
+		if (msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
@@ -932,7 +936,7 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args.length < 1) {
+		if (msg.args == null || msg.args.length < 1) {
 			this.reply(msg, "NO Not enough arguments");
 			return;
 		}
@@ -978,7 +982,7 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args.length < 1) {
+		if (msg.args == null || msg.args.length < 1) {
 			this.reply(msg, "NO Not enough arguments");
 			return;
 		}
@@ -1012,7 +1016,7 @@ public class IMAPHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args.length < 2) {
+		if (msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "NO Not enough arguments");
 			return;
 		}
@@ -1068,7 +1072,7 @@ public class IMAPHandler implements Runnable {
 	}
 	
 	private void handle_append(IMAPMessage msg) {
-		if (msg.args.length < 3) {
+		if (msg.args == null || msg.args.length < 3) {
 			this.reply(msg, "NO Not enough arguments");
 			return;
 		}
