@@ -28,7 +28,7 @@ import java.util.Enumeration;
  *  ones still need to be checked, which ones are used and which have expired.
  */
 public abstract class SlotManager {
-	// how long we should keep checking a slot for which a successibe slot has
+	// how long we should keep checking a slot for which a successive slot has
 	// had a message retrieved on
 	private static final long SLOT_LIFETIME = 7 * 24 * 60 * 60 * 1000;
 	private static final int DEFAULT_POLL_AHEAD = 3;
