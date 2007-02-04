@@ -304,6 +304,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		File msfile = fcpcli.fetch(their_mailsite);
 		if (msfile == null) {
 			// oh well, try again in a bit
+			rtsfile.delete();
 			return false;
 		}
 		
@@ -367,6 +368,8 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			mailsite_furi = new FreenetURI(our_mailsite_keybody);
 		} catch (MalformedURLException mfe) {
+			msfile.delete();
+			rtsfile.delete();
 			return false;
 		}
 		String our_subdomain = Base32.encode(mailsite_furi.getKeyBody().getBytes());
