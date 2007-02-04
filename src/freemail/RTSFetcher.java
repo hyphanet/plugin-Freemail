@@ -103,7 +103,7 @@ public class RTSFetcher implements SlotSaveCallback {
 					System.out.println("Maximum attempts at handling RTS reached - deleting RTS");
 					files[i].delete();
 				} else {
-					File newname = new File(this.contact_dir, RTS_UNPROC_PREFIX + ":" + tries);
+					File newname = new File(this.contact_dir, parts[0] + "," + tries);
 					files[i].renameTo(newname);
 				}
 			}
