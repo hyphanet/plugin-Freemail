@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.io.PrintWriter;
 
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
@@ -513,30 +514,35 @@ public class OutboundContact {
 		QueuedMessage qm = new QueuedMessage(uid);
 		
 		File msg;
-		FileOutputStream fos;
+		PrintWriter pw;
 		try {
 			msg = File.createTempFile("ogm", "msg", Freemail.getTempDir());
 			
-			fos = new FileOutputStream(msg);
+			pw = new PrintWriter(new FileOutputStream(msg));
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			return false;
 		}
 		
-		FileInputStream fis;
 		try {
-			fos.write(new String("id="+uid+"\r\n\r\n").getBytes());
-		
-			fis = new FileInputStream(body);
+			pw.print("id="+uid+"\r\n\r\n");
 			
-			byte[] buf = new byte[1024];
-			int read;
-			while ( (read = fis.read(buf)) > 0) {
-				fos.write(buf, 0, read);
+			BufferedReader br = new BufferedReader(new FileReader(body));
+			MailHeaderFilter filter = new MailHeaderFilter(br);
+			
+			String chunk;
+			while ( (chunk = filter.readHeader()) != null ) {
+				pw.print(chunk+"\r\n");
+			}
+			pw.print("\r\n");
+			
+			// Headers are done, copy the rest
+			while ( (chunk = br.readLine()) != null ) {
+				pw.print(chunk+"\r\n");
 			}
 			
-			fis.close();
-			fos.close();
+			pw.close();
+			br.close();
 		} catch (IOException ioe) {
 			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			qm.delete();
