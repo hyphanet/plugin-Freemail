@@ -32,7 +32,7 @@ public class DateStringFactory {
 	private static final Calendar cal = Calendar.getInstance(gmt);
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
-	{
+	static {
 		sdf.setTimeZone(gmt);
 	}
 
