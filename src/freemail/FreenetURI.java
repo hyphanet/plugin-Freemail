@@ -36,7 +36,7 @@ public class FreenetURI {
 		String[] parts = uri.split(":", 2);
 		
 		if (parts.length == 2 && !parts[0].equals("freenet")) {
-			throw new MalformedURLException("Invalid scheme - not a freenet address");
+			throw new MalformedURLException("Invalid scheme - not a Freenet address");
 		} else if (parts.length == 2) {
 			uri = parts[1];
 		}
@@ -76,7 +76,7 @@ public class FreenetURI {
 	}
 	
 	/*
-	 * Read a freenet URI from args and print out in parts to test
+	 * Read a Freenet URI from args and print out in parts to test
 	 */
 	public static void main(String args[]) {
 		FreenetURI uri;
