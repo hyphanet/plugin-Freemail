@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import freemail.Freemail;
 
 public class HighLevelFCPClient implements FCPClient {
+	private static final int FCP_TOO_MANY_PATH_COMPONENTS = 11;
 	private static final int FCP_PERMANANT_REDIRECT = 27;
 
 	private FCPConnection conn;
@@ -77,7 +78,7 @@ public class HighLevelFCPClient implements FCPClient {
 			String s_code = (String)this.donemsg.headers.get("Code");
 			if (s_code == null) return null;
 			int code = Integer.parseInt(s_code);
-			if (code == FCP_PERMANANT_REDIRECT) {
+			if (code == FCP_PERMANANT_REDIRECT || code == FCP_TOO_MANY_PATH_COMPONENTS) {
 				String newuri = (String) this.donemsg.headers.get("RedirectURI");
 				if (newuri == null) return null;
 				return this.fetch(newuri);
