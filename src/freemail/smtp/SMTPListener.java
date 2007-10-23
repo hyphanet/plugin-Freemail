@@ -30,6 +30,21 @@ import freemail.config.ConfigClient;
 import freemail.config.Configurator;
 
 public class SMTPListener implements Runnable,ConfigClient {
+	/**
+	 * Object that is used for syncing purposes.
+	 */
+	protected final Object syncObject = new Object();
+
+	/**
+	 * Whether the thread this service runs in should stop.
+	 */
+	protected volatile boolean stopping = false;
+
+	/**
+	 * The currently running threads.
+	 */
+	private Thread thread;
+	private ServerSocket sock;
 	private static final int LISTENPORT = 3025;
 	private final MessageSender msgsender;
 	private String bindaddress;
@@ -42,10 +57,35 @@ public class SMTPListener implements Runnable,ConfigClient {
 	}
 	
 	public void run() {
+		thread = Thread.currentThread();
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
 			System.out.println("Error in SMTP server - "+ioe.getMessage());
+		}
+		synchronized (syncObject) {
+			thread = null;
+			syncObject.notify();
+		}
+	}
+
+	/**
+	 * This method will block until the
+	 * thread has exited.
+	 */
+	public void kill() {
+		synchronized (syncObject) {
+			stopping = true;
+			try {
+				sock.close();
+			} catch (IOException ioe) {	}
+			while (thread != null) {
+				syncObject.notify();
+				try {
+					syncObject.wait(1000);
+				} catch (InterruptedException ie1) {
+				}
+			}
 		}
 	}
 	
@@ -58,9 +98,8 @@ public class SMTPListener implements Runnable,ConfigClient {
 	}
 	
 	public void realrun() throws IOException {
-		ServerSocket sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
-		
-		while (!sock.isClosed()) {
+		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
+		while (!sock.isClosed() && !stopping) {
 			try {
 				SMTPHandler newcli = new SMTPHandler(sock.accept(), this.msgsender);
 				Thread newthread = new Thread(newcli);

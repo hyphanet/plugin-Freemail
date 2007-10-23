@@ -33,6 +33,20 @@ import freemail.utils.EmailAddress;
 import freemail.utils.DateStringFactory;
 
 public class MessageSender implements Runnable {
+	/**
+	 * Object that is used for syncing purposes.
+	 */
+	protected final Object syncObject = new Object();
+
+	/**
+	 * Whether the thread this service runs in should stop.
+	 */
+	protected volatile boolean stopping = false;
+
+	/**
+	 * The currently running threads.
+	 */
+	private Thread thread;
 	public static final String OUTBOX_DIR = "outbox";
 	private static final int MIN_RUN_TIME = 60000;
 	public static final String NIM_KEY_PREFIX = "KSK@freemail-nim-";
@@ -92,12 +106,16 @@ public class MessageSender implements Runnable {
 	
 	public void run() {
 		this.senderthread = Thread.currentThread();
-		while (true) {
+		thread = Thread.currentThread();
+		while (!stopping) {
 			long start = System.currentTimeMillis();
 			
 			// iterate through users
 			File[] files = this.datadir.listFiles();
 			for (int i = 0; i < files.length; i++) {
+				if(stopping) {
+					break;
+				}
 				if (files[i].getName().startsWith("."))
 					continue;
 				File outbox = new File(files[i], OUTBOX_DIR);
@@ -108,12 +126,37 @@ public class MessageSender implements Runnable {
 			}
 			// don't spin around the loop if nothing's
 			// going on
+			if(stopping) {
+				break;
+			}
+
 			long runtime = System.currentTimeMillis() - start;
 			
 			if (MIN_RUN_TIME - runtime > 0) {
 				try {
 					Thread.sleep(MIN_RUN_TIME - runtime);
 				} catch (InterruptedException ie) {
+				}
+			}
+		}
+		synchronized (syncObject) {
+			thread = null;
+			syncObject.notify();
+		}
+	}
+
+	/**
+	 * This method will block until the
+	 * thread has exited.
+	 */
+	public void kill() {
+		synchronized (syncObject) {
+			stopping = true;
+			while (thread != null) {
+				syncObject.notify();
+				try {
+					syncObject.wait(1000);
+				} catch (InterruptedException ie1) {
 				}
 			}
 		}

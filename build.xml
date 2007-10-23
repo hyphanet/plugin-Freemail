@@ -37,7 +37,11 @@
 		
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4" />
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4">
+			<classpath>
+				<pathelement location="${lib}/freenet-cvs-snapshot.jar"/>
+			</classpath>
+		</javac>
 		<copy todir="${build}/freemailgui/text">
 			<fileset dir="${src}/freemailgui/text" />
 		</copy>
@@ -52,6 +56,7 @@
 		<jar jarfile="${lib}/Freemail.jar" basedir="${build}">
 			<manifest>
 				<attribute name="Main-Class" value="freemail.Freemail"/>
+				<attribute name="Plugin-Main-Class" value="freemail.Freemail"/>
 				<attribute name="Built-By" value="${user.name}"/>
 				<section name="common">
 					<attribute name="Implementation-Title" value="Freemail"/>

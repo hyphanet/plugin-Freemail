@@ -39,6 +39,20 @@ import freemail.fcp.FCPInsertErrorMessage;
  * Freemail is run more or less permanantly.
  */
 public class AckProcrastinator implements Runnable {
+	/**
+	 * Object that is used for syncing purposes.
+	 */
+	protected final Object syncObject = new Object();
+
+	/**
+	 * Whether the thread this service runs in should stop.
+	 */
+	protected volatile boolean stopping = false;
+
+	/**
+	 * The currently running threads.
+	 */
+	private Thread thread;
 	private static final long MAX_DELAY = 12 * 60 * 60 * 1000;
 	private static final int RANDOM_ACK_SIZE = 512;
 	
@@ -65,7 +79,8 @@ public class AckProcrastinator implements Runnable {
 	}
 
 	public void run() {
-		while (true) {
+		thread = Thread.currentThread();
+		while (!stopping) {
 			File[] acks = getAckDir().listFiles();
 			
 			int i;
@@ -116,8 +131,30 @@ public class AckProcrastinator implements Runnable {
 			} catch (InterruptedException ie) {
 			}
 		}
+		synchronized (syncObject) {
+			thread = null;
+			syncObject.notify();
+		}
+
 	}
 	
+	/**
+	 * This method will block until the
+	 * thread has exited.
+	 */
+	public void kill() {
+		synchronized (syncObject) {
+			stopping = true;
+			while (thread != null) {
+				syncObject.notify();
+				try {
+					syncObject.wait(1000);
+				} catch (InterruptedException ie1) {
+				}
+			}
+		}
+	}
+
 	/** As put(String key, String data), but insert random data
 	 */
 	public static synchronized void put(String key) {

@@ -29,7 +29,6 @@ package freemail;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.StringBuffer;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;

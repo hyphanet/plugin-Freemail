@@ -23,12 +23,28 @@ package freemail.imap;
 
 import java.net.ServerSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.io.IOException;
 
 import freemail.config.Configurator;
 import freemail.config.ConfigClient;
 
 public class IMAPListener implements Runnable,ConfigClient {
+	/**
+	 * Object that is used for syncing purposes.
+	 */
+	protected final Object syncObject = new Object();
+
+	/**
+	 * Whether the thread this service runs in should stop.
+	 */
+	protected volatile boolean stopping = false;
+
+	/**
+	 * The currently running threads.
+	 */
+	private Thread thread;
+	private ServerSocket sock;
 	private static final int LISTENPORT = 3143;
 	private String bindaddress;
 	private int bindport;
@@ -47,22 +63,49 @@ public class IMAPListener implements Runnable,ConfigClient {
 	}
 	
 	public void run() {
+		thread = Thread.currentThread();
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
 			System.out.println("Error in IMAP server - "+ioe.getMessage());
 		}
+		synchronized (syncObject) {
+			thread = null;
+			syncObject.notify();
+		}
+	}
+
+	/**
+	 * This method will block until the
+	 * thread has exited.
+	 */
+	public void kill() {
+		synchronized (syncObject) {
+			stopping = true;
+			try {
+				sock.close();
+			} catch (IOException ioe) {	}
+			while (thread != null) {
+				syncObject.notify();
+				try {
+					syncObject.wait(1000);
+				} catch (InterruptedException ie1) {
+				}
+			}
+		}
 	}
 
 	public void realrun() throws IOException {
-		ServerSocket sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
-		
-		while (!sock.isClosed()) {
+		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
+		sock.setSoTimeout(60000);
+		while (!sock.isClosed() && !stopping) {
 			try {
 				IMAPHandler newcli = new IMAPHandler(sock.accept());
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
  				newthread.start();
+			} catch (SocketTimeoutException ste) {
+				
 			} catch (IOException ioe) {
 				
 			}

@@ -28,6 +28,20 @@ import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 
 public class SingleAccountWatcher implements Runnable {
+	/**
+	 * Object that is used for syncing purposes.
+	 */
+	protected final Object syncObject = new Object();
+
+	/**
+	 * Whether the thread this service runs in should stop.
+	 */
+	protected volatile boolean stopping = false;
+
+	/**
+	 * The currently running threads.
+	 */
+	private Thread thread;
 	public static final String CONTACTS_DIR = "contacts";
 	public static final String INBOUND_DIR = "inbound";
 	public static final String OUTBOUND_DIR = "outbound";
@@ -85,7 +99,8 @@ public class SingleAccountWatcher implements Runnable {
 	}
 	
 	public void run() {
-		while (true) {
+		thread = Thread.currentThread();
+		while (!stopping) {
 			long start = System.currentTimeMillis();
 			
 			// is it time we inserted the mailsite?
@@ -95,7 +110,9 @@ public class SingleAccountWatcher implements Runnable {
 					this.mailsite_last_upload = System.currentTimeMillis();
 				}
 			}
-			
+			if(stopping) {
+				break;
+			}
 			// send any messages queued in contact outboxes
 			File[] obcontacts = this.obctdir.listFiles();
 			if (obcontacts != null) {
@@ -106,12 +123,13 @@ public class SingleAccountWatcher implements Runnable {
 					obct.doComm();
 				}
 			}
-			
 			if (this.nf != null) {
 				nf.fetch();
 			}
-			
 			this.rtsf.poll();
+			if(stopping) {
+				break;
+			}
 			
 			// poll for incoming message from all inbound contacts
 			File[] ibcontacts = this.ibctdir.listFiles();
@@ -125,13 +143,38 @@ public class SingleAccountWatcher implements Runnable {
 					ibct.fetch(this.mb);
 				}
 			}
-			
+			if(stopping) {
+				break;
+			}
+		
 			long runtime = System.currentTimeMillis() - start;
 			
 			if (MIN_POLL_DURATION - runtime > 0) {
 				try {
 					Thread.sleep(MIN_POLL_DURATION - runtime);
 				} catch (InterruptedException ie) {
+				}
+			}
+		}
+		synchronized (syncObject) {
+			thread = null;
+			syncObject.notify();
+		}
+
+	}
+
+	/**
+	 * This method will block until the
+	 * thread has exited.
+	 */
+	public void kill() {
+		synchronized (syncObject) {
+			stopping = true;
+			while (thread != null) {
+				syncObject.notify();
+				try {
+					syncObject.wait(1000);
+				} catch (InterruptedException ie1) {
 				}
 			}
 		}

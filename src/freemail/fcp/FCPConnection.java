@@ -29,6 +29,21 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class FCPConnection implements Runnable {
+	/**
+	 * Object that is used for syncing purposes.
+	 */
+	protected final Object syncObject = new Object();
+
+	/**
+	 * Whether the thread this service runs in should stop.
+	 */
+	protected volatile boolean stopping = false;
+
+	/**
+	 * The currently running threads.
+	 */
+	private Thread thread;
+
 	private final FCPContext fcpctx;
 	private OutputStream os;
 	private InputStream is;
@@ -76,10 +91,11 @@ public class FCPConnection implements Runnable {
 	}
 	
 	public void run() {
-		while (true) {
+		thread = Thread.currentThread();
+		while (!stopping) {
 			try {
 				this.tryConnect();
-				if (this.conn == null) throw new IOException();
+				if (this.conn == null || stopping) throw new IOException();
 				
 				FCPMessage msg = this.getMessage();
 				if (msg.getType() == null) throw new IOException("Connection closed");
@@ -102,8 +118,33 @@ public class FCPConnection implements Runnable {
 				}
 			}
 		}
+		synchronized (syncObject) {
+			thread = null;
+			syncObject.notify();
+		}
 	}
 
+	/**
+	 * This method will block until the
+	 * thread has exited.
+	 */
+	public void kill() {
+		synchronized (syncObject) {
+			stopping = true;
+			try {
+				finalize();
+			} catch (Throwable t) {
+			}
+			while (thread != null) {
+				syncObject.notify();
+				try {
+					syncObject.wait(1000);
+				} catch (InterruptedException ie1) {
+				}
+			}
+		}
+	}
+	
 	protected void finalize() throws Throwable {
 		try {
 			this.conn.close();
