@@ -351,7 +351,7 @@ public class Freemail implements ConfigClient, FredPlugin, FredPluginHTTP, FredP
 					addedBox.addChild("div", "class", "infobox-content", "Account for " + request.getParam("name") + " is created");
 					
 				} catch (IOException ioe) {
-					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox-error");
+					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
 					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
 					errorBox.addChild("div", "class", "infobox-content", "Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
 				} catch (Exception e) {
@@ -360,7 +360,7 @@ public class Freemail implements ConfigClient, FredPlugin, FredPluginHTTP, FredP
 					errorBox.addChild("div", "class", "infobox-content", "Couldn't change password for "+request.getParam("name")+". "+e.getMessage());
 				}
 			} else {
-				HTMLNode errorBox = contentNode.addChild("div", "class", "infobox-error");
+				HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
 				errorBox.addChild("div", "class", "infobox-header", "Error"); 
 				errorBox.addChild("div", "class", "infobox-content", "Couldn't create account, name or password is missing");
 			}
