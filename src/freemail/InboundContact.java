@@ -87,6 +87,11 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		}
 		String slot;
 		while ( (slot = sm.getNextSlot()) != null) {
+			if(slot.length()!=52) {
+				System.out.println("ignoring malformed slot "+slot+" (probably due to previous bug)");
+				System.out.println("please the fix the entry in "+this.ibct_dir);
+				break;
+			}
 			String key = basekey+slot;
 			
 			System.out.println("Attempting to fetch mail on key "+key);
