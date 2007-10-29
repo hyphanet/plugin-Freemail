@@ -90,6 +90,8 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// the slot should be 52 characters long, since this is how long a 256 bit string ends up when base32 encoded.
 			// (the slots being base32 encoded SHA-256 checksums)
 			// TODO: remove this once the bug is ancient history, or if actually want to check the slots, do so in the SlotManagers.
+			// a fix for the bug causing this (https://bugs.freenetproject.org/view.php?id=1087) was commited on Feb 4 2007,
+			// anybody who has started using Freemail after that date is not affected.
 			if(slot.length()!=52) {
 				System.out.println("ignoring malformed slot "+slot+" (probably due to previous bug)");
 				System.out.println("please the fix the entry in "+this.ibct_dir);
