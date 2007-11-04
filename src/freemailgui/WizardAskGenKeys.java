@@ -25,7 +25,6 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JTextField;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
@@ -35,6 +34,7 @@ import java.awt.Component;
 import java.util.ResourceBundle;
 
 public class WizardAskGenKeys extends JPanel {
+	private static final long serialVersionUID = -1;
 	private final JTextField fcphosttext;
 	private final JTextField fcpporttext;
 
