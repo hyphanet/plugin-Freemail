@@ -42,7 +42,7 @@ public class HighLevelFCPClient implements FCPClient {
 	
 	// It's up to the client to delete this File once they're
 	// done with it
-	public synchronized File fetch(String key) {
+	public synchronized File fetch(String key) throws ConnectionTerminatedException {
 		FCPMessage msg = this.conn.getMessage("ClientGet");
 		msg.headers.put("URI", key);
 		msg.headers.put("ReturnType", "direct");
@@ -89,7 +89,7 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public synchronized SSKKeyPair makeSSK() {
+	public synchronized SSKKeyPair makeSSK() throws ConnectionTerminatedException {
 		FCPMessage msg = this.conn.getMessage("GenerateSSK");
 		
 		while (true) {
@@ -126,7 +126,8 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public synchronized FCPInsertErrorMessage put(InputStream data, String key) throws FCPBadFileException {
+	public synchronized FCPInsertErrorMessage put(InputStream data, String key) throws FCPBadFileException,
+	                                                                                   ConnectionTerminatedException {
 		FCPMessage msg = this.conn.getMessage("ClientPut");
 		msg.headers.put("URI", key);
 		msg.headers.put("Persistence", "connection");
@@ -159,7 +160,7 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public int SlotInsert(File data, String basekey, int minslot, String suffix) {
+	public int SlotInsert(File data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException {
 		int slot = minslot;
 		boolean carryon = true;
 		FileInputStream fis;
@@ -193,7 +194,7 @@ public class HighLevelFCPClient implements FCPClient {
 		return -1;
 	}
 	
-	public int SlotInsert(byte[] data, String basekey, int minslot, String suffix) {
+	public int SlotInsert(byte[] data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException {
 		int slot = minslot;
 		boolean carryon = true;
 		ByteArrayInputStream bis;

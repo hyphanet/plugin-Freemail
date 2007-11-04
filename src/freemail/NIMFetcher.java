@@ -22,6 +22,7 @@
 package freemail;
 
 import freemail.fcp.HighLevelFCPClient;
+import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.DateStringFactory;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class NIMFetcher extends Postman {
 		this.contact_dir = ctdir;
 	}
 	
-	public void fetch() {
+	public void fetch() throws ConnectionTerminatedException {
 		NIMContact contact = new NIMContact(this.contact_dir);
 		
 		int i;
@@ -68,7 +69,7 @@ public class NIMFetcher extends Postman {
 		contact.pruneLogs(cal.getTime());
 	}
 	
-	private void fetch_day(NIMContact contact, MailLog log, String date) {
+	private void fetch_day(NIMContact contact, MailLog log, String date) throws ConnectionTerminatedException {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		

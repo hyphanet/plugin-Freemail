@@ -35,12 +35,12 @@ import java.util.Date;
 import freemail.MessageBank;
 import freemail.MailMessage;
 import freemail.AccountManager;
+import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
 
-public class IMAPHandler implements Runnable {
+public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 AUTH=LOGIN CHILDREN NAMESPACE";
 
-	private final Socket client;
 	private final OutputStream os;
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
@@ -49,7 +49,7 @@ public class IMAPHandler implements Runnable {
 	
 
 	IMAPHandler(Socket client) throws IOException {
-		this.client = client;
+		super(client);
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));

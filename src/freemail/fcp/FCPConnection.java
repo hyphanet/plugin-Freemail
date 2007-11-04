@@ -30,19 +30,9 @@ import java.util.Iterator;
 
 public class FCPConnection implements Runnable {
 	/**
-	 * Object that is used for syncing purposes.
-	 */
-	protected final Object syncObject = new Object();
-
-	/**
 	 * Whether the thread this service runs in should stop.
 	 */
 	protected volatile boolean stopping = false;
-
-	/**
-	 * The currently running threads.
-	 */
-	private Thread thread;
 
 	private final FCPContext fcpctx;
 	private OutputStream os;
@@ -59,7 +49,7 @@ public class FCPConnection implements Runnable {
 	}
 	
 	private void tryConnect() {
-		if (this.conn != null) return;
+		if (this.conn != null || stopping) return;
 		
 		try {
 			this.nextMsgId = 1;
@@ -91,7 +81,6 @@ public class FCPConnection implements Runnable {
 	}
 	
 	public void run() {
-		thread = Thread.currentThread();
 		while (!stopping) {
 			try {
 				this.tryConnect();
@@ -112,36 +101,26 @@ public class FCPConnection implements Runnable {
 				}
 				this.clients.clear();
 				// wait a bit
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException ie) {
+				if (!stopping) {
+					try {
+						Thread.sleep(10000);
+					} catch (InterruptedException ie) {
+					}
 				}
 			}
-		}
-		synchronized (syncObject) {
-			thread = null;
-			syncObject.notify();
 		}
 	}
 
 	/**
-	 * This method will block until the
-	 * thread has exited.
+	 * Terminate the run method
 	 */
 	public void kill() {
-		synchronized (syncObject) {
-			stopping = true;
-			try {
-				finalize();
-			} catch (Throwable t) {
-			}
-			while (thread != null) {
-				syncObject.notify();
-				try {
-					syncObject.wait(1000);
-				} catch (InterruptedException ie1) {
-				}
-			}
+		stopping = true;
+		try {
+			// we can safely close the socket from this thread: any read operations other threads are in will throw a SocketException
+			conn.close();
+		} catch (IOException ioe) {
+			// ignore
 		}
 	}
 	
@@ -153,7 +132,9 @@ public class FCPConnection implements Runnable {
 		super.finalize();
 	}
 	
-	public synchronized void doRequest(FCPClient cli, FCPMessage msg) throws NoNodeConnectionException, FCPBadFileException {
+	public synchronized void doRequest(FCPClient cli, FCPMessage msg) throws NoNodeConnectionException,
+	                                                                         ConnectionTerminatedException, FCPBadFileException {
+		if (stopping) throw new ConnectionTerminatedException("This FCP Connection has been terminated");
 		if (this.os == null) throw new NoNodeConnectionException("No Connection");
 		this.clients.put(msg.getId(), cli);
 		try {

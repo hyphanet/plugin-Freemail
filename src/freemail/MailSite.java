@@ -29,6 +29,7 @@ import freemail.utils.PropsFile;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.FCPBadFileException;
+import freemail.fcp.ConnectionTerminatedException;
 
 public class MailSite {
 	private final PropsFile accprops;
@@ -91,7 +92,12 @@ public class MailSite {
 			minslot = 1;
 		}
 		
-		int actualslot = cli.SlotInsert(mailpage, key, minslot, "/"+MAILPAGE);
+		int actualslot = -1;
+		try {
+			actualslot = cli.SlotInsert(mailpage, key, minslot, "/"+MAILPAGE);
+		} catch (ConnectionTerminatedException cte) {
+			return -1;
+		}
 		
 		if (actualslot < 0) return -1;
 		
@@ -130,6 +136,8 @@ public class MailSite {
 			err = cli.put(bis, "KSK@"+alias+ALIAS_SUFFIX);
 		} catch (FCPBadFileException bfe) {
 				// impossible
+		} catch (ConnectionTerminatedException cte) {
+			return false;
 		}
 			
 		if (err == null) {

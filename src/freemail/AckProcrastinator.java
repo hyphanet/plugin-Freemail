@@ -32,6 +32,7 @@ import freemail.utils.PropsFile;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPInsertErrorMessage;
+import freemail.fcp.ConnectionTerminatedException;
 
 /** Takes simple pieces of data to insert to keys and inserts them at some point
  * randomly within a given time frame in order to disguise the time at which messages
@@ -40,19 +41,12 @@ import freemail.fcp.FCPInsertErrorMessage;
  */
 public class AckProcrastinator implements Runnable {
 	/**
-	 * Object that is used for syncing purposes.
-	 */
-	protected final Object syncObject = new Object();
-
-	/**
 	 * Whether the thread this service runs in should stop.
 	 */
 	protected volatile boolean stopping = false;
+	
+	private Thread runThread = null; ///< The thread in which the run method is executing
 
-	/**
-	 * The currently running threads.
-	 */
-	private Thread thread;
 	private static final long MAX_DELAY = 12 * 60 * 60 * 1000;
 	private static final int RANDOM_ACK_SIZE = 512;
 	
@@ -79,7 +73,7 @@ public class AckProcrastinator implements Runnable {
 	}
 
 	public void run() {
-		thread = Thread.currentThread();
+		runThread = Thread.currentThread();
 		while (!stopping) {
 			File[] acks = getAckDir().listFiles();
 			
@@ -122,36 +116,28 @@ public class AckProcrastinator implements Runnable {
 						}
 					} catch (FCPBadFileException bfe) {
 						// won't occur
+					} catch (ConnectionTerminatedException cte) {
+						return;
 					}
 				}
 			}
 			
-			try {
-				Thread.sleep(2 * 60 * 1000);
-			} catch (InterruptedException ie) {
+			if (!stopping) {
+				try {
+					Thread.sleep(2 * 60 * 1000);
+				} catch (InterruptedException ie) {
+				}
 			}
 		}
-		synchronized (syncObject) {
-			thread = null;
-			syncObject.notify();
-		}
-
 	}
 	
 	/**
-	 * This method will block until the
-	 * thread has exited.
+	 * Terminate the run method
 	 */
 	public void kill() {
-		synchronized (syncObject) {
-			stopping = true;
-			while (thread != null) {
-				syncObject.notify();
-				try {
-					syncObject.wait(1000);
-				} catch (InterruptedException ie1) {
-				}
-			}
+		stopping = true;
+		if (runThread != null) {
+			runThread.interrupt();
 		}
 	}
 

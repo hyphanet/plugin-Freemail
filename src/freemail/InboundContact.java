@@ -34,6 +34,7 @@ import freemail.FreenetURI;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 import freemail.fcp.HighLevelFCPClient;
+import freemail.fcp.ConnectionTerminatedException;
 
 import org.archive.util.Base32;
 
@@ -100,7 +101,12 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			String key = basekey+slot;
 			
 			System.out.println("Attempting to fetch mail on key "+key);
-			File msg = fcpcli.fetch(key);
+			File msg = null;
+			try {
+				msg = fcpcli.fetch(key);
+			} catch (ConnectionTerminatedException cte) {
+				return;
+			}
 			if (msg == null) {
 				System.out.println("No mail there.");
 				continue;
@@ -162,6 +168,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			} catch (IOException ioe) {
 				msg.delete();
 				continue;
+			} catch (ConnectionTerminatedException cte) {
+				// teminated before we could validate the sender. Give up, and we won't mark the slot used so we'll
+				// pick it up next time.
+				return;
 			}
 			System.out.println("You've got mail!");
 			sm.slotUsed();
@@ -185,7 +195,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		this.ibct_props.put("slots", s);
 	}
 	
-	public boolean validateFrom(EmailAddress from) throws IOException {
+	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
 		String sd = from.getSubDomain();
 		
 		if (from.is_ssk_address()) {
@@ -197,6 +207,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// quick sanity check
 			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) return false;
 			
+			System.out.println("Attempting to fetch sender's mailsite to validate From address...");
 			File result = cli.fetch("KSK@"+sd+MailSite.ALIAS_SUFFIX);
 			
 			if (result == null) {
@@ -204,8 +215,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				// network connection is healthy, and the mailsite
 				// ought to be easily retrievable, so fail.
 				// If this proves to be an issue, change it.
+				System.out.println("Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
 				return false;
 			}
+			System.out.println("Fetched sender's mailsite");
 			if (result.length() > 512) {
 				result.delete();
 				return false;

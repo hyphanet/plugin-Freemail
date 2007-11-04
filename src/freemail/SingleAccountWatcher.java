@@ -26,22 +26,14 @@ import java.lang.InterruptedException;
 
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
+import freemail.fcp.ConnectionTerminatedException;
 
 public class SingleAccountWatcher implements Runnable {
-	/**
-	 * Object that is used for syncing purposes.
-	 */
-	protected final Object syncObject = new Object();
-
 	/**
 	 * Whether the thread this service runs in should stop.
 	 */
 	protected volatile boolean stopping = false;
 
-	/**
-	 * The currently running threads.
-	 */
-	private Thread thread;
 	public static final String CONTACTS_DIR = "contacts";
 	public static final String INBOUND_DIR = "inbound";
 	public static final String OUTBOUND_DIR = "outbound";
@@ -99,84 +91,72 @@ public class SingleAccountWatcher implements Runnable {
 	}
 	
 	public void run() {
-		thread = Thread.currentThread();
 		while (!stopping) {
-			long start = System.currentTimeMillis();
+			try {
+				long start = System.currentTimeMillis();
+				
+				// is it time we inserted the mailsite?
+				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
+					MailSite ms = new MailSite(this.accprops);
+					if (ms.Publish() > 0) {
+						this.mailsite_last_upload = System.currentTimeMillis();
+					}
+				}
+				if(stopping) {
+					break;
+				}
+				// send any messages queued in contact outboxes
+				File[] obcontacts = this.obctdir.listFiles();
+				if (obcontacts != null) {
+					int i;
+					for (i = 0; i < obcontacts.length; i++) {
+						OutboundContact obct = new OutboundContact(this.accdir, obcontacts[i]);
+						
+						obct.doComm();
+					}
+				}
+				if (this.nf != null) {
+					nf.fetch();
+				}
+				this.rtsf.poll();
+				if(stopping) {
+					break;
+				}
+				
+				// poll for incoming message from all inbound contacts
+				File[] ibcontacts = this.ibctdir.listFiles();
+				if (ibcontacts != null) {
+					int i;
+					for (i = 0; i < ibcontacts.length; i++) {
+						if (ibcontacts[i].getName().equals(RTSFetcher.LOGFILE)) continue;
+						
+						InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
+						
+						ibct.fetch(this.mb);
+					}
+				}
+				if(stopping) {
+					break;
+				}
 			
-			// is it time we inserted the mailsite?
-			if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
-				MailSite ms = new MailSite(this.accprops);
-				if (ms.Publish() > 0) {
-					this.mailsite_last_upload = System.currentTimeMillis();
+				long runtime = System.currentTimeMillis() - start;
+				
+				if (MIN_POLL_DURATION - runtime > 0) {
+					try {
+						Thread.sleep(MIN_POLL_DURATION - runtime);
+					} catch (InterruptedException ie) {
+					}
 				}
-			}
-			if(stopping) {
-				break;
-			}
-			// send any messages queued in contact outboxes
-			File[] obcontacts = this.obctdir.listFiles();
-			if (obcontacts != null) {
-				int i;
-				for (i = 0; i < obcontacts.length; i++) {
-					OutboundContact obct = new OutboundContact(this.accdir, obcontacts[i]);
-					
-					obct.doComm();
-				}
-			}
-			if (this.nf != null) {
-				nf.fetch();
-			}
-			this.rtsf.poll();
-			if(stopping) {
-				break;
-			}
-			
-			// poll for incoming message from all inbound contacts
-			File[] ibcontacts = this.ibctdir.listFiles();
-			if (ibcontacts != null) {
-				int i;
-				for (i = 0; i < ibcontacts.length; i++) {
-					if (ibcontacts[i].getName().equals(RTSFetcher.LOGFILE)) continue;
-					
-					InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
-					
-					ibct.fetch(this.mb);
-				}
-			}
-			if(stopping) {
-				break;
-			}
-		
-			long runtime = System.currentTimeMillis() - start;
-			
-			if (MIN_POLL_DURATION - runtime > 0) {
-				try {
-					Thread.sleep(MIN_POLL_DURATION - runtime);
-				} catch (InterruptedException ie) {
-				}
-			}
-		}
-		synchronized (syncObject) {
-			thread = null;
-			syncObject.notify();
-		}
+			} catch (ConnectionTerminatedException cte) {
 
+			}
+		}
 	}
 
 	/**
-	 * This method will block until the
-	 * thread has exited.
+	 * Terminate the run method
 	 */
 	public void kill() {
-		synchronized (syncObject) {
-			stopping = true;
-			while (thread != null) {
-				syncObject.notify();
-				try {
-					syncObject.wait(1000);
-				} catch (InterruptedException ie1) {
-				}
-			}
-		}
+		stopping = true;
 	}
 }

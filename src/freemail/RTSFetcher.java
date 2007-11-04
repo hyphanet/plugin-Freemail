@@ -22,6 +22,7 @@
 package freemail;
 
 import freemail.fcp.HighLevelFCPClient;
+import freemail.fcp.ConnectionTerminatedException;
 import freemail.support.io.LineReadingInputStream;
 import freemail.support.io.TooLongException;
 import freemail.utils.DateStringFactory;
@@ -75,12 +76,12 @@ public class RTSFetcher implements SlotSaveCallback {
 		this.accprops = AccountManager.getAccountFile(this.accdir);
 	}
 	
-	public void poll() {
+	public void poll() throws ConnectionTerminatedException {
 		this.fetch();
 		this.handle_unprocessed();
 	}
 	
-	private void handle_unprocessed() {
+	private void handle_unprocessed() throws ConnectionTerminatedException {
 		File[] files = this.contact_dir.listFiles();
 		
 		int i;
@@ -110,7 +111,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 	}
 	
-	private void fetch() {
+	private void fetch() throws ConnectionTerminatedException {
 		int i;
 		RTSLog log = new RTSLog(new File(this.contact_dir, LOGFILE));
 		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
@@ -138,7 +139,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		String date;
 	}
 	
-	private void fetch_day(RTSLog log, String date) {
+	private void fetch_day(RTSLog log, String date) throws ConnectionTerminatedException {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		
@@ -181,7 +182,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		cbdata.log.putSlots(cbdata.date, slots);
 	}
 	
-	private boolean handle_rts(File rtsmessage) {
+	private boolean handle_rts(File rtsmessage) throws ConnectionTerminatedException {
 		// sanity check!
 		if (!rtsmessage.exists()) return false;
 		

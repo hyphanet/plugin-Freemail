@@ -43,6 +43,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.archive.util.Base32;
 
 import freemail.FreenetURI;
+import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 import freemail.utils.PropsFile;
@@ -172,10 +173,15 @@ public class AccountManager {
 			System.out.println("Generating mailsite keys...");
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
-			SSKKeyPair keypair = fcpcli.makeSSK();
+			SSKKeyPair keypair = null;
+			try {
+				 keypair = fcpcli.makeSSK();
+			} catch (ConnectionTerminatedException cte) {
+				// leave keypair as null 
+			}
 			
 			if (keypair == null) {
-				System.out.println("Unable to connect to the Freenet nodenode");
+				System.out.println("Unable to connect to the Freenet node");
 				return;
 			}
 			

@@ -31,28 +31,20 @@ import java.util.Enumeration;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.EmailAddress;
 import freemail.utils.DateStringFactory;
+import freemail.fcp.ConnectionTerminatedException;
 
 public class MessageSender implements Runnable {
-	/**
-	 * Object that is used for syncing purposes.
-	 */
-	protected final Object syncObject = new Object();
-
 	/**
 	 * Whether the thread this service runs in should stop.
 	 */
 	protected volatile boolean stopping = false;
 
-	/**
-	 * The currently running threads.
-	 */
-	private Thread thread;
 	public static final String OUTBOX_DIR = "outbox";
 	private static final int MIN_RUN_TIME = 60000;
 	public static final String NIM_KEY_PREFIX = "KSK@freemail-nim-";
 	private static final int MAX_TRIES = 10;
 	private final File datadir;
-	private Thread senderthread;
+	private Thread senderthread = null;
 	private static final String ATTR_SEP_CHAR = "_"; 
 	
 	public MessageSender(File d) {
@@ -106,7 +98,6 @@ public class MessageSender implements Runnable {
 	
 	public void run() {
 		this.senderthread = Thread.currentThread();
-		thread = Thread.currentThread();
 		while (!stopping) {
 			long start = System.currentTimeMillis();
 			
@@ -122,7 +113,11 @@ public class MessageSender implements Runnable {
 				if (!outbox.exists())
 					outbox.mkdir();
 				
-				this.sendDir(files[i], outbox);
+				try {
+					this.sendDir(files[i], outbox);
+				} catch (ConnectionTerminatedException cte) {
+					return;
+				}
 			}
 			// don't spin around the loop if nothing's
 			// going on
@@ -139,30 +134,17 @@ public class MessageSender implements Runnable {
 				}
 			}
 		}
-		synchronized (syncObject) {
-			thread = null;
-			syncObject.notify();
-		}
 	}
 
 	/**
-	 * This method will block until the
-	 * thread has exited.
+	 * Terminate the run method
 	 */
 	public void kill() {
-		synchronized (syncObject) {
-			stopping = true;
-			while (thread != null) {
-				syncObject.notify();
-				try {
-					syncObject.wait(1000);
-				} catch (InterruptedException ie1) {
-				}
-			}
-		}
+		stopping = true;
+		if (senderthread != null) senderthread.interrupt();
 	}
 	
-	private void sendDir(File accdir, File dir) {
+	private void sendDir(File accdir, File dir) throws ConnectionTerminatedException {
 		File[] files = dir.listFiles();
 		if (dir == null) return;
 		for (int i = 0; i < files.length; i++) {
@@ -173,7 +155,7 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
-	private void sendSingle(File accdir, File msg) {
+	private void sendSingle(File accdir, File msg) throws ConnectionTerminatedException {
 		String parts[] = msg.getName().split(ATTR_SEP_CHAR, 3);
 		EmailAddress addr;
 		int tries;
@@ -194,8 +176,12 @@ public class MessageSender implements Runnable {
 		if (addr.is_nim_address()) {
 			HighLevelFCPClient cli = new HighLevelFCPClient();
 			
-			if (cli.SlotInsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
-				msg.delete();
+			try {
+				if (cli.SlotInsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
+					msg.delete();
+				}
+			} catch (ConnectionTerminatedException cte) {
+				// just don't delete the message
 			}
 		} else {
 			if (this.sendSecure(accdir, addr, msg)) {
@@ -213,7 +199,7 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
-	private boolean sendSecure(File accdir, EmailAddress addr, File msg) {
+	private boolean sendSecure(File accdir, EmailAddress addr, File msg) throws ConnectionTerminatedException {
 		System.out.println("sending secure");
 		OutboundContact ct;
 		try {
@@ -227,7 +213,7 @@ public class MessageSender implements Runnable {
 		} catch (IOException ioe) {
 			// couldn't get the mailsite - try again if you're not ready
 			//to give up yet
-			return false;
+			return false; 
 		}
 		
 		return ct.sendMessage(msg);

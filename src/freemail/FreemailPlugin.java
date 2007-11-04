@@ -53,6 +53,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	private AckProcrastinator ackinserter;
 	private IMAPListener imapl;
 	
+	private Thread fcpThread;
+	private ArrayList /* of Thread */ singleAccountWatcherThreadList = new ArrayList();
+	private Thread messageSenderThread;
+	private Thread smtpThread;
+	private Thread ackInserterThread;
+	private Thread imapThread;
+	
 	public void runPlugin(PluginRespirator pr) {
 		FreemailPlugin.pr = pr;
 		String cfgfile = CFGFILE;
@@ -63,9 +70,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		cfg.register("fcp_port", fcpctx, "9481");
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
-		Thread fcpthread  = new Thread(fcpconn, "Freemail FCP Connection");
-		fcpthread.setDaemon(true);
-		fcpthread.start();
+		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
+		fcpThread.setDaemon(true);
+		fcpThread.start();
 		cfg.register("globaldatadir", new Freemail(), GLOBALDATADIR);
 		if (!getGlobalDataDir().exists()) {
 			if(!getGlobalDataDir().mkdir()) {
@@ -98,33 +105,34 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 			Thread t = new Thread(saw, "Freemail Account Watcher for "+files[i].getName());
 			t.setDaemon(true);
 			t.start();
+			singleAccountWatcherThreadList.add(t);
 		}
 		
 		// and a sender thread
 		sender = new MessageSender(getDataDir());
-		Thread senderthread = new Thread(sender, "Freemail Message sender");
-		senderthread.setDaemon(true);
-		senderthread.start();
+		messageSenderThread = new Thread(sender, "Freemail Message sender");
+		messageSenderThread.setDaemon(true);
+		messageSenderThread.start();
 		
 		// start the SMTP Listener
 		smtpl = new SMTPListener(sender, cfg);
-		Thread smtpthread = new Thread(smtpl, "Freemail SMTP Listener");
-		smtpthread.setDaemon(true);
-		smtpthread.start();
+		smtpThread = new Thread(smtpl, "Freemail SMTP Listener");
+		smtpThread.setDaemon(true);
+		smtpThread.start();
 		
 		// start the delayed ACK inserter
 		File ackdir = new File(getGlobalDataDir(), ACKDIR);
 		AckProcrastinator.setAckDir(ackdir);
 		ackinserter = new AckProcrastinator();
-		Thread ackinsthread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
-		ackinsthread.setDaemon(true);
-		ackinsthread.start();
+		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
+		ackInserterThread.setDaemon(true);
+		ackInserterThread.start();
 		
 		// start the IMAP listener
 		imapl = new IMAPListener(cfg);
-		Thread imaplthread = new Thread(imapl, "Freemail IMAP Listener");
-		imaplthread.setDaemon(true);
-		imaplthread.start();
+		imapThread = new Thread(imapl, "Freemail IMAP Listener");
+		imapThread.setDaemon(true);
+		imapThread.start();
 	}
 
 	public void terminate() {
@@ -133,16 +141,57 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 			((SingleAccountWatcher)it.next()).kill();
 			it.remove();
 		}
+
 		sender.kill();
 		ackinserter.kill();
 		smtpl.kill();
 		imapl.kill();
+		// now kill the FCP thread - that's what all the other threads will be waiting on
 		fcpconn.kill();
+		
+		// now clean up all the threads
+		boolean cleanedUp = false;
+		while (!cleanedUp) {
+			try {
+				it = singleAccountWatcherThreadList.iterator();
+				while(it.hasNext()) {
+					((Thread)it.next()).join();
+					it.remove();
+				}
+				
+				if (messageSenderThread != null) {
+					messageSenderThread.join();
+					messageSenderThread = null;
+				}
+				if (ackInserterThread != null) {
+					ackInserterThread.join();
+					ackInserterThread = null;
+				}
+				if (smtpThread != null) {
+					smtpThread.join();
+					smtpl.joinClientThreads();
+					smtpThread = null;
+				}
+				if (imapThread != null) {
+					imapThread.join();
+					imapl.joinClientThreads();
+					imapThread = null;
+				}
+				if (fcpThread != null) {
+					fcpThread.join();
+					fcpThread = null;
+				}
+			} catch (InterruptedException ie) {
+				
+			}
+			cleanedUp = true;
+		}
+		
 		return;
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
-		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", false, null);
+		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", true, null);
 		HTMLNode contentNode = pr.getPageMaker().getContentNode(pageNode);
 
 		if(request.getParam("add").equals("Add account")) {

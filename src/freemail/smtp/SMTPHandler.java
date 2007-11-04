@@ -35,12 +35,12 @@ import java.util.Vector;
 import freemail.Freemail;
 import freemail.AccountManager;
 import freemail.MessageSender;
+import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
 
 import org.bouncycastle.util.encoders.Base64;
 
-public class SMTPHandler implements Runnable {
-	private final Socket client;
+public class SMTPHandler extends ServerHandler implements Runnable {
 	private final OutputStream os;
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
@@ -51,7 +51,7 @@ public class SMTPHandler implements Runnable {
 	private Vector to;
 	
 	public SMTPHandler(Socket client, MessageSender sender) throws IOException {
-		this.client = client;
+		super(client);
 		this.msgsender = sender;
 		this.username = null;
 		this.os = client.getOutputStream();
