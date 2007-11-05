@@ -191,7 +191,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
-		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", true, null);
+		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode contentNode = pr.getPageMaker().getContentNode(pageNode);
 
 		if(request.getParam("add").equals("Add account")) {
