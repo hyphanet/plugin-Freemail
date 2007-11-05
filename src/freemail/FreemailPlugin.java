@@ -194,40 +194,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode contentNode = pr.getPageMaker().getContentNode(pageNode);
 
-		if(request.getParam("add").equals("Add account")) {
-			if(!(request.getParam("name").equals("") || request.getParam("password").equals(""))) {
-				try {
-					AccountManager.Create(request.getParam("name"));
-					AccountManager.ChangePassword(request.getParam("name"), request.getParam("password"));
-					if(!request.getParam("domain").equals("")) {
-						AccountManager.addShortAddress(request.getParam("name"), request.getParam("domain"));
-					}
-					Thread t = new Thread(new SingleAccountWatcher(new File(DATADIR, request.getParam("name"))), "Account Watcher for "+request.getParam("name"));
-					t.setDaemon(true);
-					t.start();
-					HTMLNode addedBox = contentNode.addChild("div", "class", "infobox");
-					addedBox.addChild("div", "class", "infobox-header", "Added account");
-					addedBox.addChild("div", "class", "infobox-content", "Account for " + request.getParam("name") + " is created");
-					
-				} catch (IOException ioe) {
-					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
-					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
-					errorBox.addChild("div", "class", "infobox-content", "Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
-				} catch (Exception e) {
-					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox-error");
-					errorBox.addChild("div", "class", "infobox-header", "Error"); 
-					errorBox.addChild("div", "class", "infobox-content", "Couldn't change password for "+request.getParam("name")+". "+e.getMessage());
-				}
-			} else {
-				HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
-				errorBox.addChild("div", "class", "infobox-header", "Error"); 
-				errorBox.addChild("div", "class", "infobox-content", "Couldn't create account, name or password is missing");
-			}
-		}
-
 		HTMLNode addBox = contentNode.addChild("div", "class", "infobox");
 		addBox.addChild("div", "class", "infobox-header", "Add account");
-		HTMLNode table = addBox.addChild("div", "class", "infobox-content").addChild("form").addChild("table", "class", "plugintable");
+		
+		HTMLNode boxContent = addBox.addChild("div", "class", "infobox-content");
+		HTMLNode form = pr.addFormChild(boxContent, "", "addAccountForm");
+		
+		HTMLNode table = form.addChild("table", "class", "plugintable");
 		HTMLNode tableRowName = table.addChild("tr");
 		tableRowName.addChild("td", "Name");
 		tableRowName.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "name", "", "30" });
@@ -245,7 +218,60 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
-		return null;
+		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", false, null);
+		HTMLNode contentNode = pr.getPageMaker().getContentNode(pageNode);
+		
+		String add = request.getPartAsString("add", 100);
+		String name = request.getPartAsString("name", 100);
+		String password = request.getPartAsString("password", 100);
+		String domain = request.getPartAsString("domain", 100);
+		
+		if(add.equals("Add account")) {
+			if(!(name.equals("") || password.equals(""))) {
+				try {
+					AccountManager.Create(name);
+					AccountManager.ChangePassword(name, password);
+					if(!domain.equals("")) {
+						AccountManager.addShortAddress(name, domain);
+					}
+					Thread t = new Thread(new SingleAccountWatcher(new File(DATADIR, name)), "Account Watcher for "+name);
+					t.setDaemon(true);
+					t.start();
+
+					HTMLNode successBox = contentNode.addChild("div", "class", "infobox infobox-success");
+					successBox.addChild("div", "class", "infobox-header", "Account Created");
+					// TODO: This is not the world's best into message, but it's only temporary (hopefully...)
+					HTMLNode text = successBox.addChild("div", "class", "infobox-content");
+					text.addChild("#", "The account ");
+					text.addChild("i", name);
+					text.addChild("#", " was created successfully.");
+					text.addChild("br");
+					text.addChild("br");
+					text.addChild("#", "You now need to configure your email client to send and receive email through "
+							+ "Freemail using IMAP and SMTP. Freemail uses ports 3143 and 3025 for these "
+							+ "respectively by default.");
+				} catch (IOException ioe) {
+					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
+					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
+					errorBox.addChild("div", "class", "infobox-content", "Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
+				} catch (Exception e) {
+					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox-error");
+					errorBox.addChild("div", "class", "infobox-header", "Error"); 
+					errorBox.addChild("div", "class", "infobox-content", "Couldn't change password for "+name+". "+e.getMessage());
+				}
+				
+				// XXX: There doesn't seem to be a way to get (or set) our root in the web interface,
+				//      so we'll just have to assume it's this and won't change
+				contentNode.addChild("a", "href", "/plugins/freemail.FreemailPlugin",
+						"Freemail Home");
+			} else {
+				HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
+				errorBox.addChild("div", "class", "infobox-header", "Error"); 
+				errorBox.addChild("div", "class", "infobox-content", "Couldn't create account, name or password is missing");
+			}
+		}
+		
+		return pageNode.generate();
 	}
 
 	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
