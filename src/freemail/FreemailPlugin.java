@@ -44,8 +44,10 @@ import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
+// although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
+// returns rather than just continuing to run for the lifetime of the plugin.
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHTTP,
-                                                        FredPluginHTTPAdvanced, FredPluginThreadless {
+                                                        FredPluginThreadless {
 	private static PluginRespirator pr;
 	private ArrayList singleAccountWatcherList = new ArrayList();
 	private MessageSender sender;
