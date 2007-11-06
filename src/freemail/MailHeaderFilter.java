@@ -32,8 +32,8 @@ import java.lang.StringBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.Calendar;
 import java.text.ParseException;
+import java.util.Locale;
 
 class MailHeaderFilter {
 	private final BufferedReader reader;
@@ -41,12 +41,14 @@ class MailHeaderFilter {
 	private boolean foundEnd;
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
-	private static final Calendar cal;
+	
+	// TODO: according to javadoc, SimpleDateFormat objects are not synchronized,
+	// should this be taken into account?
 	
 	static {
-		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 		gmt = TimeZone.getTimeZone("GMT");
-		cal = Calendar.getInstance(gmt);
+		sdf.setTimeZone(gmt);
 	}
 	
 	public MailHeaderFilter(BufferedReader rdr) {
@@ -125,9 +127,7 @@ class MailHeaderFilter {
 				System.out.println("Warning: couldn't parse date: "+val+" (got null)");
 				return null;
 			}
-			cal.setTime(d);
-			cal.setTimeZone(gmt);
-			return sdf.format(cal.getTime());
+			return sdf.format(d);
 		} else if (name.equalsIgnoreCase("User-Agent")) {
 			// might as well hide this
 			return null;
