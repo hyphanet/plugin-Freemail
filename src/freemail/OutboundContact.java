@@ -686,7 +686,7 @@ public class OutboundContact {
 					// give up and bounce the message
 					File m = msgs[i].getMessageFile();
 					
-					Postman.bounceMessage(m, new MessageBank(this.accdir.getName()), "Freemail has been trying for too long to deliver this message, and has received no acknowledgement. It is possivle that the recipient has not run Freemail since you sent the message. If you believe this is likely, try resending the message.", true);
+					Postman.bounceMessage(m, new MessageBank(this.accdir.getName()), "Freemail has been trying for too long to deliver this message, and has received no acknowledgement. It is possible that the recipient has not run Freemail since you sent the message. If you believe this is likely, try resending the message.", true);
 					System.out.println("Giving up on message - been trying for too long.");
 					msgs[i].delete();
 				} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
