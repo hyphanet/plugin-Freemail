@@ -343,7 +343,7 @@ public class AccountManager {
 		ps.println("");
 		ps.println("Try to pick something unique - Freemail will tell you if somebody has already taken the address you want. These short addresses are *probably* secure, but not absolutely. If you want to be sure, use the long address.");
 		ps.println("");
-		ps.println("If you find a bug, or would like something changed in Freemail, visit our bug tracker at https://bugs.freenetproject.org/(and select 'Freemail' in the top right). You can also drop into #freemail on irc.freenode.net to discuss, or sign up tp the mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
+		ps.println("If you find a bug, or would like something changed in Freemail, visit our bug tracker at https://bugs.freenetproject.org/ (and select 'Freemail' in the top right). You can also drop into #freemail on irc.freenode.net to discuss, or sign up to the mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
 		ps.println("");
 		ps.println("Happy Freemailing!");
 		ps.println("");
