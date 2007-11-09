@@ -131,6 +131,9 @@ class MailHeaderFilter {
 		} else if (name.equalsIgnoreCase("User-Agent")) {
 			// might as well hide this
 			return null;
+		} else if (name.equalsIgnoreCase("Received")) {
+			// may give away local address
+			return null;
 		} else {
 			return val;
 		}
