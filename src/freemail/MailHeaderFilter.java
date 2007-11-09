@@ -77,7 +77,7 @@ class MailHeaderFilter {
 				retval = this.flush();
 			} else if (line.startsWith(" ") || line.startsWith("\t")) {
 				// continuation of the previous header
-				this.buffer.append("\r\n"+line.trim());
+				this.buffer.append("\r\n "+line.trim());
 			} else {
 				retval = this.flush();
 				this.buffer.append(line);
