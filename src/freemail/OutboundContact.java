@@ -65,7 +65,7 @@ public class OutboundContact {
 	private final File ctoutbox;
 	private final EmailAddress address;
 	// how long to wait for a CTS before sending the message again
-	// slightly over 24 hours since some people are likley to fire Freemail
+	// slightly over 24 hours since some people are likely to fire Freemail
 	// up and roughly the same time every day
 	private static final long CTS_WAIT_TIME = 26 * 60 * 60 * 1000;
 	private static final String PROPSFILE_NAME = "props";
@@ -172,7 +172,7 @@ public class OutboundContact {
 				System.out.println("Sucessfully received CTS for "+this.address.getSubDomain());
 				cts.delete();
 				this.contactfile.put("status", "cts-received");
-				// delete inital slot for forward secrecy
+				// delete initial slot for forward secrecy
 				this.contactfile.remove("initialslot");
 			}
 		} else {
@@ -193,7 +193,7 @@ public class OutboundContact {
 			
 			this.contactfile.put("commssk.privkey", ssk.privkey);
 			this.contactfile.put("commssk.pubkey", ssk.pubkey);
-			// we've just generated a new SSK, so the other party definately doesn't know about it
+			// we've just generated a new SSK, so the other party definitely doesn't know about it
 			this.contactfile.put("status", "notsent");
 		}
 		
@@ -312,7 +312,7 @@ public class OutboundContact {
 		
 		rtsmessage.append("messagetype=rts\r\n");
 		
-		// must include who this RTS is to, otherwise we're vulnerable to surruptitious forwarding
+		// must include who this RTS is to, otherwise we're vulnerable to surreptitious forwarding
 		rtsmessage.append("to="+this.address.getSubDomain()+"\r\n");
 		
 		// get our mailsite URI
@@ -403,7 +403,7 @@ public class OutboundContact {
 		this.contactfile.put("status", "rts-sent");
 		// and remember when we sent it!
 		this.contactfile.put("rts-sent-at", Long.toString(System.currentTimeMillis()));
-		// and since that's been sucessfully inserted to that key, we can
+		// and since that's been successfully inserted to that key, we can
 		// throw away the symmetric key
 		this.contactfile.remove("aesparams");
 		return true;
@@ -469,8 +469,8 @@ public class OutboundContact {
 		
 		if (rtsksk == null || keymod_str == null || keyexp_str == null) {
 			// TODO: More failure mechanisms - this is fatal.
-			System.out.println("Mailsite for "+this.address+" does not contain all necessary iformation!");
-			throw new OutboundContactFatalException("Mailsite for "+this.address+" does not contain all necessary iformation!");
+			System.out.println("Mailsite for "+this.address+" does not contain all necessary information!");
+			throw new OutboundContactFatalException("Mailsite for "+this.address+" does not contain all necessary information!");
 		}
 		
 		// add this to a new outbound contact file
@@ -678,7 +678,7 @@ public class OutboundContact {
 				msgs[i].delete();
 				// treat the ACK as a CTS too
 				this.contactfile.put("status", "cts-received");
-				// delete inital slot for forward secrecy
+				// delete initial slot for forward secrecy
 				this.contactfile.remove("initialslot");
 			} else {
 				System.out.println("Failed to receive ack on "+key);
