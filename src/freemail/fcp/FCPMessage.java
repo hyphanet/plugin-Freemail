@@ -31,9 +31,9 @@ import java.util.Enumeration;
 import java.util.Collections;
 
 import freemail.Freemail;
-import freemail.support.io.LineReader;
-import freemail.support.io.LineReadingInputStream;
 
+import freenet.support.io.LineReader;
+import freenet.support.io.LineReadingInputStream;
 
 public class FCPMessage {
 	private String messagetype;
