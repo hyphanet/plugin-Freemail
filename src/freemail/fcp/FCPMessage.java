@@ -59,7 +59,7 @@ public class FCPMessage {
 		LineReader r = new LineReadingInputStream(is);
 		
 		String line;
-		while ( (line = r.readLine(200, 200)) != null) {
+		while ( (line = r.readLine(200, 200, false)) != null) {
 			/***************************************/
 			//System.out.println(line);
 			if (this.messagetype == null) {

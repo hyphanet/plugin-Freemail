@@ -216,7 +216,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			String line;
 			while (true) {
 				try {
-					line = lis.readLine(200, 200);
+					line = lis.readLine(200, 200, false);
 				} catch (TooLongException tle) {
 					System.out.println("RTS message has lines that are too long. Discarding.");
 					rtsfile.delete();
