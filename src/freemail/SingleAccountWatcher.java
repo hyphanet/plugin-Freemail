@@ -26,6 +26,7 @@ import java.lang.InterruptedException;
 
 import freemail.utils.PropsFile;
 import freemail.fcp.ConnectionTerminatedException;
+import freemail.utils.Logger;
 
 public class SingleAccountWatcher implements Runnable {
 	/**
@@ -79,13 +80,13 @@ public class SingleAccountWatcher implements Runnable {
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 		
 		// temporary info message until there's a nicer UI :)
-		System.out.println("Secure Freemail address: <anything>@"+AccountManager.getFreemailDomain(accdir));
+		Logger.normal(this,"Secure Freemail address: <anything>@"+AccountManager.getFreemailDomain(accdir));
 		
 		String shortdomain = AccountManager.getKSKFreemailDomain(accdir);
 		if (shortdomain != null) {
-			System.out.println("Short Freemail address (*probably* secure): <anything>@"+shortdomain);
+			Logger.normal(this,"Short Freemail address (*probably* secure): <anything>@"+shortdomain);
 		} else {
-			System.out.println("You don't have a short Freemail address. You could get one by running Freemail with the --shortaddress option, followed by your account name and the name you'd like. For example, 'java -jar freemail.jar --shortaddress bob bob' will give you all addresses ending '@bob.freemail'. Try to pick something unique!");
+			Logger.normal(this,"You don't have a short Freemail address. You could get one by running Freemail with the --shortaddress option, followed by your account name and the name you'd like. For example, 'java -jar freemail.jar --shortaddress bob bob' will give you all addresses ending '@bob.freemail'. Try to pick something unique!");
 		}
 	}
 	

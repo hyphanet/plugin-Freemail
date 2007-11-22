@@ -34,6 +34,7 @@ import freemail.fcp.FCPConnection;
 import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
 import freemail.config.Configurator;
+import freemail.utils.Logger;
 
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
@@ -77,21 +78,21 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		cfg.register("globaldatadir", new Freemail(), GLOBALDATADIR);
 		if (!getGlobalDataDir().exists()) {
 			if(!getGlobalDataDir().mkdir()) {
-				System.out.println("Freemail plugin: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
+				Logger.error(this,"Freemail plugin: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 				return;
 			}
 		}
 		cfg.register("datadir", new Freemail(), Freemail.DATADIR);
 		if (!getDataDir().exists()) {
 			if (!getDataDir().mkdir()) {
-				System.out.println("Freemail plugin: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
+				Logger.error(this,"Freemail plugin: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 				return;
 			}
 		}
 		cfg.register("tempdir", new Freemail(), Freemail.TEMPDIRNAME);
 		if (!getTempDir().exists()) {
 			if (!Freemail.getTempDir().mkdir()) {
-				System.out.println("Freemail plugin: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
+				Logger.error(this,"Freemail plugin: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 				return;
 			}
 		}

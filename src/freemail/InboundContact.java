@@ -73,7 +73,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		
 		String slots = this.ibct_props.get("slots");
 		if (slots == null) {
-			Logger.normal(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'slots' entry!");
+			Logger.error(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'slots' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
@@ -83,7 +83,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		
 		String basekey = this.ibct_props.get("commssk");
 		if (basekey == null) {
-			Logger.normal(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'commssk' entry!");
+			Logger.error(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'commssk' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
@@ -118,7 +118,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			PropsFile msgprops = new PropsFile(msg, true);
 			String s_id = msgprops.get("id");
 			if (s_id == null) {
-				Logger.normal(this,"Got a message with an invalid header. Discarding.");
+				Logger.error(this,"Got a message with an invalid header. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -129,7 +129,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			try {
 				id = Integer.parseInt(s_id);
 			} catch (NumberFormatException nfe) {
-				Logger.normal(this,"Got a message with an invalid (non-integer) id. Discarding.");
+				Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -141,7 +141,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			try {
 				isDupe = msglog.isPresent(id);
 			} catch (IOException ioe) {
-				Logger.normal(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
+				Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
 				msgprops.closeReader();
 				msg.delete();
 				continue;
@@ -156,7 +156,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			
 			BufferedReader br = msgprops.getReader();
 			if (br == null) {
-				Logger.normal(this,"Got an invalid message. Discarding.");
+				Logger.error(this,"Got an invalid message. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -180,11 +180,11 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			    msglog.add(id);
 			} catch (IOException ioe) {
 			    // how should we handle this? Remove the message from the inbox again?
-			    Logger.normal(this,"warning: failed to write log file!");
+			    Logger.error(this,"warning: failed to write log file!");
 			}
 			String ack_key = this.ibct_props.get("ackssk");
 			if (ack_key == null) {
-				Logger.normal(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
+				Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
 				continue;
 			}
 			ack_key += "ack-"+id;
@@ -216,11 +216,12 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				// network connection is healthy, and the mailsite
 				// ought to be easily retrievable, so fail.
 				// If this proves to be an issue, change it.
-				Logger.normal(this,"Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
+				Logger.error(this,"Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
 				return false;
 			}
 			Logger.normal(this,"Fetched sender's mailsite");
 			if (result.length() > 512) {
+				Logger.error(this,"Sender's mailsite is too long. Consider this an error.");
 				result.delete();
 				return false;
 			}

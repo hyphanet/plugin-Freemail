@@ -33,6 +33,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.ConnectionTerminatedException;
+import freemail.utils.Logger;
 
 /** Takes simple pieces of data to insert to keys and inserts them at some point
  * randomly within a given time frame in order to disguise the time at which messages
@@ -104,15 +105,15 @@ public class AckProcrastinator implements Runnable {
 					
 					ByteArrayInputStream bis = new ByteArrayInputStream(data);
 					
-					System.out.println("Inserting ack to "+key);
+					Logger.normal(this,"Inserting ack to "+key);
 					try {
 						FCPInsertErrorMessage err = fcpcli.put(bis, key);
 						if (err == null) {
 							acks[i].delete();
-							System.out.println("ACK insertion to "+key+" sucessful");
+							Logger.normal(this,"ACK insertion to "+key+" sucessful");
 						} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
 							acks[i].delete();
-							System.out.println("ACK insertion to "+key+" sucessful");
+							Logger.normal(this,"ACK insertion to "+key+" sucessful");
 						}
 					} catch (FCPBadFileException bfe) {
 						// won't occur
@@ -168,7 +169,7 @@ public class AckProcrastinator implements Runnable {
 			 
 			 ackfile.put("nominalInsertTime", Long.toString(insertTime));
 		} catch (IOException ioe) {
-			System.out.println("IO Error whilst trying to schedule ACK for insertion! ACK will not be inserted!");
+			Logger.error(AccountManager.class,"IO Error whilst trying to schedule ACK for insertion! ACK will not be inserted!");
 			ioe.printStackTrace();
 		}
 		

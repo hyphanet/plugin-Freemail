@@ -30,6 +30,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.ConnectionTerminatedException;
+import freemail.utils.Logger;
 
 public class MailSite {
 	private final PropsFile accprops;
@@ -45,21 +46,21 @@ public class MailSite {
 		
 		String rtsksk = this.accprops.get("rtskey");
 		if (rtsksk == null) {
-			System.out.println("Can't insert mailsite - missing RTS KSK");
+			Logger.error(this,"Can't insert mailsite - missing RTS KSK");
 			return null;
 		}
 		buf.append("rtsksk=").append(rtsksk).append("\r\n");
 		
 		String keymodulus = this.accprops.get("asymkey.modulus");
 		if (keymodulus == null) {
-			System.out.println("Can't insert mailsite - missing asymmetic crypto key modulus");
+			Logger.error(this,"Can't insert mailsite - missing asymmetic crypto key modulus");
 			return null;
 		}
 		buf.append("asymkey.modulus=").append(keymodulus).append("\r\n");
 		
 		String key_pubexponent = this.accprops.get("asymkey.pubexponent");
 		if (key_pubexponent == null) {
-			System.out.println("Can't insert mailsite - missing asymmetic crypto key public exponent");
+			Logger.error(this,"Can't insert mailsite - missing asymmetic crypto key public exponent");
 			return null;
 		}
 		buf.append("asymkey.pubexponent=").append(key_pubexponent).append("\r\n");
@@ -127,7 +128,7 @@ public class MailSite {
 			
 		ByteArrayInputStream bis = new ByteArrayInputStream(targetKey.getBytes());
 			
-		System.out.println("Inserting mailsite redirect from "+"KSK@"+alias+ALIAS_SUFFIX+" to "+targetKey);
+		Logger.normal(this,"Inserting mailsite redirect from "+"KSK@"+alias+ALIAS_SUFFIX+" to "+targetKey);
 		
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 			
@@ -141,13 +142,13 @@ public class MailSite {
 		}
 			
 		if (err == null) {
-			System.out.println("Mailsite redirect inserted successfully");
+			Logger.normal(this,"Mailsite redirect inserted successfully");
 			return true;
 		} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
-			System.out.println("Mailsite alias collided - somebody is already using that alias! Choose another one!");
+			Logger.error(this,"Mailsite alias collided - somebody is already using that alias! Choose another one!");
 			return false;
 		} else {
-			System.out.println("Mailsite redirect insert failed, but did not collide.");
+			Logger.error(this,"Mailsite redirect insert failed, but did not collide.");
 			return false;
 		}
 	}

@@ -35,6 +35,8 @@ import java.util.TimeZone;
 import java.text.ParseException;
 import java.util.Locale;
 
+import freemail.utils.Logger;
+
 class MailHeaderFilter {
 	private final BufferedReader reader;
 	private final StringBuffer buffer;
@@ -67,7 +69,7 @@ class MailHeaderFilter {
 			
 			String line = this.reader.readLine();
 			if (line == null) {
-				System.out.println("Warning - reached end of message file before reaching end of headers! This shouldn't happen!");
+				Logger.error(this,"Warning - reached end of message file before reaching end of headers! This shouldn't happen!");
 				throw new IOException("Header filter reached end of message file before reaching end of headers");
 			}
 			
@@ -117,14 +119,14 @@ class MailHeaderFilter {
 				d = sdf.parse(val);
 			} catch (ParseException pe) {
 				// ...the compiler whinges unless we catch this exception...
-				System.out.println("Warning: couldn't parse date: "+val+" (caught exception)");
+				Logger.normal(this,"Warning: couldn't parse date: "+val+" (caught exception)");
 				return null;
 			}
 			// but the docs don't say that it throws it, but says that it return null
 			// http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html#parse(java.lang.String, java.text.ParsePosition)
 			if (d == null) {
 				// invalid date - ditch the header
-				System.out.println("Warning: couldn't parse date: "+val+" (got null)");
+				Logger.normal(this,"Warning: couldn't parse date: "+val+" (got null)");
 				return null;
 			}
 			return sdf.format(d);

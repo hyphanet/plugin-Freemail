@@ -22,26 +22,48 @@ public class Logger {
 	//static final private int loglevel=DEBUG|NORMAL|ERROR;
 	static final private int loglevel=NORMAL|ERROR; // should be ok for normal users
 
-	static private void log(int l, Object t, String s, String level) {
+	static private void log(int l, Object o, String s, String level) {
 		if((l&loglevel)!=0) {
-			System.out.println(level+"("+t.getClass().getSimpleName()+"): "+s);
+			System.out.println(level+"("+o.getClass().getSimpleName()+"): "+s);
 		}
 	}
 
-	static public void minor(Object t, String s) {
-		log(MINOR,t,s,"MINOR");
+	static private void log(int l, Class c, String s, String level) {
+		if((l&loglevel)!=0) {
+			System.out.println(level+"("+c.getSimpleName()+"): "+s);
+		}
 	}
 
-	static public void normal(Object t, String s) {
-		log(NORMAL,t,s,"NORMAL");
+	static public void minor(Object o, String s) {
+		log(MINOR,o,s,"MINOR");
 	}
 
-	static public void error(Object t, String s) {
-		log(ERROR,t,s,"ERROR");
+	static public void minor(Class c, String s) {
+		log(MINOR,c,s,"MINOR");
 	}
 
-	static public void debug(Object t, String s) {
-		log(DEBUG,t,s,"DEBUG");
+	static public void normal(Object o, String s) {
+		log(NORMAL,o,s,"NORMAL");
+	}
+
+	static public void normal(Class c, String s) {
+		log(NORMAL,c,s,"NORMAL");
+	}
+
+	static public void error(Object o, String s) {
+		log(ERROR,o,s,"ERROR");
+	}
+
+	static public void error(Class c, String s) {
+		log(ERROR,c,s,"ERROR");
+	}
+
+	static public void debug(Object o, String s) {
+		log(DEBUG,o,s,"DEBUG");
+	}
+
+	static public void debug(Class c, String s) {
+		log(DEBUG,c,s,"DEBUG");
 	}
 
 }

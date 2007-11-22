@@ -24,6 +24,7 @@ package freemail;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.DateStringFactory;
+import freemail.utils.Logger;
 
 import java.io.File;
 import java.io.FileReader;
@@ -84,12 +85,12 @@ public class NIMFetcher extends Postman {
 		int startnum = log.getNextMessageId();
 		
 		for (int i = startnum; i < startnum + POLL_AHEAD; i++) {
-			System.out.println("trying to fetch "+keybase+i);
+			Logger.normal(this,"trying to fetch "+keybase+i);
 			
 			File result = fcpcli.fetch(keybase+i);
 			
 			if (result != null) {
-				System.out.println(keybase+i+": got message!");
+				Logger.normal(this,keybase+i+": got message!");
 				try {
 					this.storeMessage(new BufferedReader(new FileReader(result)), this.mb);
 					result.delete();
@@ -98,7 +99,7 @@ public class NIMFetcher extends Postman {
 					continue;
 				}
 			} else {
-				System.out.println(keybase+i+": no message.");
+				Logger.normal(this,keybase+i+": no message.");
 			}
 		}
 	}

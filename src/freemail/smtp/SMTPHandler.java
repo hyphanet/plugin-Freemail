@@ -69,7 +69,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			while ( !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
-					//System.out.println(line);
+					//Logger.normal(this,line);
 					msg = new SMTPCommand(line);
 				} catch (SMTPBadCommandException bce) {
 					continue;
@@ -85,7 +85,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void dispatch(SMTPCommand cmd) {
-		//System.out.println(cmd.toString());
+		//Logger.normal(this,cmd.toString());
 		if (cmd.command.equals("helo")) {
 			this.handle_helo(cmd);
 		} else if (cmd.command.equals("ehlo")) {

@@ -48,6 +48,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
+import freemail.utils.Logger;
 
 public class AccountManager {
 	public static final String DATADIR = "data";
@@ -137,7 +138,7 @@ public class AccountManager {
 		try {
 			mailsite = new FreenetURI(accfile.get("mailsite.pubkey"));
 		} catch (MalformedURLException mfue) {
-			System.out.println("Warning: Couldn't fetch mailsite public key from account file! Your account file is probably corrupt.");
+			Logger.error(AccountManager.class,"Warning: Couldn't fetch mailsite public key from account file! Your account file is probably corrupt.");
 			return null;
 		}
 		
@@ -161,7 +162,7 @@ public class AccountManager {
 		String privexp_str = props.get("asymkey.privexponent");
 		
 		if (mod_str == null || privexp_str == null) {
-			System.out.println("Couldn't get private key - account file corrupt?");
+			Logger.error(AccountManager.class,"Couldn't get private key - account file corrupt?");
 			return null;
 		}
 		
@@ -170,7 +171,7 @@ public class AccountManager {
 	
 	private static void initAccFile(PropsFile accfile) {
 		try {
-			System.out.println("Generating mailsite keys...");
+			Logger.normal(AccountManager.class,"Generating mailsite keys...");
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
 			SSKKeyPair keypair = null;
@@ -181,7 +182,7 @@ public class AccountManager {
 			}
 			
 			if (keypair == null) {
-				System.out.println("Unable to connect to the Freenet node");
+				Logger.normal(AccountManager.class,"Unable to connect to the Freenet node");
 				return;
 			}
 			
@@ -208,14 +209,14 @@ public class AccountManager {
 				throw new IOException("Unable to write account file");
 			}
 			
-			System.out.println("Mailsite keys generated.");
-			System.out.println("Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
+			Logger.normal(AccountManager.class,"Mailsite keys generated.");
+			Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
 		} catch (IOException ioe) {
-			System.out.println("Couldn't create mailsite key file! "+ioe.getMessage());
+			Logger.error(AccountManager.class,"Couldn't create mailsite key file! "+ioe.getMessage());
 		}
 		
 		// generate an RSA keypair
-		System.out.println("Generating cryptographic keypair (this could take a few minutes)...");
+		Logger.normal(AccountManager.class,"Generating cryptographic keypair (this could take a few minutes)...");
 		
 		SecureRandom rand = new SecureRandom();
 
@@ -232,7 +233,7 @@ public class AccountManager {
 		accfile.put("asymkey.pubexponent", pub.getExponent().toString(32));
 		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
 		
-		System.out.println("Account creation completed.");
+		Logger.normal(AccountManager.class,"Account creation completed.");
 	}
 	
 	public static void addShortAddress(String username, String alias) throws Exception {

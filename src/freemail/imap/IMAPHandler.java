@@ -83,7 +83,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void dispatch(IMAPMessage msg) {
-		//System.out.println(msg.toString());
+		//Logger.normal(this,msg.toString());
 		if (msg.type.equals("login")) {
 			this.handle_login(msg);
 		} else if (msg.type.equals("logout")) {

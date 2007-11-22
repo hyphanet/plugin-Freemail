@@ -61,7 +61,7 @@ public class FCPMessage {
 		String line;
 		while ( (line = r.readLine(200, 200, false)) != null) {
 			/***************************************/
-			//System.out.println(line);
+			//Logger.normal(this,line);
 			if (this.messagetype == null) {
 				this.messagetype = line;
 			} else if (line.startsWith("End")) {
@@ -187,7 +187,7 @@ public class FCPMessage {
 			buf.append("EndMessage\r\n");
 		}
 		if (buf.length() > 0) {
-			//System.out.println(buf.toString());
+			//Logger.normal(this,buf.toString());
 			os.write(buf.toString().getBytes());
 		}
 		if (this.outData != null) {

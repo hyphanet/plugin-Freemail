@@ -32,6 +32,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.EmailAddress;
 import freemail.utils.DateStringFactory;
 import freemail.fcp.ConnectionTerminatedException;
+import freemail.utils.Logger;
 
 public class MessageSender implements Runnable {
 	/**
@@ -160,7 +161,7 @@ public class MessageSender implements Runnable {
 		EmailAddress addr;
 		int tries;
 		if (parts.length < 3) {
-			System.out.println("Warning invalid file in outbox - deleting.");
+			Logger.error(this,"Warning invalid file in outbox - deleting.");
 			msg.delete();
 			return;
 		} else {
@@ -200,7 +201,7 @@ public class MessageSender implements Runnable {
 	}
 	
 	private boolean sendSecure(File accdir, EmailAddress addr, File msg) throws ConnectionTerminatedException {
-		System.out.println("sending secure");
+		Logger.normal(this,"sending secure");
 		OutboundContact ct;
 		try {
 			ct = new OutboundContact(accdir, addr);

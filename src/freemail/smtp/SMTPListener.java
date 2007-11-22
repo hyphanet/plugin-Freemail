@@ -29,6 +29,7 @@ import freemail.MessageSender;
 import freemail.ServerListener;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
+import freemail.utils.Logger;
 
 public class SMTPListener extends ServerListener implements Runnable,ConfigClient {
 	private static final int LISTENPORT = 3025;
@@ -46,7 +47,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
-			System.out.println("Error in SMTP server - "+ioe.getMessage());
+			Logger.error(this,"Error in SMTP server - "+ioe.getMessage());
 		}
 	}
 	

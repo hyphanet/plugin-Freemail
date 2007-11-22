@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 
 import freemail.Freemail;
+import freemail.utils.Logger;
 
 public class HighLevelFCPClient implements FCPClient {
 	private static final int FCP_TOO_MANY_PATH_COMPONENTS = 11;
@@ -54,7 +55,7 @@ public class HighLevelFCPClient implements FCPClient {
 				break;
 			} catch (NoNodeConnectionException nnce) {
 				try {
-					System.out.println("got no conn exception: "+nnce.getMessage());
+					Logger.error(this,"got no conn exception: "+nnce.getMessage());
 					Thread.sleep(5000);
 				} catch (InterruptedException ie) {
 				}
@@ -98,7 +99,7 @@ public class HighLevelFCPClient implements FCPClient {
 				break;
 			} catch (NoNodeConnectionException nnce) {
 				try {
-					System.out.println("Warning - no connection to node. Waiting...");
+					Logger.error(this,"Warning - no connection to node. Waiting...");
 					Thread.sleep(5000);
 				} catch (InterruptedException ie) {
 				}
@@ -165,7 +166,7 @@ public class HighLevelFCPClient implements FCPClient {
 		boolean carryon = true;
 		FileInputStream fis;
 		while (carryon) {
-			System.out.println("trying slotinsert to "+basekey+"-"+slot+suffix);
+			Logger.normal(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
 			
 			try {
 				fis = new FileInputStream(data);
@@ -180,13 +181,13 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				System.out.println("insert of "+basekey+"-"+slot+suffix+" successful");
+				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
 				slot++;
-				System.out.println("collision");
+				Logger.normal(this,"collision");
 			} else {
-				System.out.println("nope - error code is "+emsg.errorcode);
+				Logger.error(this,"nope - error code is "+emsg.errorcode);
 				// try again later
 				return -1;
 			}
@@ -199,7 +200,7 @@ public class HighLevelFCPClient implements FCPClient {
 		boolean carryon = true;
 		ByteArrayInputStream bis;
 		while (carryon) {
-			System.out.println("trying slotinsert to "+basekey+"-"+slot+suffix);
+			Logger.normal(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
 			
 			bis = new ByteArrayInputStream(data);
 			
@@ -210,13 +211,13 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				System.out.println("insert of "+basekey+"-"+slot+suffix+" successful");
+				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
 				slot++;
-				System.out.println("collision");
+				Logger.normal(this,"collision");
 			} else {
-				System.out.println("nope - error code is "+emsg.errorcode);
+				Logger.error(this,"nope - error code is "+emsg.errorcode);
 				// try again later
 				return -1;
 			}

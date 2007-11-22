@@ -29,6 +29,7 @@ import java.io.IOException;
 import freemail.ServerListener;
 import freemail.config.Configurator;
 import freemail.config.ConfigClient;
+import freemail.utils.Logger;
 
 public class IMAPListener extends ServerListener implements Runnable,ConfigClient {
 	private static final int LISTENPORT = 3143;
@@ -52,7 +53,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
-			System.out.println("Error in IMAP server - "+ioe.getMessage());
+			Logger.error(this,"Error in IMAP server - "+ioe.getMessage());
 		}
 	}
 
