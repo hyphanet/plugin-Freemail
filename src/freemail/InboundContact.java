@@ -33,6 +33,7 @@ import java.net.MalformedURLException;
 import freemail.FreenetURI;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
+import freemail.utils.Logger;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
 
@@ -72,7 +73,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		
 		String slots = this.ibct_props.get("slots");
 		if (slots == null) {
-			System.out.println("Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'slots' entry!");
+			Logger.normal(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'slots' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
@@ -82,7 +83,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		
 		String basekey = this.ibct_props.get("commssk");
 		if (basekey == null) {
-			System.out.println("Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'commssk' entry!");
+			Logger.normal(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'commssk' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
@@ -91,16 +92,16 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// the slot should be 52 characters long, since this is how long a 256 bit string ends up when base32 encoded.
 			// (the slots being base32 encoded SHA-256 checksums)
 			// TODO: remove this once the bug is ancient history, or if actually want to check the slots, do so in the SlotManagers.
-			// a fix for the bug causing this (https://bugs.freenetproject.org/view.php?id=1087) was commited on Feb 4 2007,
+			// a fix for the bug causing this (https://bugs.freenetproject.org/view.php?id=1087) was committed on Feb 4 2007,
 			// anybody who has started using Freemail after that date is not affected.
 			if(slot.length()!=52) {
-				System.out.println("ignoring malformed slot "+slot+" (probably due to previous bug)");
-				System.out.println("please the fix the entry in "+this.ibct_dir);
+				Logger.normal(this,"ignoring malformed slot "+slot+" (probably due to previous bug)");
+				Logger.normal(this,"please the fix the entry in "+this.ibct_dir);
 				break;
 			}
 			String key = basekey+slot;
 			
-			System.out.println("Attempting to fetch mail on key "+key);
+			Logger.minor(this,"Attempting to fetch mail on key "+key);
 			File msg = null;
 			try {
 				msg = fcpcli.fetch(key);
@@ -108,16 +109,16 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				return;
 			}
 			if (msg == null) {
-				System.out.println("No mail there.");
+				Logger.minor(this,"No mail there.");
 				continue;
 			}
-			System.out.println("Found a message!");
+			Logger.normal(this,"Found a message!");
 			
 			// parse the Freemail header(s) out.
 			PropsFile msgprops = new PropsFile(msg, true);
 			String s_id = msgprops.get("id");
 			if (s_id == null) {
-				System.out.println("Got a message with an invalid header. Discarding.");
+				Logger.normal(this,"Got a message with an invalid header. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -128,7 +129,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			try {
 				id = Integer.parseInt(s_id);
 			} catch (NumberFormatException nfe) {
-				System.out.println("Got a message with an invalid (non-integer) id. Discarding.");
+				Logger.normal(this,"Got a message with an invalid (non-integer) id. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -140,13 +141,13 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			try {
 				isDupe = msglog.isPresent(id);
 			} catch (IOException ioe) {
-				System.out.println("Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
+				Logger.normal(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
 				msgprops.closeReader();
 				msg.delete();
 				continue;
 			}
 			if (isDupe) {
-				System.out.println("Got a message, but we've already logged that message ID as received. Discarding.");
+				Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -155,7 +156,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			
 			BufferedReader br = msgprops.getReader();
 			if (br == null) {
-				System.out.println("Got an invalid message. Discarding.");
+				Logger.normal(this,"Got an invalid message. Discarding.");
 				sm.slotUsed();
 				msgprops.closeReader();
 				msg.delete();
@@ -169,21 +170,21 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				msg.delete();
 				continue;
 			} catch (ConnectionTerminatedException cte) {
-				// teminated before we could validate the sender. Give up, and we won't mark the slot used so we'll
+				// terminated before we could validate the sender. Give up, and we won't mark the slot used so we'll
 				// pick it up next time.
 				return;
 			}
-			System.out.println("You've got mail!");
+			Logger.normal(this,"You've got mail!");
 			sm.slotUsed();
 			try {
 			    msglog.add(id);
 			} catch (IOException ioe) {
 			    // how should we handle this? Remove the message from the inbox again?
-			    System.out.println("warning: failed to write log file!");
+			    Logger.normal(this,"warning: failed to write log file!");
 			}
 			String ack_key = this.ibct_props.get("ackssk");
 			if (ack_key == null) {
-				System.out.println("Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
+				Logger.normal(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
 				continue;
 			}
 			ack_key += "ack-"+id;
@@ -207,7 +208,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// quick sanity check
 			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) return false;
 			
-			System.out.println("Attempting to fetch sender's mailsite to validate From address...");
+			Logger.normal("Attempting to fetch sender's mailsite to validate From address...");
 			File result = cli.fetch("KSK@"+sd+MailSite.ALIAS_SUFFIX);
 			
 			if (result == null) {
@@ -215,10 +216,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				// network connection is healthy, and the mailsite
 				// ought to be easily retrievable, so fail.
 				// If this proves to be an issue, change it.
-				System.out.println("Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
+				Logger.normal("Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
 				return false;
 			}
-			System.out.println("Fetched sender's mailsite");
+			Logger.normal("Fetched sender's mailsite");
 			if (result.length() > 512) {
 				result.delete();
 				return false;

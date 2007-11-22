@@ -42,6 +42,7 @@ import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.SSKKeyPair;
 import freemail.fcp.ConnectionTerminatedException;
+import freemail.utils.Logger;
 
 import org.archive.util.Base32;
 
@@ -155,11 +156,11 @@ public class OutboundContact {
 			
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
-			System.out.println("polling for CTS message: "+ctskey);
+			Logger.minor(this,"polling for CTS message: "+ctskey);
 			File cts = fcpcli.fetch(ctskey);
 			
 			if (cts == null) {
-				System.out.println("CTS not received");
+				Logger.minor(this,"CTS not received");
 				// haven't got the CTS message. should we give up yet?
 				String senttime = this.contactfile.get("rts-sent-at");
 				
@@ -169,7 +170,7 @@ public class OutboundContact {
 				}
 				
 			} else {
-				System.out.println("Sucessfully received CTS for "+this.address.getSubDomain());
+				Logger.normal(this,"Sucessfully received CTS for "+this.address.getSubDomain());
 				cts.delete();
 				this.contactfile.put("status", "cts-received");
 				// delete initial slot for forward secrecy
@@ -321,7 +322,7 @@ public class OutboundContact {
 		rtsmessage.append("mailsite="+our_mailsite_uri+"\r\n");
 		
 		rtsmessage.append("\r\n");
-		//System.out.println(rtsmessage.toString());
+		//FreemailLogger.normal(this,rtsmessage.toString());
 		
 		// sign the message
 		SHA256Digest sha256 = new SHA256Digest();
@@ -358,7 +359,7 @@ public class OutboundContact {
 		if (aescipher.getBlockSize() != AES_BLOCK_LENGTH) {
 			// bouncycastle must have changed their implementation, so 
 			// we're in trouble
-			System.out.println("Incompatible block size change detected in cryptography API! Are you using a newer version of the bouncycastle libraries? If so, we suggest you downgrade for now, or check for a newer version of Freemail.");
+			Logger.normal(this,"Incompatible block size change detected in cryptography API! Are you using a newer version of the bouncycastle libraries? If so, we suggest you downgrade for now, or check for a newer version of Freemail.");
 			return false;
 		}
 		
@@ -413,16 +414,16 @@ public class OutboundContact {
 	private String fetchKSKRedirect(String key) throws OutboundContactFatalException, ConnectionTerminatedException {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
-		System.out.println("Attempting to fetch mailsite redirect "+key);
+		Logger.normal(this,"Attempting to fetch mailsite redirect "+key);
 		File result = cli.fetch(key);
 		
 		if (result == null) {
-			System.out.println("Failed to retrieve mailsite redirect "+key);
+			Logger.normal(this,"Failed to retrieve mailsite redirect "+key);
 			return null;
 		}
 		
 		if (result.length() > 512) {
-			System.out.println("Fatal: mailsite redirect too long. Ignoring.");
+			Logger.normal(this,"Fatal: mailsite redirect too long. Ignoring.");
 			result.delete();
 			throw new OutboundContactFatalException("Mailsite redirect too long.");
 		}
@@ -439,7 +440,7 @@ public class OutboundContact {
 			addr = br.readLine();
 			br.close();
 		} catch (IOException ioe) {
-			System.out.println("Warning: IO exception whilst reading mailsite redirect file: "+ioe.getMessage());
+			Logger.normal(this,"Warning: IO exception whilst reading mailsite redirect file: "+ioe.getMessage());
 			return null;
 		}
 		result.delete();
@@ -449,15 +450,15 @@ public class OutboundContact {
 	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
-		System.out.println("Attempting to fetch "+this.address.getMailpageKey());
+		Logger.normal(this,"Attempting to fetch "+this.address.getMailpageKey());
 		File mailsite_file = cli.fetch(this.address.getMailpageKey());
 		
 		if (mailsite_file == null) {
-			System.out.println("Failed to retrieve mailsite "+this.address.getMailpageKey());
+			Logger.normal(this,"Failed to retrieve mailsite "+this.address.getMailpageKey());
 			return false;
 		}
 		
-		System.out.println("got mailsite");
+		Logger.normal(this,"got mailsite");
 		
 		PropsFile mailsite = new PropsFile(mailsite_file);
 		
@@ -469,7 +470,7 @@ public class OutboundContact {
 		
 		if (rtsksk == null || keymod_str == null || keyexp_str == null) {
 			// TODO: More failure mechanisms - this is fatal.
-			System.out.println("Mailsite for "+this.address+" does not contain all necessary information!");
+			Logger.normal(this,"Mailsite for "+this.address+" does not contain all necessary information!");
 			throw new OutboundContactFatalException("Mailsite for "+this.address+" does not contain all necessary information!");
 		}
 		
@@ -522,7 +523,7 @@ public class OutboundContact {
 			
 			pw = new PrintWriter(new FileOutputStream(msg));
 		} catch (IOException ioe) {
-			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
+			Logger.normal(this,"IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			return false;
 		}
 		
@@ -546,7 +547,7 @@ public class OutboundContact {
 			pw.close();
 			br.close();
 		} catch (IOException ioe) {
-			System.out.println("IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
+			Logger.normal(this,"IO Error encountered whilst trying to send message: "+ioe.getMessage()+" Will try again soon");
 			qm.delete();
 			msg.delete();
 			return false;
@@ -612,7 +613,7 @@ public class OutboundContact {
 			String key = this.contactfile.get("commssk.privkey");
 			
 			if (key == null) {
-				System.out.println("Contact file does not contain private communication key! It appears that your Freemail directory is corrupt!");
+				Logger.normal(this,"Contact file does not contain private communication key! It appears that your Freemail directory is corrupt!");
 				continue;
 			}
 			
@@ -625,27 +626,27 @@ public class OutboundContact {
 				continue;
 			}
 			
-			System.out.println("Inserting message to "+key);
+			Logger.normal(this,"Inserting message to "+key);
 			FCPInsertErrorMessage err;
 			try {
 				err = fcpcli.put(fis, key);
 			} catch (FCPBadFileException bfe) {
-				System.out.println("Failed sending message. Will try again soon.");
+				Logger.normal(this,"Failed sending message. Will try again soon.");
 				continue;
 			}
 			if (err == null) {
-				System.out.println("Successfully inserted "+key);
+				Logger.normal(this,"Successfully inserted "+key);
 				if (msgs[i].first_send_time < 0)
 					msgs[i].first_send_time = System.currentTimeMillis();
 				msgs[i].last_send_time = System.currentTimeMillis();
 				msgs[i].saveProps();
 			} else if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
-				System.out.println("Giving up on a message - been trying to send for too long. Bouncing.");
+				Logger.normal(this,"Giving up on a message - been trying to send for too long. Bouncing.");
 				if (Postman.bounceMessage(msgs[i].getMessageFile(), new MessageBank(this.accdir.getName()), "Freemail has been trying to deliver this message for too long without success. This is likley to be due to a poor connection to Freenet. Check your Freenet node.", true)) {
 					msgs[i].delete();
 				}
 			} else {
-				System.out.println("Failed to insert "+key+" will try again soon.");
+				Logger.normal(this,"Failed to insert "+key+" will try again soon.");
 			}
 		}
 	}
@@ -663,17 +664,17 @@ public class OutboundContact {
 			
 			String key = this.contactfile.get("ackssk.pubkey");
 			if (key == null) {
-				System.out.println("Contact file does not contain public ack key! It appears that your Freemail directory is corrupt!");
+				Logger.normal(this,"Contact file does not contain public ack key! It appears that your Freemail directory is corrupt!");
 				continue;
 			}
 			
 			key += "ack-"+msgs[i].uid;
 			
-			System.out.println("Looking for message ack on "+key);
+			Logger.minor(this,"Looking for message ack on "+key);
 			
 			File ack = fcpcli.fetch(key);
 			if (ack != null) {
-				System.out.println("Ack received for message "+msgs[i].uid+" on contact "+this.address.domain+". Now that's a job well done.");
+				Logger.normal(this,"Ack received for message "+msgs[i].uid+" on contact "+this.address.domain+". Now that's a job well done.");
 				ack.delete();
 				msgs[i].delete();
 				// treat the ACK as a CTS too
@@ -681,13 +682,13 @@ public class OutboundContact {
 				// delete initial slot for forward secrecy
 				this.contactfile.remove("initialslot");
 			} else {
-				System.out.println("Failed to receive ack on "+key);
+				Logger.minor(this,"Failed to receive ack on "+key);
 				if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
 					// give up and bounce the message
 					File m = msgs[i].getMessageFile();
 					
 					Postman.bounceMessage(m, new MessageBank(this.accdir.getName()), "Freemail has been trying for too long to deliver this message, and has received no acknowledgement. It is possible that the recipient has not run Freemail since you sent the message. If you believe this is likely, try resending the message.", true);
-					System.out.println("Giving up on message - been trying for too long.");
+					Logger.normal(this,"Giving up on message - been trying for too long.");
 					msgs[i].delete();
 				} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
 					// no ack yet - retransmit on another slot
@@ -713,7 +714,7 @@ public class OutboundContact {
 				uid = Integer.parseInt(files[i].getName());
 			} catch (NumberFormatException nfe) {
 				// how did that get there? just delete it
-				System.out.println("Found spurious file in send queue - deleting.");
+				Logger.normal(this,"Found spurious file in send queue - deleting.");
 				files[i].delete();
 				msgs[i] = null;
 				continue;

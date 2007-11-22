@@ -25,6 +25,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.DateStringFactory;
 import freemail.utils.PropsFile;
+import freemail.utils.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -101,7 +102,7 @@ public class RTSFetcher implements SlotSaveCallback {
 				}
 				tries++;
 				if (tries > RTS_MAX_ATTEMPTS) {
-					System.out.println("Maximum attempts at handling RTS reached - deleting RTS");
+					Logger.normal(this,"Maximum attempts at handling RTS reached - deleting RTS");
 					files[i].delete();
 				} else {
 					File newname = new File(this.contact_dir, parts[0] + "," + tries);
@@ -156,12 +157,12 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		int slot;
 		while ( (slot = sm.getNextSlotNat()) > 0) {
-			System.out.println("trying to fetch "+keybase+slot);
+			Logger.minor(this,"trying to fetch "+keybase+slot);
 			
 			File result = fcpcli.fetch(keybase+slot);
 			
 			if (result != null) {
-				System.out.println(keybase+slot+": got RTS!");
+				Logger.normal(this,keybase+slot+": got RTS!");
 				
 				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+",0");
 				
@@ -171,7 +172,7 @@ public class RTSFetcher implements SlotSaveCallback {
 					sm.slotUsed();
 				}
 			} else {
-				System.out.println(keybase+slot+": no RTS.");
+				Logger.minor(this,keybase+slot+": no RTS.");
 			}
 		}
 	}
@@ -187,7 +188,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		if (!rtsmessage.exists()) return false;
 		
 		if (rtsmessage.length() > RTS_MAX_SIZE) {
-			System.out.println("RTS Message is too large - discarding!");
+			Logger.normal(this,"RTS Message is too large - discarding!");
 			return true;
 		}
 		
@@ -196,10 +197,10 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			plaintext = decrypt_rts(rtsmessage);
 		} catch (IOException ioe) {
-			System.out.println("Error reading RTS message!");
+			Logger.normal(this,"Error reading RTS message!");
 			return false;
 		} catch (InvalidCipherTextException icte) {
-			System.out.println("Could not decrypt RTS message - discarding."+icte.getMessage());
+			Logger.normal(this,"Could not decrypt RTS message - discarding."+icte.getMessage());
 			return true;
 		}
 		
@@ -218,14 +219,14 @@ public class RTSFetcher implements SlotSaveCallback {
 				try {
 					line = lis.readLine(200, 200, false);
 				} catch (TooLongException tle) {
-					System.out.println("RTS message has lines that are too long. Discarding.");
+					Logger.normal(this,"RTS message has lines that are too long. Discarding.");
 					rtsfile.delete();
 					return true;
 				}
 				messagebytes += lis.getLastBytesRead();
 				
 				if (line == null || line.equals("")) break;
-				//System.out.println(line);
+				//FreemailLogger.normal(this,line);
 				
 				ps.println(line);
 			}
@@ -235,7 +236,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			if (line == null) {
 				// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
 				
-				System.out.println("Couldn't find signature on RTS message - ignoring!");
+				Logger.normal(this,"Couldn't find signature on RTS message - ignoring!");
 				rtsfile.delete();
 				return true;
 			}
@@ -257,7 +258,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			
 			bis.close();
 		} catch (IOException ioe) {
-			System.out.println("IO error whilst handling RTS message. "+ioe.getMessage());
+			Logger.normal(this,"IO error whilst handling RTS message. "+ioe.getMessage());
 			ioe.printStackTrace();
 			if (rtsfile != null) rtsfile.delete();
 			return false;
@@ -268,7 +269,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			validate_rts(rtsprops);
 		} catch (Exception e) {
-			System.out.println("RTS message does not contain vital information: "+e.getMessage()+" - discarding");
+			Logger.normal(this,"RTS message does not contain vital information: "+e.getMessage()+" - discarding");
 			rtsfile.delete();
 			return true;
 		}
@@ -287,7 +288,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			their_mailsite_furi = new FreenetURI(their_mailsite_raw);
 		} catch (MalformedURLException mfue) {
-			System.out.println("Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
+			Logger.normal(this,"Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
 			rtsfile.delete();
 			return true;
 		}
@@ -300,7 +301,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		their_mailsite += AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
 		
 		
-		System.out.println("Trying to fetch sender's mailsite: "+their_mailsite);
+		Logger.normal(this,"Trying to fetch sender's mailsite: "+their_mailsite);
 		
 		File msfile = fcpcli.fetch(their_mailsite);
 		if (msfile == null) {
@@ -314,7 +315,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		String their_modulus = mailsite.get("asymkey.modulus");
 		
 		if (their_exponent == null || their_modulus == null) {
-			System.out.println("Mailsite fetched successfully but missing vital information! Discarding this RTS.");
+			Logger.normal(this,"Mailsite fetched successfully but missing vital information! Discarding this RTS.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -328,7 +329,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			their_hash = deccipher.processBlock(their_encrypted_sig, 0, deccipher.getInputBlockSize());
 		} catch (InvalidCipherTextException icte) {
-			System.out.println("It was not possible to decrypt the signature of this RTS message. Discarding the RTS message.");
+			Logger.normal(this,"It was not possible to decrypt the signature of this RTS message. Discarding the RTS message.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -337,7 +338,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		// finally we can now check that our hash and their hash
 		// match!
 		if (their_hash.length < our_hash.length) {
-			System.out.println("The signature of the RTS message is not valid (our hash: "+our_hash.length+"bytes, their hash: "+their_hash.length+"bytes. Discarding the RTS message.");
+			Logger.normal(this,"The signature of the RTS message is not valid (our hash: "+our_hash.length+"bytes, their hash: "+their_hash.length+"bytes. Discarding the RTS message.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -345,20 +346,20 @@ public class RTSFetcher implements SlotSaveCallback {
 		int i;
 		for (i = 0; i < our_hash.length; i++) {
 			if (their_hash[i] != our_hash[i]) {
-				System.out.println("The signature of the RTS message is not valid. Discarding the RTS message.");
+				Logger.normal(this,"The signature of the RTS message is not valid. Discarding the RTS message.");
 				msfile.delete();
 				rtsfile.delete();
 				return true;
 			}
 		}
-		System.out.println("Signature valid :)");
+		Logger.normal(this,"Signature valid :)");
 		// the signature is valid! Hooray!
 		// Now verify the message is for us
 		String our_mailsite_keybody;
 		try {
 			our_mailsite_keybody = new FreenetURI(this.accprops.get("mailsite.pubkey")).getKeyBody();
 		} catch (MalformedURLException mfue) {
-			System.out.println("Local mailsite URI is invalid! Corrupt account file?");
+			Logger.normal(this,"Local mailsite URI is invalid! Corrupt account file?");
 			msfile.delete();
 			rtsfile.delete();
 			return false;
@@ -376,13 +377,13 @@ public class RTSFetcher implements SlotSaveCallback {
 		String our_subdomain = Base32.encode(mailsite_furi.getKeyBody().getBytes());
 		
 		if (!rtsprops.get("to").equalsIgnoreCase(our_subdomain) && our_domain_alias != null && !rtsprops.get("to").equals(our_domain_alias)) {
-			System.out.println("Recieved an RTS message that was not intended for the recipient. Discarding.");
+			Logger.normal(this,"Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
 		}
 		
-		System.out.println("Original message intended for us :)");
+		Logger.normal(this,"Original message intended for us :)");
 		
 		// create the inbound contact
 		InboundContact ibct = new InboundContact(this.contact_dir, their_mailsite_furi);
@@ -399,7 +400,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		msfile.delete();
 		rtsfile.delete();
 		
-		System.out.println("Inbound contact created!");
+		Logger.normal(this,"Inbound contact created!");
 		
 		return true;
 	}
