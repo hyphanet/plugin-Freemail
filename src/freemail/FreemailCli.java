@@ -128,7 +128,7 @@ public abstract class FreemailCli extends Freemail {
 				e.printStackTrace();
 				return;
 			}
-			System.out.println("Your short Freemail address is: 'anything@"+alias+".freemail'. Your long address will continue to work.");
+			System.out.println("You now have all Freemail addresses ending: '@"+alias+".freemail'. Your long address will continue to work.");
 			return;
 		}
 		

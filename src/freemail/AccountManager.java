@@ -74,7 +74,7 @@ public class AccountManager {
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+DATADIR);
 		
-		putWelcomeMessage(username, getFreemailAddress(accountdir));
+		putWelcomeMessage(username, new EmailAddress(username+"@"+getFreemailDomain(accountdir)));
 	}
 	
 	public static void setupNIM(String username) throws IOException {
@@ -126,13 +126,13 @@ public class AccountManager {
 		return accfile;
 	}
 	
-	public static EmailAddress getFreemailAddress(File accdir) {
+	public static String getFreemailDomain(File accdir) {
 		PropsFile accfile = getAccountFile(accdir);
 		
-		return getFreemailAddress(accfile);
+		return getFreemailDomain(accfile);
 	}
 	
-	public static EmailAddress getFreemailAddress(PropsFile accfile) {
+	public static String getFreemailDomain(PropsFile accfile) {
 		FreenetURI mailsite;
 		try {
 			mailsite = new FreenetURI(accfile.get("mailsite.pubkey"));
@@ -141,17 +141,17 @@ public class AccountManager {
 			return null;
 		}
 		
-		return new EmailAddress("anything@"+Base32.encode(mailsite.getKeyBody().getBytes())+".freemail");
+		return Base32.encode(mailsite.getKeyBody().getBytes())+".freemail";
 	}
 	
-	public static EmailAddress getKSKFreemailAddress(File accdir) {
+	public static String getKSKFreemailDomain(File accdir) {
 		PropsFile accfile = getAccountFile(accdir);
 		
 		String alias = accfile.get("domain_alias");
 		
 		if (alias == null) return null;
 		
-		return new EmailAddress("anything@"+alias+".freemail");
+		return alias+".freemail";
 	}
 	
 	public static RSAKeyParameters getPrivateKey(File accdir) {
@@ -209,7 +209,7 @@ public class AccountManager {
 			}
 			
 			System.out.println("Mailsite keys generated.");
-			System.out.println("Your Freemail address is: "+getFreemailAddress(accfile));
+			System.out.println("Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
 		} catch (IOException ioe) {
 			System.out.println("Couldn't create mailsite key file! "+ioe.getMessage());
 		}
@@ -251,7 +251,7 @@ public class AccountManager {
 			accfile.put("domain_alias", alias);
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
-			EmailAddress to = getKSKFreemailAddress(accountdir);
+			EmailAddress to = new EmailAddress(username+"@"+getKSKFreemailDomain(accountdir));
 		
 			MessageBank mb = new MessageBank(username);
 		
