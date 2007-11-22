@@ -208,7 +208,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// quick sanity check
 			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) return false;
 			
-			Logger.normal("Attempting to fetch sender's mailsite to validate From address...");
+			Logger.normal(this,"Attempting to fetch sender's mailsite to validate From address...");
 			File result = cli.fetch("KSK@"+sd+MailSite.ALIAS_SUFFIX);
 			
 			if (result == null) {
@@ -216,10 +216,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				// network connection is healthy, and the mailsite
 				// ought to be easily retrievable, so fail.
 				// If this proves to be an issue, change it.
-				Logger.normal("Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
+				Logger.normal(this,"Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
 				return false;
 			}
-			Logger.normal("Fetched sender's mailsite");
+			Logger.normal(this,"Fetched sender's mailsite");
 			if (result.length() > 512) {
 				result.delete();
 				return false;
