@@ -24,13 +24,13 @@ public class Logger {
 
 	static private void log(int l, Object o, String s, String level) {
 		if((l&loglevel)!=0) {
-			System.out.println(level+"("+o.getClass().getSimpleName()+"): "+s);
+			System.out.println(level+"("+o.getClass().getName()+"): "+s);
 		}
 	}
 
 	static private void log(int l, Class c, String s, String level) {
 		if((l&loglevel)!=0) {
-			System.out.println(level+"("+c.getSimpleName()+"): "+s);
+			System.out.println(level+"("+c.getName()+"): "+s);
 		}
 	}
 
