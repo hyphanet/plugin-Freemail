@@ -33,7 +33,8 @@ public class EmailAddress {
 	public String user;
 	public String domain;
 	
-	public EmailAddress(String address) {
+	public EmailAddress(String rawAddress) {
+		String address = rawAddress.toLowerCase();
 		this.realname = null;
 		this.user = null;
 		this.domain = null;
