@@ -6,7 +6,7 @@
 	<property name="lib" location="lib"/>
 	<property name="deps" location="deps"/>
 	
-	<property name="bcdist" value="lcrypto-jdk14-133"/>
+	<property name="bcdist" value="lcrypto-jdk14-138"/>
 	<property name="freenetjarurl.url" value="http://downloads.freenetproject.org/alpha/freenet-testing-latest.jar.url"/>
 	<property name="freenetjarurl.localpath" value="${deps}/freenet-testing-latest.jar.url"/>
 	<property name="freenetjar" value="freenet-main.jar"/>
@@ -56,6 +56,8 @@
 		<mkdir dir="build" />
 		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.4" nowarn="true">
 			<exclude name="**/test/*" />
+			<exclude name="org/bouncycastle/util/IPTest.java" />
+			<exclude name="org/bouncycastle/util/AllTests.java" />
 		</javac>
 	</target>
 
