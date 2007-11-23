@@ -22,6 +22,7 @@
 package freemail;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.InterruptedException;
 
 import freemail.utils.PropsFile;
@@ -106,7 +107,7 @@ public class SingleAccountWatcher implements Runnable {
 					break;
 				}
 				// send any messages queued in contact outboxes
-				File[] obcontacts = this.obctdir.listFiles();
+				File[] obcontacts = this.obctdir.listFiles(new outboundContactFilenameFilter());
 				if (obcontacts != null) {
 					int i;
 					for (i = 0; i < obcontacts.length; i++) {
@@ -124,7 +125,7 @@ public class SingleAccountWatcher implements Runnable {
 				}
 				
 				// poll for incoming message from all inbound contacts
-				File[] ibcontacts = this.ibctdir.listFiles();
+				File[] ibcontacts = this.ibctdir.listFiles(new inboundContactFilenameFilter());
 				if (ibcontacts != null) {
 					int i;
 					for (i = 0; i < ibcontacts.length; i++) {
@@ -159,4 +160,19 @@ public class SingleAccountWatcher implements Runnable {
 	public void kill() {
 		stopping = true;
 	}
+
+	private class outboundContactFilenameFilter implements FilenameFilter {
+		// check that each dir is a base32 encoded filename
+		public boolean accept(File dir, String name ) {
+			return name.matches("[A-Za-z2-7]+");
+		}
+	}
+
+	private class inboundContactFilenameFilter implements FilenameFilter {
+		// check that each dir is a freenet key
+		public boolean accept(File dir, String name ) {
+			return name.matches("[A-Za-z0-9~-]+,[A-Za-z0-9~-]+,[A-Za-z0-9~-]+");
+		}
+	}
+
 }
