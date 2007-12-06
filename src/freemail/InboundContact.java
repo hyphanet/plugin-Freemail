@@ -95,8 +95,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// a fix for the bug causing this (https://bugs.freenetproject.org/view.php?id=1087) was committed on Feb 4 2007,
 			// anybody who has started using Freemail after that date is not affected.
 			if(slot.length()!=52) {
-				Logger.normal(this,"ignoring malformed slot "+slot+" (probably due to previous bug)");
-				Logger.normal(this,"please the fix the entry in "+this.ibct_dir);
+				Logger.normal(this,"Ignoring malformed slot "+slot+" (probably due to previous bug). Please the fix the entry in "+this.ibct_dir);
 				break;
 			}
 			String key = basekey+slot;
