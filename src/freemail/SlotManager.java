@@ -92,21 +92,30 @@ public abstract class SlotManager {
 		} else {
 			// add all the slots before the used one that aren't already
 			// in the list
+			// note that this also modifies the previously last slot with a timestamp
 			int i;
 			Slot s = (Slot)this.slots.lastElement();
+			s.time_added = System.currentTimeMillis();
+			Slot s_new = new Slot();
+			s_new.slot = s.slot;
 			int slots_start_size = this.slots.size();
 			for (i = slots_start_size; i < this.nextSlotNum - 1; i++) {
-				s.slot = this.incSlot(s.slot);
-				s.time_added = System.currentTimeMillis();
-				this.slots.add(s);
+				s_new.slot = this.incSlot(s_new.slot);
+				// copy slot to a new object, otherwise we have an identical copy of the last slot n times
+				Slot s_copy=new Slot();
+				s_copy.slot = s_new.slot;
+				s_copy.time_added = System.currentTimeMillis();
+				this.slots.add(s_copy);
 			}
 			// increment to get the used slot...
-			s.slot = this.incSlot(s.slot);
+			s_new.slot = this.incSlot(s_new.slot);
 			// and again to get the one that nextSlotNum is pointing at
-			s.slot = this.incSlot(s.slot);
-			// ...and add that
-			s.time_added = System.currentTimeMillis();
-			this.slots.add(s);
+			s_new.slot = this.incSlot(s_new.slot);
+			// ...and add that one without time limit
+			s_new.time_added = -1;
+			this.slots.add(s_new);
+			// decrease nextSlotNum since we just have removed one slot
+			this.nextSlotNum--;
 		}
 		this.saveSlots();
 	}
