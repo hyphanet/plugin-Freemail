@@ -704,7 +704,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return false;
 	}
 	
-	public void handle_store(IMAPMessage msg) {
+	private void handle_store(IMAPMessage msg) {
 		if (msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "BAD Not enough arguments");
 			return;

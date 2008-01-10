@@ -46,7 +46,7 @@ public class MailMessage {
 		this.file = f;
 		this.headers = new Vector();
 		
-		// initalise flags from filename
+		// initialize flags from filename
 		String[] parts = f.getName().split(",");
 		if (parts.length < 2 && !f.getName().endsWith(",")) {
 			// treat it as a new message
@@ -181,7 +181,7 @@ public class MailMessage {
 	public void commit() {
 		try {
 			this.os.close();
-			// also potentally move from a temp dir to real inbox
+			// also potentially move from a temp dir to real inbox
 			// to do safer inbox access
 		} catch (IOException ioe) {
 			
@@ -215,7 +215,7 @@ public class MailMessage {
 				parts = null;
 				break;
 			} else if (line.startsWith(" ") || line.startsWith("\t")) {
-				// contination of previous line
+				// continuation of previous line
 				if (parts == null || parts[1] == null) 
 					continue;
 				parts[1] += " "+line.trim();

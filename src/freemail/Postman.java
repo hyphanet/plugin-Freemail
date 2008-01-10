@@ -41,7 +41,7 @@ public class Postman {
 
 	/**
 	 * 
-	 * @throws ConnectionTerminatedException If the Freenet connection was terminated whilst trying to validate the address
+	 * @throws ConnectionTerminatedException if the Freenet connection was terminated whilst trying to validate the address
 	 */
 	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException, ConnectionTerminatedException {
 		MailMessage newmsg = mb.createMessage();
@@ -51,7 +51,7 @@ public class Postman {
 		newmsg.readHeaders(brdr);
 		
 		// add our own headers
-		// recieved and date
+		// received and date
 		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
 		
 		// validate the from header - or headers. There could be several.
