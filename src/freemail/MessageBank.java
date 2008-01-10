@@ -32,6 +32,8 @@ import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.Vector;
 import java.util.Enumeration;
+import java.util.Comparator;
+import java.util.Arrays;
 
 public class MessageBank {
 	private static final String MESSAGES_DIR = "inbox";
@@ -129,6 +131,8 @@ public class MessageBank {
 	
 	public MailMessage[] listMessagesArray() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
+
+		Arrays.sort(files, new UIDComparator());
 		
 		MailMessage[] msgs = new MailMessage[files.length];
 		
@@ -243,7 +247,20 @@ public class MessageBank {
 	private class MessageFileNameFilter implements FilenameFilter {
 		public boolean accept(File dir, String name) {
 			if (name.startsWith(".")) return false;
+			if (!name.matches("[0-9]+(,.*)?")) return false;
 			return true;
 		}
 	}
+	
+	// compare to filenames by number leading up to ","
+	private class UIDComparator implements Comparator {
+		public final int compare ( Object a, Object b ) {
+			int ia=Integer.parseInt(((File)a).getName().split(",",2)[0]);
+			int ib=Integer.parseInt(((File)b).getName().split(",",2)[0]);
+
+			return( ia-ib );
+		}
+	}
+
+
 }
