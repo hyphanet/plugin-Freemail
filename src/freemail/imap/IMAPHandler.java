@@ -27,7 +27,9 @@ import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.SortedMap;
+import java.util.TreeSet;
 import java.lang.NumberFormatException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -406,67 +408,65 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 			return;
 		}
+
+		// build a set from the uid ranges, first separated by , then by :
+		TreeSet ts=new TreeSet();
+		String[] rangeparts = msg.args[1].split(",");
 		
-		String[] parts = msg.args[1].split(":");
-		try {
-			from = Integer.parseInt(parts[0]);
-		} catch (NumberFormatException nfe) {
-			this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
-			return;
-		}
-		if (parts.length < 2) {
-			to = from;
-		} else if (parts[1].equals("*")) {
-			Integer tmp = (Integer)msgs.lastKey();
-			to = tmp.intValue();
-		} else {
-			try {
-				to = Integer.parseInt(parts[1]);
-			} catch (NumberFormatException nfe) {
-				this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
-				return;
+		for(int i=0;i<rangeparts.length;i++) {
+			String vals[]=rangeparts[i].split(":");
+			if(vals.length==1) {
+				ts.add(new Integer(vals[0]));
+			} else {
+				from=Integer.parseInt(vals[0]);
+				if(vals[1].equals("*")) {
+					to=((Integer)msgs.lastKey()).intValue();
+				} else {
+					to=Integer.parseInt(vals[1]);
+				}
+				for(int j=from;j<=to;j++) {
+					ts.add(new Integer(j));
+				}
 			}
 		}
-		
+
 		int msgnum = 1;
 		if (msg.args[0].equalsIgnoreCase("fetch")) {
-			int oldsize = msgs.size();
-			msgs = msgs.tailMap(new Integer(from));
-			msgnum += (oldsize - msgs.size());
-			while (msgs.size() > 0) {
-				Integer curuid = (Integer)msgs.firstKey();
-				if (curuid.intValue() > to) {
-					break;
-				}
+
+			Iterator it=ts.iterator();
+			
+			while(it.hasNext()) {
+				Integer curuid = (Integer)it.next();
+
+				MailMessage mm=(MailMessage)msgs.get(curuid);
 				
-				if (!this.fetch_single((MailMessage)msgs.get(msgs.firstKey()), msgnum, msg.args, 2, true)) {
-					this.reply(msg, "BAD Unknown attribute in list or unterminated list");
-					return;
+				if(mm!=null) {
+					if (!this.fetch_single((MailMessage)msgs.get(curuid), msgnum, msg.args, 2, true)) {
+						this.reply(msg, "BAD Unknown attribute in list or unterminated list");
+						return;
+					}
+					msgnum++;
 				}
-				
-				msgs = msgs.tailMap(new Integer(curuid.intValue()+1));
-				msgnum++;
 			}
 			
 			this.reply(msg, "OK Fetch completed");
 		} else if (msg.args[0].equalsIgnoreCase("store")) {
-			int oldsize = msgs.size();
-			msgs = msgs.tailMap(new Integer(from));
-			int firstmsg = oldsize - msgs.size();
-			msgs = msgs.headMap(new Integer(to + 1));
-			
-			MailMessage[] targetmsgs = new MailMessage[msgs.size()];
-			
-			for (int i = 0; i < targetmsgs.length; i++) {
-				targetmsgs[i] = (MailMessage)msgs.values().toArray()[i];
+			MailMessage[] targetmsgs = new MailMessage[ts.size()];
+
+			Iterator it=ts.iterator();
+
+			int i=0;
+			while(it.hasNext()) {
+				Integer curuid = (Integer)it.next();
+				targetmsgs[i] = (MailMessage)msgs.get(curuid);
+				i++;
 			}
-			
-			this.do_store(msg.args, 2, targetmsgs, msg, firstmsg, true);
-			
+			// FIXME: firstmessage==0 is probably not right
+			this.do_store(msg.args, 2, targetmsgs, msg, 0, true);
+
 			this.reply(msg, "OK Store completed");
 		} else if (msg.args[0].equalsIgnoreCase("copy")) {
-			msgs = msgs.tailMap(new Integer(from));
-			
+
 			if (msg.args.length < 3) {
 				this.reply(msg, "BAD Not enough arguments");
 				return;
@@ -479,22 +479,18 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 			
 			int copied = 0;
-			
-			while (msgs.size() > 0) {
-				Integer curuid = (Integer)msgs.firstKey();
-				if (curuid.intValue() > to) {
-					break;
-				}
-				
-				MailMessage srcmsg = (MailMessage)msgs.get(msgs.firstKey());
+
+			Iterator it=ts.iterator();
+
+			while(it.hasNext()) {
+				Integer curuid = (Integer)it.next();
+								
+				MailMessage srcmsg = (MailMessage)msgs.get(curuid);
 				
 				MailMessage copymsg = target.createMessage();
 				srcmsg.copyTo(copymsg);
 				
 				copied++;
-				
-				msgs = msgs.tailMap(new Integer(curuid.intValue()+1));
-				msgnum++;
 			}
 			
 			if (copied > 0)
@@ -514,9 +510,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		if (!imap_args[firstarg].startsWith("(")) {
 			// It's a loner
 			this.ps.flush();
-			if (!this.send_attr(msg, imap_args[firstarg]))
+			if (!this.send_attr(msg, imap_args[firstarg])){
+				// send fake end delimiter, so we do not break the protocol
+				this.ps.print(")\r\n");
+				this.ps.flush();
 				return false;
-			
+			}
 			if (send_uid_too && !imap_args[firstarg].equalsIgnoreCase("uid")) {
 				this.ps.print(" UID "+msg.getUID());
 			}
@@ -543,8 +542,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			
 			//this.ps.print(attr+" ");
 			this.ps.flush();
-			if (!this.send_attr(msg, attr))
+			if (!this.send_attr(msg, attr)) {
+				// send fake end delimiter, so we do not break the protocol
+				this.ps.print(")\r\n");
+				this.ps.flush();
 				return false;
+			}
 			
 			if (attr.equalsIgnoreCase("uid")) {
 				send_uid_too = false;
