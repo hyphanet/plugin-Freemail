@@ -118,12 +118,14 @@ public class EmailAddress {
 	}
 	
 	// get the part of the domain before the '.freemail'
+	// note that the domain may contain additional dots, so we cannot use split
 	public String getSubDomain() {
-		String[] domparts = this.domain.split("\\.", 2);
-		
-		if (domparts.length < 2) return null;
-		
-		return domparts[0];
+		int index=this.domain.lastIndexOf('.');
+		if(index<0) {
+			return null;
+		} else {
+			return this.domain.substring(0,index); 
+		}
 	}
 	
 	public String getMailpageKey() {
