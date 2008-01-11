@@ -166,7 +166,7 @@ public abstract class FreemailCli extends Freemail {
 				continue;
 			if (!files[i].isDirectory()) continue;
 			
-			if(!AccountManager.validateUsername(files[i].getName()).isEmpty()) {
+			if(!AccountManager.validateUsername(files[i].getName()).equals("")) {
 				System.out.println("Account name "+files[i].getName()+" contains invalid chars, you may get problems accessing the account.");
 			}
 			

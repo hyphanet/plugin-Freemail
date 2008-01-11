@@ -103,7 +103,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 			if (!files[i].isDirectory()) continue;
 
 			String invalid=AccountManager.validateUsername(files[i].getName());
-			if(!invalid.isEmpty()) {
+			if(!invalid.equals("")) {
 				Logger.error(this,"Account name "+files[i].getName()+" contains invalid chars (\""+invalid+"\"), you may get problems accessing the account.");
 			}
 			

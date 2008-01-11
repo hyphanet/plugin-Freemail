@@ -89,7 +89,7 @@ public class AccountManager {
 	public static void Create(String username) throws IOException,IllegalArgumentException {
 		File datadir = new File(DATADIR);
 		String invalid=validateUsername(username);
-		if(!invalid.isEmpty()) {
+		if(!invalid.equals("")) {
 			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
 		}
 		if (!datadir.exists()) {
@@ -267,7 +267,7 @@ public class AccountManager {
 		}
 
 		String invalid=validateShortAddress(alias);
-		if(!invalid.isEmpty()) {
+		if(!invalid.equals("")) {
 			throw new IllegalArgumentException("The short address may not contain the character '"+invalid+"'");
 		}
 		
