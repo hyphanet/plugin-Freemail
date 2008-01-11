@@ -64,10 +64,34 @@ public class AccountManager {
 	
 	public static final String MAILSITE_SUFFIX = "mailsite";
 	public static final String MAILSITE_VERSION = "-1";
-	
 
-	public static void Create(String username) throws IOException {
+	// avoid invalid chars in username or address
+	// returns the first invalid char to give user a hint
+	private static String validateChars(String username, String invalid) {
+		for(int i=0;i<invalid.length();i++) {
+			if(username.indexOf(invalid.substring(i,i+1))>=0) {
+				return invalid.substring(i,i+1);
+			}
+		}
+		return "";
+	}
+
+	// @ plus chars that may be invalid as filenames
+	public static String validateUsername(String username) {
+		return validateChars(username, "@\'\"\\/ :");
+	}
+
+	// @, space and other email meta chars
+	public static String validateShortAddress(String username) {
+		return validateChars(username, "@\'\"\\/,:%()+ ");
+	}
+	
+	public static void Create(String username) throws IOException,IllegalArgumentException {
 		File datadir = new File(DATADIR);
+		String invalid=validateUsername(username);
+		if(!invalid.isEmpty()) {
+			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
+		}
 		if (!datadir.exists()) {
 			if (!datadir.mkdir()) throw new IOException("Failed to create data directory");
 		}
@@ -240,6 +264,11 @@ public class AccountManager {
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.exists()) {
 			throw new Exception("No such account - "+username+".");
+		}
+
+		String invalid=validateShortAddress(alias);
+		if(!invalid.isEmpty()) {
+			throw new IllegalArgumentException("The short address may not contain the character '"+invalid+"'");
 		}
 		
 		PropsFile accfile = getAccountFile(accountdir);

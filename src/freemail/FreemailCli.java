@@ -109,6 +109,8 @@ public abstract class FreemailCli extends Freemail {
 				//System.out.println("For the time being, you address is "+account+"@nim.freemail");
 			} catch (IOException ioe) {
 				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
+			} catch (IllegalArgumentException iae) {
+				System.out.println("Couldn't create account. Error: "+iae.getMessage());
 			}
 			return;
 		} else if (action.equals("--passwd")) {
@@ -123,6 +125,9 @@ public abstract class FreemailCli extends Freemail {
 		} else if (action.equals("--shortaddress")) {
 			try {
 				AccountManager.addShortAddress(account, alias);
+			} catch (IllegalArgumentException iae) {
+				System.out.println("Couldn't add short address for "+account+". Error: "+iae.getMessage());
+				return;
 			} catch (Exception e) {
 				System.out.println("Couldn't add short address for "+account+". "+e.getMessage());
 				e.printStackTrace();
@@ -160,6 +165,10 @@ public abstract class FreemailCli extends Freemail {
 			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
 				continue;
 			if (!files[i].isDirectory()) continue;
+			
+			if(!AccountManager.validateUsername(files[i].getName()).isEmpty()) {
+				System.out.println("Account name "+files[i].getName()+" contains invalid chars, you may get problems accessing the account.");
+			}
 			
 			Thread t = new Thread(new SingleAccountWatcher(files[i]), "Account Watcher for "+files[i].getName());
 			t.setDaemon(true);
