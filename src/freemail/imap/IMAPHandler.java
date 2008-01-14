@@ -1075,18 +1075,27 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_append(IMAPMessage msg) {
-		if (msg.args == null || msg.args.length < 3) {
-			this.reply(msg, "NO Not enough arguments");
+		if (msg.args == null || msg.args.length < 2) {
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 		
+		//args[0] is always the mailbox
 		String mbname = trimQuotes(msg.args[0]);
-		String sflags = msg.args[1];
-		if (sflags.startsWith("(")) sflags = sflags.substring(1);
-		if (sflags.endsWith(")")) sflags = sflags.substring(0, sflags.length() - 1);
-		String sdatalen = msg.args[2];
-		if (sdatalen.startsWith("{")) sdatalen = sdatalen.substring(1);
-		if (sdatalen.endsWith("}")) sdatalen = sdatalen.substring(0, sdatalen.length() - 1);
+		
+		String sdatalen = "";
+		String sflags = "";
+		
+		for (int i = 1; i < msg.args.length; i++) {
+			if (msg.args[i].startsWith("(")) {
+				//List of flags
+				sflags = msg.args[i].substring(1, msg.args[i].length() - 1);
+			} else if (msg.args[i].startsWith("{")) {
+				//Data length
+				sdatalen = msg.args[i].substring(1, msg.args[i].length() -1);
+			}
+		}
+		
 		int datalen;
 		try {
 			datalen = Integer.parseInt(sdatalen);
