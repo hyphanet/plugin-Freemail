@@ -40,11 +40,13 @@ public class MailMessage {
 	private PrintStream ps;
 	private final Vector headers;
 	private BufferedReader brdr;
+	private int msg_seqnum=0;
 	public IMAPMessageFlags flags;
 	
-	MailMessage(File f) {
+	MailMessage(File f, int msg_seqnum) {
 		this.file = f;
 		this.headers = new Vector();
+		this.msg_seqnum=msg_seqnum;
 		
 		// initialize flags from filename
 		String[] parts = f.getName().split(",");
@@ -239,6 +241,10 @@ public class MailMessage {
 		String[] parts = this.file.getName().split(",");
 		
 		return Integer.parseInt(parts[0]);
+	}
+
+	public int getSeqNum() {
+		return msg_seqnum;
 	}
 	
 	public long getSize() throws IOException {

@@ -105,7 +105,7 @@ public class MessageBank {
 		this.writeNextId(newid);
 		
 		if (newfile != null) {
-			MailMessage newmsg = new MailMessage(newfile);
+			MailMessage newmsg = new MailMessage(newfile,0);
 			return newmsg;
 		}
 		
@@ -113,15 +113,17 @@ public class MessageBank {
 	}
 	
 	public SortedMap listMessages() {
-		File[] files = this.dir.listFiles();
-		
+		File[] files = this.dir.listFiles(new MessageFileNameFilter());
+
+		Arrays.sort(files, new UIDComparator());
+
 		TreeMap msgs = new TreeMap();
-		
+
+		int seq=1;
 		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().startsWith(".")) continue;
 			if (files[i].isDirectory()) continue;
 			
-			MailMessage msg = new MailMessage(files[i]);
+			MailMessage msg = new MailMessage(files[i],seq++);
 			
 			msgs.put(new Integer(msg.getUID()), msg);
 		}
@@ -139,7 +141,7 @@ public class MessageBank {
 		for (int i = 0; i < files.length; i++) {
 			//if (files[i].getName().startsWith(".")) continue;
 			
-			MailMessage msg = new MailMessage(files[i]);
+			MailMessage msg = new MailMessage(files[i],i+1);
 			
 			msgs[i] = msg;
 		}

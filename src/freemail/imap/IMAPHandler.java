@@ -202,7 +202,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			// '*' needs to be '.*'
 			mbname = mbname.replaceAll("\\*", ".*");
 			
-			// and % is a wildcard not inclusing the hierarchy delimiter
+			// and % is a wildcard not including the hierarchy delimiter
 			mbname = mbname.replaceAll("%", "[^\\.]*");
 			
 			
@@ -368,7 +368,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 			if (i > to) break;
 			
-			if (!this.fetch_single((MailMessage)msgs.get(msgs.firstKey()), i, msg.args, 1, false)) {
+			if (!this.fetch_single((MailMessage)msgs.get(msgs.firstKey()), msg.args, 1, false)) {
 				this.reply(msg, "BAD Unknown attribute in list or unterminated list");
 				return;
 			}
@@ -441,7 +441,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				MailMessage mm=(MailMessage)msgs.get(curuid);
 				
 				if(mm!=null) {
-					if (!this.fetch_single((MailMessage)msgs.get(curuid), msgnum, msg.args, 2, true)) {
+					if (!this.fetch_single((MailMessage)msgs.get(curuid), msg.args, 2, true)) {
 						this.reply(msg, "BAD Unknown attribute in list or unterminated list");
 						return;
 					}
@@ -461,8 +461,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				targetmsgs[i] = (MailMessage)msgs.get(curuid);
 				i++;
 			}
-			// FIXME: firstmessage==0 is probably not right
-			this.do_store(msg.args, 2, targetmsgs, msg, 0, true);
+			this.do_store(msg.args, 2, targetmsgs, msg, true);
 
 			this.reply(msg, "OK Store completed");
 		} else if (msg.args[0].equalsIgnoreCase("copy")) {
@@ -502,9 +501,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 	}
 	
-	private boolean fetch_single(MailMessage msg, int id, String[] args, int firstarg, boolean send_uid_too) {
+	private boolean fetch_single(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
 		String[] imap_args = (String[]) args.clone();
-		this.ps.print("* "+id+" FETCH (");
+		this.ps.print("* "+msg.getSeqNum()+" FETCH (");
 		
 		// do the first attribute, if it's a loner.
 		if (!imap_args[firstarg].startsWith("(")) {
@@ -528,7 +527,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			imap_args[firstarg] = imap_args[firstarg].substring(1);
 		}
 		
-		// go through the parenthesised list
+		// go through the parenthesized list
 		for (int i = firstarg; i < imap_args.length; i++) {
 			String attr;
 			boolean finish = false;
@@ -760,12 +759,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 		
-		do_store(msg.args, 1, msgs, msg, from + 1, false);
+		do_store(msg.args, 1, msgs, msg, false);
 		
 		this.reply(msg, "OK Store completed");
 	}
 	
-	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, int firstmsgnum, boolean senduid) {
+	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
 		if (args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
@@ -805,7 +804,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			for (int i = 0; i < mmsgs.length; i++) {
 				StringBuffer buf = new StringBuffer("");
 				
-				buf.append((i+firstmsgnum));
+				buf.append(mmsgs[i].getSeqNum());
 				if (senduid) {
 					buf.append(" FETCH (UID ");
 					buf.append(mmsgs[i].getUID());
@@ -849,10 +848,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	private void expunge(boolean verbose) {
 		MailMessage[] mmsgs = this.mb.listMessagesArray();
 		
+		int count_correction=0;
 		for (int i = 0; i < mmsgs.length; i++) {
-			if (mmsgs[i].flags.get("\\Deleted"))
+			if (mmsgs[i].flags.get("\\Deleted")) {
 				mmsgs[i].delete();
-			if (verbose) this.sendState(i+" EXPUNGE");
+				if (verbose) this.sendState((i+1-count_correction)+" EXPUNGE");
+				count_correction++;
+			}
 		}
 	}
 	
