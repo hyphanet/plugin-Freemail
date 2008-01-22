@@ -590,7 +590,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			this.ps.flush();
 			a = a.substring("body.peek".length());
 			return this.sendBody(mmsg, a);
+		} else if (attr.startsWith("bodystructure")) {
+			// TODO: we blatantly lie about the message structure
+			this.ps.print(a.substring(0, "bodystructure".length()));
+			this.ps.print(" (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"8BIT\" 1024 10)");
+			return true;
 		} else if (attr.startsWith("body")) {
+			// TODO: this is not quite right since it will match bodyanything
 			mmsg.flags.set("\\Seen", true);
 			
 			this.ps.print(a.substring(0, "body".length()));
@@ -626,18 +632,80 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	private boolean sendBody(MailMessage mmsg, String attr) {
 		if (attr.length() < 1) return false;
 		
+		// handle byte ranges (e.g. body.peek[]<0.10240>
+
+		int range_start=-1;
+		int range_len=-1;
+
+		if(attr.matches(".*<\\d+\\.\\d+>$")) {
+			String range=attr.substring(attr.indexOf("<")+1,attr.length()-1);
+			attr=attr.substring(0, attr.indexOf("<"));
+			
+			String r_start=range.substring(0,range.indexOf("."));
+			String r_end=range.substring(range.indexOf(".")+1);
+			try {
+				range_start=Integer.parseInt(r_start);
+				range_len=Integer.parseInt(r_end);
+			} catch(NumberFormatException nfe) {
+				// just ignore the range, this may problems though
+				range_start=-1;
+				range_len=-1;
+			}
+		}
+		
  		if (attr.charAt(0) == '[') attr = attr.substring(1);
 		if (attr.charAt(attr.length() - 1) == ']')
 			attr = attr.substring(0, attr.length() - 1);
 		
 		if (attr.trim().length() == 0) {
 			try {
-				this.ps.print("[] ");
-				this.ps.print("{"+mmsg.getSize()+"}\r\n");
+				this.ps.print("[]");
+				if(range_start!=-1) {
+					this.ps.print("<"+range_start+">");
+				}
+				this.ps.print(" ");
+
+				long partsize=0;
+				if(range_start==-1) {
+					partsize=mmsg.getSize();
+				} else {
+					partsize=range_len;
+					if(mmsg.getSize()-range_start<partsize) {
+						partsize=mmsg.getSize()-range_start;
+					}
+				}
 				
+				this.ps.print("{"+partsize+"}\r\n");
+
 				String line;
 				while ( (line = mmsg.readLine()) != null) {
-					this.ps.print(line+"\r\n");
+					line=line+"\r\n";
+					if(range_start>0) {
+						if(range_start>=line.length()) {
+							range_start-=line.length();
+							line="";
+						} else {
+							line=line.substring(range_start);
+							range_start=0;
+						}
+					}
+					if(range_start==0 || range_start==-1) {
+						if(range_len==-1) {
+							this.ps.print(line);
+						} else {
+							if(range_len>0) {
+								if(range_len<line.length()) {
+									line=line.substring(0, range_len);
+									range_len=line.length();
+								}
+								this.ps.print(line);
+								range_len-=line.length();
+								if(range_len<0) {
+									range_len=0;
+								}
+							}
+						}
+					}
 				}
 				mmsg.closeStream();
 			} catch (IOException ioe) {
