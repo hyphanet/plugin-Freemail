@@ -67,6 +67,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		String cfgfile = CFGFILE;
 		Configurator cfg = new Configurator(new File(cfgfile));
 		FCPContext fcpctx = new FCPContext();
+
+		cfg.register("loglevel", new Logger(), "normal|error");
 		
 		cfg.register("fcp_host", fcpctx, "localhost");
 		cfg.register("fcp_port", fcpctx, "9481");
