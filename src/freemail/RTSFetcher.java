@@ -52,8 +52,8 @@ import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.DataLengthException;
 
-import freenet.support.io.LineReadingInputStream;
-import freenet.support.io.TooLongException;
+import freemail.support.io.LineReadingInputStream;
+import freemail.support.io.TooLongException;
 
 import org.archive.util.Base32;
 

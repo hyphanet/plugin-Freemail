@@ -1,4 +1,8 @@
-package freenet.support.io;
+package freemail.support.io;
+
+/*
+ * This file originates from the main Freenet distribution, originally in freenet.support.io
+ */
 
 import java.io.IOException;
 
