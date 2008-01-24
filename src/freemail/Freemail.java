@@ -28,7 +28,7 @@ import freemail.config.ConfigClient;
 public class Freemail implements ConfigClient {
 	public static final int VER_MAJOR = 0;
 	public static final int VER_MINOR = 1;
-	public static final int BUILD_NO = 8;
+	public static final int BUILD_NO = 9;
 	public static final String VERSION_TAG = "Pet Shop";
 
 	protected static final String TEMPDIRNAME = "temp";
