@@ -11,7 +11,9 @@ package freemail.utils;
 
 import java.lang.NoClassDefFoundError;
 
-public class Logger {
+import freemail.config.ConfigClient;
+
+public class Logger implements ConfigClient {
 
 	static final private int INTERNAL=1;
 	static final private int DEBUG=2;
@@ -24,7 +26,29 @@ public class Logger {
 	
 	//static final private int loglevel=INTERNAL|DEBUG|MINOR|NORMAL|ERROR; // everything
 	//static final private int loglevel=DEBUG|NORMAL|ERROR;
-	static final private int loglevel=NORMAL|ERROR; // should be ok for normal users
+	static private int loglevel=NORMAL|ERROR; // should be ok for normal users
+	
+	public void setConfigProp(String key, String val) {
+		if (key.equals("loglevel")) {
+			String[] levels = val.split("\\s*\\|\\s*");
+			
+			loglevel = 0;
+			
+			for (int i = 0; i < levels.length; i++) {
+				if (levels[i].equalsIgnoreCase("internal")) {
+					loglevel |= INTERNAL;
+				} else if (levels[i].equalsIgnoreCase("debug")) {
+					loglevel |= DEBUG;
+				} else if (levels[i].equalsIgnoreCase("minor")) {
+					loglevel |= MINOR;
+				} else if (levels[i].equalsIgnoreCase("normal")){
+					loglevel |= NORMAL;
+				} else if (levels[i].equalsIgnoreCase("error")){
+					loglevel |= ERROR;
+				}
+			}
+		}
+	}
 
 	static private boolean useFreenetLogger()
 	{

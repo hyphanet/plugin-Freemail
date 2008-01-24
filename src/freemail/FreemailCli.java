@@ -31,6 +31,7 @@ import freemail.fcp.FCPContext;
 import freemail.fcp.FCPConnection;
 import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
+import freemail.utils.Logger;
 import freemail.config.Configurator;
 //import freemail.config.ConfigClient;
 
@@ -89,6 +90,8 @@ public abstract class FreemailCli extends Freemail {
 		}
 		
 		Configurator cfg = new Configurator(new File(cfgfile));
+		
+		cfg.register("loglevel", new Logger(), "normal|error");
 		
 		FCPContext fcpctx = new FCPContext();
 		
