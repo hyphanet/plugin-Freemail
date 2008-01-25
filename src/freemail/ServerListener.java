@@ -20,7 +20,7 @@ public abstract class ServerListener {
 	 */
 	public void kill() {
 		try {
-			sock.close();
+			if (sock != null) sock.close();
 		} catch (IOException ioe) {
 			
 		}
