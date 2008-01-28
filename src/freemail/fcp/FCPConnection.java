@@ -120,7 +120,7 @@ public class FCPConnection implements Runnable {
 		stopping = true;
 		try {
 			// we can safely close the socket from this thread: any read operations other threads are in will throw a SocketException
-			conn.close();
+			if (conn != null) conn.close();
 		} catch (IOException ioe) {
 			// ignore
 		}
