@@ -409,28 +409,44 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
+		// until a proper search function is implemented we could return an empty
+		// result, but this confuses Thunderbird
+//		if (msg.args[0].toLowerCase().equals("search")) {
+//			// return a dummy result
+//			this.sendState("SEARCH");
+//			this.reply(msg, "OK SEARCH completed");
+//			return;
+//		}
+			
 		// build a set from the uid ranges, first separated by , then by :
+		// if that fails, its probably an unsupported command
+
 		TreeSet ts=new TreeSet();
-		String[] rangeparts = msg.args[1].split(",");
+		try {
+			String[] rangeparts = msg.args[1].split(",");
 		
-		for(int i=0;i<rangeparts.length;i++) {
-			String vals[]=rangeparts[i].split(":");
-			if(vals.length==1) {
-				ts.add(new Integer(vals[0]));
-			} else {
-				from=Integer.parseInt(vals[0]);
-				if(vals[1].equals("*")) {
-					to=((Integer)msgs.lastKey()).intValue();
+			for(int i=0;i<rangeparts.length;i++) {
+				String vals[]=rangeparts[i].split(":");
+				if(vals.length==1) {
+					ts.add(new Integer(vals[0]));
 				} else {
-					to=Integer.parseInt(vals[1]);
-				}
-				for(int j=from;j<=to;j++) {
-					ts.add(new Integer(j));
+					from=Integer.parseInt(vals[0]);
+					if(vals[1].equals("*")) {
+						to=((Integer)msgs.lastKey()).intValue();
+					} else {
+						to=Integer.parseInt(vals[1]);
+					}
+					for(int j=from;j<=to;j++) {
+						ts.add(new Integer(j));
+					}
 				}
 			}
 		}
+		catch(NumberFormatException ex) {
+			this.reply(msg, "BAD Unknown command");
+			return;
+		}
 
-		int msgnum = 1;
 		if (msg.args[0].equalsIgnoreCase("fetch")) {
 
 			Iterator it=ts.iterator();
@@ -445,7 +461,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 						this.reply(msg, "BAD Unknown attribute in list or unterminated list");
 						return;
 					}
-					msgnum++;
 				}
 			}
 			
@@ -455,13 +470,25 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			Iterator it=ts.iterator();
 
-			int i=0;
+			int count=0;
 			while(it.hasNext()) {
 				Integer curuid = (Integer)it.next();
-				targetmsgs[i] = (MailMessage)msgs.get(curuid);
-				i++;
+				MailMessage m=(MailMessage)msgs.get(curuid);
+				if(m!=null) {
+					targetmsgs[count] = m;
+					count++;
+				}
 			}
-			this.do_store(msg.args, 2, targetmsgs, msg, true);
+			if(count>0) {
+				if(count<ts.size()) {
+					MailMessage[] t = new MailMessage[count];
+					for(int i=0;i<count;i++) {
+						t[i]=targetmsgs[i];
+					}
+					targetmsgs=t;
+				}
+				this.do_store(msg.args, 2, targetmsgs, msg, true);
+			}
 
 			this.reply(msg, "OK Store completed");
 		} else if (msg.args[0].equalsIgnoreCase("copy")) {
@@ -486,10 +513,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 								
 				MailMessage srcmsg = (MailMessage)msgs.get(curuid);
 				
-				MailMessage copymsg = target.createMessage();
-				srcmsg.copyTo(copymsg);
-				
-				copied++;
+				if(srcmsg!=null) {
+					MailMessage copymsg = target.createMessage();
+					srcmsg.copyTo(copymsg);
+					
+					copied++;
+				}
 			}
 			
 			if (copied > 0)
