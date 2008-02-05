@@ -126,8 +126,9 @@ public abstract class FreemailCli extends Freemail {
 			}
 			return;
 		} else if (action.equals("--shortaddress")) {
+			boolean success = false;
 			try {
-				AccountManager.addShortAddress(account, alias);
+				success = AccountManager.addShortAddress(account, alias);
 			} catch (IllegalArgumentException iae) {
 				System.out.println("Couldn't add short address for "+account+". Error: "+iae.getMessage());
 				return;
@@ -136,7 +137,11 @@ public abstract class FreemailCli extends Freemail {
 				e.printStackTrace();
 				return;
 			}
-			System.out.println("You now have all Freemail addresses ending: '@"+alias+".freemail'. Your long address will continue to work.");
+			if (success) {
+				System.out.println("You now have all Freemail addresses ending: '@"+alias+".freemail'. Your long address will continue to work.");
+			} else {
+				System.out.println("Failed to add short address.");
+			}
 			return;
 		}
 		

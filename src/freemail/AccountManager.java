@@ -260,7 +260,7 @@ public class AccountManager {
 		Logger.normal(AccountManager.class,"Account creation completed.");
 	}
 	
-	public static void addShortAddress(String username, String alias) throws Exception {
+	public static boolean addShortAddress(String username, String alias) throws Exception {
 		File accountdir = new File(DATADIR, username);
 		if (!accountdir.exists()) {
 			throw new Exception("No such account - "+username+".");
@@ -307,6 +307,9 @@ public class AccountManager {
 			
 		
 			m.commit();
+			return true;
+		} else {
+			return false;
 		}
 	}
 	

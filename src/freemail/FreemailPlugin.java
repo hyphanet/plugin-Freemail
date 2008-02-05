@@ -242,8 +242,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 				try {
 					AccountManager.Create(name);
 					AccountManager.ChangePassword(name, password);
+					boolean tryShortAddress = false;
+					boolean shortAddressWorked = false;
 					if(!domain.equals("")) {
-						AccountManager.addShortAddress(name, domain);
+						tryShortAddress = true;
+						shortAddressWorked = AccountManager.addShortAddress(name, domain);
 					}
 					Thread t = new Thread(new SingleAccountWatcher(new File(DATADIR, name)), "Account Watcher for "+name);
 					t.setDaemon(true);
@@ -255,7 +258,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 					HTMLNode text = successBox.addChild("div", "class", "infobox-content");
 					text.addChild("#", "The account ");
 					text.addChild("i", name);
-					text.addChild("#", " was created successfully.");
+					String shortAddrMsg = "";
+					if (tryShortAddress && ! shortAddressWorked) {
+						shortAddrMsg = ", but your short address could NOT be created";
+					}
+					text.addChild("#", " was created successfully"+shortAddrMsg+".");
 					text.addChild("br");
 					text.addChild("br");
 					text.addChild("#", "You now need to configure your email client to send and receive email through "
