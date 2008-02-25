@@ -197,6 +197,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 	
 	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
 		String sd = from.getSubDomain();
+		if (sd == null) {
+			// well that's definately not valid. Piffle!
+			return false;
+		}
 		
 		if (from.is_ssk_address()) {
 			return Base32.encode(this.ibct_dir.getName().getBytes()).equalsIgnoreCase(sd);
