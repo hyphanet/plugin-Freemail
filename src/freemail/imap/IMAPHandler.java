@@ -41,7 +41,7 @@ import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
 
 public class IMAPHandler extends ServerHandler implements Runnable {
-	private static final String CAPABILITY = "IMAP4rev1 AUTH=LOGIN CHILDREN NAMESPACE";
+	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
 
 	private final OutputStream os;
 	private final PrintStream ps;
