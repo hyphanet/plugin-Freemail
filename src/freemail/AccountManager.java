@@ -160,7 +160,11 @@ public class AccountManager {
 	public static String getFreemailDomain(PropsFile accfile) {
 		FreenetURI mailsite;
 		try {
-			mailsite = new FreenetURI(accfile.get("mailsite.pubkey"));
+			String pubkey=accfile.get("mailsite.pubkey");
+			if(pubkey==null) {
+				return null;
+			}
+			mailsite = new FreenetURI(pubkey);
 		} catch (MalformedURLException mfue) {
 			Logger.error(AccountManager.class,"Warning: Couldn't fetch mailsite public key from account file! Your account file is probably corrupt.");
 			return null;

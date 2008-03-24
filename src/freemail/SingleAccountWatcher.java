@@ -75,13 +75,23 @@ public class SingleAccountWatcher implements Runnable {
 			this.nf = null;
 		}
 		
-		
-		this.rtsf = new RTSFetcher("KSK@"+this.accprops.get("rtskey")+"-", this.ibctdir, accdir);
+		String rtskey=this.accprops.get("rtskey");
+
+		if(rtskey==null) {
+			Logger.error(this,"Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
+		}
+
+		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", this.ibctdir, accdir);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 		
 		// temporary info message until there's a nicer UI :)
-		Logger.normal(this,"Secure Freemail address: <anything>@"+AccountManager.getFreemailDomain(accdir));
+		String freemailDomain=AccountManager.getFreemailDomain(accdir);
+		if(freemailDomain!=null) {
+			Logger.normal(this,"Secure Freemail address: <anything>@"+AccountManager.getFreemailDomain(accdir));
+		} else {
+			Logger.error(this, "You do not have a freemail address USK. This account is really broken.");
+		}
 		
 		String shortdomain = AccountManager.getKSKFreemailDomain(accdir);
 		if (shortdomain != null) {
