@@ -44,9 +44,6 @@ class MailHeaderFilter {
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
 	
-	// TODO: according to javadoc, SimpleDateFormat objects are not synchronized,
-	// should this be taken into account?
-	
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 		gmt = TimeZone.getTimeZone("GMT");
@@ -116,7 +113,9 @@ class MailHeaderFilter {
 			
 			Date d = null;
 			try {
-				d = sdf.parse(val);
+				synchronized(sdf) {
+					d = sdf.parse(val);
+				}
 			} catch (ParseException pe) {
 				// ...the compiler whinges unless we catch this exception...
 				Logger.normal(this,"Warning: couldn't parse date: "+val+" (caught exception)");
@@ -129,7 +128,11 @@ class MailHeaderFilter {
 				Logger.normal(this,"Warning: couldn't parse date: "+val+" (got null)");
 				return null;
 			}
-			return sdf.format(d);
+			String strDate;
+			synchronized(sdf) {
+				strDate = sdf.format(d);
+			}
+			return strDate;
 		} else if (name.equalsIgnoreCase("User-Agent")) {
 			// might as well hide this
 			return null;
