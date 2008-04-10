@@ -24,17 +24,6 @@ package freemail;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-
-import freemail.Freemail;
-import freemail.fcp.FCPContext;
-import freemail.fcp.FCPConnection;
-import freemail.imap.IMAPListener;
-import freemail.smtp.SMTPListener;
-import freemail.config.Configurator;
-import freemail.utils.Logger;
 
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
@@ -48,168 +37,29 @@ import freenet.support.api.HTTPRequest;
 // returns rather than just continuing to run for the lifetime of the plugin.
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHTTP,
                                                         FredPluginThreadless {
-	private static PluginRespirator pr;
-	private ArrayList singleAccountWatcherList = new ArrayList();
-	private MessageSender sender;
-	private SMTPListener smtpl;
-	private AckProcrastinator ackinserter;
-	private IMAPListener imapl;
+	private PluginRespirator pluginResp;
 	
-	private Thread fcpThread;
-	private ArrayList /* of Thread */ singleAccountWatcherThreadList = new ArrayList();
-	private Thread messageSenderThread;
-	private Thread smtpThread;
-	private Thread ackInserterThread;
-	private Thread imapThread;
+	public FreemailPlugin() {
+		super(CFGFILE);
+	}
 	
 	public void runPlugin(PluginRespirator pr) {
-		FreemailPlugin.pr = pr;
-		String cfgfile = CFGFILE;
-		Configurator cfg = new Configurator(new File(cfgfile));
-		FCPContext fcpctx = new FCPContext();
-
-		cfg.register("loglevel", new Logger(), "normal|error");
-
-		Logger.normal(this, "This is the Freemail plugin version "+VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")");
+		pluginResp = pr;
 		
-		cfg.register("fcp_host", fcpctx, "localhost");
-		cfg.register("fcp_port", fcpctx, "9481");
-		
-		Freemail.fcpconn = new FCPConnection(fcpctx);
-		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
-		fcpThread.setDaemon(true);
-		fcpThread.start();
-		cfg.register("globaldatadir", new Freemail(), GLOBALDATADIR);
-		if (!getGlobalDataDir().exists()) {
-			if(!getGlobalDataDir().mkdir()) {
-				Logger.error(this,"Freemail plugin: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				return;
-			}
-		}
-		cfg.register("datadir", new Freemail(), Freemail.DATADIR);
-		if (!getDataDir().exists()) {
-			if (!getDataDir().mkdir()) {
-				Logger.error(this,"Freemail plugin: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				return;
-			}
-		}
-		cfg.register("tempdir", new Freemail(), Freemail.TEMPDIRNAME);
-		if (!getTempDir().exists()) {
-			if (!Freemail.getTempDir().mkdir()) {
-				Logger.error(this,"Freemail plugin: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				return;
-			}
-		}
-		File[] files = getDataDir().listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
-				continue;
-			if (!files[i].isDirectory()) continue;
-
-			String invalid=AccountManager.validateUsername(files[i].getName());
-			if(!invalid.equals("")) {
-				Logger.error(this,"Account name "+files[i].getName()+" contains invalid chars (\""+invalid+"\"), you may get problems accessing the account.");
-			}
-			
-			SingleAccountWatcher saw = new SingleAccountWatcher(files[i]); 
-			singleAccountWatcherList.add(saw);
-			Thread t = new Thread(saw, "Freemail Account Watcher for "+files[i].getName());
-			t.setDaemon(true);
-			t.start();
-			singleAccountWatcherThreadList.add(t);
-		}
-		
-		// and a sender thread
-		sender = new MessageSender(getDataDir());
-		messageSenderThread = new Thread(sender, "Freemail Message sender");
-		messageSenderThread.setDaemon(true);
-		messageSenderThread.start();
-		
-		// start the SMTP Listener
-		smtpl = new SMTPListener(sender, cfg);
-		smtpThread = new Thread(smtpl, "Freemail SMTP Listener");
-		smtpThread.setDaemon(true);
-		smtpThread.start();
-		
-		// start the delayed ACK inserter
-		File ackdir = new File(getGlobalDataDir(), ACKDIR);
-		AckProcrastinator.setAckDir(ackdir);
-		ackinserter = new AckProcrastinator();
-		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
-		ackInserterThread.setDaemon(true);
-		ackInserterThread.start();
-		
-		// start the IMAP listener
-		imapl = new IMAPListener(cfg);
-		imapThread = new Thread(imapl, "Freemail IMAP Listener");
-		imapThread.setDaemon(true);
-		imapThread.start();
-	}
-
-	public void terminate() {
-		Iterator it = singleAccountWatcherList.iterator();
-		while(it.hasNext()) {
-			((SingleAccountWatcher)it.next()).kill();
-			it.remove();
-		}
-
-		sender.kill();
-		ackinserter.kill();
-		smtpl.kill();
-		imapl.kill();
-		// now kill the FCP thread - that's what all the other threads will be waiting on
-		fcpconn.kill();
-		
-		// now clean up all the threads
-		boolean cleanedUp = false;
-		while (!cleanedUp) {
-			try {
-				it = singleAccountWatcherThreadList.iterator();
-				while(it.hasNext()) {
-					((Thread)it.next()).join();
-					it.remove();
-				}
-				
-				if (messageSenderThread != null) {
-					messageSenderThread.join();
-					messageSenderThread = null;
-				}
-				if (ackInserterThread != null) {
-					ackInserterThread.join();
-					ackInserterThread = null;
-				}
-				if (smtpThread != null) {
-					smtpThread.join();
-					smtpl.joinClientThreads();
-					smtpThread = null;
-				}
-				if (imapThread != null) {
-					imapThread.join();
-					imapl.joinClientThreads();
-					imapThread = null;
-				}
-				if (fcpThread != null) {
-					fcpThread.join();
-					fcpThread = null;
-				}
-			} catch (InterruptedException ie) {
-				
-			}
-			cleanedUp = true;
-		}
-		
-		return;
+		startFcp(true);
+		startServers(true);
+		startWorkers(true);
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
-		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode contentNode = pr.getPageMaker().getContentNode(pageNode);
+		HTMLNode pageNode = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
+		HTMLNode contentNode = pluginResp.getPageMaker().getContentNode(pageNode);
 
 		HTMLNode addBox = contentNode.addChild("div", "class", "infobox");
 		addBox.addChild("div", "class", "infobox-header", "Add account");
 		
 		HTMLNode boxContent = addBox.addChild("div", "class", "infobox-content");
-		HTMLNode form = pr.addFormChild(boxContent, "", "addAccountForm");
+		HTMLNode form = pluginResp.addFormChild(boxContent, "", "addAccountForm");
 		
 		HTMLNode table = form.addChild("table", "class", "plugintable");
 		HTMLNode tableRowName = table.addChild("tr");
@@ -229,8 +79,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
-		HTMLNode pageNode = pr.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode contentNode = pr.getPageMaker().getContentNode(pageNode);
+		HTMLNode pageNode = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
+		HTMLNode contentNode = pluginResp.getPageMaker().getContentNode(pageNode);
 		
 		String add = request.getPartAsString("add", 100);
 		String name = request.getPartAsString("name", 100);
@@ -295,5 +145,4 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
 		return null;
 	}
-
 }

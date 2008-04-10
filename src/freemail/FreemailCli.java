@@ -21,33 +21,22 @@
 
 package freemail;
 
-import java.io.File;
 import java.io.IOException;
-//import java.util.ArrayList;
-//import java.util.Iterator;
 
 import freemail.Freemail;
-import freemail.fcp.FCPContext;
-import freemail.fcp.FCPConnection;
-import freemail.imap.IMAPListener;
-import freemail.smtp.SMTPListener;
-import freemail.utils.Logger;
-import freemail.config.Configurator;
-//import freemail.config.ConfigClient;
 
-public abstract class FreemailCli extends Freemail {
+public class FreemailCli extends Freemail {
+	public FreemailCli(String cfgfile) {
+		super(cfgfile);
+	}
+	
 	public static void main(String[] args) {
-		String cfgfile = CFGFILE;
-		
 		String action = "";
 		String account = null;
 		String newpasswd = null;
 		String alias = null;
-		
-		System.out.println("This is Freemail version "+VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")");
-		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
-		System.out.println("");
-		
+		String cfgfile = CFGFILE;
+
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("--newaccount")) {
 				action = args[i];
@@ -89,19 +78,8 @@ public abstract class FreemailCli extends Freemail {
 			}
 		}
 		
-		Configurator cfg = new Configurator(new File(cfgfile));
-		
-		cfg.register("loglevel", new Logger(), "normal|error");
-		
-		FCPContext fcpctx = new FCPContext();
-		
-		cfg.register("fcp_host", fcpctx, "localhost");
-		cfg.register("fcp_port", fcpctx, "9481");
-		
-		Freemail.fcpconn = new FCPConnection(fcpctx);
-		Thread fcpthread  = new Thread(fcpconn);
-		fcpthread.setDaemon(true);
-		fcpthread.start();
+		FreemailCli freemail = new FreemailCli(cfgfile);
+		freemail.startFcp(false);
 		
 		if (action.equals("--newaccount")) {
 			try {
@@ -144,68 +122,8 @@ public abstract class FreemailCli extends Freemail {
 			}
 			return;
 		}
-		
-		cfg.register("globaldatadir", new Freemail(), GLOBALDATADIR);
-		if (!getGlobalDataDir().exists()) {
-			getGlobalDataDir().mkdir();
-		}
-		
-		cfg.register("datadir", new Freemail(), Freemail.DATADIR);
-		if (!getDataDir().exists()) {
-			System.out.println("Starting Freemail for the first time.");
-			System.out.println("You will probably want to add an account by running Freemail with arguments --newaccount <username>");
-			if (!getDataDir().mkdir()) {
-				System.out.println("Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				System.exit(1);
-			}
-		}
-		cfg.register("tempdir", new Freemail(), Freemail.TEMPDIRNAME);
-		if (!getTempDir().exists()) {
-			if (!getTempDir().mkdir()) {
-				System.out.println("Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				System.exit(1);
-			}
-		}
-		
-		// start a SingleAccountWatcher for each account
-		File[] files = getDataDir().listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
-				continue;
-			if (!files[i].isDirectory()) continue;
-			
-			if(!AccountManager.validateUsername(files[i].getName()).equals("")) {
-				System.out.println("Account name "+files[i].getName()+" contains invalid chars, you may get problems accessing the account.");
-			}
-			
-			Thread t = new Thread(new SingleAccountWatcher(files[i]), "Account Watcher for "+files[i].getName());
-			t.setDaemon(true);
-			t.start();
-		}
-		
-		// and a sender thread
-		MessageSender sender = new MessageSender(getDataDir());
-		Thread senderthread = new Thread(sender, "Message sender");
-		senderthread.setDaemon(true);
-		senderthread.start();
-		
-		// start the SMTP Listener
-		SMTPListener smtpl = new SMTPListener(sender, cfg);
-		Thread smtpthread = new Thread(smtpl, "SMTP Listener");
-		smtpthread.setDaemon(true);
-		smtpthread.start();
-		
-		// start the delayed ACK inserter
-		File ackdir = new File(getGlobalDataDir(), ACKDIR);
-		AckProcrastinator.setAckDir(ackdir);
-		AckProcrastinator ackinserter = new AckProcrastinator();
-		Thread ackinsthread = new Thread(ackinserter, "Delayed ACK Inserter");
-		ackinsthread.setDaemon(true);
-		ackinsthread.start();
-		
-		
-		// start the IMAP listener
-		IMAPListener imapl = new IMAPListener(cfg);
-		imapl.run();
+
+		freemail.startServers(false);
+		freemail.startWorkers(false);
 	}
 }
