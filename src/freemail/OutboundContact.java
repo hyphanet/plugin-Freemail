@@ -292,6 +292,8 @@ public class OutboundContact {
 	 * @return true for success
 	 */
 	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException {
+		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
+		
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
 		String initialslot = this.getInitialSlot();
 		SSKKeyPair commssk = this.getCommKeyPair();
@@ -337,8 +339,9 @@ public class OutboundContact {
 		byte[] sig = null;
 		try {
 			sig = sigcipher.processBlock(hash, 0, hash.length);
-		} catch (InvalidCipherTextException e) {
-			e.printStackTrace();
+		} catch (InvalidCipherTextException icte) {
+			Logger.error(this, "Failed to RSA encrypt hash: "+icte.getMessage());
+			icte.printStackTrace();
 			return false;
 		}
 		
@@ -371,8 +374,9 @@ public class OutboundContact {
 		byte[] encrypted_aes_params = null;
 		try {
 			encrypted_aes_params = enccipher.processBlock(aes_iv_and_key, 0, aes_iv_and_key.length);
-		} catch (InvalidCipherTextException e) {
-			e.printStackTrace();
+		} catch (InvalidCipherTextException icte) {
+			Logger.error(this, "Failed to perform asymmertic encryption on RTS symmetric key: "+icte.getMessage());
+			icte.printStackTrace();
 			return false;
 		}
 		
@@ -389,6 +393,7 @@ public class OutboundContact {
 		try {
 			aescipher.doFinal(encmsg, offset);
 		} catch (InvalidCipherTextException icte) {
+			Logger.error(this, "Failed to perform symmertic encryption on RTS data: "+icte.getMessage());
 			icte.printStackTrace();
 			return false;
 		}
@@ -407,6 +412,9 @@ public class OutboundContact {
 		// and since that's been successfully inserted to that key, we can
 		// throw away the symmetric key
 		this.contactfile.remove("aesparams");
+		
+		Logger.normal(this, "Succesfully initialised Outbound Contact");
+		
 		return true;
 	}
 	
