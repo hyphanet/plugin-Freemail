@@ -150,7 +150,6 @@ public abstract class FreemailCli extends Freemail {
 			getGlobalDataDir().mkdir();
 		}
 		
-		// start a SingleAccountWatcher for each account
 		cfg.register("datadir", new Freemail(), Freemail.DATADIR);
 		if (!getDataDir().exists()) {
 			System.out.println("Starting Freemail for the first time.");
@@ -168,6 +167,7 @@ public abstract class FreemailCli extends Freemail {
 			}
 		}
 		
+		// start a SingleAccountWatcher for each account
 		File[] files = getDataDir().listFiles();
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
