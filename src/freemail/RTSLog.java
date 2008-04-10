@@ -28,6 +28,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.io.File;
 
+import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
 
@@ -66,6 +67,12 @@ public class RTSLog {
 			this.logfile.put("birth", birth_s);
 		} else {
 			birth = DateStringFactory.DateFromKeyString(birth_s);
+			if (birth.after(new Date())) {
+				Logger.error(this, "RTS log was created in the future! Resetting to now");
+				birth = new Date();
+				birth_s = DateStringFactory.getOffsetKeyString(0);
+				this.logfile.put("birth", birth_s);
+			}
 		}
 		
 		if (day.before(birth)) return true;
