@@ -34,6 +34,8 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.text.ParseException;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import freemail.utils.Logger;
 
@@ -43,6 +45,7 @@ class MailHeaderFilter {
 	private boolean foundEnd;
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
+	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 	
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
@@ -104,8 +107,7 @@ class MailHeaderFilter {
 	}
 	
 	private String filterHeader(String name, String val) {
-		// simple blacklist filter for now
-		// a whitelist filter is probably excessive
+		// Whitelist filter
 		if (name.equalsIgnoreCase("Date")) {
 			// the norm is to put the sender's local time here, with the sender's local time offset
 			// at the end. Rather than giving away what time zone we're in, parse the date in
@@ -133,14 +135,40 @@ class MailHeaderFilter {
 				strDate = sdf.format(d);
 			}
 			return strDate;
-		} else if (name.equalsIgnoreCase("User-Agent")) {
-			// might as well hide this
-			return null;
-		} else if (name.equalsIgnoreCase("Received")) {
-			// may give away local address
-			return null;
-		} else {
+		} else if (name.equalsIgnoreCase("Message-ID")) {
+			// We want to keep message-ids for in-reply-to and hence message threading to work, but we need to make sure the
+			// mail client hasn't put in a real hostname, as some have been known to.
+			Matcher m = messageIdPattern.matcher(val);
+			if (!m.matches() || m.groupCount() < 2) {
+				// couldn't make any sense of it, so just drop it
+				return null;
+			} else {
+				if (m.group(2).endsWith("freemail")) {
+					// okay, the hostname part ends with freemail, so it's a fake Freemail domain and not a real one
+					return val;
+				} else {
+					// It's something else, so just replace it with 'freemail', although this might not actually be any more
+					// useful than dropping it, since the mail client will be looking for the unmangled header.
+					return "<"+m.group(1)+"@freemail>";
+				}
+				
+			}
+		} else if (name.equalsIgnoreCase("From")) {
 			return val;
+		} else if (name.equalsIgnoreCase("To")) {
+			return val;
+		} else if (name.equalsIgnoreCase("Subject")) {
+			return val;
+		} else if (name.equalsIgnoreCase("MIME-Version")) {
+			return val;
+		} else if (name.equalsIgnoreCase("Content-Type")) {
+			return val;
+		} else if (name.equalsIgnoreCase("Content-Transfer-Encoding")) {
+			return val;
+		} else if (name.equalsIgnoreCase("In-Reply-To")) {
+			return val;
+		} else {
+			return null;
 		}
 	}
 }
