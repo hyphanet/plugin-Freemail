@@ -22,6 +22,7 @@
 package freemail;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -56,15 +57,15 @@ public abstract class Freemail implements ConfigClient {
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
-	private ArrayList singleAccountWatcherList = new ArrayList();
-	private MessageSender sender;
-	private SMTPListener smtpl;
-	private AckProcrastinator ackinserter;
-	private IMAPListener imapl;
+	private final ArrayList singleAccountWatcherList = new ArrayList();
+	private final MessageSender sender;
+	private final SMTPListener smtpl;
+	private final AckProcrastinator ackinserter;
+	private final IMAPListener imapl;
 	
 	protected final Configurator configurator;
 	
-	protected Freemail(String cfgfile) {
+	protected Freemail(String cfgfile) throws IOException {
 		configurator = new Configurator(new File(cfgfile));
 		
 		configurator.register("loglevel", new Logger(), "normal|error");
@@ -73,7 +74,7 @@ public abstract class Freemail implements ConfigClient {
 		if (!getDataDir().exists()) {
 			if (!getDataDir().mkdir()) {
 				Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				return;
+				throw new IOException("Couldn't create data dir");
 			}
 		}
 		
@@ -81,6 +82,7 @@ public abstract class Freemail implements ConfigClient {
 		if (!getGlobalDataDir().exists()) {
 			if (!getGlobalDataDir().mkdir()) {
 				Logger.error(this,"Freemail: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
+				throw new IOException("Couldn't create data dir");
 			}
 		}
 		
@@ -88,9 +90,25 @@ public abstract class Freemail implements ConfigClient {
 		if (!getTempDir().exists()) {
 			if (!Freemail.getTempDir().mkdir()) {
 				Logger.error(this,"Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-				return;
+				throw new IOException("Couldn't create data dir");
 			}
 		}
+		
+		FCPContext fcpctx = new FCPContext();
+		configurator.register("fcp_host", fcpctx, "localhost");
+		configurator.register("fcp_port", fcpctx, "9481");
+		
+		Freemail.fcpconn = new FCPConnection(fcpctx);
+		
+		sender = new MessageSender(getDataDir());
+		
+		File ackdir = new File(getGlobalDataDir(), ACKDIR);
+		AckProcrastinator.setAckDir(ackdir);
+		ackinserter = new AckProcrastinator();
+		
+		
+		imapl = new IMAPListener(configurator);
+		smtpl = new SMTPListener(sender, configurator);
 	}
 	
 	public static File getTempDir() {
@@ -120,11 +138,6 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	protected void startFcp(boolean daemon) {
-		FCPContext fcpctx = new FCPContext();
-		configurator.register("fcp_host", fcpctx, "localhost");
-		configurator.register("fcp_port", fcpctx, "9481");
-		
-		Freemail.fcpconn = new FCPConnection(fcpctx);
 		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
 		fcpThread.setDaemon(true);
 		fcpThread.start();
@@ -134,13 +147,12 @@ public abstract class Freemail implements ConfigClient {
 	// (so startWorkers has to be called before)
 	protected void startServers(boolean daemon) {
 		// start the SMTP Listener
-		smtpl = new SMTPListener(sender, configurator);
+		
 		smtpThread = new Thread(smtpl, "Freemail SMTP Listener");
 		smtpThread.setDaemon(daemon);
 		smtpThread.start();
 		
 		// start the IMAP listener
-		imapl = new IMAPListener(configurator);
 		imapThread = new Thread(imapl, "Freemail IMAP Listener");
 		imapThread.setDaemon(daemon);
 		imapThread.start();
@@ -171,16 +183,12 @@ public abstract class Freemail implements ConfigClient {
 			singleAccountWatcherThreadList.add(t);
 		}
 		
-		// and a sender thread
-		sender = new MessageSender(getDataDir());
+		// start the sender thread
 		messageSenderThread = new Thread(sender, "Freemail Message sender");
 		messageSenderThread.setDaemon(daemon);
 		messageSenderThread.start();
 		
 		// start the delayed ACK inserter
-		File ackdir = new File(getGlobalDataDir(), ACKDIR);
-		AckProcrastinator.setAckDir(ackdir);
-		ackinserter = new AckProcrastinator();
 		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
 		ackInserterThread.setDaemon(daemon);
 		ackInserterThread.start();

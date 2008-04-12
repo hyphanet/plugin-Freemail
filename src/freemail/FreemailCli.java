@@ -24,9 +24,10 @@ package freemail;
 import java.io.IOException;
 
 import freemail.Freemail;
+import freemail.utils.Logger;
 
 public class FreemailCli extends Freemail {
-	public FreemailCli(String cfgfile) {
+	public FreemailCli(String cfgfile) throws IOException {
 		super(cfgfile);
 	}
 	
@@ -78,7 +79,14 @@ public class FreemailCli extends Freemail {
 			}
 		}
 		
-		FreemailCli freemail = new FreemailCli(cfgfile);
+		
+		FreemailCli freemail;
+		try {
+			freemail = new FreemailCli(cfgfile);
+		} catch(IOException ioe) {
+			Logger.error(FreemailCli.class, "Failed to start Freemail: "+ioe.getMessage());
+			return;
+		}
 		freemail.startFcp(false);
 		
 		if (action.equals("--newaccount")) {

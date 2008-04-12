@@ -39,7 +39,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
                                                         FredPluginThreadless {
 	private PluginRespirator pluginResp;
 	
-	public FreemailPlugin() {
+	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
 	}
 	
