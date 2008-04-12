@@ -130,6 +130,8 @@ public abstract class Freemail implements ConfigClient {
 		fcpThread.start();
 	}
 	
+	// note that this relies on sender being initialized
+	// (so startWorkers has to be called before)
 	protected void startServers(boolean daemon) {
 		// start the SMTP Listener
 		smtpl = new SMTPListener(sender, configurator);

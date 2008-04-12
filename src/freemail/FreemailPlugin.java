@@ -47,8 +47,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		pluginResp = pr;
 		
 		startFcp(true);
-		startServers(true);
 		startWorkers(true);
+		startServers(true);
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {

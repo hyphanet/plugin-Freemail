@@ -123,7 +123,7 @@ public class FreemailCli extends Freemail {
 			return;
 		}
 
-		freemail.startServers(false);
 		freemail.startWorkers(false);
+		freemail.startServers(false);
 	}
 }
