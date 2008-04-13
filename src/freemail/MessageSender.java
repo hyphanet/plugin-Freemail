@@ -138,8 +138,8 @@ public class MessageSender implements Runnable {
 	}
 	
 	private void sendDir(FreemailAccount fromAccount, File dir) throws ConnectionTerminatedException {
-		File[] files = dir.listFiles();
 		if (dir == null) return;
+		File[] files = dir.listFiles();
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().startsWith("."))
 				continue;

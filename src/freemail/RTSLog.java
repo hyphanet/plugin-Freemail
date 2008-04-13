@@ -58,7 +58,7 @@ public class RTSLog {
 	}
 	
 	private boolean isBeforeBirth(String daystr) {
-		Date day = DateStringFactory.DateFromKeyString(daystr);
+		Date day = DateStringFactory.dateFromKeyString(daystr);
 		String birth_s = this.logfile.get("birth");
 		Date birth;
 		if (birth_s == null) {
@@ -66,7 +66,7 @@ public class RTSLog {
 			birth_s = DateStringFactory.getOffsetKeyString(0);
 			this.logfile.put("birth", birth_s);
 		} else {
-			birth = DateStringFactory.DateFromKeyString(birth_s);
+			birth = DateStringFactory.dateFromKeyString(birth_s);
 			if (birth.after(new Date())) {
 				Logger.error(this, "RTS log was created in the future! Resetting to now");
 				birth = new Date();
@@ -103,7 +103,7 @@ public class RTSLog {
 				continue;
 			}
 			
-			Date logdate = DateStringFactory.DateFromKeyString(datestr);
+			Date logdate = DateStringFactory.dateFromKeyString(datestr);
 			if (logdate == null) {
 				// couldn't parse the date... hmm
 				hitlist.add(cur);

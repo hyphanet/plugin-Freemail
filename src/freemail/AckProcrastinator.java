@@ -52,13 +52,11 @@ public class AckProcrastinator implements Runnable {
 	private static final int RANDOM_ACK_SIZE = 512;
 	
 	private static File ackdir;
-	private static Random rnd;
+	private static Random rnd = new Random();
 	
-	public AckProcrastinator() {
-		rnd = new Random();
-		File ackdir = getAckDir();
-		if (!ackdir.exists()) {
-			ackdir.mkdir();
+	public AckProcrastinator() throws IOException {
+		if (!ackdir.exists() && !ackdir.mkdir()) {
+			throw new IOException("Coudn't create ACK dir!");
 		}
 	}
 	

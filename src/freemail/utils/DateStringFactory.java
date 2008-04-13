@@ -30,11 +30,6 @@ import java.text.ParseException;
 public class DateStringFactory {
 	private static final TimeZone gmt = TimeZone.getTimeZone("GMT");
 	private static final Calendar cal = Calendar.getInstance(gmt);
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-
-	static {
-		sdf.setTimeZone(gmt);
-	}
 
 	public static String getKeyString() {
 		return getOffsetKeyString(0);
@@ -45,11 +40,17 @@ public class DateStringFactory {
 		cal.setTime(new Date());
 		cal.add(Calendar.DAY_OF_MONTH, offset);
 		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		sdf.setTimeZone(gmt);
+		
 		return sdf.format(cal.getTime());
 	}
 	
-	public static Date DateFromKeyString(String str) {
+	public static Date dateFromKeyString(String str) {
 		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			sdf.setTimeZone(gmt);
+			
 			sdf.setLenient(false);
 			return sdf.parse(str);
 		} catch (ParseException pe) {

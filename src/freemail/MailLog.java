@@ -69,6 +69,7 @@ class MailLog {
 				this.messages.put(new Integer(thisnum), parts[1]);
 			}
 			
+			br.close();
 			frdr.close();
 		} catch (IOException ioe) {
 			return;
@@ -120,6 +121,7 @@ class MailLog {
 		pw.flush();
 		
 		try {
+			pw.close();
 			fos.close();
 		} catch (IOException ioe) {
 			return;

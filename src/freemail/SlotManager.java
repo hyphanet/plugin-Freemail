@@ -175,7 +175,7 @@ public abstract class SlotManager {
 		return retval;
 	}
 	
-	private class Slot {
+	private static class Slot {
 		String slot;
 		long time_added;
 	}

@@ -44,6 +44,7 @@ public class NIMContact {
 		FileReader frdr = new FileReader(this.keyfile);
 		BufferedReader br = new BufferedReader(frdr);
 		String key =  br.readLine();
+		br.close();
 		frdr.close();
 		return key;
 	}
@@ -59,7 +60,7 @@ public class NIMContact {
 		for (i = 0; i< files.length; i++) {
 			if (!files[i].getName().startsWith(LOGFILE_PREFIX))
 				continue;
-			Date logdate = DateStringFactory.DateFromKeyString(files[i].getName().substring(LOGFILE_PREFIX.length()));
+			Date logdate = DateStringFactory.dateFromKeyString(files[i].getName().substring(LOGFILE_PREFIX.length()));
 			if (logdate == null) {
 				// couldn't parse the date... hmm
 				files[i].delete();

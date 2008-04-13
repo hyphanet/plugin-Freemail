@@ -91,12 +91,18 @@ public class OutboundContact {
 			throw new BadFreemailAddressException();
 		} else {
 			File contactsdir = new File(account.getAccountDir(), SingleAccountWatcher.CONTACTS_DIR);
-			if (!contactsdir.exists())
-				contactsdir.mkdir();
+			if (!contactsdir.exists()) {
+				if (!contactsdir.mkdir()) {
+					throw new IOException("Couldn't create contacts dir!");
+				}
+			}
 			File outbounddir = new File(contactsdir, SingleAccountWatcher.OUTBOUND_DIR);
 			
-			if (!outbounddir.exists())
-				outbounddir.mkdir();
+			if (!outbounddir.exists()) {
+				if (!outbounddir.mkdir()) {
+					throw new IOException("Couldn't create outbound dir!");
+				}
+			}
 			
 			if (!this.address.is_ssk_address()) {
 				String ssk_mailsite = this.fetchKSKRedirect(this.address.getMailpageKey());
@@ -115,17 +121,19 @@ public class OutboundContact {
 			
 			File obctdir = new File(outbounddir, this.address.getSubDomain().toLowerCase());
 			
-			if (!obctdir.exists())
-				obctdir.mkdir();
+			if (!obctdir.exists() && !obctdir.mkdir()) {
+				throw new IOException("Couldn't create outbound contact dir!");
+			}
 			
 			this.contactfile = new PropsFile(new File(obctdir, PROPSFILE_NAME));
 			this.ctoutbox = new File(obctdir, OUTBOX_DIR);
-			if (!this.ctoutbox.exists())
-				this.ctoutbox.mkdir();
+			if (!this.ctoutbox.exists() && !this.ctoutbox.mkdir()) {
+				throw new IOException("Couldn't create contact outbox!");
+			}
 		}
 	}
 	
-	public OutboundContact(FreemailAccount acc, File ctdir) {
+	public OutboundContact(FreemailAccount acc, File ctdir) throws IOException {
 		this.account = acc;
 		this.address = new EmailAddress();
 		this.address.domain = ctdir.getName()+".freemail";
@@ -133,14 +141,19 @@ public class OutboundContact {
 		this.contactfile = new PropsFile(new File(ctdir, PROPSFILE_NAME));
 		
 		this.ctoutbox = new File(ctdir, OUTBOX_DIR);
-		if (!this.ctoutbox.exists())
-			this.ctoutbox.mkdir();
+		if (!this.ctoutbox.exists()) {
+			if (!this.ctoutbox.mkdir()) {
+				throw new IOException("Couldn't create contact outbox dir!");
+			}
+		}
 	}
 	
 	public void checkCTS() throws OutboundContactFatalException, ConnectionTerminatedException {
 		String status = this.contactfile.get("status");
 		if (status == null) {
 			this.init();
+			status = this.contactfile.get("status");
+			if (status == null) return;
 		}
 		
 		if (status.equals("cts-received")) {
@@ -400,7 +413,7 @@ public class OutboundContact {
 		
 		// insert it!
 		HighLevelFCPClient cli = new HighLevelFCPClient();
-		if (cli.SlotInsert(encmsg, "KSK@"+rtsksk+"-"+DateStringFactory.getKeyString(), 1, "") < 0) {
+		if (cli.slotInsert(encmsg, "KSK@"+rtsksk+"-"+DateStringFactory.getKeyString(), 1, "") < 0) {
 			// safe to copy the message into the contact outbox though
 			return false;
 		}

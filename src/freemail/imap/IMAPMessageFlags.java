@@ -122,7 +122,7 @@ public class IMAPMessageFlags {
 	}
 	
 	public String getFlags() {
-		String retval = new String("");
+		String retval = "";
 		
 		for (int i = 0; i < allFlags.length; i++) {
 			if (this.flags.contains(allFlags[i])) {

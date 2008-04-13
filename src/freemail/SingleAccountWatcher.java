@@ -23,6 +23,7 @@ package freemail;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.InterruptedException;
 
 import freemail.fcp.ConnectionTerminatedException;
@@ -108,7 +109,7 @@ public class SingleAccountWatcher implements Runnable {
 				// is it time we inserted the mailsite?
 				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
 					MailSite ms = new MailSite(account.getProps());
-					if (ms.Publish() > 0) {
+					if (ms.publish() > 0) {
 						this.mailsite_last_upload = System.currentTimeMillis();
 					}
 				}
@@ -120,9 +121,12 @@ public class SingleAccountWatcher implements Runnable {
 				if (obcontacts != null) {
 					int i;
 					for (i = 0; i < obcontacts.length; i++) {
-						OutboundContact obct = new OutboundContact(account, obcontacts[i]);
-						
-						obct.doComm();
+						try {
+							OutboundContact obct = new OutboundContact(account, obcontacts[i]);
+							obct.doComm();
+						} catch (IOException ioe) {
+							Logger.error(this, "Failed to create outbound contact - not sending mail");
+						}
 					}
 				}
 				if (this.nf != null) {
@@ -170,14 +174,14 @@ public class SingleAccountWatcher implements Runnable {
 		stopping = true;
 	}
 
-	private class outboundContactFilenameFilter implements FilenameFilter {
+	private static class outboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a base32 encoded filename
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z2-7]+");
 		}
 	}
 
-	private class inboundContactFilenameFilter implements FilenameFilter {
+	private static class inboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a freenet key
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z0-9~-]+,[A-Za-z0-9~-]+,[A-Za-z0-9~-]+");

@@ -133,7 +133,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		log.pruneBefore(cal.getTime());
 	}
 	
-	private class MySlotSaveData {
+	private static class MySlotSaveData {
 		RTSLog log;
 		String date;
 	}

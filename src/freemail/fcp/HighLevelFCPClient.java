@@ -195,7 +195,7 @@ public class HighLevelFCPClient implements FCPClient {
 		return -1;
 	}
 	
-	public int SlotInsert(byte[] data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException {
+	public int slotInsert(byte[] data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException {
 		int slot = minslot;
 		boolean carryon = true;
 		ByteArrayInputStream bis;

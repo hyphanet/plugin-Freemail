@@ -244,7 +244,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 	}
 	
 	
-	private class MessageLog {
+	private static class MessageLog {
 		private static final String LOGFILE = "log";
 		private final File logfile;
 		
@@ -263,7 +263,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			String line;
 			while ( (line = br.readLine()) != null) {
 				int curid = Integer.parseInt(line);
-				if (curid == targetid) return true;
+				if (curid == targetid) {
+					br.close();
+					return true;
+				}
 			}
 			
 			br.close();

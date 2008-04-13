@@ -68,7 +68,7 @@ public class MailSite {
 		return buf.toString();
 	}
 	
-	public int Publish() {
+	public int publish() {
 		byte[] mailpage;
 		String mailsite_s = this.getMailPage();
 		if (mailsite_s == null) {
@@ -95,7 +95,7 @@ public class MailSite {
 		
 		int actualslot = -1;
 		try {
-			actualslot = cli.SlotInsert(mailpage, key, minslot, "/"+MAILPAGE);
+			actualslot = cli.slotInsert(mailpage, key, minslot, "/"+MAILPAGE);
 		} catch (ConnectionTerminatedException cte) {
 			return -1;
 		}

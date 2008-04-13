@@ -162,8 +162,6 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if (b64password == null) return;
                         
-                        password = new String(Base64.decode(b64password.getBytes()));
-			
 			uname = new String(Base64.decode(b64username.getBytes()));
 			password = new String(Base64.decode(b64password.getBytes()));
 		} else if (cmd.args[0].equalsIgnoreCase("plain")) {

@@ -191,10 +191,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 		
 		if (refname != null) refname = trimQuotes(refname);
-		if (refname.length() == 0) refname = null;
+		if (refname!= null && refname.length() == 0) refname = null;
 		
 		if (mbname != null) mbname = trimQuotes(mbname);
-		if (mbname.length() == 0) mbname = null;
+		if (mbname != null && mbname.length() == 0) mbname = null;
 		
 		if (mbname == null) {
 			// return hierarchy delimiter
@@ -1280,7 +1280,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		
 		EmailAddress addr = new EmailAddress(address);
 		
-		String retval = new String("((");
+		String retval = "((";
 		retval += this.IMAPifyString(addr.realname)+" ";
 		// SMTP Source Route. Whatever this is, it's not relevant!
 		retval += "NIL ";

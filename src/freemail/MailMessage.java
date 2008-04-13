@@ -315,7 +315,7 @@ public class MailMessage {
 		this.file.renameTo(new File(this.file.getParentFile(), newname));
 	}
 	
-	private class MailMessageHeader {
+	private static class MailMessageHeader {
 		public String name;
 		public String val;
 		
