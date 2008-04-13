@@ -108,6 +108,10 @@ public abstract class Freemail implements ConfigClient {
 		smtpl = new SMTPListener(accountManager, sender, configurator);
 	}
 	
+	public static String getVersionString() {
+		return VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")";
+	}
+	
 	public static File getTempDir() {
 		return Freemail.tempdir;
 	}
@@ -161,7 +165,7 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	protected void startWorkers(boolean daemon) {
-		System.out.println("This is Freemail version "+VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")");
+		System.out.println("This is Freemail version "+getVersionString());
 		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 		
