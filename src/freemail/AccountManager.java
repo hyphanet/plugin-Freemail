@@ -93,7 +93,10 @@ public class AccountManager {
 						+"\"), you may get problems accessing the account.");
 			}
 			
-			FreemailAccount account = new FreemailAccount(files[i].toString(), files[i], getAccountFile(files[i]));
+			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], getAccountFile(files[i]));
+			if (account == null) {
+				Logger.error(this, "Couldn't initialise account from directory '"+files[i].getName()+"' - ignoring.");
+			}
 			
 			accounts.put(files[i].getName(), account);
 		}
@@ -135,9 +138,9 @@ public class AccountManager {
 		}
 		
 		File accountdir = new File(datadir, username);
-		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+datadir);
+		if (!accountdir.exists() && !accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+datadir);
 		
-		PropsFile accProps = getAccountFile(accountdir);
+		PropsFile accProps = newAccountFile(accountdir);
 		
 		FreemailAccount account = new FreemailAccount(username, accountdir, accProps);
 		accounts.put(username, account);
@@ -180,6 +183,16 @@ public class AccountManager {
 	}
 	
 	private static PropsFile getAccountFile(File accdir) {
+		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
+		
+		if (!accdir.exists() || !accfile.exists()) {
+			return null;
+		}
+		
+		return accfile;
+	}
+	
+	private static PropsFile newAccountFile(File accdir) {
 		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (accdir.exists() && !accfile.exists()) {
