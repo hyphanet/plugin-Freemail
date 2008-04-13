@@ -34,6 +34,7 @@ import java.util.Vector;
 
 import freemail.Freemail;
 import freemail.AccountManager;
+import freemail.FreemailAccount;
 import freemail.MessageSender;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
@@ -44,16 +45,19 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	private final OutputStream os;
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
-	private String username;
+	private FreemailAccount account;
 	private final MessageSender msgsender;
 	public static final String MY_HOSTNAME = "localhost";
 	
+	private final AccountManager accountmanager;
+	
 	private Vector to;
 	
-	public SMTPHandler(Socket client, MessageSender sender) throws IOException {
+	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender) throws IOException {
 		super(client);
+		accountmanager = accMgr;
 		this.msgsender = sender;
-		this.username = null;
+		this.account = null;
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -196,9 +200,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		if (AccountManager.authenticate(uname, password)) {
-			this.username = uname;
-			
+		account = accountmanager.authenticate(uname, password);
+		if (account != null) {
 			this.ps.print("235 Authenticated\r\n");
 		} else {
 			this.ps.print("535 Authentication failed\r\n");
@@ -206,7 +209,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_mail(SMTPCommand cmd) {
-		if (this.username == null) {
+		if (this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
@@ -221,7 +224,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		if (this.username == null) {
+		if (this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
@@ -255,7 +258,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_data(SMTPCommand cmd) {
-		if (this.username == null) {
+		if (this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
@@ -289,7 +292,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 			
-			this.msgsender.send_message(this.username, to, tempfile);
+			this.msgsender.sendMessage(this.account, to, tempfile);
 			
 			tempfile.delete();
 			

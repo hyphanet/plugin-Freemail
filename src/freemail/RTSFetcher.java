@@ -67,14 +67,12 @@ public class RTSFetcher implements SlotSaveCallback {
 	private static final int RTS_MAX_SIZE = 2 * 1024 * 1024;
 	private static final String RTS_UNPROC_PREFIX = "unprocessed_rts";
 	private static final int RTS_MAX_ATTEMPTS = 15;
-	private File accdir;
-	private PropsFile accprops;
+	private FreemailAccount account;
 
-	RTSFetcher(String key, File ctdir, File ad) {
+	RTSFetcher(String key, File ctdir, FreemailAccount acc) {
 		this.rtskey = key;
 		this.contact_dir = ctdir;
-		this.accdir = ad;
-		this.accprops = AccountManager.getAccountFile(this.accdir);
+		this.account = acc;
 	}
 	
 	public void poll() throws ConnectionTerminatedException {
@@ -357,7 +355,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		// Now verify the message is for us
 		String our_mailsite_keybody;
 		try {
-			our_mailsite_keybody = new FreenetURI(this.accprops.get("mailsite.pubkey")).getKeyBody();
+			our_mailsite_keybody = new FreenetURI(account.getProps().get("mailsite.pubkey")).getKeyBody();
 		} catch (MalformedURLException mfue) {
 			Logger.normal(this,"Local mailsite URI is invalid! Corrupt account file?");
 			msfile.delete();
@@ -365,7 +363,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			return false;
 		}
 		
-		String our_domain_alias = this.accprops.get("domain_alias");
+		String our_domain_alias = account.getProps().get("domain_alias");
 		FreenetURI mailsite_furi;
 		try {
 			mailsite_furi = new FreenetURI(our_mailsite_keybody);
@@ -407,7 +405,7 @@ public class RTSFetcher implements SlotSaveCallback {
 	
 	private byte[] decrypt_rts(File rtsmessage) throws IOException, InvalidCipherTextException {
 		// initialise our ciphers
-		RSAKeyParameters ourprivkey = AccountManager.getPrivateKey(this.accdir);
+		RSAKeyParameters ourprivkey = AccountManager.getPrivateKey(account.getProps());
 		AsymmetricBlockCipher deccipher = new RSAEngine();
 		deccipher.init(false, ourprivkey);
 		

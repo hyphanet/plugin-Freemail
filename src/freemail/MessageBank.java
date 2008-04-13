@@ -42,8 +42,8 @@ public class MessageBank {
 
 	private final File dir;
 
-	public MessageBank(String username) {
-		this.dir = new File(AccountManager.DATADIR + File.separator + username + File.separator + MESSAGES_DIR);
+	public MessageBank(FreemailAccount account) {
+		this.dir = new File(account.getAccountDir(), MESSAGES_DIR);
 		
 		if (!this.dir.exists()) {
 			this.dir.mkdir();
@@ -71,7 +71,7 @@ public class MessageBank {
 		return retval.toString();
 	}
 	
-	public boolean delete() {
+	public synchronized boolean delete() {
 		File[] files = this.dir.listFiles();
 		
 		for (int i = 0; i < files.length; i++) {
@@ -90,7 +90,7 @@ public class MessageBank {
 		return this.dir.renameTo(newdir);
 	}
 	
-	public MailMessage createMessage() {
+	public synchronized MailMessage createMessage() {
 		long newid = this.nextId();
 		File newfile;
 		try {
@@ -112,7 +112,7 @@ public class MessageBank {
 		return null;
 	}
 	
-	public SortedMap listMessages() {
+	public synchronized SortedMap listMessages() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
 
 		Arrays.sort(files, new UIDComparator());
@@ -131,7 +131,7 @@ public class MessageBank {
 		return msgs;
 	}
 	
-	public MailMessage[] listMessagesArray() {
+	public synchronized MailMessage[] listMessagesArray() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
 
 		Arrays.sort(files, new UIDComparator());
@@ -159,7 +159,7 @@ public class MessageBank {
 		return new MessageBank(targetdir);
 	}
 	
-	public MessageBank makeSubFolder(String name) {
+	public synchronized MessageBank makeSubFolder(String name) {
 		if (!name.matches("[\\w\\s_]*")) return null;
 		
 		File targetdir = new File(this.dir, name);
@@ -183,7 +183,7 @@ public class MessageBank {
 		return null;
 	}
 	
-	public MessageBank[] listSubFolders() {
+	public synchronized MessageBank[] listSubFolders() {
 		File[] files = this.dir.listFiles();
 		Vector subfolders = new Vector();
 		
@@ -206,7 +206,7 @@ public class MessageBank {
 		return retval;
 	}
 	
-	private long nextId() {
+	private synchronized long nextId() {
 		File nidfile = new File(this.dir, NIDFILE);
 		long retval;
 		
@@ -225,7 +225,7 @@ public class MessageBank {
 		return retval;
 	}
 	
-	private void writeNextId(long newid) {
+	private synchronized void writeNextId(long newid) {
 		// write the new ID to a temporary file
 		File nidfile = new File(this.dir, NIDTMPFILE);
 		try {

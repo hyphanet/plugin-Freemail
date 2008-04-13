@@ -33,7 +33,7 @@ public class FreemailCli extends Freemail {
 	
 	public static void main(String[] args) {
 		String action = "";
-		String account = null;
+		String username = null;
 		String newpasswd = null;
 		String alias = null;
 		String cfgfile = CFGFILE;
@@ -47,7 +47,7 @@ public class FreemailCli extends Freemail {
 					return;
 				}
 				
-				account = args[i];
+				username = args[i];
 			} else if (args[i].equals("--passwd") || args[i].equals("--password")) {
 				action = "--passwd";
 				i = i + 2;
@@ -55,7 +55,7 @@ public class FreemailCli extends Freemail {
 					System.out.println("Usage: --passwd <account name> <password>");
 					return;
 				}
-				account = args[i - 1];
+				username = args[i - 1];
 				newpasswd = args[i];
 			} else if (args[i].equals("--shortaddress")) {
 				action = args[i];
@@ -64,7 +64,7 @@ public class FreemailCli extends Freemail {
 					System.out.println("Usage: --shortaddress <name> <domain prefix>");
 					return;
 				}
-				account = args[i - 1];
+				username = args[i - 1];
 				alias = args[i];
 			} else if (args[i].equals("-c")) {
 				i++;
@@ -73,6 +73,17 @@ public class FreemailCli extends Freemail {
 					continue;
 				}
 				cfgfile = args[i];
+			} else if (args[i].equals("--help") || args[i].equals("-help") || args[i].equals("--h")) {
+				System.out.println("Usage:");
+				System.out.println(" java -jar Freemail.jar [-c config]");
+				System.out.println("  Starts the Freemail daemon with config file 'config'");
+				System.out.println(" java -jar Freemail.jar [-c config] --newaccount <account name>");
+				System.out.println("  Creates an account");
+				System.out.println(" java -jar Freemail.jar [-c config] --passwd <account name> <password>");
+				System.out.println("  Changes the password for the given account");
+				System.out.println(" java -jar Freemail.jar [-c config] --shortaddress <name> <domain prefix>");
+				System.out.println("  Adds a short address or changes the short address for the given account.");
+				return;
 			} else {
 				System.out.println("Unknown option: '"+args[i]+"'");
 				return;
@@ -91,10 +102,10 @@ public class FreemailCli extends Freemail {
 		
 		if (action.equals("--newaccount")) {
 			try {
-				AccountManager.Create(account);
+				freemail.getAccountManager().createAccount(username);
 				// by default, we'll not setup NIM now real mode works
 				//AccountManager.setupNIM(account);
-				System.out.println("Account created for "+account+". You may now set a password with --passwd <username> <password>");
+				System.out.println("Account created for "+username+". You may now set a password with --passwd <username> <password>");
 				//System.out.println("For the time being, you address is "+account+"@nim.freemail");
 			} catch (IOException ioe) {
 				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
@@ -104,15 +115,17 @@ public class FreemailCli extends Freemail {
 			return;
 		} else if (action.equals("--passwd")) {
 			try {
-				AccountManager.ChangePassword(account, newpasswd);
+				FreemailAccount account = freemail.getAccountManager().getAccount(username);
+				AccountManager.changePassword(account, newpasswd);
 				System.out.println("Password changed.");
 			} catch (Exception e) {
-				System.out.println("Couldn't change password for "+account+". "+e.getMessage());
+				System.out.println("Couldn't change password for "+username+". "+e.getMessage());
 				e.printStackTrace();
 			}
 			return;
 		} else if (action.equals("--shortaddress")) {
 			boolean success = false;
+			FreemailAccount account = freemail.getAccountManager().getAccount(username);
 			try {
 				success = AccountManager.addShortAddress(account, alias);
 			} catch (IllegalArgumentException iae) {

@@ -69,7 +69,7 @@ public class PropsFile {
 		this.header = hdr;
 	}
 	
-	private BufferedReader read(boolean stopAtBlank) throws IOException {
+	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
 		this.data = new HashMap();
 		
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
@@ -103,7 +103,7 @@ public class PropsFile {
 		}
 	}
 	
-	private void write() throws IOException {
+	private synchronized void write() throws IOException {
 		PrintWriter pw = new PrintWriter(new FileOutputStream(this.file));
 		
 		if (this.header != null) pw.println(this.header);

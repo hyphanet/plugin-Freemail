@@ -41,7 +41,7 @@ public abstract class Freemail implements ConfigClient {
 	public static final String VERSION_TAG = "Pet Shop";
 
 	private static final String TEMPDIRNAME = "temp";
-	protected static final String DATADIR = "data";
+	protected static final String DEFAULT_DATADIR = "data";
 	private static final String GLOBALDATADIR = "globaldata";
 	private static final String ACKDIR = "delayedacks";
 	protected static final String CFGFILE = "globalconfig";
@@ -57,6 +57,7 @@ public abstract class Freemail implements ConfigClient {
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
+	private final AccountManager accountManager;
 	private final ArrayList singleAccountWatcherList = new ArrayList();
 	private final MessageSender sender;
 	private final SMTPListener smtpl;
@@ -70,7 +71,7 @@ public abstract class Freemail implements ConfigClient {
 		
 		configurator.register("loglevel", new Logger(), "normal|error");
 		
-		configurator.register("datadir", this, Freemail.DATADIR);
+		configurator.register("datadir", this, Freemail.DEFAULT_DATADIR);
 		if (!getDataDir().exists()) {
 			if (!getDataDir().mkdir()) {
 				Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
@@ -100,15 +101,17 @@ public abstract class Freemail implements ConfigClient {
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
-		sender = new MessageSender(getDataDir());
+		accountManager = new AccountManager(datadir);
+		
+		sender = new MessageSender(accountManager);
 		
 		File ackdir = new File(getGlobalDataDir(), ACKDIR);
 		AckProcrastinator.setAckDir(ackdir);
 		ackinserter = new AckProcrastinator();
 		
 		
-		imapl = new IMAPListener(configurator);
-		smtpl = new SMTPListener(sender, configurator);
+		imapl = new IMAPListener(accountManager, configurator);
+		smtpl = new SMTPListener(accountManager, sender, configurator);
 	}
 	
 	public static File getTempDir() {
@@ -125,6 +128,10 @@ public abstract class Freemail implements ConfigClient {
 	
 	public static FCPConnection getFCPConnection() {
 		return Freemail.fcpconn;
+	}
+	
+	public AccountManager getAccountManager() {
+		return accountManager;
 	}
 
 	public void setConfigProp(String key, String val) {
@@ -158,29 +165,26 @@ public abstract class Freemail implements ConfigClient {
 		imapThread.start();
 	}
 	
+	protected void startWorker(FreemailAccount account, boolean daemon) {
+		SingleAccountWatcher saw = new SingleAccountWatcher(account); 
+		singleAccountWatcherList.add(saw);
+		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
+		t.setDaemon(daemon);
+		t.start();
+		singleAccountWatcherThreadList.add(t);
+	}
+	
 	protected void startWorkers(boolean daemon) {
 		System.out.println("This is Freemail version "+VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")");
 		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 		
 		// start a SingleAccountWatcher for each account
-		File[] files = getDataDir().listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
-				continue;
-			if (!files[i].isDirectory()) continue;
-
-			String invalid=AccountManager.validateUsername(files[i].getName());
-			if(!invalid.equals("")) {
-				Logger.error(this,"Account name "+files[i].getName()+" contains invalid chars (\""+invalid+"\"), you may get problems accessing the account.");
-			}
+		Iterator i = accountManager.getAllAccounts().iterator();
+		while (i.hasNext()) {
+			FreemailAccount acc = (FreemailAccount)i.next();
 			
-			SingleAccountWatcher saw = new SingleAccountWatcher(files[i]); 
-			singleAccountWatcherList.add(saw);
-			Thread t = new Thread(saw, "Freemail Account Watcher for "+files[i].getName());
-			t.setDaemon(daemon);
-			t.start();
-			singleAccountWatcherThreadList.add(t);
+			startWorker(acc, daemon);
 		}
 		
 		// start the sender thread

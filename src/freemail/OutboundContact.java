@@ -62,7 +62,7 @@ import org.bouncycastle.util.encoders.Base64;
 public class OutboundContact {
 	public static final String OUTBOX_DIR = "outbox";
 	private final PropsFile contactfile;
-	private final File accdir;
+	private final FreemailAccount account;
 	private final File ctoutbox;
 	private final EmailAddress address;
 	// how long to wait for a CTS before sending the message again
@@ -80,17 +80,17 @@ public class OutboundContact {
 	// we read 128 bytes for our IV, so it needs to be constant.)
 	private static final int AES_BLOCK_LENGTH = 128 / 8;
 	
-	public OutboundContact(File accdir, EmailAddress a) throws BadFreemailAddressException, IOException,
+	public OutboundContact(FreemailAccount acc, EmailAddress a) throws BadFreemailAddressException, IOException,
 	                                                           OutboundContactFatalException, ConnectionTerminatedException {
 		this.address = a;
 		
-		this.accdir = accdir;
+		this.account = acc;
 		
 		if (!this.address.is_freemail_address()) {
 			this.contactfile = null;
 			throw new BadFreemailAddressException();
 		} else {
-			File contactsdir = new File(accdir, SingleAccountWatcher.CONTACTS_DIR);
+			File contactsdir = new File(account.getAccountDir(), SingleAccountWatcher.CONTACTS_DIR);
 			if (!contactsdir.exists())
 				contactsdir.mkdir();
 			File outbounddir = new File(contactsdir, SingleAccountWatcher.OUTBOUND_DIR);
@@ -125,8 +125,8 @@ public class OutboundContact {
 		}
 	}
 	
-	public OutboundContact(File accdir, File ctdir) {
-		this.accdir = accdir;
+	public OutboundContact(FreemailAccount acc, File ctdir) {
+		this.account = acc;
 		this.address = new EmailAddress();
 		this.address.domain = ctdir.getName()+".freemail";
 		
@@ -319,7 +319,7 @@ public class OutboundContact {
 		rtsmessage.append("to="+this.address.getSubDomain()+"\r\n");
 		
 		// get our mailsite URI
-		String our_mailsite_uri = AccountManager.getAccountFile(this.accdir).get("mailsite.pubkey");
+		String our_mailsite_uri = account.getProps().get("mailsite.pubkey");
 		
 		rtsmessage.append("mailsite="+our_mailsite_uri+"\r\n");
 		
@@ -332,7 +332,7 @@ public class OutboundContact {
 		byte[] hash = new byte[sha256.getDigestSize()];
 		sha256.doFinal(hash, 0);
 		
-		RSAKeyParameters our_priv_key = AccountManager.getPrivateKey(this.accdir);
+		RSAKeyParameters our_priv_key = AccountManager.getPrivateKey(account.getProps());
 		
 		AsymmetricBlockCipher sigcipher = new RSAEngine();
 		sigcipher.init(true, our_priv_key);
@@ -609,7 +609,10 @@ public class OutboundContact {
 			
 			if (!ready) {
 				if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
-					if (Postman.bounceMessage(msgs[i].getMessageFile(), new MessageBank(this.accdir.getName()), "Freemail has been trying to establish a communication channel with this party for too long without success. Check that the Freemail address is valid, and that the recipient still runs Freemail on at least a semi-regular basis.", true)) {
+					if (Postman.bounceMessage(msgs[i].getMessageFile(), account.getMessageBank(),
+							"Freemail has been trying to establish a communication channel with this party for too long "
+							+"without success. Check that the Freemail address is valid, and that the recipient still runs "
+							+"Freemail on at least a semi-regular basis.", true)) {
 						msgs[i].delete();
 					}
 				}
@@ -650,7 +653,9 @@ public class OutboundContact {
 				msgs[i].saveProps();
 			} else if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
 				Logger.normal(this,"Giving up on a message - been trying to send for too long. Bouncing.");
-				if (Postman.bounceMessage(msgs[i].getMessageFile(), new MessageBank(this.accdir.getName()), "Freemail has been trying to deliver this message for too long without success. This is likley to be due to a poor connection to Freenet. Check your Freenet node.", true)) {
+				if (Postman.bounceMessage(msgs[i].getMessageFile(), account.getMessageBank(),
+						"Freemail has been trying to deliver this message for too long without success. "
+						+"This is likley to be due to a poor connection to Freenet. Check your Freenet node.", true)) {
 					msgs[i].delete();
 				}
 			} else {
@@ -695,7 +700,10 @@ public class OutboundContact {
 					// give up and bounce the message
 					File m = msgs[i].getMessageFile();
 					
-					Postman.bounceMessage(m, new MessageBank(this.accdir.getName()), "Freemail has been trying for too long to deliver this message, and has received no acknowledgement. It is possible that the recipient has not run Freemail since you sent the message. If you believe this is likely, try resending the message.", true);
+					Postman.bounceMessage(m, account.getMessageBank(),
+							"Freemail has been trying for too long to deliver this message, and has received no acknowledgement. "
+							+"It is possible that the recipient has not run Freemail since you sent the message. "
+							+"If you believe this is likely, try resending the message.", true);
 					Logger.normal(this,"Giving up on message - been trying for too long.");
 					msgs[i].delete();
 				} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {

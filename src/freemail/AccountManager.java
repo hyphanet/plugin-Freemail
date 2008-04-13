@@ -26,6 +26,10 @@ import java.io.PrintWriter;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -51,7 +55,6 @@ import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 
 public class AccountManager {
-	public static final String DATADIR = "data";
 	// this really doesn't matter a great deal
 	public static final String NIMDIR = "nim";
 	
@@ -64,6 +67,45 @@ public class AccountManager {
 	
 	public static final String MAILSITE_SUFFIX = "mailsite";
 	public static final String MAILSITE_VERSION = "-1";
+	
+	// We keep FreemailAccount objects for all the accounts in this instance of Freemail - they need to be in memory
+	// anyway since there's SingleAccountWatcher thread running for each of them anyway - and we return the same object
+	// each time a request is made for a given account.
+	private Map/*<String, FreemailAccount>*/ accounts = new HashMap();
+	
+	private final File datadir;
+	
+	public AccountManager(File _datadir) {
+		datadir = _datadir;
+		if (!datadir.exists()) {
+			datadir.mkdir();
+		}
+		
+		File[] files = datadir.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
+				continue;
+			if (!files[i].isDirectory()) continue;
+
+			String invalid=validateUsername(files[i].getName());
+			if(!invalid.equals("")) {
+				Logger.error(this,"Account name "+files[i].getName()+" contains invalid chars (\""+invalid
+						+"\"), you may get problems accessing the account.");
+			}
+			
+			FreemailAccount account = new FreemailAccount(files[i].toString(), files[i], getAccountFile(files[i]));
+			
+			accounts.put(files[i].getName(), account);
+		}
+	}
+	
+	public FreemailAccount getAccount(String username) {
+		return (FreemailAccount)accounts.get(username);
+	}
+	
+	public List/*<FreemailAccount>*/ getAllAccounts() {
+		return new LinkedList(accounts.values());
+	}
 
 	// avoid invalid chars in username or address
 	// returns the first invalid char to give user a hint
@@ -86,24 +128,27 @@ public class AccountManager {
 		return validateChars(username, "@\'\"\\/,:%()+ ");
 	}
 	
-	public static void Create(String username) throws IOException,IllegalArgumentException {
-		File datadir = new File(DATADIR);
+	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException {
 		String invalid=validateUsername(username);
 		if(!invalid.equals("")) {
 			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
 		}
-		if (!datadir.exists()) {
-			if (!datadir.mkdir()) throw new IOException("Failed to create data directory");
-		}
 		
-		File accountdir = new File(DATADIR, username);
-		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+DATADIR);
+		File accountdir = new File(datadir, username);
+		if (!accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+datadir);
 		
-		putWelcomeMessage(username, new EmailAddress(username+"@"+getFreemailDomain(accountdir)));
+		PropsFile accProps = getAccountFile(accountdir);
+		
+		FreemailAccount account = new FreemailAccount(username, accountdir, accProps);
+		accounts.put(username, account);
+		
+		putWelcomeMessage(account, new EmailAddress(username+"@"+getFreemailDomain(accProps)));
+		
+		return account;
 	}
 	
-	public static void setupNIM(String username) throws IOException {
-		File accountdir = new File(DATADIR, username);
+	public void setupNIM(String username) throws IOException {
+		File accountdir = new File(datadir, username);
 		
 		File contacts_dir = new File(accountdir, SingleAccountWatcher.CONTACTS_DIR);
 		if (!contacts_dir.exists()) {
@@ -123,25 +168,18 @@ public class AccountManager {
 		pw.close();
 	}
 	
-	public static void ChangePassword(String username, String newpassword) throws Exception {
+	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
 		MD5Digest md5 = new MD5Digest();
-		
-		File accountdir = new File(DATADIR, username);
-		if (!accountdir.exists()) {
-			throw new Exception("No such account - "+username+".");
-		}
-		
-		PropsFile accfile = getAccountFile(accountdir);
 		
 		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
 		
-		accfile.put("md5passwd", strmd5);
+		account.getProps().put("md5passwd", strmd5);
 	}
 	
-	public static PropsFile getAccountFile(File accdir) {
+	private static PropsFile getAccountFile(File accdir) {
 		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (accdir.exists() && !accfile.exists()) {
@@ -149,12 +187,6 @@ public class AccountManager {
 		}
 		
 		return accfile;
-	}
-	
-	public static String getFreemailDomain(File accdir) {
-		PropsFile accfile = getAccountFile(accdir);
-		
-		return getFreemailDomain(accfile);
 	}
 	
 	public static String getFreemailDomain(PropsFile accfile) {
@@ -173,9 +205,7 @@ public class AccountManager {
 		return Base32.encode(mailsite.getKeyBody().getBytes())+".freemail";
 	}
 	
-	public static String getKSKFreemailDomain(File accdir) {
-		PropsFile accfile = getAccountFile(accdir);
-		
+	public static String getKSKFreemailDomain(PropsFile accfile) {
 		String alias = accfile.get("domain_alias");
 		
 		if (alias == null) return null;
@@ -183,9 +213,7 @@ public class AccountManager {
 		return alias+".freemail";
 	}
 	
-	public static RSAKeyParameters getPrivateKey(File accdir) {
-		PropsFile props = getAccountFile(accdir);
-		
+	public static RSAKeyParameters getPrivateKey(PropsFile props) {
 		String mod_str = props.get("asymkey.modulus");
 		String privexp_str = props.get("asymkey.privexponent");
 		
@@ -264,32 +292,23 @@ public class AccountManager {
 		Logger.normal(AccountManager.class,"Account creation completed.");
 	}
 	
-	public static boolean addShortAddress(String username, String alias) throws Exception {
-		File accountdir = new File(DATADIR, username);
-		if (!accountdir.exists()) {
-			throw new Exception("No such account - "+username+".");
-		}
-
+	public static boolean addShortAddress(FreemailAccount account, String alias) throws Exception {
 		String invalid=validateShortAddress(alias);
 		if(!invalid.equals("")) {
 			throw new IllegalArgumentException("The short address may not contain the character '"+invalid+"'");
 		}
 		
-		PropsFile accfile = getAccountFile(accountdir);
-		
 		alias = alias.toLowerCase();
 		
-		MailSite ms = new MailSite(accfile);
+		MailSite ms = new MailSite(account.getProps());
 		
 		if (ms.insertAlias(alias)) {
-			accfile.put("domain_alias", alias);
+			account.getProps().put("domain_alias", alias);
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
-			EmailAddress to = new EmailAddress(username+"@"+getKSKFreemailDomain(accountdir));
+			EmailAddress to = new EmailAddress(account.getUsername()+"@"+getKSKFreemailDomain(account.getProps()));
 		
-			MessageBank mb = new MessageBank(username);
-		
-			MailMessage m = mb.createMessage();
+			MailMessage m = account.getMessageBank().createMessage();
 		
 			m.addHeader("From", "Freemail Daemon <nowhere@dontreply>");
 			m.addHeader("To", to.toString());
@@ -317,19 +336,14 @@ public class AccountManager {
 		}
 	}
 	
-	public static boolean authenticate(String username, String password) {
-		if (!validate_username(username)) return false;
+	public FreemailAccount authenticate(String username, String password) {
+		if (!validate_username(username)) return null;
 		
-		//String sep = System.getProperty("file.separator");
+		FreemailAccount account = (FreemailAccount)accounts.get(username);
+		if (account == null) return null;
 		
-		File accountdir = new File(DATADIR, username);
-		if (!accountdir.exists()) {
-			return false;
-		}
-		PropsFile accfile = getAccountFile(accountdir);
-		
-		String realmd5str = accfile.get("md5passwd");
-		if (realmd5str == null) return false;
+		String realmd5str = account.getProps().get("md5passwd");
+		if (realmd5str == null) return null;
 		
 		MD5Digest md5 = new MD5Digest();
 		md5.update(password.getBytes(), 0, password.getBytes().length);
@@ -339,9 +353,9 @@ public class AccountManager {
 		String givenmd5str = new String(Hex.encode(givenmd5));
 		
 		if (realmd5str.equals(givenmd5str)) {
-			return true;
+			return account;
 		}
-		return false;
+		return null;
 	}
 	
 	private static boolean validate_username(String username) {
@@ -350,12 +364,10 @@ public class AccountManager {
 		return false;
 	}
 	
-	private static void putWelcomeMessage(String username, EmailAddress to) throws IOException {
+	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		
-		MessageBank mb = new MessageBank(username);
-		
-		MailMessage m = mb.createMessage();
+		MailMessage m = account.getMessageBank().createMessage();
 		
 		m.addHeader("From", "Dave Baker <dave@dbkr.freemail>");
 		m.addHeader("To", to.toString());

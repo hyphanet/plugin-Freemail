@@ -26,6 +26,7 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.io.IOException;
 
+import freemail.AccountManager;
 import freemail.ServerListener;
 import freemail.config.Configurator;
 import freemail.config.ConfigClient;
@@ -35,8 +36,10 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 	private static final int LISTENPORT = 3143;
 	private String bindaddress;
 	private int bindport;
+	private final AccountManager accountManager;
 	
-	public IMAPListener(Configurator cfg) {
+	public IMAPListener(AccountManager accMgr, Configurator cfg) {
+		accountManager = accMgr;
 		cfg.register("imap_bind_address", this, "127.0.0.1");
 		cfg.register("imap_bind_port", this, Integer.toString(LISTENPORT));
 	}
@@ -62,7 +65,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 		sock.setSoTimeout(60000);
 		while (!sock.isClosed()) {
 			try {
-				IMAPHandler newcli = new IMAPHandler(sock.accept());
+				IMAPHandler newcli = new IMAPHandler(accountManager, sock.accept());
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
  				newthread.start();

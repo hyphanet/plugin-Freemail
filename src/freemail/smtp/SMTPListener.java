@@ -25,6 +25,7 @@ import java.net.ServerSocket;
 import java.net.InetAddress;
 import java.io.IOException;
 
+import freemail.AccountManager;
 import freemail.MessageSender;
 import freemail.ServerListener;
 import freemail.config.ConfigClient;
@@ -36,9 +37,11 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 	private final MessageSender msgsender;
 	private String bindaddress;
 	private int bindport;
+	private final AccountManager accountManager;
 	
-	public SMTPListener(MessageSender sender, Configurator cfg) {
+	public SMTPListener(AccountManager accMgr, MessageSender sender, Configurator cfg) {
 		this.msgsender = sender;
+		this.accountManager = accMgr;
 		cfg.register("smtp_bind_address", this, "127.0.0.1");
 		cfg.register("smtp_bind_port", this, Integer.toString(LISTENPORT));
 	}
@@ -63,7 +66,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
 		while (!sock.isClosed()) {
 			try {
-				SMTPHandler newcli = new SMTPHandler(sock.accept(), this.msgsender);
+				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), this.msgsender);
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
 				newthread.start();

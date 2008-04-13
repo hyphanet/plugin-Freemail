@@ -22,7 +22,6 @@
 package freemail;
 
 
-import java.io.File;
 import java.io.IOException;
 
 import freenet.pluginmanager.FredPlugin;
@@ -90,17 +89,15 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		if(add.equals("Add account")) {
 			if(!(name.equals("") || password.equals(""))) {
 				try {
-					AccountManager.Create(name);
-					AccountManager.ChangePassword(name, password);
+					FreemailAccount newAccount = getAccountManager().createAccount(name);
+					AccountManager.changePassword(newAccount, password);
 					boolean tryShortAddress = false;
 					boolean shortAddressWorked = false;
 					if(!domain.equals("")) {
 						tryShortAddress = true;
-						shortAddressWorked = AccountManager.addShortAddress(name, domain);
+						shortAddressWorked = AccountManager.addShortAddress(newAccount, domain);
 					}
-					Thread t = new Thread(new SingleAccountWatcher(new File(DATADIR, name)), "Account Watcher for "+name);
-					t.setDaemon(true);
-					t.start();
+					startWorker(newAccount, true);
 
 					HTMLNode successBox = contentNode.addChild("div", "class", "infobox infobox-success");
 					successBox.addChild("div", "class", "infobox-header", "Account Created");

@@ -34,6 +34,7 @@ import java.lang.NumberFormatException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import freemail.FreemailAccount;
 import freemail.MessageBank;
 import freemail.MailMessage;
 import freemail.AccountManager;
@@ -48,10 +49,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	private final BufferedReader bufrdr;
 	private MessageBank mb;
 	private MessageBank inbox;
-	
+	private final AccountManager accountManager;
 
-	IMAPHandler(Socket client) throws IOException {
+	IMAPHandler(AccountManager accMgr, Socket client) throws IOException {
 		super(client);
+		accountManager = accMgr;
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -135,8 +137,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		if (AccountManager.authenticate(trimQuotes(msg.args[0]), trimQuotes(msg.args[1]))) {
-			this.inbox = new MessageBank(trimQuotes(msg.args[0]));
+		FreemailAccount account = accountManager.authenticate(trimQuotes(msg.args[0]), trimQuotes(msg.args[1]));
+		if (account != null) {
+			this.inbox = account.getMessageBank();
 			
 			this.reply(msg, "OK Logged in");
 		} else {

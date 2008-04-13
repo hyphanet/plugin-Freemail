@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.InterruptedException;
 
-import freemail.utils.PropsFile;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
 
@@ -40,19 +39,16 @@ public class SingleAccountWatcher implements Runnable {
 	public static final String OUTBOUND_DIR = "outbound";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
-	private final MessageBank mb;
 	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
-	private final PropsFile accprops;
 	private final File obctdir;
 	private final File ibctdir;
-	private final File accdir;
+	private final FreemailAccount account;
 
-	SingleAccountWatcher(File accdir) {
-		this.accdir = accdir;
-		this.accprops = AccountManager.getAccountFile(accdir);
-		File contacts_dir = new File(accdir, CONTACTS_DIR);
+	SingleAccountWatcher(FreemailAccount acc) {
+		this.account = acc;
+		File contacts_dir = new File(account.getAccountDir(), CONTACTS_DIR);
 		
 		if (!contacts_dir.exists()) {
 			contacts_dir.mkdir();
@@ -66,34 +62,32 @@ public class SingleAccountWatcher implements Runnable {
 			this.ibctdir.mkdir();
 		}
 		
-		this.mb = new MessageBank(accdir.getName());
-		
 		File nimdir = new File(contacts_dir, AccountManager.NIMDIR);
 		if (nimdir.exists()) {
-			this.nf = new NIMFetcher(this.mb, nimdir);
+			this.nf = new NIMFetcher(account.getMessageBank(), nimdir);
 		} else {
 			this.nf = null;
 		}
 		
-		String rtskey=this.accprops.get("rtskey");
+		String rtskey=account.getProps().get("rtskey");
 
 		if(rtskey==null) {
 			Logger.error(this,"Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
 		}
 
-		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", this.ibctdir, accdir);
+		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", this.ibctdir, account);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 		
 		// temporary info message until there's a nicer UI :)
-		String freemailDomain=AccountManager.getFreemailDomain(accdir);
+		String freemailDomain=AccountManager.getFreemailDomain(account.getProps());
 		if(freemailDomain!=null) {
-			Logger.normal(this,"Secure Freemail address: <anything>@"+AccountManager.getFreemailDomain(accdir));
+			Logger.normal(this,"Secure Freemail address: <anything>@"+AccountManager.getFreemailDomain(account.getProps()));
 		} else {
 			Logger.error(this, "You do not have a freemail address USK. This account is really broken.");
 		}
 		
-		String shortdomain = AccountManager.getKSKFreemailDomain(accdir);
+		String shortdomain = AccountManager.getKSKFreemailDomain(account.getProps());
 		if (shortdomain != null) {
 			Logger.normal(this,"Short Freemail address (*probably* secure): <anything>@"+shortdomain);
 
@@ -113,7 +107,7 @@ public class SingleAccountWatcher implements Runnable {
 				
 				// is it time we inserted the mailsite?
 				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
-					MailSite ms = new MailSite(this.accprops);
+					MailSite ms = new MailSite(account.getProps());
 					if (ms.Publish() > 0) {
 						this.mailsite_last_upload = System.currentTimeMillis();
 					}
@@ -126,7 +120,7 @@ public class SingleAccountWatcher implements Runnable {
 				if (obcontacts != null) {
 					int i;
 					for (i = 0; i < obcontacts.length; i++) {
-						OutboundContact obct = new OutboundContact(this.accdir, obcontacts[i]);
+						OutboundContact obct = new OutboundContact(account, obcontacts[i]);
 						
 						obct.doComm();
 					}
@@ -148,7 +142,7 @@ public class SingleAccountWatcher implements Runnable {
 						
 						InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
 						
-						ibct.fetch(this.mb);
+						ibct.fetch(account.getMessageBank());
 					}
 				}
 				if(stopping) {
