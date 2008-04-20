@@ -10,6 +10,8 @@
 package freemail.utils;
 
 import java.lang.NoClassDefFoundError;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import freemail.config.ConfigClient;
 
@@ -27,6 +29,8 @@ public class Logger implements ConfigClient {
 	//static final private int loglevel=INTERNAL|DEBUG|MINOR|NORMAL|ERROR; // everything
 	//static final private int loglevel=DEBUG|NORMAL|ERROR;
 	static private int loglevel=NORMAL|ERROR; // should be ok for normal users
+	
+	static private SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
 	
 	public void setConfigProp(String key, String val) {
 		if (key.equals("loglevel")) {
@@ -66,14 +70,12 @@ public class Logger implements ConfigClient {
 	}
 	
 	static private void log(int l, Object o, String s, String level) {
-		if((l&loglevel)!=0) {
-			System.out.println(level+"("+o.getClass().getName()+"): "+s);
-		}
+		log(l, o.getClass(), s, level);
 	}
 
-	static private void log(int l, Class c, String s, String level) {
+	static private synchronized void log(int l, Class c, String s, String level) {
 		if((l&loglevel)!=0) {
-			System.out.println(level+"("+c.getName()+"): "+s);
+			System.err.println(logDateFormat.format(new Date())+" "+level+"("+c.getName()+"): "+s);
 		}
 	}
 
