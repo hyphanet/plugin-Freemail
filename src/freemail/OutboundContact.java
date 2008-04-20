@@ -65,7 +65,7 @@ public class OutboundContact {
 	private final FreemailAccount account;
 	private final File ctoutbox;
 	private final EmailAddress address;
-	// how long to wait for a CTS before sending the message again
+	// how long to wait for a CTS before sending the RTS again
 	// slightly over 24 hours since some people are likely to fire Freemail
 	// up and roughly the same time every day
 	private static final long CTS_WAIT_TIME = 26 * 60 * 60 * 1000;
