@@ -34,6 +34,7 @@ import freemail.FreenetURI;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
+import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
 
@@ -106,9 +107,9 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				msg = fcpcli.fetch(key);
 			} catch (ConnectionTerminatedException cte) {
 				return;
-			}
-			if (msg == null) {
-				Logger.minor(this,"No mail there.");
+			} catch (FCPFetchException fe) {
+				// XXX: Slot should be marked dead if this is a fatal error
+				Logger.minor(this,"No mail in slot (fetch returned "+fe.getMessage()+")");
 				continue;
 			}
 			Logger.normal(this,"Found a message!");
@@ -212,14 +213,15 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) return false;
 			
 			Logger.normal(this,"Attempting to fetch sender's mailsite to validate From address...");
-			File result = cli.fetch("KSK@"+sd+MailSite.ALIAS_SUFFIX);
-			
-			if (result == null) {
+			File result;
+			try {
+				result = cli.fetch("KSK@"+sd+MailSite.ALIAS_SUFFIX);
+			} catch (FCPFetchException fe) {
 				// we just received the message so we can assume our
 				// network connection is healthy, and the mailsite
 				// ought to be easily retrievable, so fail.
 				// If this proves to be an issue, change it.
-				Logger.error(this,"Failed to fetch sender's mailsite. Sender's From address therefore not valid.");
+				Logger.error(this,"Failed to fetch sender's mailsite ("+fe.getMessage()+"). Sender's From address therefore not valid.");
 				return false;
 			}
 			Logger.normal(this,"Fetched sender's mailsite");

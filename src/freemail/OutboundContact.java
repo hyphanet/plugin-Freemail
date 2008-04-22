@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
+import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.FCPBadFileException;
@@ -170,9 +171,15 @@ public class OutboundContact {
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 			
 			Logger.minor(this,"polling for CTS message: "+ctskey);
-			File cts = fcpcli.fetch(ctskey);
-			
-			if (cts == null) {
+			try {
+				File cts = fcpcli.fetch(ctskey);
+				
+				Logger.normal(this,"Sucessfully received CTS for "+this.address.getSubDomain());
+				cts.delete();
+				this.contactfile.put("status", "cts-received");
+				// delete initial slot for forward secrecy
+				this.contactfile.remove("initialslot");
+			} catch (FCPFetchException fe) {
 				Logger.minor(this,"CTS not received");
 				// haven't got the CTS message. should we give up yet?
 				String senttime = this.contactfile.get("rts-sent-at");
@@ -181,13 +188,6 @@ public class OutboundContact {
 					// yes, send another RTS
 					this.init();
 				}
-				
-			} else {
-				Logger.normal(this,"Sucessfully received CTS for "+this.address.getSubDomain());
-				cts.delete();
-				this.contactfile.put("status", "cts-received");
-				// delete initial slot for forward secrecy
-				this.contactfile.remove("initialslot");
 			}
 		} else {
 			this.init();
@@ -436,10 +436,11 @@ public class OutboundContact {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
 		Logger.normal(this,"Attempting to fetch mailsite redirect "+key);
-		File result = cli.fetch(key);
-		
-		if (result == null) {
-			Logger.normal(this,"Failed to retrieve mailsite redirect "+key);
+		File result;
+		try {
+			result = cli.fetch(key);
+		} catch (FCPFetchException fe) {
+			Logger.normal(this,"Failed to retrieve mailsite redirect "+key+" ("+fe.getMessage()+")");
 			return null;
 		}
 		
@@ -472,9 +473,10 @@ public class OutboundContact {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
 		Logger.normal(this,"Attempting to fetch "+this.address.getMailpageKey());
-		File mailsite_file = cli.fetch(this.address.getMailpageKey());
-		
-		if (mailsite_file == null) {
+		File mailsite_file;
+		try {
+			mailsite_file = cli.fetch(this.address.getMailpageKey());
+		} catch (FCPFetchException fe) {
 			Logger.normal(this,"Failed to retrieve mailsite "+this.address.getMailpageKey());
 			return false;
 		}
@@ -698,8 +700,8 @@ public class OutboundContact {
 			
 			Logger.minor(this,"Looking for message ack on "+key);
 			
-			File ack = fcpcli.fetch(key);
-			if (ack != null) {
+			try {
+				File ack = fcpcli.fetch(key);
 				Logger.normal(this,"Ack received for message "+msgs[i].uid+" on contact "+this.address.domain+". Now that's a job well done.");
 				ack.delete();
 				msgs[i].delete();
@@ -707,24 +709,26 @@ public class OutboundContact {
 				this.contactfile.put("status", "cts-received");
 				// delete initial slot for forward secrecy
 				this.contactfile.remove("initialslot");
-			} else {
-				Logger.minor(this,"Failed to receive ack on "+key);
-				if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
-					// give up and bounce the message
-					File m = msgs[i].getMessageFile();
-					
-					Postman.bounceMessage(m, account.getMessageBank(),
-							"Freemail has been trying for too long to deliver this message, and has received no acknowledgement. "
-							+"It is possible that the recipient has not run Freemail since you sent the message. "
-							+"If you believe this is likely, try resending the message.", true);
-					Logger.normal(this,"Giving up on message - been trying for too long.");
-					msgs[i].delete();
-				} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
-					// no ack yet - retransmit on another slot
-					msgs[i].slot = this.popNextSlot();
-					// mark for re-insertion
-					msgs[i].last_send_time = -1;
-					msgs[i].saveProps();
+			} catch (FCPFetchException fe) {
+				Logger.minor(this,"Failed to receive ack on "+key+" ("+fe.getMessage()+")");
+				if (!fe.isNetworkError()) {
+					if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
+						// give up and bounce the message
+						File m = msgs[i].getMessageFile();
+						
+						Postman.bounceMessage(m, account.getMessageBank(),
+								"Freemail has been trying for too long to deliver this message, and has received no acknowledgement. "
+								+"It is possible that the recipient has not run Freemail since you sent the message. "
+								+"If you believe this is likely, try resending the message.", true);
+						Logger.normal(this,"Giving up on message - been trying for too long.");
+						msgs[i].delete();
+					} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
+						// no ack yet - retransmit on another slot
+						msgs[i].slot = this.popNextSlot();
+						// mark for re-insertion
+						msgs[i].last_send_time = -1;
+						msgs[i].saveProps();
+					}
 				}
 			}
 		}

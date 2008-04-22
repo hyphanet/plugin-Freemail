@@ -21,6 +21,7 @@
 
 package freemail;
 
+import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.DateStringFactory;
@@ -87,19 +88,21 @@ public class NIMFetcher extends Postman {
 		for (int i = startnum; i < startnum + POLL_AHEAD; i++) {
 			Logger.normal(this,"trying to fetch "+keybase+i);
 			
-			File result = fcpcli.fetch(keybase+i);
+			File result;
+			try {
+				result = fcpcli.fetch(keybase+i);
+			} catch (FCPFetchException fe) {
+				Logger.normal(this,keybase+i+": no message ("+fe.getMessage()+").");
+				continue;
+			}
 			
-			if (result != null) {
-				Logger.normal(this,keybase+i+": got message!");
-				try {
-					this.storeMessage(new BufferedReader(new FileReader(result)), this.mb);
-					result.delete();
-					log.addMessage(i, "received");
-				} catch (IOException ioe) {
-					continue;
-				}
-			} else {
-				Logger.normal(this,keybase+i+": no message.");
+			Logger.normal(this,keybase+i+": got message!");
+			try {
+				this.storeMessage(new BufferedReader(new FileReader(result)), this.mb);
+				result.delete();
+				log.addMessage(i, "received");
+			} catch (IOException ioe) {
+				continue;
 			}
 		}
 	}

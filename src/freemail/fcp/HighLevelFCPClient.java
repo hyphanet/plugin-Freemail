@@ -43,7 +43,7 @@ public class HighLevelFCPClient implements FCPClient {
 	
 	// It's up to the client to delete this File once they're
 	// done with it
-	public synchronized File fetch(String key) throws ConnectionTerminatedException {
+	public synchronized File fetch(String key) throws ConnectionTerminatedException, FCPFetchException {
 		FCPMessage msg = this.conn.getMessage("ClientGet");
 		msg.headers.put("URI", key);
 		msg.headers.put("ReturnType", "direct");
@@ -55,8 +55,8 @@ public class HighLevelFCPClient implements FCPClient {
 				break;
 			} catch (NoNodeConnectionException nnce) {
 				try {
-					Logger.error(this,"got no conn exception: "+nnce.getMessage());
-					Thread.sleep(5000);
+					Logger.error(this,"No Freenet node available - waiting: "+nnce.getMessage());
+					Thread.sleep(10000);
 				} catch (InterruptedException ie) {
 				}
 			} catch (FCPBadFileException bfe) {
@@ -84,9 +84,9 @@ public class HighLevelFCPClient implements FCPClient {
 				if (newuri == null) return null;
 				return this.fetch(newuri);
 			}
-			return null;
+			throw new FCPFetchException(donemsg);
 		} else {
-			return null;
+			throw new FCPFetchException(donemsg);
 		}
 	}
 	

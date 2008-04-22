@@ -70,6 +70,10 @@ public abstract class SlotManager {
 		this.pollAhead = pa;
 	}
 	
+	public void incPollAhead() {
+		++pollAhead;
+	}
+	
 	/** Mark the last given slot as used
 	 */
 	public synchronized void slotUsed() {

@@ -21,6 +21,7 @@
 
 package freemail;
 
+import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.DateStringFactory;
@@ -157,9 +158,9 @@ public class RTSFetcher implements SlotSaveCallback {
 		while ( (slot = sm.getNextSlotNat()) > 0) {
 			Logger.minor(this,"trying to fetch "+keybase+slot);
 			
-			File result = fcpcli.fetch(keybase+slot);
-			
-			if (result != null) {
+			try {
+				File result = fcpcli.fetch(keybase+slot);
+				
 				Logger.normal(this,keybase+slot+": got RTS!");
 				
 				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+",0");
@@ -169,8 +170,23 @@ public class RTSFetcher implements SlotSaveCallback {
 					// provided that worked, we can move on to the next RTS message
 					sm.slotUsed();
 				}
-			} else {
-				Logger.minor(this,keybase+slot+": no RTS.");
+			} catch (FCPFetchException fe) {
+				if (fe.isFatal()) {
+					Logger.error(this,keybase+slot+": fatal fetch error - marking slot as used.");
+					sm.slotUsed();
+				} else if (fe.getCode() == FCPFetchException.ALL_DATA_NOT_FOUND) {
+					// This could be the node not managing to find the CHK containing the actual data (since RTS messages are
+					// over 1KB, the node will opaquely insert them as a KSK redirect to a CHK, since a KSK/SSK can only hold
+					// 1KB of data). It could also be someone inserting dummy redirects to our RTS queue. We'll have to keep
+					// checking it, but we have to check slots until we find some that are really empty, we'd never manage
+					// to fetch anything if they are dead keys.
+					Logger.error(this,keybase+slot+": All Data not found - leaving slot in queue and will poll an extra key");
+					sm.incPollAhead();
+				} else if (fe.getCode() == FCPFetchException.DATA_NOT_FOUND) {
+					Logger.minor(this,keybase+slot+": no RTS.");
+				} else {
+					Logger.minor(this,keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
+				}
 			}
 		}
 	}
@@ -300,9 +316,10 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		
 		Logger.normal(this,"Trying to fetch sender's mailsite: "+their_mailsite);
-		
-		File msfile = fcpcli.fetch(their_mailsite);
-		if (msfile == null) {
+		File msfile;
+		try {
+			msfile = fcpcli.fetch(their_mailsite);
+		} catch (FCPFetchException fe) {
 			// oh well, try again in a bit
 			rtsfile.delete();
 			return false;
