@@ -466,6 +466,7 @@ public class OutboundContact {
 			return null;
 		}
 		result.delete();
+		Logger.normal(this,"Mailsite redirect fetched successfully");
 		return addr;
 	}
 	
