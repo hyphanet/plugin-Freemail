@@ -747,7 +747,7 @@ public class OutboundContact {
 				uid = Integer.parseInt(files[i].getName());
 			} catch (NumberFormatException nfe) {
 				// how did that get there? just delete it
-				Logger.normal(this,"Found spurious file in send queue - deleting.");
+				Logger.normal(this,"Found spurious file in send queue: '"+files[i].getName()+"' - deleting.");
 				files[i].delete();
 				msgs[i] = null;
 				continue;
