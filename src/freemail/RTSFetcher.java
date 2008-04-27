@@ -255,9 +255,9 @@ public class RTSFetcher implements SlotSaveCallback {
 				return true;
 			}
 			
-			// read the rest of the file intio a byte array.
+			// read the rest of the file into a byte array.
 			// will probably have extra stuff on the end because
-			// the byte array return by the decrypt function
+			// the byte array returned by the decrypt function
 			// isn't resized when we know how much plaintext
 			// there is. It would be a waste of time, we know
 			// we have to read exactly one RSA block's worth.
