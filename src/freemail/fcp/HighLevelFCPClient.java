@@ -187,7 +187,7 @@ public class HighLevelFCPClient implements FCPClient {
 				slot++;
 				Logger.normal(this,"collision");
 			} else {
-				Logger.error(this,"nope - error code is "+emsg.errorcode);
+				Logger.error(this,"Slot insert failed, error code is "+emsg.errorcode);
 				// try again later
 				return -1;
 			}
@@ -217,7 +217,7 @@ public class HighLevelFCPClient implements FCPClient {
 				slot++;
 				Logger.normal(this,"collision");
 			} else {
-				Logger.error(this,"nope - error code is "+emsg.errorcode);
+				Logger.error(this,"Slot insert failed, error code is "+emsg.errorcode);
 				// try again later
 				return -1;
 			}
