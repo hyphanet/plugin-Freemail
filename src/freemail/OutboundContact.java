@@ -66,16 +66,26 @@ public class OutboundContact {
 	private final FreemailAccount account;
 	private final File ctoutbox;
 	private final EmailAddress address;
+	
 	// how long to wait for a CTS before sending the RTS again
 	// slightly over 24 hours since some people are likely to fire Freemail
 	// up and roughly the same time every day
 	private static final long CTS_WAIT_TIME = 26 * 60 * 60 * 1000;
+	
 	private static final String PROPSFILE_NAME = "props";
-	// how long do we wait before retransmitting the message? 26 hours allows for people starting Freemail at roughly the same time every day
+	// how long do we wait before retransmitting the message? 26 hours allows
+	// for people starting Freemail at roughly the same time every day
+	
 	private static final long RETRANSMIT_DELAY = 26 * 60 * 60 * 1000;
-	// how long do we wait before we give up all hope and just bounce the message back? 5 days is fairly standard, so we'll go with that for now, except that means things bounce when the recipient goes to the Bahamas for a fortnight. Could be longer if we have a GUI to see what messages are in what delivery state.
+	
+	// how long do we wait before we give up all hope and just bounce the message back?
+	// 5 days is fairly standard, so we'll go with that for now, except that means things
+	// bounce when the recipient goes to the Bahamas for a fortnight. Could be longer if
+	// we have a GUI to see what messages are in what delivery state.
 	private static final long FAIL_DELAY = 5 * 24 * 60 * 60 * 1000;
+	
 	private static final int AES_KEY_LENGTH = 256 / 8;
+	
 	// this is defined in the AES standard (although the Rijndael
 	// algorithm does support other block sizes.
 	// we read 128 bytes for our IV, so it needs to be constant.)
