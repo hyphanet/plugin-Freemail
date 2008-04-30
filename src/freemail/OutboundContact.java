@@ -73,10 +73,9 @@ public class OutboundContact {
 	private static final long CTS_WAIT_TIME = 26 * 60 * 60 * 1000;
 	
 	private static final String PROPSFILE_NAME = "props";
-	// how long do we wait before retransmitting the message? 26 hours allows
-	// for people starting Freemail at roughly the same time every day
 	
-	private static final long RETRANSMIT_DELAY = 26 * 60 * 60 * 1000;
+	// How long to wait for a *message ack* before sending another RTS.
+	private static final long RTS_RETRANSMIT_DELAY = 2 * 24 * 60 * 60 * 1000;
 	
 	// how long do we wait before we give up all hope and just bounce the message back?
 	// 5 days is fairly standard, so we'll go with that for now, except that means things
@@ -90,6 +89,10 @@ public class OutboundContact {
 	// algorithm does support other block sizes.
 	// we read 128 bytes for our IV, so it needs to be constant.)
 	private static final int AES_BLOCK_LENGTH = 128 / 8;
+	
+	// If we last fetched the mailsite longer than this number of milliseconds
+    // ago, re-fetch it.
+	private static final long MAILSITE_CACHE_TIME = 60 * 60 * 1000;
 	
 	public OutboundContact(FreemailAccount acc, EmailAddress a) throws BadFreemailAddressException, IOException,
 	                                                           OutboundContactFatalException, ConnectionTerminatedException {
@@ -274,20 +277,39 @@ public class OutboundContact {
 		return rtsksk;
 	}
 	
-	private String getInitialSlot() {
-		String retval = this.contactfile.get("initialslot");
-		
-		if (retval != null) return retval;
-		
-		SecureRandom rnd = new SecureRandom();
-		SHA256Digest sha256 = new SHA256Digest();
-		byte[] buf = new byte[sha256.getDigestSize()];
-		
-		rnd.nextBytes(buf);
-		
-		this.contactfile.put("initialslot", Base32.encode(buf));
-		
-		return Base32.encode(buf);
+	/**
+	 * Get the first slot from which all messages that are still 'in transit' can be retrieved.
+	 * That is to say, if we have message IDs 3,4 and 5 in transit, this would return the slot
+	 * for message 3. If there are no messages in transit, returns the next slot on which a message will be inserted.
+	 */
+	private String getCurrentLowestSlot() {
+		QueuedMessage[] queue = getSendQueue();
+		if (queue.length > 0) {
+			int messageWithHighestUid = 0;
+			for (int i = 0; i < queue.length; i++) {
+				if (queue[i] == null) continue;
+				if (queue[i].uid > messageWithHighestUid) messageWithHighestUid = i;
+			}
+			return queue[messageWithHighestUid].slot;
+		} else {
+			String retval = this.contactfile.get("nextslot");
+			if (retval != null) {
+				return retval;
+			} else {
+				Logger.minor(this, "Generating first slot for contact");
+				SecureRandom rnd = new SecureRandom();
+				SHA256Digest sha256 = new SHA256Digest();
+				byte[] buf = new byte[sha256.getDigestSize()];
+				
+				rnd.nextBytes(buf);
+				
+				String firstSlot = Base32.encode(buf);
+				
+				this.contactfile.put("nextslot", Base32.encode(buf));
+				
+				return firstSlot;
+			}
+		}
 	}
 	
 	private byte[] getAESParams() {
@@ -318,7 +340,7 @@ public class OutboundContact {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
-		String initialslot = this.getInitialSlot();
+		String initialslot = this.getCurrentLowestSlot();
 		SSKKeyPair commssk = this.getCommKeyPair();
 		if (commssk == null) return false;
 		SSKKeyPair ackssk = this.getAckKeyPair();
@@ -481,6 +503,19 @@ public class OutboundContact {
 	}
 	
 	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException {
+		String lastFetchedStr = this.contactfile.get("lastfetched");
+		long lastFetched = 0;
+		if (lastFetchedStr != null) {
+			lastFetched = Long.parseLong(lastFetchedStr);
+		}
+		if (lastFetched > System.currentTimeMillis()) {
+			Logger.error(this, "Mailsite was apparently last fetched in the future! System time gone backwards? Refetching.");
+			lastFetched = 0;
+		}
+		if (lastFetched > System.currentTimeMillis() - MAILSITE_CACHE_TIME) {
+			return true;
+		}
+		
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
 		Logger.normal(this,"Attempting to fetch "+this.address.getMailpageKey());
@@ -503,15 +538,16 @@ public class OutboundContact {
 		mailsite_file.delete();
 		
 		if (rtsksk == null || keymod_str == null || keyexp_str == null) {
-			// TODO: More failure mechanisms - this is fatal.
+			// Not actually fatal - the other party could publish a new, valid mailsite
 			Logger.normal(this,"Mailsite for "+this.address+" does not contain all necessary information!");
-			throw new OutboundContactFatalException("Mailsite for "+this.address+" does not contain all necessary information!");
+			return false;
 		}
 		
 		// add this to a new outbound contact file
 		this.contactfile.put("rtsksk", rtsksk);
 		this.contactfile.put("asymkey.modulus", keymod_str);
 		this.contactfile.put("asymkey.pubexponent", keyexp_str);
+		this.contactfile.put("lastfetched", Long.toString(System.currentTimeMillis()));
 		
 		return true;
 	}
@@ -519,7 +555,8 @@ public class OutboundContact {
 	private String popNextSlot() {
 		String slot = this.contactfile.get("nextslot");
 		if (slot == null) {
-			slot = this.getInitialSlot();
+			Logger.error(this, "Contact has no 'nextslot' prop! This shouldn't happen!");
+			return null;
 		}
 		SHA256Digest sha256 = new SHA256Digest();
 		sha256.update(Base32.decode(slot), 0, Base32.decode(slot).length);
@@ -601,27 +638,23 @@ public class OutboundContact {
 		try {
 			this.sendQueued();
 			this.pollAcks();
-			try {
-				this.checkCTS();
-			} catch (OutboundContactFatalException fe) {
-			}
+			this.checkCTS();
+		} catch (OutboundContactFatalException fe) {
+			Logger.error(this, "Fatal exception on outbound contact: "+fe.getMessage()+". This contact in invalid.");
+			// TODO: probably bounce all the messages and delete the contact.
 		} catch (ConnectionTerminatedException cte) {
 			// just exit
 		}
 	}
 	
-	private void sendQueued() throws ConnectionTerminatedException {
+	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
 		if (ctstatus.equals("rts-sent") || ctstatus.equals("cts-received")) {
 			ready = true;
 		} else {
-			try {
-				ready = this.init();
-			} catch (OutboundContactFatalException fe) {
-				ready = false;
-			}
+			ready = this.init();
 		}
 		
 		HighLevelFCPClient fcpcli = null;
@@ -690,7 +723,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private void pollAcks() throws ConnectionTerminatedException {
+	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException {
 		HighLevelFCPClient fcpcli = null;
 		QueuedMessage[] msgs = this.getSendQueue();
 		
@@ -733,11 +766,12 @@ public class OutboundContact {
 								+"If you believe this is likely, try resending the message.", true);
 						Logger.normal(this,"Giving up on message - been trying for too long.");
 						msgs[i].delete();
-					} else if (System.currentTimeMillis() > msgs[i].last_send_time + RETRANSMIT_DELAY) {
-						// no ack yet - retransmit on another slot
-						msgs[i].slot = this.popNextSlot();
-						// mark for re-insertion
-						msgs[i].last_send_time = -1;
+					} else if (System.currentTimeMillis() > msgs[i].last_send_time + RTS_RETRANSMIT_DELAY) {
+						Logger.normal(this, "Resending RTS for contact");
+						init();
+						// bit of a fudge - this won't actually be the last send time, since we won't re-send messages at all now,
+						// it will be the last time the RTS was sent.
+						msgs[i].last_send_time = System.currentTimeMillis();
 						msgs[i].saveProps();
 					}
 				}
