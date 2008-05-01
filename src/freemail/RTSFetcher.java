@@ -117,10 +117,10 @@ public class RTSFetcher implements SlotSaveCallback {
 		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
 			String datestr = DateStringFactory.getOffsetKeyString(i);
 			if (log.getPasses(datestr) < PASSES_PER_DAY) {
-				this.fetch_day(log, datestr);
+				boolean successfulPoll = this.fetch_day(log, datestr);
 				// don't count passes for today since more
 				// mail may arrive
-				if (i < 0) {
+				if (i < 0 && successfulPoll) {
 					log.incPasses(datestr);
 				}
 			}
@@ -139,7 +139,11 @@ public class RTSFetcher implements SlotSaveCallback {
 		String date;
 	}
 	
-	private void fetch_day(RTSLog log, String date) throws ConnectionTerminatedException {
+	/**
+	 * @return true if the day was sucessfully polled, false if there were network-type errors and the polling shouldn't count
+	 *              as a valid check of that day's slots.
+	 */
+	private boolean fetch_day(RTSLog log, String date) throws ConnectionTerminatedException {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		
@@ -155,6 +159,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		sm.setPollAhead(POLL_AHEAD);
 		
 		int slot;
+		boolean success = true;
 		while ( (slot = sm.getNextSlotNat()) > 0) {
 			Logger.minor(this,"trying to fetch "+keybase+slot);
 			
@@ -184,11 +189,16 @@ public class RTSFetcher implements SlotSaveCallback {
 					sm.incPollAhead();
 				} else if (fe.getCode() == FCPFetchException.DATA_NOT_FOUND) {
 					Logger.minor(this,keybase+slot+": no RTS.");
+				} else if (fe.isNetworkError()) {
+					// Freenet is having special moment. This doesn't count as a valid poll.
+					success = false;
 				} else {
-					Logger.minor(this,keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
+					// We've covered most things above, so I think this should a fairly exceptional case. Let's log it at error.
+					Logger.error(this,keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
 				}
 			}
 		}
+		return success;
 	}
 	
 	public void saveSlots(String slots, Object userdata) {
