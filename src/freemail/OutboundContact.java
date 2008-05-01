@@ -284,32 +284,39 @@ public class OutboundContact {
 	 */
 	private String getCurrentLowestSlot() {
 		QueuedMessage[] queue = getSendQueue();
-		if (queue.length > 0) {
-			int messageWithHighestUid = 0;
-			for (int i = 0; i < queue.length; i++) {
-				if (queue[i] == null) continue;
-				if (queue[i].uid > messageWithHighestUid) messageWithHighestUid = i;
-			}
-			return queue[messageWithHighestUid].slot;
-		} else {
-			String retval = this.contactfile.get("nextslot");
-			if (retval != null) {
-				return retval;
-			} else {
-				Logger.minor(this, "Generating first slot for contact");
-				SecureRandom rnd = new SecureRandom();
-				SHA256Digest sha256 = new SHA256Digest();
-				byte[] buf = new byte[sha256.getDigestSize()];
-				
-				rnd.nextBytes(buf);
-				
-				String firstSlot = Base32.encode(buf);
-				
-				this.contactfile.put("nextslot", Base32.encode(buf));
-				
-				return firstSlot;
+		int messageWithLowestUid = 0;
+		int lowestUid = Integer.MAX_VALUE;
+		// queue.length == 0 doesn't necessarily imply there's anything
+		// in the queue - the array can contain null values (due to the
+		// sucky way in which getSendQueue() works by returning an array)
+		for (int i = 0; i < queue.length; i++) {
+			if (queue[i] == null) continue;
+			if (queue[i].uid < lowestUid) {
+				messageWithLowestUid = i;
+				lowestUid = queue[i].uid;
 			}
 		}
+		if (lowestUid < Integer.MAX_VALUE) return queue[messageWithLowestUid].slot;
+
+		// No messages in the queue, so the current lowest slot is the
+		// next slot we'll insert a message to.
+		String retval = this.contactfile.get("nextslot");
+		if (retval != null) {
+			return retval;
+		} else {
+			Logger.minor(this, "Generating first slot for contact");
+			SecureRandom rnd = new SecureRandom();
+			SHA256Digest sha256 = new SHA256Digest();
+			byte[] buf = new byte[sha256.getDigestSize()];
+			
+			rnd.nextBytes(buf);
+			
+			String firstSlot = Base32.encode(buf);
+			
+			this.contactfile.put("nextslot", Base32.encode(buf));
+			
+			return firstSlot;
+			}
 	}
 	
 	private byte[] getAESParams() {
