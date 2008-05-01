@@ -304,19 +304,23 @@ public class OutboundContact {
 		if (retval != null) {
 			return retval;
 		} else {
-			Logger.minor(this, "Generating first slot for contact");
-			SecureRandom rnd = new SecureRandom();
-			SHA256Digest sha256 = new SHA256Digest();
-			byte[] buf = new byte[sha256.getDigestSize()];
-			
-			rnd.nextBytes(buf);
-			
-			String firstSlot = Base32.encode(buf);
-			
-			this.contactfile.put("nextslot", Base32.encode(buf));
-			
-			return firstSlot;
-			}
+			return generateFirstSlot();
+		}
+	}
+	
+	private String generateFirstSlot() {
+		Logger.minor(this, "Generating first slot for contact");
+		SecureRandom rnd = new SecureRandom();
+		SHA256Digest sha256 = new SHA256Digest();
+		byte[] buf = new byte[sha256.getDigestSize()];
+		
+		rnd.nextBytes(buf);
+		
+		String firstSlot = Base32.encode(buf);
+		
+		this.contactfile.put("nextslot", Base32.encode(buf));
+		
+		return firstSlot;
 	}
 	
 	private byte[] getAESParams() {
@@ -562,8 +566,7 @@ public class OutboundContact {
 	private String popNextSlot() {
 		String slot = this.contactfile.get("nextslot");
 		if (slot == null) {
-			Logger.error(this, "Contact has no 'nextslot' prop! This shouldn't happen!");
-			return null;
+			return generateFirstSlot();
 		}
 		SHA256Digest sha256 = new SHA256Digest();
 		sha256.update(Base32.decode(slot), 0, Base32.decode(slot).length);
