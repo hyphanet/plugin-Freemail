@@ -203,6 +203,11 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			return false;
 		}
 		
+		if (!from.is_freemail_address()) {
+			// again, I believe this is what the Americans might call a 'no brainer'.
+			return false;
+		}
+		
 		if (from.is_ssk_address()) {
 			return Base32.encode(this.ibct_dir.getName().getBytes()).equalsIgnoreCase(sd);
 		} else {
