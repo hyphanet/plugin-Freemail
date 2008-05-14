@@ -33,8 +33,7 @@ public class EmailAddress {
 	public String user;
 	public String domain;
 	
-	public EmailAddress(String rawAddress) {
-		String address = rawAddress.toLowerCase();
+	public EmailAddress(String address) {
 		this.realname = null;
 		this.user = null;
 		this.domain = null;
@@ -45,7 +44,7 @@ public class EmailAddress {
 			
 			switch (c) {
 				case '@':
-					this.user = bank.toString();
+					this.user = bank.toString().toLowerCase();
 					bank = new StringBuffer("");
 					break;
 				case '<':
@@ -53,11 +52,11 @@ public class EmailAddress {
 					bank = new StringBuffer("");
 					break;
 				case '>':
-					this.domain = bank.toString();
+					this.domain = bank.toString().toLowerCase();
 					bank = new StringBuffer("");
 					break;
 				case '(':
-					this.domain = bank.toString();
+					this.domain = bank.toString().toLowerCase();
 					bank = new StringBuffer("");
 					break;
 				case ')':
@@ -70,7 +69,7 @@ public class EmailAddress {
 		}
 		
 		if (this.realname == null && this.domain == null) {
-			this.domain = bank.toString();
+			this.domain = bank.toString().toLowerCase();
 		}
 		
 		// trim quotes out of the real name field
