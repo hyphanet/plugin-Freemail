@@ -720,6 +720,10 @@ public class OutboundContact {
 					msgs[i].first_send_time = System.currentTimeMillis();
 				msgs[i].last_send_time = System.currentTimeMillis();
 				msgs[i].saveProps();
+			} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
+				msgs[i].slot = popNextSlot();
+				Logger.error(this, "Insert collided! Assigned new slot: "+msgs[i].slot);
+				msgs[i].saveProps();
 			} else if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
 				Logger.normal(this,"Giving up on a message - been trying to send for too long. Bouncing.");
 				if (Postman.bounceMessage(msgs[i].getMessageFile(), account.getMessageBank(),
@@ -728,7 +732,7 @@ public class OutboundContact {
 					msgs[i].delete();
 				}
 			} else {
-				Logger.normal(this,"Failed to insert "+key+" will try again soon.");
+				Logger.normal(this,"Failed to insert "+key+" (error code "+err.errorcode+") will try again soon.");
 			}
 		}
 	}
