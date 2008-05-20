@@ -117,6 +117,7 @@ public class SingleAccountWatcher implements Runnable {
 					break;
 				}
 				// send any messages queued in contact outboxes
+				Logger.debug(this, "sending any message in contact outboxes");
 				File[] obcontacts = this.obctdir.listFiles(new outboundContactFilenameFilter());
 				if (obcontacts != null) {
 					int i;
@@ -129,6 +130,7 @@ public class SingleAccountWatcher implements Runnable {
 						}
 					}
 				}
+				Logger.debug(this, "polling rts");
 				if (this.nf != null) {
 					nf.fetch();
 				}
@@ -138,6 +140,7 @@ public class SingleAccountWatcher implements Runnable {
 				}
 				
 				// poll for incoming message from all inbound contacts
+				Logger.debug(this, "polling for incoming message from all inbound contacts");
 				File[] ibcontacts = this.ibctdir.listFiles(new inboundContactFilenameFilter());
 				if (ibcontacts != null) {
 					int i;
