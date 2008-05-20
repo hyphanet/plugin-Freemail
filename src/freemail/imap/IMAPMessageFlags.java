@@ -104,6 +104,9 @@ public class IMAPMessageFlags {
 		
 		if (value) {
 			this.flags.add(flag);
+			if(flag.equals("\\Deleted")) {
+				set("\\Seen", true);
+			}
 		} else {
 			this.flags.remove(flag);
 		}
