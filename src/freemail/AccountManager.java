@@ -183,7 +183,7 @@ public class AccountManager {
 	}
 	
 	private static PropsFile getAccountFile(File accdir) {
-		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
+		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (!accdir.exists() || !accfile.exists()) {
 			return null;
@@ -193,7 +193,7 @@ public class AccountManager {
 	}
 	
 	private static PropsFile newAccountFile(File accdir) {
-		PropsFile accfile = new PropsFile(new File(accdir, ACCOUNT_FILE));
+		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (accdir.exists() && !accfile.exists()) {
 			initAccFile(accfile);

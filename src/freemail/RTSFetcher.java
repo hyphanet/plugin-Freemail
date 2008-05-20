@@ -288,7 +288,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			return false;
 		}
 		
-		PropsFile rtsprops = new PropsFile(rtsfile);
+		PropsFile rtsprops = PropsFile.createPropsFile(rtsfile);
 		
 		try {
 			validate_rts(rtsprops);
@@ -335,7 +335,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			return false;
 		}
 		
-		PropsFile mailsite = new PropsFile(msfile);
+		PropsFile mailsite = PropsFile.createPropsFile(msfile);
 		String their_exponent = mailsite.get("asymkey.pubexponent");
 		String their_modulus = mailsite.get("asymkey.modulus");
 		

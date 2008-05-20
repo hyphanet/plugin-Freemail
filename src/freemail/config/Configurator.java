@@ -35,7 +35,7 @@ public class Configurator {
 	private final HashMap callbacks;
 
 	public Configurator(File f) {
-		this.props = new PropsFile(f);
+		this.props = PropsFile.createPropsFile(f);
 		this.props.setCommentPrefix("#");
 		String ls = System.getProperty("line.separator");
 		StringBuffer head = new StringBuffer();

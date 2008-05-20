@@ -39,7 +39,7 @@ public class RTSLog {
 	private static String UNPROC_NEXTID = "unproc-nextid";
 
 	public RTSLog(File f) {
-		this.logfile = new PropsFile(f);
+		this.logfile = PropsFile.createPropsFile(f);
 		if (!this.logfile.exists()) {
 			String birth = DateStringFactory.getOffsetKeyString(0);
 			this.logfile.put("birth", birth);

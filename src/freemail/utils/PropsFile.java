@@ -31,8 +31,31 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Hashtable;
 
 public class PropsFile {
+	// substitute static methods for constructor
+	
+	static Hashtable propsList=new Hashtable();
+	
+	public static PropsFile createPropsFile(File f, boolean stopAtBlank) {
+		String fn=f.getPath();
+
+		PropsFile pf=(PropsFile)propsList.get(fn);
+		
+		if(pf!=null) {
+			return pf;
+		} else {
+			pf=new PropsFile(f, stopAtBlank);
+			propsList.put(fn, pf);
+			return pf;
+		}
+	}
+
+	public static PropsFile createPropsFile(File f) {
+		return createPropsFile(f, false);
+	}
+
 	private final File file;
 	private HashMap data;
 	private BufferedReader bufrdr;
@@ -43,7 +66,7 @@ public class PropsFile {
 	 * a blank line. It's the the caller's responsibility to get
 	 * (using the getReader() method) the stream and close it properly.
 	 */
-	public PropsFile(File f, boolean stopAtBlank) {
+	private PropsFile(File f, boolean stopAtBlank) {
 		this.file = f;
 		this.data = null;
 		
@@ -55,10 +78,6 @@ public class PropsFile {
 		}
 		this.commentPrefix = null;
 		this.header = null;
-	}
-	
-	public PropsFile(File f) {
-		this(f, false);
 	}
 	
 	public void setCommentPrefix(String cp) {

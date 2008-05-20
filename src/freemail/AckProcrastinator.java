@@ -37,8 +37,8 @@ import freemail.utils.Logger;
 
 /** Takes simple pieces of data to insert to keys and inserts them at some point
  * randomly within a given time frame in order to disguise the time at which messages
- * were received. This is by no means infalliable, and will only work effectively if
- * Freemail is run more or less permanantly.
+ * were received. This is by no means infallible, and will only work effectively if
+ * Freemail is run more or less permanently.
  */
 public class AckProcrastinator implements Runnable {
 	/**
@@ -78,7 +78,7 @@ public class AckProcrastinator implements Runnable {
 			
 			int i;
 			for (i = 0; i < acks.length; i++) {
-				PropsFile ack = new PropsFile(acks[i]);
+				PropsFile ack = PropsFile.createPropsFile(acks[i]);
 				
 				String s_it  = ack.get("nominalInsertTime");
 				String key = ack.get("key");
@@ -108,10 +108,10 @@ public class AckProcrastinator implements Runnable {
 						FCPInsertErrorMessage err = fcpcli.put(bis, key);
 						if (err == null) {
 							acks[i].delete();
-							Logger.normal(this,"ACK insertion to "+key+" sucessful");
+							Logger.normal(this,"ACK insertion to "+key+" successful");
 						} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
 							acks[i].delete();
-							Logger.normal(this,"ACK insertion to "+key+" sucessful");
+							Logger.normal(this,"ACK insertion to "+key+" successful");
 						}
 					} catch (FCPBadFileException bfe) {
 						// won't occur
@@ -154,7 +154,7 @@ public class AckProcrastinator implements Runnable {
 		long by = System.currentTimeMillis() + MAX_DELAY;
 		
 		try {
-			PropsFile ackfile= new PropsFile(File.createTempFile("delayed-ack", "", getAckDir()));
+			PropsFile ackfile= PropsFile.createPropsFile(File.createTempFile("delayed-ack", "", getAckDir()));
 			 
 			 ackfile.put("key", key);
 			 if (data != null)

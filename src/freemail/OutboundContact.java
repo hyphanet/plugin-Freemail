@@ -139,7 +139,7 @@ public class OutboundContact {
 				throw new IOException("Couldn't create outbound contact dir!");
 			}
 			
-			this.contactfile = new PropsFile(new File(obctdir, PROPSFILE_NAME));
+			this.contactfile = PropsFile.createPropsFile(new File(obctdir, PROPSFILE_NAME));
 			this.ctoutbox = new File(obctdir, OUTBOX_DIR);
 			if (!this.ctoutbox.exists() && !this.ctoutbox.mkdir()) {
 				throw new IOException("Couldn't create contact outbox!");
@@ -152,7 +152,7 @@ public class OutboundContact {
 		this.address = new EmailAddress();
 		this.address.domain = ctdir.getName()+".freemail";
 		
-		this.contactfile = new PropsFile(new File(ctdir, PROPSFILE_NAME));
+		this.contactfile = PropsFile.createPropsFile(new File(ctdir, PROPSFILE_NAME));
 		
 		this.ctoutbox = new File(ctdir, OUTBOX_DIR);
 		if (!this.ctoutbox.exists()) {
@@ -540,7 +540,7 @@ public class OutboundContact {
 		
 		Logger.normal(this,"got mailsite");
 		
-		PropsFile mailsite = new PropsFile(mailsite_file);
+		PropsFile mailsite = PropsFile.createPropsFile(mailsite_file);
 		
 		String rtsksk = mailsite.get("rtsksk");
 		String keymod_str = mailsite.get("asymkey.modulus");
@@ -834,7 +834,7 @@ public class OutboundContact {
 			this.uid = uid;
 			this.file = new File(ctoutbox, Integer.toString(uid));
 			
-			this.index = new PropsFile(new File(ctoutbox, INDEX_FILE));
+			this.index = PropsFile.createPropsFile(file);
 			
 			this.slot = this.index.get(uid+".slot");
 			String s_first = this.index.get(uid+".first_send_time");

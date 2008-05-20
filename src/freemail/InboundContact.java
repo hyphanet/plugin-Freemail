@@ -58,7 +58,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			this.ibct_dir.mkdir();
 		}
 		
-		this.ibct_props = new PropsFile(new File(this.ibct_dir, IBCT_PROPSFILE));
+		this.ibct_props = PropsFile.createPropsFile(new File(this.ibct_dir, IBCT_PROPSFILE));
 	}
 	
 	public void setProp(String key, String val) {
@@ -115,7 +115,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			Logger.normal(this,"Found a message!");
 			
 			// parse the Freemail header(s) out.
-			PropsFile msgprops = new PropsFile(msg, true);
+			PropsFile msgprops = PropsFile.createPropsFile(msg, true);
 			String s_id = msgprops.get("id");
 			if (s_id == null) {
 				Logger.error(this,"Got a message with an invalid header. Discarding.");
@@ -199,7 +199,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
 		String sd = from.getSubDomain();
 		if (sd == null) {
-			// well that's definately not valid. Piffle!
+			// well that's definitely not valid. Piffle!
 			return false;
 		}
 		
