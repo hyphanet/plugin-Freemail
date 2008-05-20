@@ -147,8 +147,11 @@ public class MailSite {
 		} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
 			Logger.error(this,"Mailsite alias collided - somebody is already using that alias! Choose another one!");
 			return false;
+		} else if (err.errorcode == FCPInsertErrorMessage.REJECTED_OVERLOAD) {
+			Logger.error(this,"Mailsite alias could not be inserted (rejected overload), this is probably a temporary error");
+			return false;
 		} else {
-			Logger.error(this,"Mailsite redirect insert failed, but did not collide.");
+			Logger.error(this,"Mailsite redirect insert failed, but did not collide. (errorcode="+err.errorcode+")");
 			return false;
 		}
 	}

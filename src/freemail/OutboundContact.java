@@ -697,6 +697,12 @@ public class OutboundContact {
 				continue;
 			}
 			
+			if(msgs[i].slot==null) {
+				Logger.normal(this,"Index file does not contain slot name for this message, the mail cannot be sent this way.");
+				Logger.debug(this,"Filename is "+contactfile.getFile().getPath());
+				continue;
+			}
+			
 			key += msgs[i].slot;
 			
 			FileInputStream fis;
@@ -733,6 +739,11 @@ public class OutboundContact {
 				}
 			} else {
 				Logger.normal(this,"Failed to insert "+key+" (error code "+err.errorcode+") will try again soon.");
+				if(err.errorcode==FCPInsertErrorMessage.COLLISION) {
+					Logger.error(this,"Failed to insert "+key+" will try again soon. (Collision, this shouldn't happen)");
+				} else {
+					Logger.normal(this,"Failed to insert "+key+" will try again soon. Error: "+err.errorcode);
+				}
 			}
 		}
 	}

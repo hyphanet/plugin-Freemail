@@ -112,6 +112,8 @@ public class AckProcrastinator implements Runnable {
 						} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
 							acks[i].delete();
 							Logger.normal(this,"ACK insertion to "+key+" successful");
+						} else {
+							Logger.error(this,"ACK insertion to "+key+" failed (Errorcode: "+err.errorcode+")");
 						}
 					} catch (FCPBadFileException bfe) {
 						// won't occur
