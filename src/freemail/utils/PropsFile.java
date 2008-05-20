@@ -36,9 +36,20 @@ import java.util.Hashtable;
 public class PropsFile {
 	// substitute static methods for constructor
 	
-	static Hashtable propsList=new Hashtable();
+	private static final Hashtable propsList=new Hashtable();
 	
-	public static PropsFile createPropsFile(File f, boolean stopAtBlank) {
+	private static int reapCounter = 0;
+	/// We go through the list and remove stale entries once in this many times a PropsFile is created
+	private static final int reapEvery = 20;
+	
+	public static synchronized PropsFile createPropsFile(File f, boolean stopAtBlank) {
+		if (reapCounter == reapEvery) {
+			reapOld();
+			reapCounter = 0;
+		} else {
+			++reapCounter;
+		}
+		
 		String fn=f.getPath();
 
 		PropsFile pf=(PropsFile)propsList.get(fn);
@@ -54,6 +65,21 @@ public class PropsFile {
 
 	public static PropsFile createPropsFile(File f) {
 		return createPropsFile(f, false);
+	}
+	
+	public static void reapOld() {
+		Logger.debug(PropsFile.class, "Cleaning up stale PropsFiles");
+		
+		Iterator i = propsList.entrySet().iterator();
+		
+		while (i.hasNext()) {
+			Map.Entry entry = (Map.Entry)i.next();
+			File f = new File((String)entry.getKey());
+			if (!f.exists()) {
+				Logger.debug(PropsFile.class, "Removing "+f.getPath());
+				i.remove();
+			}
+		}
 	}
 
 	private final File file;
