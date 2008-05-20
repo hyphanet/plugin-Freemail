@@ -845,7 +845,7 @@ public class OutboundContact {
 			this.uid = uid;
 			this.file = new File(ctoutbox, Integer.toString(uid));
 			
-			this.index = PropsFile.createPropsFile(file);
+			this.index = PropsFile.createPropsFile(new File(ctoutbox, INDEX_FILE));
 			
 			this.slot = this.index.get(uid+".slot");
 			String s_first = this.index.get(uid+".first_send_time");
