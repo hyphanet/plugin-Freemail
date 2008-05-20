@@ -699,7 +699,7 @@ public class OutboundContact {
 			
 			if(msgs[i].slot==null) {
 				Logger.normal(this,"Index file does not contain slot name for this message, the mail cannot be sent this way.");
-				Logger.debug(this,"Filename is "+contactfile.getFile().getPath());
+				Logger.debug(this,"Filename is "+contactfile.toString());
 				continue;
 			}
 			

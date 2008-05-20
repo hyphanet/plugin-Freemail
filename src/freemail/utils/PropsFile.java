@@ -182,4 +182,8 @@ public class PropsFile {
 		}
 		return true;
 	}
+	
+	public String toString() {
+		return file.getPath();
+	}
 }
