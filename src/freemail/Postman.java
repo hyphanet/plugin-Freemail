@@ -23,6 +23,7 @@ package freemail;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 import java.io.File;
 import java.io.BufferedReader;
@@ -46,7 +47,7 @@ public class Postman {
 	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException, ConnectionTerminatedException {
 		MailMessage newmsg = mb.createMessage();
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
 		
 		newmsg.readHeaders(brdr);
 		
@@ -98,7 +99,7 @@ public class Postman {
 		try {
 			bmsg = mb.createMessage();
 			
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
 			
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");
 			bmsg.addHeader("Subject", "Undeliverable Freemail");
