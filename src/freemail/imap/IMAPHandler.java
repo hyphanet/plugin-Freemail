@@ -975,7 +975,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		
 		String mbname = trimQuotes(msg.args[0]);
 		
-                MessageBank statmb = this.getMailboxFromPath(mbname);
+		MessageBank statmb = this.getMailboxFromPath(mbname);
+		
+		if (statmb == null) {
+			this.reply(msg, "NO Could not find mailbox");
+			return;
+		}
 		
 		SortedMap msgs = statmb.listMessages();
 		
