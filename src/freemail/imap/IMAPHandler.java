@@ -707,7 +707,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					}
 				}
 				
-				this.ps.print("{"+partsize+"}\r\n");
+				this.ps.print(" {"+partsize+"}\r\n");
 
 				String line;
 				while ( (line = mmsg.readLine()) != null) {
@@ -796,7 +796,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				}
 			}
 			
-			this.ps.print("{"+buf.length()+"}\r\n"+buf.toString());
+			this.ps.print(" {"+buf.length()+"}\r\n"+buf.toString());
 			return true;
 		}
 		
