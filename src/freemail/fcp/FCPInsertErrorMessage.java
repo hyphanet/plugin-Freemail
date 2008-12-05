@@ -43,7 +43,14 @@ public class FCPInsertErrorMessage extends FCPErrorMessage {
 	/* Cancelled by user */
 	public static final int CANCELLED = 10;
 
+	// we generate this error, not Freenet
+	public static final int TIMEOUT = 100;
+
 	FCPInsertErrorMessage(FCPMessage msg) {
 		super(msg);
+	}
+
+	FCPInsertErrorMessage(int code, boolean fatal) {
+		super(code, fatal);
 	}
 }

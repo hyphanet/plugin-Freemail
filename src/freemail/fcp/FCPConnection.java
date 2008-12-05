@@ -145,6 +145,17 @@ public class FCPConnection implements Runnable {
 			throw new NoNodeConnectionException(ioe.getMessage());
 		}
 	}
+
+	/**
+	 * Give up on a request.
+	 * This doesn't actually send a cancel command to the node
+	 * (I don't think such a thing exists) but it does remove our
+	 * request/client map entry. We need this for requests that never
+	 * complete, so we don't leak memory.
+	 */
+	public synchronized void cancelRequest(FCPMessage msg) {
+		this.clients.remove(msg.getId());
+	}	
 	
 	private void dispatch(FCPMessage msg) {
 		FCPClient cli = (FCPClient)this.clients.get(msg.getId());

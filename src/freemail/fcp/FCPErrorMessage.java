@@ -38,4 +38,9 @@ public class FCPErrorMessage {
 		else
 			this.isFatal = false;
 	}
+
+	FCPErrorMessage(int code, boolean fatal) {
+		errorcode = code;
+		isFatal = fatal;
+	}
 }

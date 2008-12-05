@@ -33,6 +33,8 @@ import freemail.utils.Logger;
 public class HighLevelFCPClient implements FCPClient {
 	private static final int FCP_TOO_MANY_PATH_COMPONENTS = 11;
 	private static final int FCP_PERMANANT_REDIRECT = 27;
+	// wait 10 minutes before giving up on inserts
+	private static final int PUT_TIMEOUT = 10 * 60 * 1000;
 
 	private FCPConnection conn;
 	private FCPMessage donemsg;
@@ -134,9 +136,11 @@ public class HighLevelFCPClient implements FCPClient {
 		msg.headers.put("Persistence", "connection");
 		msg.setData(data);
 		
+		long startedAt = 0;
 		while (true) {
 			try {
 				this.conn.doRequest(this, msg);
+				startedAt = System.currentTimeMillis();
 				break;
 			} catch (NoNodeConnectionException nnce) {
 				try {
@@ -148,8 +152,15 @@ public class HighLevelFCPClient implements FCPClient {
 		
 		this.donemsg = null;
 		while (this.donemsg == null) {
+			if (System.currentTimeMillis() > startedAt + PUT_TIMEOUT) {
+				Logger.error(this, "Put timed out after "+PUT_TIMEOUT+"ms. That's not good!");
+				// 'cancel' the request, otherwise we'll leak memory
+				this.conn.cancelRequest(msg);
+
+				return new FCPInsertErrorMessage(FCPInsertErrorMessage.TIMEOUT, false);
+			}
 			try {
-				this.wait();
+				this.wait(30000);
 			} catch (InterruptedException ie) {
 			}
 		}
