@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fred"/>
+	<classpathentry kind="lib" path="lib/bcprov.jar"/>
+	<classpathentry kind="lib" path="deps/lcrypto-jdk14-138"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
