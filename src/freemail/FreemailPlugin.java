@@ -24,6 +24,7 @@ package freemail;
 
 import java.io.IOException;
 
+import freenet.clients.http.PageNode;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
 import freenet.pluginmanager.FredPluginThreadless;
@@ -56,8 +57,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
-		HTMLNode pageNode = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode contentNode = pluginResp.getPageMaker().getContentNode(pageNode);
+		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
 
 		HTMLNode addBox = contentNode.addChild("div", "class", "infobox");
 		addBox.addChild("div", "class", "infobox-header", "Add account");
@@ -95,8 +97,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
-		HTMLNode pageNode = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode contentNode = pluginResp.getPageMaker().getContentNode(pageNode);
+		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
 		
 		String add = request.getPartAsString("add", 100);
 		String name = request.getPartAsString("name", 100);
