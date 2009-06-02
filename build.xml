@@ -4,6 +4,7 @@
 	<property name="src" location="src"/>
 	<property name="build" location="build"/>
 	<property name="lib" location="lib"/>
+	<property name="dist" location="dist"/>
 	<property name="deps" location="deps"/>
 	
 	<property name="bcdist" value="lcrypto-jdk14-138"/>
@@ -83,8 +84,8 @@
 
 
 	<target name="dist" depends="compile">
-		<mkdir dir="${lib}"/>
-		<jar jarfile="${lib}/Freemail.jar" basedir="${build}">
+		<mkdir dir="${dist}"/>
+		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
 				<attribute name="Main-Class" value="freemail.FreemailCli"/>
 				<attribute name="Plugin-Main-Class" value="freemail.FreemailPlugin"/>
@@ -104,6 +105,7 @@
 				<exclude name="org/bouncycastle/**"/>
 			</fileset>
 		</delete>
+		<delete dir="${dist}"/>
 		<delete dir="${lib}"/>
 	</target>
 
