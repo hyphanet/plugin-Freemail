@@ -27,6 +27,7 @@ import java.io.IOException;
 import freenet.clients.http.PageNode;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
+import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
@@ -37,7 +38,7 @@ import freenet.support.api.HTTPRequest;
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHTTP,
-                                                        FredPluginThreadless, FredPluginVersioned {
+                                                        FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 	private PluginRespirator pluginResp;
 	
 	public FreemailPlugin() throws IOException {
@@ -161,5 +162,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 
 	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
 		return null;
+	}
+
+	public long getRealVersion() {
+		return BUILD_NO;
 	}
 }
