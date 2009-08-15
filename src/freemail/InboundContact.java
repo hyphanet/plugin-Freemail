@@ -200,22 +200,33 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		String sd = from.getSubDomain();
 		if (sd == null) {
 			// well that's definitely not valid. Piffle!
+			Logger.debug(this,"Sender subdomain is null. Marked SPOOF");
 			return false;
 		}
 		
 		if (!from.is_freemail_address()) {
 			// again, I believe this is what the Americans might call a 'no brainer'.
+			Logger.debug(this,"Sender subdomain is not a Freemail address. Marked SPOOF");
 			return false;
 		}
 		
 		if (from.is_ssk_address()) {
-			return Base32.encode(this.ibct_dir.getName().getBytes()).equalsIgnoreCase(sd);
+			if (Base32.encode(this.ibct_dir.getName().getBytes()).equalsIgnoreCase(sd)) {
+				Logger.debug(this,"Sender subdomain is SSK, appears valid");
+				return true;
+			} else {
+				Logger.debug(this,"Sender subdomain is SSK, but does not match. Marked SPOOF");
+				return false;
+			}
 		} else {
 			// try to fetch that KSK redirect address
 			HighLevelFCPClient cli = new HighLevelFCPClient();
 			
 			// quick sanity check
-			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) return false;
+			if (sd.indexOf("\r") > 0 || sd.indexOf("\n") > 0) {
+				Logger.debug(this,"Sender subdomain includes illegal character. Marked SPOOF");
+				return false;
+			}
 			
 			Logger.normal(this,"Attempting to fetch sender's mailsite to validate From address...");
 			File result;
@@ -244,9 +255,17 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			try {
 				furi = new FreenetURI(line);
 			} catch (MalformedURLException mfue) {
+				Logger.debug(this,"Sender's mailsite is malformed. Marked SPOOF");
 				return false;
 			}
-			return this.ibct_dir.getName().equals(furi.getKeyBody());
+			
+			if (this.ibct_dir.getName().equals(furi.getKeyBody())) {
+				Logger.debug(this,"Sender's mailsite matches the expected value");
+				return true;
+			} else {
+				Logger.debug(this,"Sender's mailsite doesn't match the expected value");
+				return false;
+			}
 		}
 	}
 	
