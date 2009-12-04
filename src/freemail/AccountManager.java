@@ -350,7 +350,9 @@ public class AccountManager {
 	}
 	
 	public FreemailAccount authenticate(String username, String password) {
-		if (!validate_username(username)) return null;
+		if (!(validateUsername(username).equals(""))) {
+			return null;
+		}
 		
 		FreemailAccount account = (FreemailAccount)accounts.get(username);
 		if (account == null) return null;
@@ -369,12 +371,6 @@ public class AccountManager {
 			return account;
 		}
 		return null;
-	}
-	
-	private static boolean validate_username(String username) {
-		if (username.length() < 1) return false;
-		if (username.matches("[\\w_]*")) return true;
-		return false;
 	}
 	
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
