@@ -176,12 +176,14 @@ public class PropsFile {
 			this.data = new HashMap();
 		}
 		
-		this.data.put(key, val);
-		try {
-			this.write();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
+		Object o = this.data.put(key, val);
+		if (o == null || !o.equals(val)) {
+			try {
+				this.write();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				return false;
+			}
 		}
 		return true;
 	}
@@ -199,12 +201,14 @@ public class PropsFile {
 	}
 	
 	public boolean remove(String key) {
-		this.data.remove(key);
-		try {
-			this.write();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
+		if (this.data.containsKey(key)) {
+			this.data.remove(key);
+			try {
+				this.write();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				return false;
+			}
 		}
 		return true;
 	}
