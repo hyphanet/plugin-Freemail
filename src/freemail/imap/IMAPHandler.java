@@ -174,10 +174,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args != null && msg.args.length < 1) {
+		if (msg.args == null || msg.args.length < 1) {
 			refname = null;
 			mbname = null;
-		} else if (msg.args != null && msg.args.length < 2) {
+		} else if (msg.args.length < 2) {
 			refname = msg.args[0];
 			mbname = null;
 		} else {
