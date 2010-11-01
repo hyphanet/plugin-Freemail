@@ -93,11 +93,13 @@ public class AccountManager {
 						+"\"), you may get problems accessing the account.");
 			}
 			
-			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], getAccountFile(files[i]));
-			if (account == null) {
+			PropsFile accFile = getAccountFile(files[i]);
+			if (accFile == null) {
 				Logger.error(this, "Couldn't initialise account from directory '"+files[i].getName()+"' - ignoring.");
+				continue;
 			}
-			
+
+			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], accFile);
 			accounts.put(files[i].getName(), account);
 		}
 	}
