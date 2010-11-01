@@ -752,7 +752,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		for (int i = 0; i < parts.length; i++) {
 			if (parts[i].equalsIgnoreCase("header.fields")) {
 				i++;
-				this.ps.print("[HEADER.FIELDS "+parts[i]+"] ");
+				this.ps.print("[HEADER.FIELDS "+parts[i]+"]");
 				if (parts[i].charAt(0) == '(')
 					parts[i] = parts[i].substring(1);
 				if (parts[i].charAt(parts[i].length() - 1) == ')')
