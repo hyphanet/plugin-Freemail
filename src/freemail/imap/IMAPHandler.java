@@ -148,6 +148,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_logout(IMAPMessage msg) {
+		this.sendState("BYE");
 		this.reply(msg, "OK Bye");
 		try {
 			this.client.close();
