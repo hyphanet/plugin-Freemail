@@ -211,6 +211,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
+
+		this.to.clear();
 		
 		// we don't really care.
 		this.ps.print("250 OK\r\n");
