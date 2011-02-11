@@ -170,7 +170,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			if (cmd.args.length > 1) {
 				b64creds = cmd.args[1];
 			} else {
-				this.ps.print("334 Credentials:\r\n");
+				this.ps.print("334 \r\n");
 				try {
 					b64creds = this.bufrdr.readLine();
 					if (b64creds == null) return;
