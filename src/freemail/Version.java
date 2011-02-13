@@ -27,6 +27,9 @@ public class Version {
 	public static final int BUILD_NO = 13;
 	public static final String VERSION_TAG = "Pet Shop";
 
+	// This will be replaced at build time by the correct value
+	public static final String GIT_REVISION = "@custom@";
+
 	public static String getVersionString() {
 		return VER_MAJOR + "." + VER_MINOR + " build #" + BUILD_NO + " (" + VERSION_TAG + ")";
 	}
