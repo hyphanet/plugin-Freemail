@@ -31,6 +31,6 @@ public class Version {
 	public static final String GIT_REVISION = "@custom@";
 
 	public static String getVersionString() {
-		return VER_MAJOR + "." + VER_MINOR + " build #" + BUILD_NO + " (" + VERSION_TAG + ")";
+		return VER_MAJOR + "." + VER_MINOR + " " + VERSION_TAG + " (" + GIT_REVISION + ")";
 	}
 }
