@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <project name="Freemail" default="dist" basedir=".">
+	<property file="override.properties"/>
+	<property file="build.properties"/>
+
 	<!-- set global properties for this build -->
 	<property name="src" location="src"/>
 	<property name="build" location="build"/>
