@@ -27,7 +27,7 @@
 
 	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
 		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.4" nowarn="true">
+		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5" nowarn="true">
 			<exclude name="**/test/*" />
 			<exclude name="org/bouncycastle/util/IPTest.java" />
 			<exclude name="org/bouncycastle/util/AllTests.java" />
@@ -41,7 +41,7 @@
 		
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4">
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 			</classpath>
