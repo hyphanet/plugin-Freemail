@@ -45,6 +45,7 @@
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 			</classpath>
+			<compilerarg value="-Xlint"/>
 		</javac>
 		<copy todir="${build}/freemailgui/text">
 			<fileset dir="${src}/freemailgui/text" />
