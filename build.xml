@@ -6,6 +6,7 @@
 	<!-- set global properties for this build -->
 	<property name="src" location="src"/>
 	<property name="test" location="test"/>
+	<property name="test.run" location="run"/>
 	<property name="build" location="build"/>
 	<property name="build-test" location="build-test"/>
 	<property name="lib" location="lib"/>
@@ -72,7 +73,8 @@
 	</target>
 
 	<target name="unit" depends="unit-build" unless="${test.skip}">
-		<junit printsummary="yes" fork="yes" haltonfailure="yes" dir="${build-test}">
+		<mkdir dir="${test.run}"/>
+		<junit printsummary="yes" fork="yes" haltonfailure="yes" dir="${test.run}">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${build}"/>
@@ -86,6 +88,7 @@
 				</fileset>
 			</batchtest>
 		</junit>
+		<delete dir="${test.run}"/>
 	</target>
 
 	<target name="dist" depends="compile, unit">
