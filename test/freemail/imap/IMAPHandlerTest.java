@@ -80,6 +80,7 @@ public class IMAPHandlerTest extends TestCase {
 				System.out.println("Failed to delete " + file);
 				return false;
 			}
+			return true;
 		}
 
 		for(File f : file.listFiles()) {
