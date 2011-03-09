@@ -119,6 +119,8 @@ public class IMAPHandlerTest extends TestCase {
 
 		line = fromHandler.readLine();
 		assertEquals("0001 OK Logged in", line);
+
+		assertFalse(fromHandler.ready());
 	}
 
 	public void testFailedIMAPLogin() throws IOException {
@@ -138,6 +140,8 @@ public class IMAPHandlerTest extends TestCase {
 
 		line = fromHandler.readLine();
 		assertEquals("0001 NO Login failed", line);
+
+		assertFalse(fromHandler.ready());
 	}
 
 	private class ConfigurableAccountManager extends NullAccountManager {
