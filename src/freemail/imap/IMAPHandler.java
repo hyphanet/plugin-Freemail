@@ -860,17 +860,19 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 		
-		do_store(msg.args, 1, msgs, msg, false);
+		if(!do_store(msg.args, 1, msgs, msg, false)) {
+			return;
+		}
 		
 		this.reply(msg, "OK Store completed");
 	}
 	
-	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
+	private boolean do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
 		if (args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
-			return;
+			return false;
 		}
 		
 		if (args[offset + 1].startsWith("("))
@@ -922,6 +924,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.sendState(buf.toString());
 			}
 		}
+		
+		return true;
 	}
 	
 	private void handle_expunge(IMAPMessage msg) {
