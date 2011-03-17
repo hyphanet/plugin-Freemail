@@ -137,7 +137,7 @@ public class IMAPHandlerTest extends TestCase {
 
 		send(toHandler, "0001 LOGIN test test\r\n");
 
-		line = fromHandler.readLine();
+		line = readTaggedResponse(fromHandler);
 		assertEquals("0001 NO Login failed", line);
 
 		assertFalse(fromHandler.ready());
@@ -146,6 +146,14 @@ public class IMAPHandlerTest extends TestCase {
 	private static void send(PrintWriter out, String msg) {
 		out.print(msg);
 		out.flush();
+	}
+
+	private static String readTaggedResponse(BufferedReader in) throws IOException {
+		String line = in.readLine();
+		while(line.startsWith("*")) {
+			line = in.readLine();
+		}
+		return line;
 	}
 
 	private class ConfigurableAccountManager extends NullAccountManager {
