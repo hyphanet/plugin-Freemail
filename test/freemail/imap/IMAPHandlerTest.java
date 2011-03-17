@@ -143,6 +143,28 @@ public class IMAPHandlerTest extends TestCase {
 		assertFalse(fromHandler.ready());
 	}
 
+	public void testIMAPSelect() throws IOException {
+		FakeSocket sock = new FakeSocket();
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+
+		new Thread(new IMAPHandler(accManager, sock)).start();
+
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+
+		fromHandler.readLine(); //Greeting
+
+		//Login
+		send(toHandler, "0001 LOGIN test test\r\n");
+		readTaggedResponse(fromHandler);
+
+		send(toHandler, "0002 SELECT INBOX\r\n");
+		String line = readTaggedResponse(fromHandler);
+		assertEquals("0002 OK [READ-WRITE] Done", line);
+
+		assertFalse(fromHandler.ready());
+	}
+
 	private static void send(PrintWriter out, String msg) {
 		out.print(msg);
 		out.flush();
