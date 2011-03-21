@@ -75,6 +75,10 @@ public class IMAPHandlerTest extends TestCase {
 	 * Prints the path of any Files that can't be deleted to System.out
 	 */
 	private boolean delete(File file) {
+		if(!file.exists()) {
+			return true;
+		}
+
 		if(!file.isDirectory()) {
 			if(!file.delete()) {
 				System.out.println("Failed to delete " + file);
