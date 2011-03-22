@@ -77,6 +77,7 @@
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement location="${lib}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -112,12 +113,10 @@
 			</fileset>
 		</delete>
 		<delete dir="${dist}"/>
-		<delete dir="${lib}"/>
 	</target>
 
 	<target name="cleaner">
 		<delete dir="${build}"/>
-		<delete dir="${lib}"/>
 	</target>
 
 	<target name="squeakyclean" depends="cleaner">
