@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="test" output="build-test"/>
 	<classpathentry excluding="**/test/|org/bouncycastle/util/AllTests.java|org/bouncycastle/util/IPTest.java" kind="src" path="deps/lcrypto-jdk14-138/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fred"/>
