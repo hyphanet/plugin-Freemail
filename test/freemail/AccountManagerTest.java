@@ -49,6 +49,21 @@ public class AccountManagerTest extends TestCase {
 		assertEquals("", AccountManager.validateUsername("test-user"));
 	}
 
+	public void testAuthenticateSimpleUsername() throws Exception {
+		// Creating accounts the real way doesn't work because there is no fcp connection to the
+		// node, so we have to do it the hard way
+		File accDir = new File(dataDir, "test");
+		accDir.mkdir();
+		File accProps = new File(accDir, AccountManager.ACCOUNT_FILE);
+		accProps.createNewFile();
+
+		AccountManager manager = new AccountManager(dataDir);
+		FreemailAccount acc = manager.getAccount("test");
+		AccountManager.changePassword(acc, "test");
+
+		assertNotNull(manager.authenticate("test", "test"));
+	}
+
 	public void testAccountManager() {
 		AccountManager manager = new AccountManager(dataDir);
 		assertTrue(manager.getAllAccounts().isEmpty());
