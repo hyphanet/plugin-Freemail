@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 
+import utils.Utils;
+
 import fakes.FakeSocket;
 import fakes.NullAccountManager;
 import freemail.AccountManager;
@@ -46,7 +48,7 @@ public class IMAPHandlerTest extends TestCase {
 		accountManagerDir = new File(ACCOUNT_MANAGER_DIR);
 		if(accountManagerDir.exists()) {
 			System.out.println("WARNING: Account manager directory exists, deleting");
-			delete(accountManagerDir);
+			Utils.delete(accountManagerDir);
 		}
 
 		if(!accountManagerDir.mkdir()) {
@@ -57,7 +59,7 @@ public class IMAPHandlerTest extends TestCase {
 		accountDir = new File(ACCOUNT_DIR);
 		if(accountDir.exists()) {
 			System.out.println("WARNING: Account directory exists, deleting");
-			delete(accountDir);
+			Utils.delete(accountDir);
 		}
 
 		if(!accountDir.mkdir()) {
@@ -66,35 +68,8 @@ public class IMAPHandlerTest extends TestCase {
 	}
 
 	public void tearDown() {
-		delete(accountManagerDir);
-		delete(accountDir);
-	}
-
-	/**
-	 * Deletes a File, including all its contents if it is a directory.
-	 * Prints the path of any Files that can't be deleted to System.out
-	 */
-	private boolean delete(File file) {
-		if(!file.exists()) {
-			return true;
-		}
-
-		if(!file.isDirectory()) {
-			if(!file.delete()) {
-				System.out.println("Failed to delete " + file);
-				return false;
-			}
-			return true;
-		}
-
-		for(File f : file.listFiles()) {
-			if(!delete(f)) {
-				return false;
-			}
-		}
-		file.delete();
-
-		return true;
+		Utils.delete(accountManagerDir);
+		Utils.delete(accountDir);
 	}
 
 	public void testIMAPGreeting() throws IOException {
