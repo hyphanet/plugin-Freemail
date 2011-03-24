@@ -21,6 +21,8 @@ package freemail;
 
 import java.io.File;
 
+import utils.Utils;
+
 import junit.framework.TestCase;
 
 public class AccountManagerTest extends TestCase {
@@ -29,14 +31,14 @@ public class AccountManagerTest extends TestCase {
 	public void setUp() {
 		dataDir = new File("data");
 		if(dataDir.exists()) {
-			dataDir.delete();
+			Utils.delete(dataDir);
 		}
 
 		dataDir.mkdir();
 	}
 
 	public void tearDown() {
-		dataDir.delete();
+		Utils.delete(dataDir);
 	}
 
 	public void testUsernameValidation() {
