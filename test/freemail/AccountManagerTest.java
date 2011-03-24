@@ -31,10 +31,13 @@ public class AccountManagerTest extends TestCase {
 	public void setUp() {
 		dataDir = new File("data");
 		if(dataDir.exists()) {
+			System.out.println("WARNING: Account manager directory exists, deleting");
 			Utils.delete(dataDir);
 		}
 
-		dataDir.mkdir();
+		if(!dataDir.mkdir()) {
+			System.out.println("WARNING: Could not create account manager directory, tests will probably fail");
+		}
 	}
 
 	public void tearDown() {
