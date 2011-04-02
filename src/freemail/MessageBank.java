@@ -78,6 +78,9 @@ public class MessageBank {
 			if (files[i].getName().equals(".")) continue;
 			if (files[i].getName().equals(NIDFILE)) continue;
 			if (files[i].getName().equals("..")) continue;
+
+			//Skip the shadow directories we leave behind to preserve the UID
+			if (files[i].isDirectory() && files[i].getName().startsWith(".")) continue;
 			
 			// this method should will fail if there are directories
 			// here. It should never be called if this is the case.
