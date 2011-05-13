@@ -143,8 +143,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 					text.addChild("br");
 					text.addChild("br");
 					text.addChild("#", "You now need to configure your email client to send and receive email through "
-							+ "Freemail using IMAP and SMTP. Freemail uses ports 3143 and 3025 for these "
-							+ "respectively by default.");
+							+ "Freemail using IMAP and SMTP. Freemail uses ports " + configurator.get("imap_bind_port") +
+							" and " + configurator.get("smtp_bind_port") + " for these respectively.");
 				} catch (IOException ioe) {
 					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
 					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
