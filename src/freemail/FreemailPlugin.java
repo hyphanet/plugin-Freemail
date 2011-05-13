@@ -86,7 +86,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		clientConfigHelp.addChild("div", "class", "infobox-header", "Configuring your email client");
 		clientConfigHelp.addChild("div", "class", "infobox-content").addChild("p",
 				"The username and password you select will be used both for sending and receiving " +
-				"email, and the username will also be the name of the new account");
+				"email, and the username will also be the name of the new account. For receiving email " +
+				"the server is " + configurator.get("imap_bind_address") + " and the port is " +
+				configurator.get("imap_bind_port") + ". For sending the values are " +
+				configurator.get("smtp_bind_address") + " and " + configurator.get("smtp_bind_port")
+				+ " respectively.");
 
 		HTMLNode shortnameHelp = contentNode.addChild("div", "class", "infobox");
 		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
