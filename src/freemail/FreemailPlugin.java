@@ -70,13 +70,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		
 		HTMLNode table = form.addChild("table", "class", "plugintable");
 		HTMLNode tableRowName = table.addChild("tr");
-		tableRowName.addChild("td", "Name");
+		tableRowName.addChild("td", "Username");
 		tableRowName.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "name", "", "30" });
 		HTMLNode tableRowPassword = table.addChild("tr");
 		tableRowPassword.addChild("td", "Password");
 		tableRowPassword.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "password", "password", "", "30" });
 		HTMLNode tableRowDomain = table.addChild("tr");
-		tableRowDomain.addChild("td", "Domain");
+		tableRowDomain.addChild("td", "Short address");
 		tableRowDomain.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "domain", "", "30" });
 		HTMLNode tableRowSubmit = table.addChild("tr");
 		tableRowSubmit.addChild("td");
