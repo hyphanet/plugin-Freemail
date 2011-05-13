@@ -82,6 +82,23 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		tableRowSubmit.addChild("td");
 		tableRowSubmit.addChild("td").addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "add", "Add account"});
 
+		HTMLNode clientConfigHelp = contentNode.addChild("div", "class", "infobox");
+		clientConfigHelp.addChild("div", "class", "infobox-header", "Configuring your email client");
+		clientConfigHelp.addChild("div", "class", "infobox-content").addChild("p",
+				"The username and password you select will be used both for sending and receiving " +
+				"email, and the username will also be the name of the new account");
+
+		HTMLNode shortnameHelp = contentNode.addChild("div", "class", "infobox");
+		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
+		HTMLNode shortnameContent = shortnameHelp.addChild("div", "class", "infobox-content");
+		shortnameContent.addChild("p",
+				"The short address is a shorter and more convinient form of your new email address." +
+				"If you select a short address domain you will get an additional email address " +
+				"that looks like this: <anything>@<short address>.freemail");
+		shortnameContent.addChild("p",
+				"Unfortunately using the short address is also less secure than using the long form " +
+				"address");
+
 		return pageNode.generate();
 	}
 
