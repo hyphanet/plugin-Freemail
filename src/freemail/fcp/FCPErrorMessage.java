@@ -1,6 +1,6 @@
 /*
  * FCPErrorMessage.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail, copyright (C) 2006,2008 Dave Baker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

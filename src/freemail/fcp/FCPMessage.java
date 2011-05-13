@@ -1,6 +1,8 @@
 /*
  * FCPMessage.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007 Alexander Lehmann
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
