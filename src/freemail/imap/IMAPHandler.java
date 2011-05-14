@@ -148,6 +148,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_logout(IMAPMessage msg) {
+		this.sendState("BYE");
 		this.reply(msg, "OK Bye");
 		try {
 			this.client.close();
@@ -174,10 +175,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args != null && msg.args.length < 1) {
+		if (msg.args == null || msg.args.length < 1) {
 			refname = null;
 			mbname = null;
-		} else if (msg.args != null && msg.args.length < 2) {
+		} else if (msg.args.length < 2) {
 			refname = msg.args[0];
 			mbname = null;
 		} else {
@@ -752,7 +753,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		for (int i = 0; i < parts.length; i++) {
 			if (parts[i].equalsIgnoreCase("header.fields")) {
 				i++;
-				this.ps.print("[HEADER.FIELDS "+parts[i]+"] ");
+				this.ps.print("[HEADER.FIELDS "+parts[i]+"]");
 				if (parts[i].charAt(0) == '(')
 					parts[i] = parts[i].substring(1);
 				if (parts[i].charAt(parts[i].length() - 1) == ')')
@@ -859,17 +860,19 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 		
-		do_store(msg.args, 1, msgs, msg, false);
+		if(!do_store(msg.args, 1, msgs, msg, false)) {
+			return;
+		}
 		
 		this.reply(msg, "OK Store completed");
 	}
 	
-	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
+	private boolean do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
 		if (args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
-			return;
+			return false;
 		}
 		
 		if (args[offset + 1].startsWith("("))
@@ -921,6 +924,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.sendState(buf.toString());
 			}
 		}
+		
+		return true;
 	}
 	
 	private void handle_expunge(IMAPMessage msg) {

@@ -45,6 +45,7 @@ public class IMAPMessageFlags {
 	};
 	
 	public static final String[] permanentFlags = {
+		"\\Seen",
 		"\\Answered",
 		"\\Flagged",
 		"\\Deleted",

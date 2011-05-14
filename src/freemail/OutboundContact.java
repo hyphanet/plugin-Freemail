@@ -197,7 +197,7 @@ public class OutboundContact {
 				// haven't got the CTS message. should we give up yet?
 				String senttime = this.contactfile.get("rts-sent-at");
 				
-				if (senttime == null || Long.parseLong(senttime) > System.currentTimeMillis() + CTS_WAIT_TIME) {
+				if (senttime == null || Long.parseLong(senttime) + CTS_WAIT_TIME < System.currentTimeMillis()) {
 					// yes, send another RTS
 					this.init();
 				}

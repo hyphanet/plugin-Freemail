@@ -311,8 +311,11 @@ public class MailMessage {
 		String[] parts = this.file.getName().split(",");
 		
 		String newname = parts[0] + "," + this.flags.getShortFlagString();
+		File newfile = new File(this.file.getParentFile(), newname);
 		
-		this.file.renameTo(new File(this.file.getParentFile(), newname));
+		if(this.file.renameTo(newfile)) {
+			this.file = newfile;
+		}
 	}
 	
 	private static class MailMessageHeader {

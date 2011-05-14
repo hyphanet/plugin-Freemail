@@ -93,11 +93,13 @@ public class AccountManager {
 						+"\"), you may get problems accessing the account.");
 			}
 			
-			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], getAccountFile(files[i]));
-			if (account == null) {
+			PropsFile accFile = getAccountFile(files[i]);
+			if (accFile == null) {
 				Logger.error(this, "Couldn't initialise account from directory '"+files[i].getName()+"' - ignoring.");
+				continue;
 			}
-			
+
+			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], accFile);
 			accounts.put(files[i].getName(), account);
 		}
 	}
@@ -350,7 +352,9 @@ public class AccountManager {
 	}
 	
 	public FreemailAccount authenticate(String username, String password) {
-		if (!validate_username(username)) return null;
+		if (!(validateUsername(username).equals(""))) {
+			return null;
+		}
 		
 		FreemailAccount account = (FreemailAccount)accounts.get(username);
 		if (account == null) return null;
@@ -369,12 +373,6 @@ public class AccountManager {
 			return account;
 		}
 		return null;
-	}
-	
-	private static boolean validate_username(String username) {
-		if (username.length() < 1) return false;
-		if (username.matches("[\\w_]*")) return true;
-		return false;
 	}
 	
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
