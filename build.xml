@@ -8,7 +8,7 @@
 	<property name="deps" location="deps"/>
 	
 	<property name="bcdist" value="lcrypto-jdk14-138"/>
-	<property name="freenet-cvs-snapshot.location" location="../fred/lib/freenet-cvs-snapshot.jar"/>
+	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
 
 	<target name="bouncycastle-check">
 		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
