@@ -187,7 +187,7 @@ public class RTSFetcher implements SlotSaveCallback {
 					// to fetch anything if they are dead keys.
 					Logger.error(this,keybase+slot+": All Data not found - leaving slot in queue and will poll an extra key");
 					sm.incPollAhead();
-				} else if (fe.getCode() == FCPFetchException.DATA_NOT_FOUND) {
+				} else if (fe.getCode() == FCPFetchException.DATA_NOT_FOUND || fe.getCode() == FCPFetchException.RECENTLY_FAILED) {
 					Logger.minor(this,keybase+slot+": no RTS.");
 				} else if (fe.isNetworkError()) {
 					// Freenet is having special moment. This doesn't count as a valid poll.
