@@ -75,10 +75,10 @@ public class EmailAddress {
 		// trim quotes out of the real name field
 		if (realname != null && realname.length() > 0) {
 		    this.realname = this.realname.trim();
-		    if (this.realname.substring(0,1).equals("\"")) {
+		    if (this.realname.charAt(0) == '\"') {
 			this.realname = this.realname.substring(1);
 		    }
-		    if (this.realname.substring(this.realname.length() - 1).equals("\"")) {
+		    if (this.realname.charAt(this.realname.length() - 1) == '\"') {
 			this.realname = this.realname.substring(0, this.realname.length() - 1);
 		    }
 		}
