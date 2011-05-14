@@ -1,22 +1,23 @@
 /*
  * FreemailPlugin.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007,2008 Alexander Lehmann
+ * Copyright (C) 2009 Matthew Toseland
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail;
@@ -70,29 +71,17 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		
 		HTMLNode table = form.addChild("table", "class", "plugintable");
 		HTMLNode tableRowName = table.addChild("tr");
-		tableRowName.addChild("td", "IMAP Name");
+		tableRowName.addChild("td", "Name");
 		tableRowName.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "name", "", "30" });
 		HTMLNode tableRowPassword = table.addChild("tr");
-		tableRowPassword.addChild("td", "IMAP Password");
+		tableRowPassword.addChild("td", "Password");
 		tableRowPassword.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "password", "password", "", "30" });
 		HTMLNode tableRowDomain = table.addChild("tr");
-		tableRowDomain.addChild("td", "Shortname (Freenet Domain)");
+		tableRowDomain.addChild("td", "Domain");
 		tableRowDomain.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "domain", "", "30" });
 		HTMLNode tableRowSubmit = table.addChild("tr");
 		tableRowSubmit.addChild("td");
 		tableRowSubmit.addChild("td").addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "add", "Add account"});
-
-		HTMLNode helpContent = addBox.addChild("div", "class", "infobox-content");
-		helpContent.addChild("#", 
-				     "The 'IMAP Name' and 'IMAP Password'"
-				     + " values will be your security"
-				     + " credentials for getting your Freenet"
-				     + " mail.");
-		helpContent.addChild("br");
-		helpContent.addChild("#", 
-				     "The 'Shortname (Freenet Domain)' will"
-				     + " become the significant part of your"
-				     + " email address.");
 
 		return pageNode.generate();
 	}
