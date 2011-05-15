@@ -104,7 +104,7 @@ public class IMAPHandlerTest extends TestCase {
 
 	public void testIMAPLogin() throws IOException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new PremissiveAccountManager(accountManagerDir);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
@@ -121,12 +121,37 @@ public class IMAPHandlerTest extends TestCase {
 		assertEquals("0001 OK Logged in", line);
 	}
 
-	private class PremissiveAccountManager extends NullAccountManager {
-		public PremissiveAccountManager(File datadir) {
+	public void testFailedIMAPLogin() throws IOException {
+		FakeSocket sock = new FakeSocket();
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, true);
+
+		new Thread(new IMAPHandler(accManager, sock)).start();
+
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+
+		//Read the greeting
+		String line = fromHandler.readLine();
+
+		toHandler.print("0001 LOGIN test test\r\n");
+		toHandler.flush();
+
+		line = fromHandler.readLine();
+		assertEquals("0001 NO Login failed", line);
+	}
+
+	private class ConfigurableAccountManager extends NullAccountManager {
+		private boolean failAuth;
+
+		public ConfigurableAccountManager(File datadir, boolean failAuth) {
 			super(datadir);
+
+			this.failAuth = failAuth;
 		}
 
 		public FreemailAccount authenticate(String username, String password) {
+			if(failAuth) return null;
+
 			//FreemailAccount constructor is package-protected and
 			//there is no reason to change that, so use reflection
 			//to construct a new account
