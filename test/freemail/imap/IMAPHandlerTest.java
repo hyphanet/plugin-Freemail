@@ -46,9 +46,7 @@ public class IMAPHandlerTest extends TestCase {
 		accountManagerDir = new File(ACCOUNT_MANAGER_DIR);
 		if(accountManagerDir.exists()) {
 			System.out.println("WARNING: Account manager directory exists, deleting");
-			if(!accountManagerDir.delete()) {
-				System.out.println("WARNING: Could not remove account manager directory");
-			}
+			delete(accountManagerDir);
 		}
 
 		if(!accountManagerDir.mkdir()) {
@@ -59,9 +57,7 @@ public class IMAPHandlerTest extends TestCase {
 		accountDir = new File(ACCOUNT_DIR);
 		if(accountDir.exists()) {
 			System.out.println("WARNING: Account directory exists, deleting");
-			if(!accountDir.delete()) {
-				System.out.println("WARNING: Could not remove account directory");
-			}
+			delete(accountDir);
 		}
 
 		if(!accountDir.mkdir()) {
@@ -70,13 +66,30 @@ public class IMAPHandlerTest extends TestCase {
 	}
 
 	public void tearDown() {
-		if(!accountManagerDir.delete()) {
-			System.out.println("WARNING: Could not remove account manager directory");
+		delete(accountManagerDir);
+		delete(accountDir);
+	}
+
+	/**
+	 * Deletes a File, including all its contents if it is a directory.
+	 * Prints the path of any Files that can't be deleted to System.out
+	 */
+	private boolean delete(File file) {
+		if(!file.isDirectory()) {
+			if(!file.delete()) {
+				System.out.println("Failed to delete " + file);
+				return false;
+			}
 		}
 
-		if(!accountDir.delete()) {
-			System.out.println("WARNING: Could not remove account directory");
+		for(File f : file.listFiles()) {
+			if(!delete(f)) {
+				return false;
+			}
 		}
+		file.delete();
+
+		return true;
 	}
 
 	public void testIMAPGreeting() throws IOException {
