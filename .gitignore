@@ -2,3 +2,5 @@ deps/
 build/
 lib/
 dist/
+override.properties
+build-test/
