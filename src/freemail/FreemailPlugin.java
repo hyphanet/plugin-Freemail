@@ -25,6 +25,9 @@ package freemail;
 
 import java.io.IOException;
 
+import freemail.utils.Logger;
+import freemail.wot.OwnIdentity;
+import freemail.wot.WoTConnection;
 import freenet.clients.http.PageNode;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
@@ -32,6 +35,7 @@ import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -56,6 +60,15 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		startFcp(true);
 		startWorkers(true);
 		startServers(true);
+
+		try {
+			WoTConnection wot = new WoTConnection(pr);
+			for(OwnIdentity oid : wot.getAllOwnIdentities()) {
+				Logger.error(this, "Got OwnIdentity: " + oid);
+			}
+		} catch (PluginNotFoundException e) {
+			Logger.error(this, "Couldn't find the WoT plugin");
+		}
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
