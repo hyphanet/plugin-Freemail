@@ -191,7 +191,7 @@ public class AccountManager {
 		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
 	
-	private static void initAccFile(PropsFile accfile) {
+	private static boolean initAccFile(PropsFile accfile) {
 		try {
 			// initialise RTS KSK
 			Random rnd = new Random();
@@ -210,6 +210,7 @@ public class AccountManager {
 			Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
 		} catch (IOException ioe) {
 			Logger.error(AccountManager.class,"Couldn't create mailsite key file! "+ioe.getMessage());
+			return false;
 		}
 		
 		// generate an RSA keypair
@@ -231,6 +232,7 @@ public class AccountManager {
 		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
 		
 		Logger.normal(AccountManager.class,"Account creation completed.");
+		return true;
 	}
 	
 	public static boolean addShortAddress(FreemailAccount account, String alias) throws Exception {
