@@ -24,6 +24,7 @@ package freemail;
 
 
 import java.io.IOException;
+import java.util.List;
 
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
@@ -37,6 +38,7 @@ import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.Executor;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
@@ -60,15 +62,30 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		startFcp(true);
 		startWorkers(true);
 		startServers(true);
+		startIdentityFetch(pr, getAccountManager());
+	}
 
-		try {
-			WoTConnection wot = new WoTConnection(pr);
-			for(OwnIdentity oid : wot.getAllOwnIdentities()) {
-				Logger.error(this, "Got OwnIdentity: " + oid);
+	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
+		pr.getNode().executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				WoTConnection wot = null;
+				while(wot == null) {
+					try {
+						wot = new WoTConnection(pr);
+					} catch (PluginNotFoundException e) {
+						Logger.error(this, "Couldn't find the Web of Trust plugin");
+						try {
+							Thread.sleep(60 * 1000);
+						} catch (InterruptedException ie) {
+							//Just try again
+						}
+					}
+				}
+				List<OwnIdentity> oids = wot.getAllOwnIdentities();
+				accountManager.addIdentities(oids);
 			}
-		} catch (PluginNotFoundException e) {
-			Logger.error(this, "Couldn't find the WoT plugin");
-		}
+		}, "Freemail OwnIdentity fetcher");
 	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {

@@ -47,14 +47,12 @@ public abstract class Freemail implements ConfigClient {
 	protected static FCPConnection fcpconn = null;
 	
 	private Thread fcpThread;
-	private ArrayList /* of Thread */ singleAccountWatcherThreadList = new ArrayList();
 	private Thread messageSenderThread;
 	private Thread smtpThread;
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
-	private final ArrayList singleAccountWatcherList = new ArrayList();
 	private final MessageSender sender;
 	private final SMTPListener smtpl;
 	private final AckProcrastinator ackinserter;
@@ -147,27 +145,10 @@ public abstract class Freemail implements ConfigClient {
 		imapThread.start();
 	}
 	
-	protected void startWorker(FreemailAccount account, boolean daemon) {
-		SingleAccountWatcher saw = new SingleAccountWatcher(account); 
-		singleAccountWatcherList.add(saw);
-		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
-		t.setDaemon(daemon);
-		t.start();
-		singleAccountWatcherThreadList.add(t);
-	}
-	
 	protected void startWorkers(boolean daemon) {
 		System.out.println("This is Freemail version "+Version.getVersionString());
 		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
-		
-		// start a SingleAccountWatcher for each account
-		Iterator i = accountManager.getAllAccounts().iterator();
-		while (i.hasNext()) {
-			FreemailAccount acc = (FreemailAccount)i.next();
-			
-			startWorker(acc, daemon);
-		}
 		
 		// start the sender thread
 		messageSenderThread = new Thread(sender, "Freemail Message sender");
@@ -181,12 +162,7 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	public void terminate() {
-		Iterator it = singleAccountWatcherList.iterator();
-		while(it.hasNext()) {
-			((SingleAccountWatcher)it.next()).kill();
-			it.remove();
-		}
-
+		accountManager.terminate();
 		sender.kill();
 		ackinserter.kill();
 		smtpl.kill();
@@ -198,12 +174,6 @@ public abstract class Freemail implements ConfigClient {
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				it = singleAccountWatcherThreadList.iterator();
-				while(it.hasNext()) {
-					((Thread)it.next()).join();
-					it.remove();
-				}
-				
 				if (messageSenderThread != null) {
 					messageSenderThread.join();
 					messageSenderThread = null;

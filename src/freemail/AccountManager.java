@@ -26,7 +26,9 @@ import java.io.PrintWriter;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,7 @@ import freemail.fcp.SSKKeyPair;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
+import freemail.wot.OwnIdentity;
 
 public class AccountManager {
 	// this really doesn't matter a great deal
@@ -73,6 +76,10 @@ public class AccountManager {
 	// each time a request is made for a given account.
 	private Map/*<String, FreemailAccount>*/ accounts = new HashMap();
 	
+	//singleAccountWatcherList locks both these lists
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
+	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
+
 	private final File datadir;
 	
 	public AccountManager(File _datadir) {
@@ -366,5 +373,70 @@ public class AccountManager {
 		ps.println("(Freemail developer)");
 		
 		m.commit();
+	}
+
+	public void addIdentities(List<OwnIdentity> oids) {
+		for(OwnIdentity oid : oids) {
+			addIdentity(oid);
+		}
+	}
+
+	private void addIdentity(OwnIdentity oid) {
+		File accountDir = new File(datadir, oid.getIdentityID());
+
+		if(!accountDir.exists()) {
+			//Need to create a new account
+			initializeIdentity(oid);
+		}
+
+		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+		accounts.put(oid.getIdentityID(), account);
+
+		//Now start a SingleAccountWatcher for this account
+		SingleAccountWatcher saw = new SingleAccountWatcher(account);
+		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
+		t.setDaemon(true);
+		t.start();
+
+		synchronized(singleAccountWatcherList) {
+			singleAccountWatcherList.add(saw);
+			singleAccountWatcherThreadList.add(t);
+		}
+	}
+
+	private void initializeIdentity(OwnIdentity oid) {
+		File accountDir = new File(datadir, oid.getIdentityID());
+		accountDir.mkdir();
+
+		PropsFile accProps = newAccountFile(accountDir);
+
+		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+		try {
+			putWelcomeMessage(account, new EmailAddress(oid.getIdentityID()+"@"+getFreemailDomain(accProps)));
+		} catch (IOException e) {
+			//FIXME: Handle this properly
+			Logger.error(this, "Failed while sending welcome message to " + oid);
+		}
+	}
+
+	void terminate() {
+		synchronized(singleAccountWatcherList) {
+			Iterator<SingleAccountWatcher> sawIt = singleAccountWatcherList.iterator();
+			while(sawIt.hasNext()) {
+				sawIt.next().kill();
+				sawIt.remove();
+			}
+
+			Iterator<Thread> threadIt = singleAccountWatcherThreadList.iterator();
+			while(threadIt.hasNext()) {
+				try {
+					threadIt.next().join();
+				} catch (InterruptedException e) {
+					Logger.error(this, "Got InterruptedException while joining SingleAccountWatcher thread");
+				}
+				threadIt.remove();
+			}
+		}
 	}
 }
