@@ -11,7 +11,7 @@ import freenet.pluginmanager.PluginTalker;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 
-public class WoTConnection implements FredPluginTalker {
+public class WoTConnection {
 	private static final String WOT_PLUGIN_NAME = "plugins.WebOfTrust.WebOfTrust";
 	private static final String CONNECTION_IDENTIFIER = "Freemail";
 
@@ -21,7 +21,7 @@ public class WoTConnection implements FredPluginTalker {
 	private final Object replyLock = new Object();
 
 	public WoTConnection(PluginRespirator pr) throws PluginNotFoundException {
-		pluginTalker = pr.getPluginTalker(this, WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
+		pluginTalker = pr.getPluginTalker(new WoTConnectionTalker(), WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
 	}
 
 	public List<OwnIdentity> getAllOwnIdentities() {
@@ -46,16 +46,6 @@ public class WoTConnection implements FredPluginTalker {
 		}
 
 		return ownIdentities;
-	}
-
-	@Override
-	public void onReply(String pluginname, String indentifier, SimpleFieldSet params, Bucket data) {
-		synchronized(replyLock) {
-			assert reply == null : "Reply should be null, but was " + reply;
-
-			reply = new Message(params, data);
-			replyLock.notify();
-		}
 	}
 
 	private Message sendBlocking(final Message msg) {
@@ -93,6 +83,18 @@ public class WoTConnection implements FredPluginTalker {
 		@Override
 		public String toString() {
 			return "[" + sfs + "] [" + data + "]";
+		}
+	}
+
+	private class WoTConnectionTalker implements FredPluginTalker {
+		@Override
+		public void onReply(String pluginname, String indentifier, SimpleFieldSet params, Bucket data) {
+			synchronized(replyLock) {
+				assert reply == null : "Reply should be null, but was " + reply;
+
+				reply = new Message(params, data);
+				replyLock.notify();
+			}
 		}
 	}
 }
