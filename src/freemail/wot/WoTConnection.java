@@ -1,5 +1,9 @@
 package freemail.wot;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import freemail.utils.SimpleFieldSetFactory;
 import freenet.pluginmanager.FredPluginTalker;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
@@ -18,6 +22,30 @@ public class WoTConnection implements FredPluginTalker {
 
 	public WoTConnection(PluginRespirator pr) throws PluginNotFoundException {
 		pluginTalker = pr.getPluginTalker(this, WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
+	}
+
+	public List<OwnIdentity> getAllOwnIdentities() {
+		Message response = sendBlocking(
+				new Message(
+						new SimpleFieldSetFactory().put("Message", "getOwnIdentities").create(),
+						null));
+
+		final List<OwnIdentity> ownIdentities = new LinkedList<OwnIdentity>();
+		for(int count = 0;; count++) {
+			String identityID = response.sfs.get("Identity" + count);
+			if(identityID == null) {
+				//Got all the identities
+				break;
+			}
+
+			String requestURI = response.sfs.get("RequestURI" + count);
+			String insertURI = response.sfs.get("InsertURI" + count);
+			String nickname = response.sfs.get("Nickname" + count);
+
+			ownIdentities.add(new OwnIdentity(identityID, requestURI, insertURI, nickname));
+		}
+
+		return ownIdentities;
 	}
 
 	@Override
