@@ -36,11 +36,6 @@ import freemail.config.ConfigClient;
 import freemail.config.Configurator;
 
 public abstract class Freemail implements ConfigClient {
-	public static final int VER_MAJOR = 0;
-	public static final int VER_MINOR = 1;
-	public static final int BUILD_NO = 14;
-	public static final String VERSION_TAG = "Pet Shop";
-
 	private static final String TEMPDIRNAME = "temp";
 	protected static final String DEFAULT_DATADIR = "data";
 	private static final String GLOBALDATADIR = "globaldata";
@@ -109,10 +104,6 @@ public abstract class Freemail implements ConfigClient {
 		smtpl = new SMTPListener(accountManager, sender, configurator);
 	}
 	
-	public static String getVersionString() {
-		return VER_MAJOR+"."+VER_MINOR+" build #"+BUILD_NO+" ("+VERSION_TAG+")";
-	}
-	
 	public static File getTempDir() {
 		return Freemail.tempdir;
 	}
@@ -166,7 +157,7 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	protected void startWorkers(boolean daemon) {
-		System.out.println("This is Freemail version "+getVersionString());
+		System.out.println("This is Freemail version "+Version.getVersionString());
 		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 		

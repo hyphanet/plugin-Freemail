@@ -47,7 +47,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 	
 	public String getVersion() {
-		return getVersionString();
+		return Version.getVersionString();
 	}
 	
 	public void runPlugin(PluginRespirator pr) {
@@ -154,6 +154,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	public long getRealVersion() {
-		return BUILD_NO;
+		return Version.BUILD_NO;
 	}
 }

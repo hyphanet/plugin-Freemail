@@ -6,9 +6,29 @@
 	<property name="lib" location="lib"/>
 	<property name="dist" location="dist"/>
 	<property name="deps" location="deps"/>
+	<property name="version.src" value="freemail/Version.java"/>
+	<property name="version.build" value="freemail/Version.class"/>
 	
 	<property name="bcdist" value="lcrypto-jdk14-138"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
+
+	<exec executable="git"
+		failifexecutionfails="false"
+		errorProperty="git.errror"
+		outputproperty="git.describe"
+		resultproperty="git.result">
+		<arg value="describe" />
+		<arg value="--always" />
+		<arg value="--abbrev=1" />
+		<arg value="--dirty" />
+	</exec>
+
+	<condition property="git.revision" value="${git.describe}" else="@unknown@">
+		<and>
+			<equals arg1="${git.result}" arg2="0" />
+			<isset property="git.describe" />
+		</and>
+	</condition>
 
 	<target name="bouncycastle-check">
 		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
@@ -27,7 +47,7 @@
 
 	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
 		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.4" nowarn="true">
+		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5" nowarn="true">
 			<exclude name="**/test/*" />
 			<exclude name="org/bouncycastle/util/IPTest.java" />
 			<exclude name="org/bouncycastle/util/AllTests.java" />
@@ -38,13 +58,28 @@
 		<mkdir dir="${build}"/>
 
 		<tstamp/>
+
+		<!-- Create the Version file with patched revision number in ${build} -->
+		<copy file="${src}/${version.src}" tofile="${build}/${version.src}" overwrite="true" />
+		<delete file="${build}/${version.build}" quiet="true" />
+		<replace file="${build}/${version.src}">
+			<replacefilter token="@custom@" value="${git.revision}"/>
+		</replace>
+		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
+
+		<!-- Compile the patched version file -->
+		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5">
+			<include name="${version.src}"/>
+		</javac>
 		
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.4">
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement location="${lib}"/>
 			</classpath>
+			<compilerarg value="-Xlint"/>
 		</javac>
 		<copy todir="${build}/freemailgui/text">
 			<fileset dir="${src}/freemailgui/text" />
@@ -78,12 +113,10 @@
 			</fileset>
 		</delete>
 		<delete dir="${dist}"/>
-		<delete dir="${lib}"/>
 	</target>
 
 	<target name="cleaner">
 		<delete dir="${build}"/>
-		<delete dir="${lib}"/>
 	</target>
 
 	<target name="squeakyclean" depends="cleaner">
