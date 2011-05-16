@@ -192,27 +192,23 @@ public class AccountManager {
 	}
 	
 	private static boolean initAccFile(PropsFile accfile) {
-		try {
-			// initialise RTS KSK
-			Random rnd = new Random();
-			String rtskey = new String();
-			
-			int i;
-			for (i = 0; i < RTS_KEY_LENGTH; i++) {
-				rtskey += (char)(rnd.nextInt(25) + (int)'a');
-			}
-			
-			if (!accfile.put("rtskey", rtskey)) {
-				throw new IOException("Unable to write account file");
-			}
-			
-			Logger.normal(AccountManager.class,"Mailsite keys generated.");
-			Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
-		} catch (IOException ioe) {
-			Logger.error(AccountManager.class,"Couldn't create mailsite key file! "+ioe.getMessage());
+		// initialise RTS KSK
+		Random rnd = new Random();
+		String rtskey = new String();
+
+		int i;
+		for (i = 0; i < RTS_KEY_LENGTH; i++) {
+			rtskey += (char)(rnd.nextInt(25) + (int)'a');
+		}
+
+		if (!accfile.put("rtskey", rtskey)) {
+			Logger.error(AccountManager.class, "Couldn't put rts key");
 			return false;
 		}
-		
+
+		Logger.normal(AccountManager.class,"Mailsite keys generated.");
+		Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
+
 		// generate an RSA keypair
 		Logger.normal(AccountManager.class,"Generating cryptographic keypair (this could take a few minutes)...");
 		
