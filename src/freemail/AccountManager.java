@@ -198,7 +198,7 @@ public class AccountManager {
 
 		int i;
 		for (i = 0; i < RTS_KEY_LENGTH; i++) {
-			rtskey += (char)(rnd.nextInt(25) + (int)'a');
+			rtskey += (char)(rnd.nextInt(26) + (int)'a');
 		}
 
 		if (!accfile.put("rtskey", rtskey)) {
