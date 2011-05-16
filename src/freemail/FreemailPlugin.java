@@ -87,9 +87,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		clientConfigHelp.addChild("div", "class", "infobox-content").addChild("p",
 				"The username and password you select will be used both for sending and receiving " +
 				"email, and the username will also be the name of the new account. For receiving email " +
-				"the server is " + configurator.get("imap_bind_address") + " and the port is " +
+				"the server is " + getIMAPServerAddress() + " and the port is " +
 				configurator.get("imap_bind_port") + ". For sending the values are " +
-				configurator.get("smtp_bind_address") + " and " + configurator.get("smtp_bind_port")
+				getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
 				+ " respectively.");
 
 		HTMLNode shortnameHelp = contentNode.addChild("div", "class", "infobox");
@@ -144,9 +144,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 					text.addChild("br");
 					text.addChild("#", "You now need to configure your email client to send and receive email through "
 							+ "Freemail using IMAP and SMTP. For IMAP the server is "
-							+ configurator.get("imap_bind_address") + " and the port is " +
+							+ getIMAPServerAddress() + " and the port is " +
 							configurator.get("imap_bind_port") + ". For SMTP the values are " +
-							configurator.get("smtp_bind_address") + " and " + configurator.get("smtp_bind_port")
+							getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
 							+ " respectively.");
 				} catch (IOException ioe) {
 					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
@@ -178,5 +178,25 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 
 	public long getRealVersion() {
 		return BUILD_NO;
+	}
+
+	private String getIMAPServerAddress() {
+		String address = configurator.get("imap_bind_address");
+
+		if("0.0.0.0".equals(address)) {
+			address = "127.0.0.1";
+		}
+
+		return address;
+	}
+
+	private String getSMTPServerAddress() {
+		String address = configurator.get("smtp_bind_address");
+
+		if("0.0.0.0".equals(address)) {
+			address = "127.0.0.1";
+		}
+
+		return address;
 	}
 }
