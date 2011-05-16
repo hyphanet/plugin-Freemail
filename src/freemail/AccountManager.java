@@ -407,7 +407,7 @@ public class AccountManager {
 		}
 
 		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-		if (accountDir.exists() && !accProps.exists()) {
+		if (!accProps.exists()) {
 			initAccFile(accProps);
 		}
 
