@@ -54,6 +54,7 @@ public class WoTConnection implements FredPluginTalker {
 			assert reply == null : "Reply should be null, but was " + reply;
 
 			reply = new Message(params, data);
+			replyLock.notify();
 		}
 	}
 
