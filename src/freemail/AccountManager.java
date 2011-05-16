@@ -382,9 +382,7 @@ public class AccountManager {
 		}
 
 		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-		if (!accProps.exists()) {
-			initAccFile(accProps);
-		}
+		initAccFile(accProps);
 
 		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
 		try {
