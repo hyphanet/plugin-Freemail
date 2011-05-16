@@ -101,6 +101,7 @@ public class FreemailCli extends Freemail {
 		freemail.startFcp(false);
 		
 		if (action.equals("--newaccount")) {
+			//FIXME: Support adding new OwnIdentities
 			System.out.println("Account creation is only supported through WoT for now");
 			return;
 		} else if (action.equals("--passwd")) {
