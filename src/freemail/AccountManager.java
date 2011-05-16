@@ -155,16 +155,6 @@ public class AccountManager {
 		return accfile;
 	}
 	
-	private static PropsFile newAccountFile(File accdir) {
-		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
-		
-		if (accdir.exists() && !accfile.exists()) {
-			initAccFile(accfile);
-		}
-		
-		return accfile;
-	}
-	
 	public static String getFreemailDomain(PropsFile accfile) {
 		FreenetURI mailsite;
 		try {
@@ -409,7 +399,10 @@ public class AccountManager {
 		File accountDir = new File(datadir, oid.getIdentityID());
 		accountDir.mkdir();
 
-		PropsFile accProps = newAccountFile(accountDir);
+		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+		if (accountDir.exists() && !accProps.exists()) {
+			initAccFile(accProps);
+		}
 
 		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
 		try {
