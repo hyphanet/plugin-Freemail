@@ -10,4 +10,16 @@ public class Identity {
 		this.requestURI = requestURI;
 		this.nickname = nickname;
 	}
+
+	public String getIdentityID() {
+		return identityID;
+	}
+
+	public String getRequestURI() {
+		return requestURI;
+	}
+
+	public String getNickname() {
+		return nickname;
+	}
 }

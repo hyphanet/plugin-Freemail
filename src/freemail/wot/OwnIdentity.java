@@ -8,4 +8,8 @@ public class OwnIdentity extends Identity {
 
 		this.insertURI = insertURI;
 	}
+
+	public String getInsertURI() {
+		return insertURI;
+	}
 }
