@@ -12,4 +12,8 @@ public class OwnIdentity extends Identity {
 	public String getInsertURI() {
 		return insertURI;
 	}
+
+	public String toString() {
+		return "OwnIdentity " + getIdentityID();
+	}
 }
