@@ -193,31 +193,6 @@ public class AccountManager {
 	
 	private static void initAccFile(PropsFile accfile) {
 		try {
-			Logger.normal(AccountManager.class,"Generating mailsite keys...");
-			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
-			
-			SSKKeyPair keypair = null;
-			try {
-				 keypair = fcpcli.makeSSK();
-			} catch (ConnectionTerminatedException cte) {
-				// leave keypair as null 
-			}
-			
-			if (keypair == null) {
-				Logger.normal(AccountManager.class,"Unable to connect to the Freenet node");
-				return;
-			}
-			
-			// write private key
-			if (!accfile.put("mailsite.privkey", keypair.privkey+MAILSITE_SUFFIX)) {
-				throw new IOException("Unable to write account file");
-			}
-			
-			// write public key
-			if (!accfile.put("mailsite.pubkey", keypair.pubkey+MAILSITE_SUFFIX)) {
-				throw new IOException("Unable to write account file");
-			}
-			
 			// initialise RTS KSK
 			Random rnd = new Random();
 			String rtskey = new String();
