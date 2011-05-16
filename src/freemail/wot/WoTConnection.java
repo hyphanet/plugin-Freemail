@@ -27,7 +27,7 @@ public class WoTConnection implements FredPluginTalker {
 	public List<OwnIdentity> getAllOwnIdentities() {
 		Message response = sendBlocking(
 				new Message(
-						new SimpleFieldSetFactory().put("Message", "getOwnIdentities").create(),
+						new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create(),
 						null));
 
 		final List<OwnIdentity> ownIdentities = new LinkedList<OwnIdentity>();
