@@ -80,28 +80,6 @@ public class AccountManager {
 		if (!datadir.exists()) {
 			datadir.mkdir();
 		}
-		
-		File[] files = datadir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
-				continue;
-			if (!files[i].isDirectory()) continue;
-
-			String invalid=validateUsername(files[i].getName());
-			if(!invalid.equals("")) {
-				Logger.error(this,"Account name "+files[i].getName()+" contains invalid chars (\""+invalid
-						+"\"), you may get problems accessing the account.");
-			}
-			
-			PropsFile accFile = getAccountFile(files[i]);
-			if (accFile == null) {
-				Logger.error(this, "Couldn't initialise account from directory '"+files[i].getName()+"' - ignoring.");
-				continue;
-			}
-
-			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], accFile);
-			accounts.put(files[i].getName(), account);
-		}
 	}
 	
 	public FreemailAccount getAccount(String username) {
@@ -123,33 +101,9 @@ public class AccountManager {
 		return "";
 	}
 
-	// @ plus chars that may be invalid as filenames
-	public static String validateUsername(String username) {
-		return validateChars(username, "@\'\"\\/ :");
-	}
-
 	// @, space and other email meta chars
 	public static String validateShortAddress(String username) {
 		return validateChars(username, "@\'\"\\/,:%()+ ");
-	}
-	
-	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException {
-		String invalid=validateUsername(username);
-		if(!invalid.equals("")) {
-			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
-		}
-		
-		File accountdir = new File(datadir, username);
-		if (!accountdir.exists() && !accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+datadir);
-		
-		PropsFile accProps = newAccountFile(accountdir);
-		
-		FreemailAccount account = new FreemailAccount(username, accountdir, accProps);
-		accounts.put(username, account);
-		
-		putWelcomeMessage(account, new EmailAddress(username+"@"+getFreemailDomain(accProps)));
-		
-		return account;
 	}
 	
 	public void setupNIM(String username) throws IOException {
@@ -352,10 +306,6 @@ public class AccountManager {
 	}
 	
 	public FreemailAccount authenticate(String username, String password) {
-		if (!(validateUsername(username).equals(""))) {
-			return null;
-		}
-		
 		FreemailAccount account = (FreemailAccount)accounts.get(username);
 		if (account == null) return null;
 		

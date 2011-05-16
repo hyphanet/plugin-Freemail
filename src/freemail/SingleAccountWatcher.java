@@ -92,7 +92,7 @@ public class SingleAccountWatcher implements Runnable {
 		if (shortdomain != null) {
 			Logger.normal(this,"Short Freemail address (*probably* secure): <anything>@"+shortdomain);
 
-			String invalid=AccountManager.validateUsername(shortdomain);
+			String invalid=AccountManager.validateShortAddress(shortdomain);
 			if(!invalid.equals("")) {
 				Logger.normal(this,"Your short Freemail address contains invalid characters (\""+invalid+"\"), others may have problems sending you mail");
 			}

@@ -101,17 +101,7 @@ public class FreemailCli extends Freemail {
 		freemail.startFcp(false);
 		
 		if (action.equals("--newaccount")) {
-			try {
-				freemail.getAccountManager().createAccount(username);
-				// by default, we'll not setup NIM now real mode works
-				//AccountManager.setupNIM(account);
-				System.out.println("Account created for "+username+". You may now set a password with --passwd <username> <password>");
-				//System.out.println("For the time being, you address is "+account+"@nim.freemail");
-			} catch (IOException ioe) {
-				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
-			} catch (IllegalArgumentException iae) {
-				System.out.println("Couldn't create account. Error: "+iae.getMessage());
-			}
+			System.out.println("Account creation is only supported through WoT for now");
 			return;
 		} else if (action.equals("--passwd")) {
 			try {
