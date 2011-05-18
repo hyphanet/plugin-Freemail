@@ -351,31 +351,7 @@ public class OutboundContact {
 	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
-		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
-		String initialslot = this.getCurrentLowestSlot();
-		SSKKeyPair commssk = this.getCommKeyPair();
-		if (commssk == null) return false;
-		SSKKeyPair ackssk = this.getAckKeyPair();
-		
 		StringBuffer rtsmessage = new StringBuffer();
-		
-		// the public part of the SSK keypair we generated
-		rtsmessage.append("commssk="+commssk.pubkey+"\r\n");
-		
-		rtsmessage.append("ackssk="+ackssk.privkey+"\r\n");
-		
-		rtsmessage.append("initialslot="+initialslot+"\r\n");
-		
-		rtsmessage.append("messagetype=rts\r\n");
-		
-		// must include who this RTS is to, otherwise we're vulnerable to surreptitious forwarding
-		rtsmessage.append("to="+this.address.getSubDomain()+"\r\n");
-		
-		// get our mailsite URI
-		String our_mailsite_uri = account.getProps().get("mailsite.pubkey");
-		
-		rtsmessage.append("mailsite="+our_mailsite_uri+"\r\n");
-		
 		rtsmessage.append("\r\n");
 		//FreemailLogger.normal(this,rtsmessage.toString());
 		
