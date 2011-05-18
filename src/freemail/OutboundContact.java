@@ -356,10 +356,6 @@ public class OutboundContact {
 		SSKKeyPair commssk = this.getCommKeyPair();
 		if (commssk == null) return false;
 		SSKKeyPair ackssk = this.getAckKeyPair();
-		RSAKeyParameters their_pub_key = this.getPubKey();
-		if (their_pub_key == null) return false;
-		String rtsksk = this.getRtsKsk();
-		if (rtsksk == null) return false;
 		
 		StringBuffer rtsmessage = new StringBuffer();
 		
@@ -434,6 +430,10 @@ public class OutboundContact {
 		
 		byte[] aes_iv_and_key = this.getAESParams();
 		
+		//Get their public key
+		RSAKeyParameters their_pub_key = this.getPubKey();
+		if (their_pub_key == null) return false;
+
 		// now encrypt that with our recipient's public key
 		AsymmetricBlockCipher enccipher = new RSAEngine();
 		enccipher.init(true, their_pub_key);
@@ -464,6 +464,10 @@ public class OutboundContact {
 			return false;
 		}
 		
+		//Get their RTS key
+		String rtsksk = this.getRtsKsk();
+		if (rtsksk == null) return false;
+
 		// insert it!
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		if (cli.slotInsert(encmsg, "KSK@"+rtsksk+"-"+DateStringFactory.getKeyString(), 1, "") < 0) {
