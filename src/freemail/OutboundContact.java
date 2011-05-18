@@ -342,6 +342,16 @@ public class OutboundContact {
 		return retval;
 	}
 	
+	private String generateRandomSlot() {
+		SHA256Digest sha256 = new SHA256Digest();
+		byte[] buf = new byte[sha256.getDigestSize()];
+
+		SecureRandom rnd = new SecureRandom();
+		rnd.nextBytes(buf);
+
+		return Base32.encode(buf);
+	}
+
 	/**
 	 * Set up an outbound contact. Fetch the mailsite, generate a new SSK keypair and post an RTS message to the appropriate KSK.
 	 * Will block for mailsite retrieval and RTS insertion
@@ -351,7 +361,20 @@ public class OutboundContact {
 	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
+		//Generate a new keypair for the channel
+		SSKKeyPair channelKeyPair = new HighLevelFCPClient().makeSSK();
+
+		//Generate initial slots for both sides
+		String initiatorSlot = generateRandomSlot();
+		String responderSlot = generateRandomSlot();
+
+		//Now build the RTS
 		StringBuffer rtsmessage = new StringBuffer();
+		rtsmessage.append("mailsite=" + account.getProps().get("mailsite.pubkey") + "\r\n");
+		rtsmessage.append("to=" + address.getSubDomain() + "\r\n");
+		rtsmessage.append("channel=" + channelKeyPair.privkey + "\r\n");
+		rtsmessage.append("initiatorSlot=" + initiatorSlot + "\r\n");
+		rtsmessage.append("responderSlot" + responderSlot + "\r\n");
 		rtsmessage.append("\r\n");
 		//FreemailLogger.normal(this,rtsmessage.toString());
 		
