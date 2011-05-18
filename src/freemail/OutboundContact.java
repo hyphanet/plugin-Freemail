@@ -376,7 +376,6 @@ public class OutboundContact {
 		rtsmessage.append("initiatorSlot=" + initiatorSlot + "\r\n");
 		rtsmessage.append("responderSlot" + responderSlot + "\r\n");
 		rtsmessage.append("\r\n");
-		//FreemailLogger.normal(this,rtsmessage.toString());
 		
 		byte[] rtsMessageBytes;
 		try {
