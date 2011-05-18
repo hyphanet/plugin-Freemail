@@ -208,44 +208,6 @@ public class OutboundContact {
 		}
 	}
 	
-	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException {
-		SSKKeyPair ssk = new SSKKeyPair();
-		
-		ssk.pubkey = this.contactfile.get("commssk.pubkey");
-		ssk.privkey = this.contactfile.get("commssk.privkey");
-		
-		
-		if (ssk.pubkey == null || ssk.privkey == null) {
-			HighLevelFCPClient cli = new HighLevelFCPClient();
-			ssk = cli.makeSSK();
-			
-			this.contactfile.put("commssk.privkey", ssk.privkey);
-			this.contactfile.put("commssk.pubkey", ssk.pubkey);
-			// we've just generated a new SSK, so the other party definitely doesn't know about it
-			this.contactfile.put("status", "notsent");
-		}
-		
-		return ssk;
-	}
-	
-	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException {
-		SSKKeyPair ssk = new SSKKeyPair();
-		
-		ssk.pubkey = this.contactfile.get("ackssk.pubkey");
-		ssk.privkey = this.contactfile.get("ackssk.privkey");
-		
-		
-		if (ssk.pubkey == null || ssk.privkey == null) {
-			HighLevelFCPClient cli = new HighLevelFCPClient();
-			ssk = cli.makeSSK();
-			
-			this.contactfile.put("ackssk.privkey", ssk.privkey);
-			this.contactfile.put("ackssk.pubkey", ssk.pubkey);
-		}
-		
-		return ssk;
-	}
-	
 	private RSAKeyParameters getPubKey() throws OutboundContactFatalException, ConnectionTerminatedException {
 		String mod_str = this.contactfile.get("asymkey.modulus");
 		String exp_str = this.contactfile.get("asymkey.pubexponent");
@@ -276,37 +238,6 @@ public class OutboundContact {
 		}
 		
 		return rtsksk;
-	}
-	
-	/**
-	 * Get the first slot from which all messages that are still 'in transit' can be retrieved.
-	 * That is to say, if we have message IDs 3,4 and 5 in transit, this would return the slot
-	 * for message 3. If there are no messages in transit, returns the next slot on which a message will be inserted.
-	 */
-	private String getCurrentLowestSlot() {
-		QueuedMessage[] queue = getSendQueue();
-		int messageWithLowestUid = 0;
-		int lowestUid = Integer.MAX_VALUE;
-		// queue.length == 0 doesn't necessarily imply there's anything
-		// in the queue - the array can contain null values (due to the
-		// sucky way in which getSendQueue() works by returning an array)
-		for (int i = 0; i < queue.length; i++) {
-			if (queue[i] == null) continue;
-			if (queue[i].uid < lowestUid) {
-				messageWithLowestUid = i;
-				lowestUid = queue[i].uid;
-			}
-		}
-		if (lowestUid < Integer.MAX_VALUE) return queue[messageWithLowestUid].slot;
-
-		// No messages in the queue, so the current lowest slot is the
-		// next slot we'll insert a message to.
-		String retval = this.contactfile.get("nextslot");
-		if (retval != null) {
-			return retval;
-		} else {
-			return generateFirstSlot();
-		}
 	}
 	
 	private String generateFirstSlot() {
@@ -363,10 +294,14 @@ public class OutboundContact {
 		
 		//Generate a new keypair for the channel
 		SSKKeyPair channelKeyPair = new HighLevelFCPClient().makeSSK();
+		contactfile.put("channel-pubkey", channelKeyPair.pubkey);
+		contactfile.put("channel-privkey", channelKeyPair.privkey);
 
 		//Generate initial slots for both sides
 		String initiatorSlot = generateRandomSlot();
+		contactfile.put("initiator-slot", initiatorSlot);
 		String responderSlot = generateRandomSlot();
+		contactfile.put("responder-slot", responderSlot);
 
 		//Now build the RTS
 		StringBuffer rtsmessage = new StringBuffer();
