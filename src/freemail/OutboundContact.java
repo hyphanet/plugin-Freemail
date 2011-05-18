@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -382,7 +383,14 @@ public class OutboundContact {
 		rtsmessage.append("\r\n");
 		//FreemailLogger.normal(this,rtsmessage.toString());
 		
-		byte[] rtsMessageBytes = rtsmessage.toString().getBytes();
+		byte[] rtsMessageBytes;
+		try {
+			rtsMessageBytes = rtsmessage.toString().getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Logger.error(this, "JVM doesn't support UTF-8 charset");
+			e.printStackTrace();
+			return false;
+		}
 
 		// sign the message
 		SHA256Digest sha256 = new SHA256Digest();
