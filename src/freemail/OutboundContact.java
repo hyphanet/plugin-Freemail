@@ -382,9 +382,11 @@ public class OutboundContact {
 		rtsmessage.append("\r\n");
 		//FreemailLogger.normal(this,rtsmessage.toString());
 		
+		byte[] rtsMessageBytes = rtsmessage.toString().getBytes();
+
 		// sign the message
 		SHA256Digest sha256 = new SHA256Digest();
-		sha256.update(rtsmessage.toString().getBytes(), 0, rtsmessage.toString().getBytes().length);
+		sha256.update(rtsMessageBytes, 0, rtsMessageBytes.length);
 		byte[] hash = new byte[sha256.getDigestSize()];
 		sha256.doFinal(hash, 0);
 		
@@ -404,7 +406,7 @@ public class OutboundContact {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		
 		try {
-			bos.write(rtsmessage.toString().getBytes());
+			bos.write(rtsMessageBytes);
 			bos.write(sig);
 		} catch(IOException ioe) {
 			ioe.printStackTrace();
