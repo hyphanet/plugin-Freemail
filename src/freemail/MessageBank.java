@@ -41,6 +41,7 @@ public class MessageBank {
 	private static final String NIDTMPFILE = ".nextid-tmp";
 
 	private final File dir;
+	private final MessageBank topLevel;
 
 	public MessageBank(FreemailAccount account) {
 		this.dir = new File(account.getAccountDir(), MESSAGES_DIR);
@@ -48,10 +49,14 @@ public class MessageBank {
 		if (!this.dir.exists()) {
 			this.dir.mkdir();
 		}
+
+		//This is the top level message bank
+		topLevel = null;
 	}
 	
-	private MessageBank(File d) {
+	private MessageBank(File d, MessageBank topLevel) {
 		this.dir = d;
+		this.topLevel = topLevel;
 	}
 	
 	public String getName() {
@@ -152,7 +157,7 @@ public class MessageBank {
 		if (!targetdir.exists()) {
 			return null;
 		}
-		return new MessageBank(targetdir);
+		return new MessageBank(targetdir, topLevel);
 	}
 	
 	public synchronized MessageBank makeSubFolder(String name) {
@@ -175,7 +180,7 @@ public class MessageBank {
 		}
 		   
 		if (targetdir.mkdir()) {
-			return new MessageBank(targetdir);
+			return new MessageBank(targetdir, topLevel);
 		}
 		return null;
 	}
@@ -197,7 +202,7 @@ public class MessageBank {
 		Enumeration e = subfolders.elements();
 		int i = 0;
 		while (e.hasMoreElements()) {
-			retval[i] = new MessageBank((File)e.nextElement());
+			retval[i] = new MessageBank((File)e.nextElement(), topLevel);
 			i++;
 		}
 		return retval;
