@@ -42,6 +42,7 @@ public class MessageBank {
 
 	private final File dir;
 	private final MessageBank topLevel;
+	private final long uidValidity;
 
 	public MessageBank(FreemailAccount account) {
 		this.dir = new File(account.getAccountDir(), MESSAGES_DIR);
@@ -52,11 +53,13 @@ public class MessageBank {
 
 		//This is the top level message bank
 		topLevel = null;
+		this.uidValidity = 1;
 	}
 	
-	private MessageBank(File d, MessageBank topLevel) {
+	private MessageBank(File d, MessageBank topLevel, long uidValidity) {
 		this.dir = d;
 		this.topLevel = topLevel;
+		this.uidValidity = uidValidity;
 	}
 	
 	public String getName() {
@@ -157,7 +160,7 @@ public class MessageBank {
 		if (!targetdir.exists()) {
 			return null;
 		}
-		return new MessageBank(targetdir, topLevel);
+		return new MessageBank(targetdir, topLevel, 1);
 	}
 	
 	public synchronized MessageBank makeSubFolder(String name) {
@@ -180,7 +183,7 @@ public class MessageBank {
 		}
 		   
 		if (targetdir.mkdir()) {
-			return new MessageBank(targetdir, topLevel);
+			return new MessageBank(targetdir, topLevel, 1);
 		}
 		return null;
 	}
@@ -202,12 +205,20 @@ public class MessageBank {
 		Enumeration e = subfolders.elements();
 		int i = 0;
 		while (e.hasMoreElements()) {
-			retval[i] = new MessageBank((File)e.nextElement(), topLevel);
+			retval[i] = new MessageBank((File)e.nextElement(), topLevel, 1);
 			i++;
 		}
 		return retval;
 	}
 	
+	/**
+	 * Returns the 32 bit unsigned UIDVALIDITY value for this MessageBank.
+	 * @return the 32 bit unsigned UIDVALIDITY value for this MessageBank
+	 */
+	public long getUidValidity() {
+		return uidValidity;
+	}
+
 	private synchronized long nextId() {
 		File nidfile = new File(this.dir, NIDFILE);
 		long retval;
