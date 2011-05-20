@@ -78,6 +78,11 @@ public class MessageBank {
 			try {
 				uid = Long.parseLong(s);
 				Logger.minor(MessageBank.class, "Read uidvalidity " + uid + " for " + dir);
+
+				if(uid >= 0x100000000l || uid < 0) {
+					uid = getNewUidValidity();
+					Logger.error(this, "Read illegal uid for " + dir + ", assigning value: " + uid);
+				}
 			} catch(NumberFormatException e) {
 				uid = getNewUidValidity();
 				Logger.error(this, "Illegal uidvalidity value for " + dir + ", assigning value: " + uid);
@@ -242,6 +247,7 @@ public class MessageBank {
 	 * @return the 32 bit unsigned UIDVALIDITY value for this MessageBank
 	 */
 	public long getUidValidity() {
+		assert ((uidValidity >= 0) && (uidValidity < 0x100000000l)) : "Uidvalidity out of bounds: " + uidValidity;
 		return uidValidity;
 	}
 
@@ -319,11 +325,11 @@ public class MessageBank {
 				//Return -1, or else we would return the same value next time
 				return -1;
 			}
-			ps.print(uid + 1);
+			ps.print((uid + 1) % 0x100000000l);
 			ps.close();
 		}
 
-		return uid;
+		return uid % 0x100000000l;
 	}
 
 	private static class MessageFileNameFilter implements FilenameFilter {
