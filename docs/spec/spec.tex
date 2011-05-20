@@ -27,27 +27,22 @@ Alice has the private key and Bob has the public key. This permits one-way commu
 those two parties - if communication the other way is required, a separate channel is used.
 
 All Freemail users have an Freemail address, which one may give out to others in order to allow them
-to contact you. From this Freemail address, it is possible to derive a Freenet SSK URI. This is the
-user's 'mailsite'.
+to contact you. From the Freemail address it is possible to derive an identity in the web of trust
+that can be used to find the user's 'mailsite'.
 
 A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this
-is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the
-mailsite. The URI must be base 32 encoded in order to make the address case insensitive to maintain
-compatibility with traditional email clients. The string '.freemail' is appended to the whole
-address. An example Freemail address follows:
+is the base32 encoded representation of the hash of the public key (the first part of an SSK is
+this value base64 encoded). The URI must be base 32 encoded in order to make the address case
+insensitive to maintain compatibility with traditional email clients. The string '.freemail' is
+appended to the whole address.
 
-bob@JRHXORDZIQZFIVDJ\-GBDHEVLDO43TATSCGJST\-C3CXJ5NHSTL6NM2HQ\-NDONNXG632COJFD\-ALBVKJ2HS5LLNQ3E\-
-OLKQOFKUKNCMG5F\-GYODBJBY\-VSYLPOVZ\-WMV3GOBRHGOLVMJ\-ZUSY3DOY2CY\-QKRIFBECQKF.freemail
+%TODO: Add an example
 
-The base 32 encoded mailsite in this case is: LOwDyD2TTi0FrUcw70N\-B2e1lWOZyM~k4x4n\-
-knooBrJ0,5Rtyu\-kl6G-PqUE4L7\-Jl8aHqYaous\-fWfpbs9ubsI\-ccv4,AQABAAE
-
-(this is liable to change to make the addresses shorter)
-
-Once the mailsite address has been obtained from the Freemail address, the string 'mailpage' is
-appended to obtain the URI for the mailpage. This mailpage contains all information required to
-contact the owner. The format of a mailpage is a 'Props File', which is used repeatedly in Freemail
-as a trivial format for storing short pieces of information. See section \ref{PropsFile}.
+Once the full key for an identity has been obtained the mailpage can be located at
+USK@(key of the identity)/Freemail/(edition)/mailpage. The latest edition should be published
+through the Web of Trust plugin using the property Freemail.MailpageEdition. The format of a
+mailpage is a 'Props File', which is used repeatedly in Freemail as a trivial format for storing
+short pieces of information. See section \ref{PropsFile}.
 
 \subsection{Mailpages}
 The following pieces of information are required in a mailpage:
