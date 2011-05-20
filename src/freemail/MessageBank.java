@@ -21,6 +21,7 @@
 
 package freemail;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -35,10 +36,13 @@ import java.util.Enumeration;
 import java.util.Comparator;
 import java.util.Arrays;
 
+import freemail.utils.Logger;
+
 public class MessageBank {
 	private static final String MESSAGES_DIR = "inbox";
 	private static final String NIDFILE = ".nextid";
 	private static final String NIDTMPFILE = ".nextid-tmp";
+	private static final String UIDVALIDITYFILE = ".uidvalidity";
 
 	private final File dir;
 	private final MessageBank topLevel;
@@ -259,6 +263,47 @@ public class MessageBank {
 		}
 	}
 	
+	private long getNewUidValidity() {
+		if(topLevel != null) {
+			//The top level MessageBank controls the values
+			return topLevel.getNewUidValidity();
+		}
+
+		long uid;
+		synchronized(this) {
+			//First read the next value from the UID file
+			File uidFile = new File(dir, UIDVALIDITYFILE);
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(uidFile));
+				uid = Long.parseLong(reader.readLine());
+			} catch (FileNotFoundException e) {
+				//No values have been assigned yet
+				uid = uidValidity + 1;
+			} catch (NumberFormatException e) {
+				Logger.error(this, "Uid validity file contains illegal value, starting over. This could break IMAP clients");
+				uid = uidValidity + 1;
+			} catch (IOException e) {
+				Logger.error(this, "Caugth IOException while reading uid validity");
+				return -1;
+			}
+
+			//Write the next uid to file
+			PrintStream ps;
+			try {
+				ps = new PrintStream(new FileOutputStream(uidFile));
+			} catch (FileNotFoundException e) {
+				Logger.error(this, "Couldn't create the uidvalidity file");
+
+				//Return -1, or else we would return the same value next time
+				return -1;
+			}
+			ps.print(uid + 1);
+			ps.close();
+		}
+
+		return uid;
+	}
+
 	private static class MessageFileNameFilter implements FilenameFilter {
 		public boolean accept(File dir, String name) {
 			if (name.startsWith(".")) return false;
