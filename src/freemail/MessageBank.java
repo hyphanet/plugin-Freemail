@@ -186,7 +186,7 @@ public class MessageBank {
 			return null;
 		}
 
-		return new MessageBank(targetdir, topLevel);
+		return new MessageBank(targetdir, topLevel == null ? this : topLevel);
 	}
 	
 	public synchronized MessageBank makeSubFolder(String name) {
@@ -209,7 +209,7 @@ public class MessageBank {
 		}
 		   
 		if (targetdir.mkdir()) {
-			return new MessageBank(targetdir, topLevel);
+			return new MessageBank(targetdir, topLevel == null ? this : topLevel);
 		}
 		return null;
 	}
@@ -231,7 +231,7 @@ public class MessageBank {
 		Enumeration e = subfolders.elements();
 		int i = 0;
 		while (e.hasMoreElements()) {
-			retval[i] = new MessageBank((File)e.nextElement(), topLevel);
+			retval[i] = new MessageBank((File)e.nextElement(), topLevel == null ? this : topLevel);
 			i++;
 		}
 		return retval;
