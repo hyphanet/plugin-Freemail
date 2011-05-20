@@ -47,27 +47,27 @@ short pieces of information. See section \ref{PropsFile}.
 \subsection{Mailpages}
 The following pieces of information are required in a mailpage:
 
-\begin{itemize}
-\item asymkey.modulus - The modulus of the owner's RSA encryption key, as an integer in base 32.
-\item asymkey.pubexponent - The public exponent of the owner's RSA encryption key, as an integer in
+\begin{description}
+\item[asymkey.modulus] The modulus of the owner's RSA encryption key, as an integer in base 32.
+\item[asymkey.pubexponent] The public exponent of the owner's RSA encryption key, as an integer in
 	base 32.
-\end{itemize}
+\end{description}
 
 \subsection{RTS Messages}
 Once Alice has retrieved the recipient's mailpage, she sends an RTS message to Bob. This RTS message
 is, again, a props file, with the following keys:
 
-\begin{itemize}
-\item commssk - The public SSK URI to which messages will be inserted.
-\item ackssk - A fresh SSK private (insert) key that Bob will insert to in order to acknowledge his
+\begin{description}
+\item[commssk] The public SSK URI to which messages will be inserted.
+\item[ackssk] A fresh SSK private (insert) key that Bob will insert to in order to acknowledge his
 	receipt of each message.
-\item messagetype - This should be 'rts', to indicate that this message is an RTS.
-\item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in
+\item[messagetype] This should be 'rts', to indicate that this message is an RTS.
+\item[to] The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in
 	order to prevent surreptitious forwarding to support the encryption explained later.
-\item mailsite - Alice's mailsite URI
-\item initialslot - 256 bits of random data, encoded in base32. Used to form the message slots on
+\item[mailsite] Alice's mailsite URI
+\item[initialslot] 256 bits of random data, encoded in base32. Used to form the message slots on
 	the commssk.
-\end{itemize}
+\end{description}
 
 Following the last data item, there are two carriage-return-line-feeds, followed by Alice's
 signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included
