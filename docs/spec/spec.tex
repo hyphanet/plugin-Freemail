@@ -101,13 +101,10 @@ really from Alice. He must then read the 'to' field and ensure that its value is
 mailsite URI. If it is not, he must discard the message. This ensures that he is the intended
 recipient of the message.
 
-Bob then records the value of the 'commssk' key so that he can poll this SSK for messages
-periodically.
+Bob then records the public and private key so that he can poll the key for new messages.
 
-Before doing so, Bob inserts some data to the value of 'ackssk', followed by the string 'cts'. That
-is, he inserts to "SSK@$<$long SSK key base$>$/cts". The data he inserts is irrelevant - the
-presence of the key is sufficient to prove to Alice that he has received the message. This completes
-Bob's part of the channel setup procedure.
+Before doing so, Bob inserts a props file containing messagetype=cts to the first availiable slot.
+This completes Bob's part of the channel setup procedure.
 
 Alice should check periodically for the insertion of this CTS message. If it does not arrive, Alice
 should re-send the RTS message. The client may try several times before declaring the message
