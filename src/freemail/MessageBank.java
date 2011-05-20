@@ -37,12 +37,14 @@ import java.util.Comparator;
 import java.util.Arrays;
 
 import freemail.utils.Logger;
+import freemail.utils.PropsFile;
 
 public class MessageBank {
 	private static final String MESSAGES_DIR = "inbox";
 	private static final String NIDFILE = ".nextid";
 	private static final String NIDTMPFILE = ".nextid-tmp";
 	private static final String UIDVALIDITYFILE = ".uidvalidity";
+	private static final String PROPSFILE = ".props";
 
 	private final File dir;
 	private final MessageBank topLevel;
@@ -60,10 +62,29 @@ public class MessageBank {
 		this.uidValidity = 1;
 	}
 	
-	private MessageBank(File d, MessageBank topLevel, long uidValidity) {
+	private MessageBank(File d, MessageBank topLevel) {
 		this.dir = d;
 		this.topLevel = topLevel;
-		this.uidValidity = uidValidity;
+
+		//Read uidvalidity from propsfile or assign a new value
+		PropsFile props = PropsFile.createPropsFile(new File(dir, PROPSFILE));
+		String s = props.get("uidvalidity");
+		long uid;
+		if(s == null) {
+			//Assign a new value
+			uid = getNewUidValidity();
+			Logger.minor(MessageBank.class, "Assigning uidvalidity " + uid + " to " + dir);
+		} else {
+			try {
+				uid = Long.parseLong(s);
+				Logger.minor(MessageBank.class, "Read uidvalidity " + uid + " for " + dir);
+			} catch(NumberFormatException e) {
+				uid = getNewUidValidity();
+				Logger.error(this, "Illegal uidvalidity value for " + dir + ", assigning value: " + uid);
+			}
+		}
+		props.put("uidvalidity", uid);
+		uidValidity = uid;
 	}
 	
 	public String getName() {
@@ -164,7 +185,8 @@ public class MessageBank {
 		if (!targetdir.exists()) {
 			return null;
 		}
-		return new MessageBank(targetdir, topLevel, 1);
+
+		return new MessageBank(targetdir, topLevel);
 	}
 	
 	public synchronized MessageBank makeSubFolder(String name) {
@@ -187,7 +209,7 @@ public class MessageBank {
 		}
 		   
 		if (targetdir.mkdir()) {
-			return new MessageBank(targetdir, topLevel, 1);
+			return new MessageBank(targetdir, topLevel);
 		}
 		return null;
 	}
@@ -209,7 +231,7 @@ public class MessageBank {
 		Enumeration e = subfolders.elements();
 		int i = 0;
 		while (e.hasMoreElements()) {
-			retval[i] = new MessageBank((File)e.nextElement(), topLevel, 1);
+			retval[i] = new MessageBank((File)e.nextElement(), topLevel);
 			i++;
 		}
 		return retval;
