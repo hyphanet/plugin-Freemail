@@ -160,13 +160,14 @@ public class MessageBank {
 		
 		File targetdir = new File(this.dir, name);
 		
-		// is there a 'deleted' instance of this folder?
+		//Check for a ghost directory left by old versions of Freemail
 		File ghostdir = new File(this.dir, "."+name);
 		if (ghostdir.exists()) {
-			if (!ghostdir.renameTo(targetdir)) {
-				return null;
+			File[] files = ghostdir.listFiles();
+			for(int i = 0; i < files.length; i++) {
+				files[i].delete();
 			}
-			return new MessageBank(ghostdir);
+			ghostdir.delete();
 		}
 		
 		if (targetdir.exists()) {
