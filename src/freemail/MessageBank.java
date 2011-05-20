@@ -76,7 +76,6 @@ public class MessageBank {
 		
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().equals(".")) continue;
-			if (files[i].getName().equals(NIDFILE)) continue;
 			if (files[i].getName().equals("..")) continue;
 			
 			// this method should will fail if there are directories
@@ -84,10 +83,7 @@ public class MessageBank {
 			if (!files[i].delete()) return false;
 		}
 		
-		// rename it with a dot in front - we need to preserve the UIDs
-		File newdir = new File(this.dir.getParent(), "."+this.dir.getName());
-		
-		return this.dir.renameTo(newdir);
+		return this.dir.delete();
 	}
 	
 	public synchronized MailMessage createMessage() {
