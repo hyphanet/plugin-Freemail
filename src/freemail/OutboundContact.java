@@ -299,9 +299,9 @@ public class OutboundContact {
 
 		//Generate initial slots for both sides
 		String initiatorSlot = generateRandomSlot();
-		contactfile.put("initiator-slot", initiatorSlot);
+		contactfile.put("insert-slot", initiatorSlot);
 		String responderSlot = generateRandomSlot();
-		contactfile.put("responder-slot", responderSlot);
+		contactfile.put("fetch-slot", responderSlot);
 
 		//Now build the RTS
 		StringBuffer rtsmessage = new StringBuffer();
