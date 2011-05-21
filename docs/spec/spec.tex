@@ -112,20 +112,21 @@ undeliverable.
 
 \section{Message Exchange}
 \subsection{The Messages}
-Once Bob has inserted this CTS message, he begins polling for messages on keys derived from the
-value of the 'commssk' key which he obtained from the RTS message. These keys are the value of
-'commssk' a 256 bit base32 encoded hash appended. The hash is initially the value of 'initialslot'
-in the RTS message. Each subsequent slot's hash is the SHA-256 digest of the previous slot's hash,
-forming a seqence of message slots. This hash sequence gives forward security, provided that clients
-destroy values of the hash, and 'initialslot' once they have been used. Alice should insert a new
-message to the first slot to which inserting does not causes a collision. Formulaically, Bob first
-polls the key:
+Messages are inserted to a key derived from the 'privkey' field and one of the initial slots. The
+party that sends the RTS, the initiator, uses the fetchslot for inserting messages and the sendslot
+for receiving messages, which the recipient uses the slots for the opposite purpose. The full key
+used for inserting messages is then SSK@<privkey>/<role>-<slot>, where role is i for the initiator
+and r for the recipient. The slot is initially the value indicated in the RTS. Each subsequent
+slot is the SHA-256 digest of the previous slot, forming a seqence of message slots. This hash
+sequence gives forward security, provided that clients destroy values of the slots, and the inital
+slot once they have been used. Alice should insert a new message to the first slot to which
+inserting does not causes a collision. Formulaically, Bob first polls the key:
 
-SSK@$<$SSK key base$>$/$<$initialslot$>$
+SSK@$<$SSK key base$>$/i-<fetchslot>
 
 Once Bob has successfully retrieved this key, he begins to periodically request the key:
 
-SSK@$<$SSK key base$>$/$<$H(initialslot)$>$
+SSK@$<$SSK key base$>$/i-<H(fetchslot)>
 
 It is recommended that clients poll several messages ahead rather than just the immediately next
 message, since simulations suggest that it is possible for single keys not to be retrievable in this
@@ -133,14 +134,14 @@ kind of circumstance. So for example, once Bob has sent his CTS messages, he sho
 for the keys: \\
 \\
 SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-1 \\
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/i-<fetch slot> \\
 \\
 SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-2 \\
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/i-<H(fetch slot)> \\
 \\
 and \\
 SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-3
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/i-<H(H(fetch slot))>
 
 Alice can insert a message to the lowest numbered key of this pattern that does not cause a
 collision whenever she chooses. These comprise a number of properties (in the same way as a props
@@ -148,21 +149,21 @@ file) followed by a double carriage-return-line-feed. Following this is the stan
 messages. No signing or encryption is used here, since at this stage it is achieved inside Freenet
 by virtue of only Alice and Bob knowing the SSK upon which they communicate.
 
-The only mandatory property is 'id' which may be any integer, but must uniquely identify the message
-from any other past or future message transported using the same 'commssk'. Bob must check this
-value and ensure that he has not already received this message id. If he has, he discards the
-message, but still acknowledges his receipt of it. All clients must ignore any unknown keys and
-begin reading the message only at the double line break in order that extra properties can be added
-in the future.
+The mandatory properties of the props file are 'id' and 'messagetype'. 'id' is a string that must
+uniquely identify the message from any other past or future message transported using the same
+channel. Bob must check this value and ensure that he has not already received this message id. If
+he has, he discards the message, but still acknowledges his receipt of it. All clients must ignore
+any unknown keys and begin reading the message only at the double line break in order that extra
+properties can be added in the future.
 
 \subsection{Message Acknowledgements}
-When Bob receives a message on the 'commssk', he reads it and passes it onto the user. He then
-inserts some data to the key 'ackssk' (which he obtains from the original RTS message) with 'ack-'
-and the value of 'id' from the message in question. For example, if Bob has just fetched a message
+When Bobs client receives a message, it reads it and passes it onto Bob. He then
+inserts a propsfile to the next availiable slot with 'messagetype' set to ack, and 'id'
+set to the value of 'id' from the message in question. For example, if Bob has just fetched a message
 from key: \\
 \\
 SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-1 \\
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/<fetch slot> \\
 \\
 With the contents: \\
 \\
@@ -182,10 +183,9 @@ Then he might insert an acknowledgement to the key: \\
 \\
 \\
 SSK@AJoZbUvGkXlAJwI\-jdbu9BLPhpIXBu6\-w6nGwKYBnMfNLi,ACEgE1uUIzJdC\-
-Xcsz1yjgW45u\-Az-KuMrXBFYG\-U8maqc/ack-657488664753 \\
+Xcsz1yjgW45u\-Az-KuMrXBFYG\-U8maqc/<send slot> \\
 \\
-The data that Bob publishes to this key is irrelevant - its mere existence in the network is
-sufficient to assert Bob's receipt of the message. If Alice has, for whatever reason, not received a
+If Alice has, for whatever reason, not received a
 CTS message from Bob, her receipt of a message ack should additionally be treated as receipt of a
 CTS message.
 
