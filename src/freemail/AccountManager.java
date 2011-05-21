@@ -100,16 +100,22 @@ public class AccountManager {
 			}
 
 			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], accFile);
-			accounts.put(files[i].getName(), account);
+			synchronized(accounts) {
+				accounts.put(files[i].getName(), account);
+			}
 		}
 	}
 	
 	public FreemailAccount getAccount(String username) {
-		return (FreemailAccount)accounts.get(username);
+		synchronized(accounts) {
+			return (FreemailAccount)accounts.get(username);
+		}
 	}
 	
 	public List/*<FreemailAccount>*/ getAllAccounts() {
-		return new LinkedList(accounts.values());
+		synchronized(accounts) {
+			return new LinkedList(accounts.values());
+		}
 	}
 
 	// avoid invalid chars in username or address
@@ -145,7 +151,9 @@ public class AccountManager {
 		PropsFile accProps = newAccountFile(accountdir);
 		
 		FreemailAccount account = new FreemailAccount(username, accountdir, accProps);
-		accounts.put(username, account);
+		synchronized(accounts) {
+			accounts.put(username, account);
+		}
 		
 		putWelcomeMessage(account, new EmailAddress(username+"@"+getFreemailDomain(accProps)));
 		
@@ -356,7 +364,10 @@ public class AccountManager {
 			return null;
 		}
 		
-		FreemailAccount account = (FreemailAccount)accounts.get(username);
+		FreemailAccount account = null;
+		synchronized(accounts) {
+			account = (FreemailAccount)accounts.get(username);
+		}
 		if (account == null) return null;
 		
 		String realmd5str = account.getProps().get("md5passwd");

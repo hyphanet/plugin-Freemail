@@ -44,9 +44,11 @@ public abstract class ServerListener {
 			
 		}
 		// kill all our handlers too
-		for (Iterator i = handlers.iterator(); i.hasNext(); ) {
-			ServerHandler handler =(ServerHandler) i.next();
-			handler.kill();
+		synchronized(handlers) {
+			for (Iterator i = handlers.iterator(); i.hasNext(); ) {
+				ServerHandler handler =(ServerHandler) i.next();
+				handler.kill();
+			}
 		}
 	}
 	
@@ -68,16 +70,20 @@ public abstract class ServerListener {
 	}
 	
 	protected void addHandler(ServerHandler hdlr, Thread thrd) {
-		handlers.add(hdlr);
+		synchronized(handlers) {
+			handlers.add(hdlr);
+		}
 		handlerThreads.add(thrd);
 	}
 	
 	protected void reapHandlers() {
 		// clean up dead handlers...
-		for (Iterator i = handlers.iterator(); i.hasNext(); ) {
-			ServerHandler handler = (ServerHandler)i.next(); 
-			if (!handler.isAlive()) {
-				i.remove();
+		synchronized(handlers) {
+			for (Iterator i = handlers.iterator(); i.hasNext(); ) {
+				ServerHandler handler = (ServerHandler)i.next();
+				if (!handler.isAlive()) {
+					i.remove();
+				}
 			}
 		}
 		
