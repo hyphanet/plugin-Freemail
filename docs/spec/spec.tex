@@ -111,7 +111,7 @@ undeliverable.
 \subsection{The Messages}
 Messages are inserted to a key derived from the 'privkey' field and one of the initial slots. The
 party that sends the RTS, the initiator, uses the fetchslot for inserting messages and the sendslot
-for receiving messages, which the recipient uses the slots for the opposite purpose. The full key
+for receiving messages, while the recipient uses the slots for the opposite purpose. The full key
 used for inserting messages is then SSK@$<$privkey$>$/$<$role$>$-$<$slot$>$, where role is i for the initiator
 and r for the recipient. The slot is initially the value indicated in the RTS. Each subsequent
 slot is the SHA-256 digest of the previous slot, forming a seqence of message slots. This hash
