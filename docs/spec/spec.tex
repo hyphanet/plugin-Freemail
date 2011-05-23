@@ -146,7 +146,7 @@ file) followed by a double carriage-return-line-feed. Following this is the stan
 messages. No signing or encryption is used here, since at this stage it is achieved inside Freenet
 by virtue of only Alice and Bob knowing the SSK upon which they communicate.
 
-The mandatory properties of the props file are 'id' and 'messagetype'. 'id' is a string that must
+The mandatory properties of the props file are 'id' and 'messagetype=message'. 'id' is a string that must
 uniquely identify the message from any other past or future message transported using the same
 channel. Bob must check this value and ensure that he has not already received this message id. If
 he has, he discards the message, but still acknowledges his receipt of it. All clients must ignore
