@@ -94,7 +94,7 @@ then retrieves the mailsite advertised in the RTS message. Having done this, he 
 on the end and decrypts the signature with the public key he just retrieved from the mailsite. He
 then calculates a SHA-256 checksum of the message and checks that his checksum is identical to the
 one he has decrypted. If it is not, he must discard the message. This ensures that the message is
-really from Alice. He must then read the 'to' field and ensure that its value is identical to his
+really from Alice. He must then read the 'recipient' field and ensure that its value is identical to his
 mailsite URI. If it is not, he must discard the message. This ensures that he is the intended
 recipient of the message.
 
