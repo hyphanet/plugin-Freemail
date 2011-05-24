@@ -44,7 +44,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 
-public class Channel extends Postman implements SlotSaveCallback {
+public class Channel extends Postman {
 	private static final int POLL_AHEAD = 6;
 	private File ibct_dir;
 	private PropsFile ibct_props;
@@ -57,7 +57,7 @@ public class Channel extends Postman implements SlotSaveCallback {
 			return;
 		}
 
-		HashSlotManager sm = new HashSlotManager(this, null, slots);
+		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(ibct_props, "fetchslot"), null, slots);
 		sm.setPollAhead(POLL_AHEAD);
 
 		String basekey = this.ibct_props.get("commssk");
@@ -223,8 +223,18 @@ public class Channel extends Postman implements SlotSaveCallback {
 		}
 	}
 
-	@Override
-	public void saveSlots(String slots, Object userdata) {
-		throw new UnsupportedOperationException();
+	private static class ChannelSlotSaveImpl implements SlotSaveCallback {
+		private final PropsFile propsFile;
+		private final String keyName;
+
+		private ChannelSlotSaveImpl(PropsFile propsFile, String keyName) {
+			this.propsFile = propsFile;
+			this.keyName = keyName;
+		}
+
+		@Override
+		public void saveSlots(String slots, Object userdata) {
+			propsFile.put(keyName, slots);
+		}
 	}
 }
