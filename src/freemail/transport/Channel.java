@@ -49,9 +49,7 @@ public class Channel extends Postman implements SlotSaveCallback {
 	private File ibct_dir;
 	private PropsFile ibct_props;
 
-	public void fetch(MessageBank mb) {
-		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
-
+	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
 		String slots = this.ibct_props.get("slots");
 		if (slots == null) {
 			Logger.error(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'slots' entry!");
