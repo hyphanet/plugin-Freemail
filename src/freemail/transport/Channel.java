@@ -46,23 +46,23 @@ import freemail.utils.PropsFile;
 
 public class Channel extends Postman {
 	private static final int POLL_AHEAD = 6;
-	private File ibct_dir;
-	private PropsFile ibct_props;
+	private File channelDir;
+	private PropsFile channelProps;
 
 	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
-		String slots = this.ibct_props.get("fetchslot");
+		String slots = this.channelProps.get("fetchslot");
 		if (slots == null) {
-			Logger.error(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'fetchslot' entry!");
+			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no 'fetchslot' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
 
-		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(ibct_props, "fetchslot"), null, slots);
+		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(channelProps, "fetchslot"), null, slots);
 		sm.setPollAhead(POLL_AHEAD);
 
-		String basekey = this.ibct_props.get("commssk");
+		String basekey = this.channelProps.get("commssk");
 		if (basekey == null) {
-			Logger.error(this,"Contact "+this.ibct_dir.getName()+" is corrupt - account file has no 'commssk' entry!");
+			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no 'commssk' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
@@ -74,7 +74,7 @@ public class Channel extends Postman {
 			// a fix for the bug causing this (https://bugs.freenetproject.org/view.php?id=1087) was committed on Feb 4 2007,
 			// anybody who has started using Freemail after that date is not affected.
 			if(slot.length()!=52) {
-				Logger.normal(this,"Ignoring malformed slot "+slot+" (probably due to previous bug). Please the fix the entry in "+this.ibct_dir);
+				Logger.normal(this,"Ignoring malformed slot "+slot+" (probably due to previous bug). Please the fix the entry in "+this.channelDir);
 				break;
 			}
 			String key = basekey+slot;
@@ -114,7 +114,7 @@ public class Channel extends Postman {
 				continue;
 			}
 
-			MessageLog msglog = new MessageLog(this.ibct_dir);
+			MessageLog msglog = new MessageLog(this.channelDir);
 			boolean isDupe;
 			try {
 				isDupe = msglog.isPresent(id);
@@ -160,7 +160,7 @@ public class Channel extends Postman {
 				// how should we handle this? Remove the message from the inbox again?
 				Logger.error(this,"warning: failed to write log file!");
 			}
-			String ack_key = this.ibct_props.get("ackssk");
+			String ack_key = this.channelProps.get("ackssk");
 			if (ack_key == null) {
 				Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
 				continue;
