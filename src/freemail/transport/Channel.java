@@ -155,10 +155,10 @@ public class Channel extends Postman implements SlotSaveCallback {
 			Logger.normal(this,"You've got mail!");
 			sm.slotUsed();
 			try {
-			    msglog.add(id);
+				msglog.add(id);
 			} catch (IOException ioe) {
-			    // how should we handle this? Remove the message from the inbox again?
-			    Logger.error(this,"warning: failed to write log file!");
+				// how should we handle this? Remove the message from the inbox again?
+				Logger.error(this,"warning: failed to write log file!");
 			}
 			String ack_key = this.ibct_props.get("ackssk");
 			if (ack_key == null) {
