@@ -26,6 +26,7 @@ package freemail;
 import java.io.IOException;
 import java.util.List;
 
+import freemail.l10n.FreemailL10n;
 import freemail.ui.web.WebInterface;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
@@ -92,17 +93,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	@Override
-	public String getString(String key) {
-		Logger.error(this, "Missing translation for key " + key);
-		return key;
-	}
-
-	@Override
-	public void setLanguage(LANGUAGE newLanguage) {
-		Logger.error(this, "Got new language " + newLanguage + ", but can't handle it");
-	}
-
-	@Override
 	public void terminate() {
 		Logger.error(this, "terminate() called");
 		webInterface.terminate();
@@ -111,18 +101,28 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	@Override
+	public String getString(String key) {
+		return FreemailL10n.getString(key);
+	}
+
+	@Override
+	public void setLanguage(LANGUAGE newLanguage) {
+		FreemailL10n.setLanguage(newLanguage);
+	}
+
+	@Override
 	public String getL10nFilesBasePath() {
-		return "freemail/l10n/";
+		return FreemailL10n.getL10nFilesBasePath();
 	}
 
 	@Override
 	public String getL10nFilesMask() {
-		return "lang_${lang}.l10n";
+		return FreemailL10n.getL10nFilesMask();
 	}
 
 	@Override
 	public String getL10nOverrideFilesMask() {
-		return "Freetalk_lang_${lang}.override.l10n";
+		return FreemailL10n.getL10nOverrideFilesMask();
 	}
 
 	@Override
