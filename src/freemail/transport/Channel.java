@@ -60,9 +60,9 @@ public class Channel extends Postman {
 		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(channelProps, "fetchslot"), null, slots);
 		sm.setPollAhead(POLL_AHEAD);
 
-		String basekey = this.channelProps.get("commssk");
+		String basekey = this.channelProps.get("privkey");
 		if (basekey == null) {
-			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no 'commssk' entry!");
+			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no 'privkey' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
