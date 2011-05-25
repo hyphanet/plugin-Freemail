@@ -30,27 +30,20 @@ import freemail.ui.web.WebInterface;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
-import freenet.clients.http.PageNode;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
-import freenet.pluginmanager.FredPluginHTTP;
 import freenet.pluginmanager.FredPluginL10n;
 import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
-import freenet.pluginmanager.PluginHTTPException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
-import freenet.support.Executor;
-import freenet.support.HTMLNode;
-import freenet.support.api.HTTPRequest;
 
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.
-public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHTTP,
+public class FreemailPlugin extends Freemail implements FredPlugin,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private PluginRespirator pluginResp;
 	private WebInterface webInterface = null;
 	
 	public FreemailPlugin() throws IOException {
@@ -62,8 +55,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 	
 	public void runPlugin(PluginRespirator pr) {
-		pluginResp = pr;
-		
 		startFcp(true);
 		startWorkers(true);
 		startServers(true);
@@ -93,28 +84,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 				accountManager.addIdentities(oids);
 			}
 		}, "Freemail OwnIdentity fetcher");
-	}
-
-	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
-		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode pageNode = page.outer;
-		HTMLNode contentNode = page.content;
-
-		HTMLNode addBox = contentNode.addChild("div", "class", "infobox");
-		addBox.addChild("div", "class", "infobox-header", "Adding accounts");
-		
-		HTMLNode boxContent = addBox.addChild("div", "class", "infobox-content");
-		boxContent.addChild("p", "Please use the Web of Trust plugin to add accounts");
-
-		return pageNode.generate();
-	}
-
-	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
-		return handleHTTPGet(request);
-	}
-
-	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
-		return null;
 	}
 
 	public long getRealVersion() {
