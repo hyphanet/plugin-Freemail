@@ -175,6 +175,7 @@ public class Channel extends Postman {
 			super(cb, userdata, slotlist);
 		}
 
+		@Override
 		protected String incSlot(String slot) {
 			byte[] buf = Base32.decode(slot);
 			SHA256Digest sha256 = new SHA256Digest();
