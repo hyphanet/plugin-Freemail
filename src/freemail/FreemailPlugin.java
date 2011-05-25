@@ -107,7 +107,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 	@Override
 	public void setLanguage(LANGUAGE newLanguage) {
-		FreemailL10n.setLanguage(newLanguage);
+		FreemailL10n.setLanguage(this, newLanguage);
 	}
 
 	@Override
