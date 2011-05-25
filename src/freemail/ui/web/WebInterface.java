@@ -29,7 +29,7 @@ public class WebInterface {
 		pageMaker.addNavigationCategory(CATEGORY_DEFAULT_PATH, FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, l10nPlugin);
 
 		//Register the visible toadlets
-		HomeToadlet homeToadlet = new HomeToadlet(null);
+		HomeToadlet homeToadlet = new HomeToadlet(null, pageMaker);
 		container.register(homeToadlet, FREEMAIL_CATEGORY_NAME, homeToadlet.path(), true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false, homeToadlet.getLinkEnabledCallback());
 	}
 
