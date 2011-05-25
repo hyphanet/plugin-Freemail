@@ -26,12 +26,15 @@ package freemail;
 import java.io.IOException;
 import java.util.List;
 
+import freemail.ui.web.WebInterface;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
 import freenet.clients.http.PageNode;
+import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
+import freenet.pluginmanager.FredPluginL10n;
 import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
@@ -45,8 +48,10 @@ import freenet.support.api.HTTPRequest;
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHTTP,
-                                                        FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
+                                                        FredPluginThreadless, FredPluginVersioned,
+                                                        FredPluginRealVersioned, FredPluginL10n {
 	private PluginRespirator pluginResp;
+	private WebInterface webInterface = null;
 	
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
@@ -63,6 +68,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		startWorkers(true);
 		startServers(true);
 		startIdentityFetch(pr, getAccountManager());
+
+		webInterface = new WebInterface(pr.getToadletContainer(), pr.getPageMaker(), this);
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
@@ -112,5 +119,24 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 
 	public long getRealVersion() {
 		return Version.BUILD_NO;
+	}
+
+	@Override
+	public String getString(String key) {
+		Logger.error(this, "Missing translation for key " + key);
+		return key;
+	}
+
+	@Override
+	public void setLanguage(LANGUAGE newLanguage) {
+		Logger.error(this, "Got new language " + newLanguage + ", but can't handle it");
+	}
+
+	@Override
+	public void terminate() {
+		Logger.error(this, "terminate() called");
+		webInterface.terminate();
+		Logger.error(this, "Web interface terminated, proceeding with normal termination");
+		super.terminate();
 	}
 }
