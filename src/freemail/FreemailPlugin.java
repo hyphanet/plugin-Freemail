@@ -32,6 +32,7 @@ import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
+import freenet.pluginmanager.FredPluginBaseL10n;
 import freenet.pluginmanager.FredPluginL10n;
 import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
@@ -41,7 +42,7 @@ import freenet.pluginmanager.PluginRespirator;
 
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.
-public class FreemailPlugin extends Freemail implements FredPlugin,
+public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
 	private WebInterface webInterface = null;
@@ -107,5 +108,25 @@ public class FreemailPlugin extends Freemail implements FredPlugin,
 		webInterface.terminate();
 		Logger.error(this, "Web interface terminated, proceeding with normal termination");
 		super.terminate();
+	}
+
+	@Override
+	public String getL10nFilesBasePath() {
+		return "freemail/l10n/";
+	}
+
+	@Override
+	public String getL10nFilesMask() {
+		return "lang_${lang}.l10n";
+	}
+
+	@Override
+	public String getL10nOverrideFilesMask() {
+		return "Freetalk_lang_${lang}.override.l10n";
+	}
+
+	@Override
+	public ClassLoader getPluginClassLoader() {
+		return FreemailPlugin.class.getClassLoader();
 	}
 }
