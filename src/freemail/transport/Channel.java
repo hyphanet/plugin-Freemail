@@ -1,5 +1,5 @@
 /*
- * InboundContact.java
+ * Channel.java
  * This file is part of Freemail
  * Copyright (C) 2006,2007,2008 Dave Baker
  * Copyright (C) 2007 Alexander Lehmann
