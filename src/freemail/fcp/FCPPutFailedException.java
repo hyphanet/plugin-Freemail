@@ -40,6 +40,8 @@ public class FCPPutFailedException extends FCPException {
 	public static final int COLLISION = 9;
 	/* Cancelled by user */
 	public static final int CANCELLED = 10;
+	public static final int META_STRING_IN_KEY = 11;
+	public static final int INVALID_BINARY_BLOB_DATA = 12;
 
 	// we generate this error, not Freenet
 	public static final int TIMEOUT = 100;
