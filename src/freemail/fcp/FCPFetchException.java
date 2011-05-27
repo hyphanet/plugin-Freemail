@@ -98,12 +98,7 @@ public class FCPFetchException extends FCPException {
 	}
 	
 	public int getCode() {
-		String strCode = (String)fcpMessage.headers.get("Code");
-		if (strCode == null) {
-			Logger.error(this, "FCP error message with no error code!");
-			return 0;
-		}
-		return Integer.parseInt(strCode);
+		return errorcode;
 	}
 	
 	public String getMessage() {
