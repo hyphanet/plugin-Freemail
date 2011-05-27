@@ -19,7 +19,7 @@
 
 package freemail.fcp;
 
-public class FCPInsertErrorMessage extends FCPErrorMessage {
+public class FCPInsertErrorMessage extends FCPException {
 	/* Caller supplied a URI we cannot use */
 	public static final int INVALID_URI = 1;
 	/* Failed to read from or write to a bucket; a kind of internal error */

@@ -19,17 +19,17 @@
 
 package freemail.fcp;
 
-public class FCPErrorMessage {
+public class FCPException extends Exception {
 	public final int errorcode;
 	public final boolean isFatal;
-	
-	FCPErrorMessage(FCPMessage msg) {
+
+	FCPException(FCPMessage msg) {
 		String code = (String)msg.headers.get("Code");
 		if (code != null)
 			this.errorcode = Integer.parseInt(code);
 		else
 			this.errorcode = 0;
-		
+
 		String fatal = (String)msg.headers.get("Fatal");
 		if (fatal != null)
 			this.isFatal = (fatal.equalsIgnoreCase("true"));
@@ -37,7 +37,7 @@ public class FCPErrorMessage {
 			this.isFatal = false;
 	}
 
-	FCPErrorMessage(int code, boolean fatal) {
+	FCPException(int code, boolean fatal) {
 		errorcode = code;
 		isFatal = fatal;
 	}
