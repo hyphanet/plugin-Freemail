@@ -136,11 +136,6 @@ public class FCPFetchException extends FCPException {
 	 * @return true if all future requests for this this key will fail too
 	 */
 	public boolean isFatal() {
-		String fatal = (String)fcpMessage.headers.get("Fatal");
-		if (fatal == null) {
-			Logger.error(this, "No 'fatal' field found - FCP protocol change? Assuming not fatal.");
-			return false;
-		}
-		return fatal.equalsIgnoreCase("true");
+		return isFatal;
 	}
 }
