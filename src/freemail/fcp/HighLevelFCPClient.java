@@ -129,7 +129,7 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public synchronized FCPInsertErrorMessage put(InputStream data, String key) throws FCPBadFileException,
+	public synchronized FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
 	                                                                                   ConnectionTerminatedException {
 		FCPMessage msg = this.conn.getMessage("ClientPut");
 		msg.headers.put("URI", key);
@@ -157,7 +157,7 @@ public class HighLevelFCPClient implements FCPClient {
 				// 'cancel' the request, otherwise we'll leak memory
 				this.conn.cancelRequest(msg);
 
-				return new FCPInsertErrorMessage(FCPInsertErrorMessage.TIMEOUT, false);
+				return new FCPPutFailedException(FCPPutFailedException.TIMEOUT, false);
 			}
 			try {
 				this.wait(30000);
@@ -168,7 +168,7 @@ public class HighLevelFCPClient implements FCPClient {
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
 		} else {
-			return new FCPInsertErrorMessage(donemsg);
+			return new FCPPutFailedException(donemsg);
 		}
 	}
 	
@@ -185,7 +185,7 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			
-			FCPInsertErrorMessage emsg;
+			FCPPutFailedException emsg;
 			try {
 				emsg = this.put(fis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
@@ -194,7 +194,7 @@ public class HighLevelFCPClient implements FCPClient {
 			if (emsg == null) {
 				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
-			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
+			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
 				Logger.normal(this,"collision");
 			} else {
@@ -215,7 +215,7 @@ public class HighLevelFCPClient implements FCPClient {
 			
 			bis = new ByteArrayInputStream(data);
 			
-			FCPInsertErrorMessage emsg;
+			FCPPutFailedException emsg;
 			try {
 				emsg = this.put(bis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
@@ -224,7 +224,7 @@ public class HighLevelFCPClient implements FCPClient {
 			if (emsg == null) {
 				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
-			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
+			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
 				Logger.normal(this,"collision");
 			} else {

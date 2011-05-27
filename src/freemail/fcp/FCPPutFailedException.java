@@ -19,7 +19,7 @@
 
 package freemail.fcp;
 
-public class FCPInsertErrorMessage extends FCPException {
+public class FCPPutFailedException extends FCPException {
 	/* Caller supplied a URI we cannot use */
 	public static final int INVALID_URI = 1;
 	/* Failed to read from or write to a bucket; a kind of internal error */
@@ -44,11 +44,11 @@ public class FCPInsertErrorMessage extends FCPException {
 	// we generate this error, not Freenet
 	public static final int TIMEOUT = 100;
 
-	FCPInsertErrorMessage(FCPMessage msg) {
+	FCPPutFailedException(FCPMessage msg) {
 		super(msg);
 	}
 
-	FCPInsertErrorMessage(int code, boolean fatal) {
+	FCPPutFailedException(int code, boolean fatal) {
 		super(code, fatal);
 	}
 }
