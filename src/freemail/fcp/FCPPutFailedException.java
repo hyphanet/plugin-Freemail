@@ -46,6 +46,8 @@ public class FCPPutFailedException extends FCPException {
 
 	FCPPutFailedException(FCPMessage msg) {
 		super(msg);
+
+		assert(msg.getType().equalsIgnoreCase("PutFailed"));
 	}
 
 	FCPPutFailedException(int code, boolean fatal) {
