@@ -23,9 +23,9 @@ public class FCPException extends Exception {
 	public final int errorcode;
 	public final boolean isFatal;
 
-	private final String codeDescription;
-	private final String extraDescription;
-	private final String shortCodeDescription;
+	protected final String codeDescription;
+	protected final String extraDescription;
+	protected final String shortCodeDescription;
 
 	FCPException(FCPMessage msg) {
 		//Read the error code
