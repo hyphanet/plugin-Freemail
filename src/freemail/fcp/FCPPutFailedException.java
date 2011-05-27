@@ -55,4 +55,8 @@ public class FCPPutFailedException extends FCPException {
 	FCPPutFailedException(int code, boolean fatal) {
 		super(code, fatal);
 	}
+
+	public String toString() {
+		return "FCPPutFailedException (error code " + errorcode + ", " + (isFatal ? "fatal" : "not fatal") + ")";
+	}
 }
