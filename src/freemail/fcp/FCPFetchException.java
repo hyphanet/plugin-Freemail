@@ -21,7 +21,7 @@ package freemail.fcp;
 
 import freemail.utils.Logger;
 
-public class FCPFetchException extends Exception {
+public class FCPFetchException extends FCPException {
 	static final long serialVersionUID = -1;
 	
 	// The following code shamelessly stolen from Freenet's FetchException.java (but reordered)
@@ -89,7 +89,8 @@ public class FCPFetchException extends Exception {
 	private final FCPMessage fcpMessage;
 	
 	public FCPFetchException(FCPMessage fcpmsg) {
-		fcpMessage = fcpmsg;
+		super(fcpmsg);
+		this.fcpMessage = fcpmsg;
 	}
 	
 	public FCPMessage getFailureMessage() {
