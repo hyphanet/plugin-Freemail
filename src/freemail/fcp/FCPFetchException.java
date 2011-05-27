@@ -92,7 +92,7 @@ public class FCPFetchException extends FCPException {
 		super(fcpmsg);
 		this.fcpMessage = fcpmsg;
 
-		assert(fcpmsg.getType().equalsIgnoreCase("GetFailed"));
+		assert (fcpmsg.getType().equalsIgnoreCase("GetFailed")) : "Message type was " + fcpmsg.getType();
 	}
 	
 	public FCPMessage getFailureMessage() {
