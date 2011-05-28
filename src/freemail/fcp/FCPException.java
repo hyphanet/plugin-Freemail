@@ -26,6 +26,7 @@ public class FCPException extends Exception {
 	protected final String codeDescription;
 	protected final String extraDescription;
 	protected final String shortCodeDescription;
+	protected final String fcpMessageType;
 
 	FCPException(FCPMessage msg) {
 		//Read the error code
@@ -46,6 +47,9 @@ public class FCPException extends Exception {
 		this.codeDescription = (String)msg.headers.get("CodeDescription");
 		this.extraDescription = (String)msg.headers.get("ExtraDescription");
 		this.shortCodeDescription = (String)msg.headers.get("ShortCodeDescription");
+
+		//Save the type
+		this.fcpMessageType = msg.getType();
 	}
 
 	FCPException(int code, boolean fatal) {
@@ -55,5 +59,10 @@ public class FCPException extends Exception {
 		this.codeDescription = null;
 		this.extraDescription = null;
 		this.shortCodeDescription = null;
+		this.fcpMessageType = null;
+	}
+
+	public String toString() {
+		return "Message type " + fcpMessageType + " with error code " + errorcode;
 	}
 }
