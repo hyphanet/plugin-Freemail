@@ -29,6 +29,7 @@ import java.util.Random;
 import java.security.SecureRandom;
 
 import freemail.utils.PropsFile;
+import freemail.fcp.FCPException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPPutFailedException;
@@ -119,6 +120,8 @@ public class AckProcrastinator implements Runnable {
 						// won't occur
 					} catch (ConnectionTerminatedException cte) {
 						return;
+					} catch (FCPException e) {
+						Logger.error(this, "Unknown error while inserting ack: " + e);
 					}
 				}
 			}

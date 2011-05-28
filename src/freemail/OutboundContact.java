@@ -729,6 +729,9 @@ public class OutboundContact {
 			} catch (FCPBadFileException bfe) {
 				Logger.normal(this,"Failed sending message. Will try again soon.");
 				continue;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while sending message: " + e);
+				continue;
 			}
 			if (err == null) {
 				Logger.normal(this,"Successfully inserted "+key);

@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
 import freemail.utils.PropsFile;
+import freemail.fcp.FCPException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPPutFailedException;
 import freemail.fcp.FCPBadFileException;
@@ -138,6 +139,9 @@ public class MailSite {
 		} catch (FCPBadFileException bfe) {
 				// impossible
 		} catch (ConnectionTerminatedException cte) {
+			return false;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while inserting mailsite redirect: " + e);
 			return false;
 		}
 			

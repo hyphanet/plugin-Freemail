@@ -130,7 +130,8 @@ public class HighLevelFCPClient implements FCPClient {
 	}
 	
 	public synchronized FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
-	                                                                                   ConnectionTerminatedException {
+	                                                                                   ConnectionTerminatedException,
+	                                                                                   FCPException {
 		FCPMessage msg = this.conn.getMessage("ClientPut");
 		msg.headers.put("URI", key);
 		msg.headers.put("Persistence", "connection");
@@ -168,7 +169,7 @@ public class HighLevelFCPClient implements FCPClient {
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
 		} else {
-			return new FCPPutFailedException(donemsg);
+			throw new FCPException(donemsg);
 		}
 	}
 	
@@ -189,6 +190,9 @@ public class HighLevelFCPClient implements FCPClient {
 			try {
 				emsg = this.put(fis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
+				return -1;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while doing slotinsert: " + e);
 				return -1;
 			}
 			if (emsg == null) {
@@ -219,6 +223,9 @@ public class HighLevelFCPClient implements FCPClient {
 			try {
 				emsg = this.put(bis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
+				return -1;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while doing slotinsert: " + e);
 				return -1;
 			}
 			if (emsg == null) {
