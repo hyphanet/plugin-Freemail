@@ -168,6 +168,8 @@ public class HighLevelFCPClient implements FCPClient {
 		
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
+		} else if(this.donemsg.getType().equalsIgnoreCase("PutFailed")) {
+			return new FCPPutFailedException(this.donemsg);
 		} else {
 			throw FCPException.create(donemsg);
 		}
