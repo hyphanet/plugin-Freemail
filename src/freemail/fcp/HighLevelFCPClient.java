@@ -88,7 +88,7 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 			throw new FCPFetchException(donemsg);
 		} else {
-			throw new FCPException(donemsg);
+			throw FCPException.create(donemsg);
 		}
 	}
 	
@@ -169,7 +169,7 @@ public class HighLevelFCPClient implements FCPClient {
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
 		} else {
-			throw new FCPException(donemsg);
+			throw FCPException.create(donemsg);
 		}
 	}
 	

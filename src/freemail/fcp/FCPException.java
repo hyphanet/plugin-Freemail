@@ -62,6 +62,25 @@ public class FCPException extends Exception {
 		this.fcpMessageType = null;
 	}
 
+	/**
+	 * Creates a new FCPException based on the given FCPMessage. The class of the instance that is
+	 * returned is decided based on the type of the FCPMessage.
+	 * @param msg the FCPMessage the returned exception is based on
+	 * @return a new FCPException based on the given FCPMessage
+	 */
+	static FCPException create(FCPMessage msg) {
+		if(msg.getType().equalsIgnoreCase("GetFailed")) {
+			return new FCPFetchException(msg);
+		}
+		if(msg.getType().equalsIgnoreCase("PutFailed")) {
+			return new FCPPutFailedException(msg);
+		}
+		if(msg.getType().equalsIgnoreCase("ProtocolError")) {
+			return new FCPProtocolException(msg);
+		}
+		return new FCPException(msg);
+	}
+
 	public String toString() {
 		return "Message type " + fcpMessageType + " with error code " + errorcode;
 	}
