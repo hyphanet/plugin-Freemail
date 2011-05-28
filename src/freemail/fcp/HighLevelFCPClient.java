@@ -45,7 +45,7 @@ public class HighLevelFCPClient implements FCPClient {
 	
 	// It's up to the client to delete this File once they're
 	// done with it
-	public synchronized File fetch(String key) throws ConnectionTerminatedException, FCPFetchException {
+	public synchronized File fetch(String key) throws ConnectionTerminatedException, FCPFetchException, FCPException {
 		FCPMessage msg = this.conn.getMessage("ClientGet");
 		msg.headers.put("URI", key);
 		msg.headers.put("ReturnType", "direct");
@@ -88,7 +88,7 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 			throw new FCPFetchException(donemsg);
 		} else {
-			throw new FCPFetchException(donemsg);
+			throw new FCPException(donemsg);
 		}
 	}
 	

@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
+import freemail.fcp.FCPException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPPutFailedException;
@@ -201,6 +202,9 @@ public class OutboundContact {
 					// yes, send another RTS
 					this.init();
 				}
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while checking CTS: " + e);
+				//TODO: Should we resend the RTS like above?
 			}
 		} else {
 			this.init();
@@ -485,6 +489,9 @@ public class OutboundContact {
 		} catch (FCPFetchException fe) {
 			Logger.normal(this,"Failed to retrieve mailsite redirect "+key+" ("+fe.getMessage()+")");
 			return null;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while fetching mailsite redirect: " + e);
+			return null;
 		}
 		
 		if (result.length() > 512) {
@@ -535,6 +542,9 @@ public class OutboundContact {
 			mailsite_file = cli.fetch(this.address.getMailpageKey());
 		} catch (FCPFetchException fe) {
 			Logger.normal(this,"Failed to retrieve mailsite "+this.address.getMailpageKey());
+			return false;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while fetching mailsite: " + e);
 			return false;
 		}
 		
@@ -800,6 +810,10 @@ public class OutboundContact {
 						msgs[i].saveProps();
 					}
 				}
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while fetching ack on key " + key + ": " + e);
+				//Don't check the timeout here so we get at least one proper fetch attempt if this
+				//is a temporary problem
 			}
 		}
 	}
