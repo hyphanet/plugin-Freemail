@@ -357,7 +357,7 @@ public class AccountManager {
 		}
 
 		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
 		accounts.put(oid.getIdentityID(), account);
 
 		//Now start a SingleAccountWatcher for this account
@@ -382,7 +382,7 @@ public class AccountManager {
 		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
 		initAccFile(accProps);
 
-		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
 		try {
 			putWelcomeMessage(account, new EmailAddress(oid.getIdentityID()+"@"+getFreemailDomain(accProps)));
 		} catch (IOException e) {

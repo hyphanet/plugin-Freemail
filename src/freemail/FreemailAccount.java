@@ -24,20 +24,22 @@ import java.io.File;
 import freemail.utils.PropsFile;
 
 public class FreemailAccount {
-	private final String username;
+	private final String identity;
+	private final String nickname;
 	private final File accdir;
 	private final PropsFile accprops;
 	private final MessageBank mb;
 	
-	FreemailAccount(String _username, File _accdir, PropsFile _accprops) {
-		username = _username;
+	FreemailAccount(String identity, String nickname, File _accdir, PropsFile _accprops) {
+		this.identity = identity;
+		this.nickname = nickname;
 		accdir = _accdir;
 		accprops = _accprops;
 		mb = new MessageBank(this);
 	}
 	
 	public String getUsername() {
-		return username;
+		return identity;
 	}
 	
 	public File getAccountDir() {
@@ -50,5 +52,9 @@ public class FreemailAccount {
 	
 	public MessageBank getMessageBank() {
 		return mb;
+	}
+
+	public String getNickname() {
+		return nickname;
 	}
 }
