@@ -51,8 +51,10 @@ public class WebInterface {
 		//Register the visible toadlets
 		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator.getPageMaker());
 		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager());
+		LogOutToadlet logoutToadlet = new LogOutToadlet(null, pluginRespirator.getSessionManager("Freemail"));
 		container.register(homeToadlet, FREEMAIL_CATEGORY_NAME, homeToadlet.path(), true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false, homeToadlet);
 		container.register(loginToadlet, FREEMAIL_CATEGORY_NAME, loginToadlet.path(), true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false, loginToadlet);
+		container.register(logoutToadlet, FREEMAIL_CATEGORY_NAME, logoutToadlet.path(), true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false, logoutToadlet);
 	}
 
 	public void terminate() {
