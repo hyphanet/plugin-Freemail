@@ -30,7 +30,6 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
-import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -54,13 +53,8 @@ public class LogInToadlet extends WebPage {
 	}
 
 	@Override
-	LinkEnabledCallback getLinkEnabledCallback() {
-		return new LinkEnabledCallback() {
-			@Override
-			public boolean isEnabled(ToadletContext ctx) {
-				return true;
-			}
-		};
+	public boolean isEnabled(ToadletContext ctx) {
+		return true;
 	}
 
 	@Override

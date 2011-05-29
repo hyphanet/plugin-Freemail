@@ -30,12 +30,10 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.api.HTTPRequest;
 
-abstract class WebPage extends Toadlet {
+abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	WebPage(HighLevelSimpleClient client) {
 		super(client);
 	}
-
-	abstract LinkEnabledCallback getLinkEnabledCallback();
 
 	//All web pages must be able to handle both get and post (even if that means eg. redirecting
 	//post to get).

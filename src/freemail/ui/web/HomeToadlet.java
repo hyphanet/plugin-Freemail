@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URI;
 
 import freenet.client.HighLevelSimpleClient;
-import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -46,13 +45,8 @@ public class HomeToadlet extends WebPage {
 	}
 
 	@Override
-	LinkEnabledCallback getLinkEnabledCallback() {
-		return new LinkEnabledCallback() {
-			@Override
-			public boolean isEnabled(ToadletContext ctx) {
-				return true;
-			}
-		};
+	public boolean isEnabled(ToadletContext ctx) {
+		return true;
 	}
 
 	@Override
