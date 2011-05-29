@@ -24,29 +24,44 @@ import java.io.IOException;
 import java.net.URI;
 
 import freenet.client.HighLevelSimpleClient;
+import freenet.clients.http.PageMaker;
+import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
 	private final SessionManager sessionManager;
+	private final PageMaker pageMaker;
 
-	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager) {
+	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
 		super(client);
 		this.sessionManager = sessionManager;
+		this.pageMaker = pageMaker;
 	}
 
 	@Override
 	public void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx)
 			throws ToadletContextClosedException, IOException {
-		throw new UnsupportedOperationException();
+		PageNode page = pageMaker.getPageNode("Freemail", ctx);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
+
+		String folderName = req.getParam("folder", "inbox");
+
+		HTMLNode folderBox = contentNode.addChild("div", "class", "infobox");
+		folderBox.addChild("div", "class", "infobox-header", getDisplayName(folderName));
+		folderBox.addChild("div", "class", "infobox-content");
+
+		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
 	@Override
 	public void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx)
 			throws ToadletContextClosedException, IOException {
-		throw new UnsupportedOperationException();
+		handleMethodGET(uri, req, ctx);
 	}
 
 	@Override
@@ -57,5 +72,9 @@ public class InboxToadlet extends WebPage {
 	@Override
 	public String path() {
 		return "/Freemail/Inbox";
+	}
+
+	private String getDisplayName(String folderName) {
+		return folderName.replace(".", " > ");
 	}
 }
