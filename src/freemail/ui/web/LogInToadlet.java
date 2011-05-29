@@ -50,7 +50,7 @@ public class LogInToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/";
+		return "/Freemail/Login";
 	}
 
 	@Override
