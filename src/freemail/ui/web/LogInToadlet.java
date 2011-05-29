@@ -23,6 +23,8 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
+import freemail.AccountManager;
+import freemail.FreemailAccount;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageNode;
@@ -33,11 +35,13 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class LogInToadlet extends WebPage {
+	private final AccountManager accountManager;
 	private final PluginRespirator pluginRespirator;
 
-	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
+	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager) {
 		super(client);
 		this.pluginRespirator = pluginRespirator;
+		this.accountManager = accountManager;
 	}
 
 	@Override
@@ -71,7 +75,13 @@ public class LogInToadlet extends WebPage {
 		welcomeBox.addChild("div", "class", "infobox-header", "Login");
 		HTMLNode boxContent = welcomeBox.addChild("div", "class", "infobox-content");
 
-		pluginRespirator.addFormChild(boxContent, "/Freemail/Login", "login");
+		HTMLNode loginForm = pluginRespirator.addFormChild(boxContent, "/Freemail/Login", "login");
+		HTMLNode ownIdSelector = loginForm.addChild("select", "name", "OwnIdentityID");
+		for(FreemailAccount account : accountManager.getAllAccounts()) {
+			//TODO: Show a better name, preferably the same as Freetalk
+			ownIdSelector.addChild("option", "value", account.getUsername(), account.getUsername());
+		}
+		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Login" });
 	}
 
 	@Override
