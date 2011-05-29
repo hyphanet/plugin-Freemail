@@ -71,9 +71,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	private void addLoginBox(HTMLNode contentNode) {
-		HTMLNode welcomeBox = contentNode.addChild("div", "class", "infobox");
-		welcomeBox.addChild("div", "class", "infobox-header", "Login");
-		HTMLNode boxContent = welcomeBox.addChild("div", "class", "infobox-content");
+		HTMLNode boxContent = addInfobox(contentNode, "Login");
 
 		HTMLNode loginForm = pluginRespirator.addFormChild(boxContent, "/Freemail/Login", "login");
 		HTMLNode ownIdSelector = loginForm.addChild("select", "name", "OwnIdentityID");

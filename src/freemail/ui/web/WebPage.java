@@ -28,6 +28,7 @@ import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 abstract class WebPage extends Toadlet implements LinkEnabledCallback {
@@ -39,4 +40,10 @@ abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	//post to get).
 	public abstract void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException;
 	public abstract void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException;
+
+	static HTMLNode addInfobox(HTMLNode parent, String title) {
+		HTMLNode infobox = parent.addChild("div", "class", "infobox");
+		infobox.addChild("div", "class", "infobox-header", title);
+		return infobox.addChild("div", "class", "infobox-content");
+	}
 }

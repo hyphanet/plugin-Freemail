@@ -61,10 +61,7 @@ public class HomeToadlet extends WebPage {
 	}
 
 	private void addWelcomeBox(HTMLNode contentNode) {
-		HTMLNode welcomeBox = contentNode.addChild("div", "class", "infobox");
-		welcomeBox.addChild("div", "class", "infobox-header", "Welcome to Freemail");
-
-		HTMLNode boxContent = welcomeBox.addChild("div", "class", "infobox-content");
+		HTMLNode boxContent = addInfobox(contentNode, "Welcome to Freemail");
 		boxContent.addChild("p", "Freemail is an email-like messaging system that uses the Web of " +
 				"Trust plugin.");
 	}
