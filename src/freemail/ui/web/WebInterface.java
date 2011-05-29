@@ -52,15 +52,26 @@ public class WebInterface {
 		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator.getPageMaker());
 		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager());
 		LogOutToadlet logoutToadlet = new LogOutToadlet(null, pluginRespirator.getSessionManager("Freemail"));
-		container.register(homeToadlet, FREEMAIL_CATEGORY_NAME, homeToadlet.path(), true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false, homeToadlet);
-		container.register(loginToadlet, FREEMAIL_CATEGORY_NAME, loginToadlet.path(), true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false, loginToadlet);
-		container.register(logoutToadlet, FREEMAIL_CATEGORY_NAME, logoutToadlet.path(), true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false, logoutToadlet);
+		registerToadlet(homeToadlet, FREEMAIL_CATEGORY_NAME, homeToadlet.path(), true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false);
+		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, loginToadlet.path(), true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);
+		registerToadlet(logoutToadlet, FREEMAIL_CATEGORY_NAME, logoutToadlet.path(), true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false);
+	}
+
+	private void registerToadlet(WebPage webPage, String menu, String urlPrefix, boolean atFront, String name, String title, boolean fullOnly) {
+		container.register(webPage, menu, urlPrefix, atFront, name, title, fullOnly, webPage);
+
+		synchronized (registeredToadlets) {
+			registeredToadlets.add(webPage);
+		}
 	}
 
 	public void terminate() {
 		Logger.error(this, "Unregistering toadlets");
-		for(Toadlet t : registeredToadlets) {
-			container.unregister(t);
+		synchronized (registeredToadlets) {
+			for(Toadlet t : registeredToadlets) {
+				container.unregister(t);
+			}
+			registeredToadlets.clear();
 		}
 
 		Logger.error(this, "Removing navigation category");
