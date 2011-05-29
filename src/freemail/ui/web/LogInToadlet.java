@@ -22,9 +22,13 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.NoSuchElementException;
+
+import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
+import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageNode;
@@ -86,6 +90,42 @@ public class LogInToadlet extends WebPage {
 
 	@Override
 	public void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		handleMethodGET(uri, req, ctx);
+		String pass;
+		try {
+			pass = req.getPartAsStringThrowing("formPassword", 32);
+		} catch (SizeLimitExceededException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
+			return;
+		} catch (NoSuchElementException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
+			return;
+		}
+
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
+			return;
+		}
+
+		String identity;
+		try {
+			identity = req.getPartAsStringThrowing("OwnIdentityID", 64);
+		} catch (SizeLimitExceededException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got OwnIdentityID that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("OwnIdentityID", 100));
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "Bad data", "The request contained bad data. This is probably a bug in Freemail");
+			return;
+		} catch (NoSuchElementException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got POST request without OwnIdentityID");
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "Bad data", "The request didn't contain the expected data. This is probably a bug in Freemail");
+			return;
+		}
+
+		pluginRespirator.getSessionManager("Freemail").createSession(accountManager.getAccount(identity).getUsername(), ctx);
+		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", "/Freemail/");
 	}
 }
