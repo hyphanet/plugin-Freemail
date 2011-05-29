@@ -78,8 +78,8 @@ public class LogInToadlet extends WebPage {
 		HTMLNode loginForm = pluginRespirator.addFormChild(boxContent, "/Freemail/Login", "login");
 		HTMLNode ownIdSelector = loginForm.addChild("select", "name", "OwnIdentityID");
 		for(FreemailAccount account : accountManager.getAllAccounts()) {
-			//TODO: Show a better name, preferably the same as Freetalk
-			ownIdSelector.addChild("option", "value", account.getUsername(), account.getUsername());
+			//FIXME: Nickname might be ambiguous
+			ownIdSelector.addChild("option", "value", account.getUsername(), account.getNickname());
 		}
 		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Login" });
 	}
