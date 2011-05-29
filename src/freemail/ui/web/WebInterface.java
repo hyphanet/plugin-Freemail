@@ -23,11 +23,11 @@ package freemail.ui.web;
 import java.util.HashSet;
 import java.util.Set;
 
+import freemail.FreemailPlugin;
 import freemail.utils.Logger;
-import freenet.clients.http.PageMaker;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContainer;
-import freenet.pluginmanager.FredPluginL10n;
+import freenet.pluginmanager.PluginRespirator;
 
 public class WebInterface {
 	private static final String FREEMAIL_CATEGORY_NAME = "Freemail.Menu.Name";
@@ -39,18 +39,20 @@ public class WebInterface {
 	 */
 	private final Set<Toadlet> registeredToadlets = new HashSet<Toadlet>();
 	private final ToadletContainer container;
-	private final PageMaker pageMaker;
+	private final PluginRespirator pluginRespirator;
 
-	public WebInterface(ToadletContainer container, PageMaker pageMaker, FredPluginL10n l10nPlugin) {
+	public WebInterface(ToadletContainer container, PluginRespirator pluginRespirator, FreemailPlugin freemail) {
 		this.container = container;
-		this.pageMaker = pageMaker;
+		this.pluginRespirator = pluginRespirator;
 
 		//Register our menu
-		pageMaker.addNavigationCategory(CATEGORY_DEFAULT_PATH, FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, l10nPlugin);
+		pluginRespirator.getPageMaker().addNavigationCategory(CATEGORY_DEFAULT_PATH, FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
 
 		//Register the visible toadlets
-		HomeToadlet homeToadlet = new HomeToadlet(null, pageMaker);
+		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator.getPageMaker());
+		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager());
 		container.register(homeToadlet, FREEMAIL_CATEGORY_NAME, homeToadlet.path(), true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false, homeToadlet.getLinkEnabledCallback());
+		container.register(loginToadlet, FREEMAIL_CATEGORY_NAME, loginToadlet.path(), true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false, loginToadlet.getLinkEnabledCallback());
 	}
 
 	public void terminate() {
@@ -60,6 +62,6 @@ public class WebInterface {
 		}
 
 		Logger.error(this, "Removing navigation category");
-		pageMaker.removeNavigationCategory(FREEMAIL_CATEGORY_NAME);
+		pluginRespirator.getPageMaker().removeNavigationCategory(FREEMAIL_CATEGORY_NAME);
 	}
 }

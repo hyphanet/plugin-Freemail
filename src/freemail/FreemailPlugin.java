@@ -62,7 +62,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		startServers(true);
 		startIdentityFetch(pr, getAccountManager());
 
-		webInterface = new WebInterface(pr.getToadletContainer(), pr.getPageMaker(), this);
+		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
