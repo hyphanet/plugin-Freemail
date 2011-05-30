@@ -33,7 +33,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
-abstract class WebPage extends Toadlet implements LinkEnabledCallback {
+public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
 
 	WebPage(HighLevelSimpleClient client, PageMaker pageMaker) {
