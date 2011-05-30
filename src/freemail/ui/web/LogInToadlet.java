@@ -68,6 +68,12 @@ public class LogInToadlet extends WebPage {
 		case POST:
 			makeWebPagePost(req, ctx);
 			break;
+		default:
+			//This will only happen if a new value is added to HTTPMethod, so log it and send an
+			//error message
+			assert false : "HTTPMethod has unknown value: " + method;
+			Logger.error(this, "HTTPMethod has unknown value: " + method);
+			writeHTMLReply(ctx, 200, "OK", "Unknown HTTP method " + method + ". This is a bug in Freemail");
 		}
 	}
 
