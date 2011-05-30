@@ -124,14 +124,14 @@ public class LogInToadlet extends WebPage {
 			Logger.error(this, "Got OwnIdentityID that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("OwnIdentityID", 100));
 
 			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "Bad data", "The request contained bad data. This is probably a bug in Freemail");
+			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
 			return;
 		} catch (NoSuchElementException e) {
 			//Someone is deliberately passing bad data, or there is a bug in the PUT code
 			Logger.error(this, "Got POST request without OwnIdentityID");
 
 			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "Bad data", "The request didn't contain the expected data. This is probably a bug in Freemail");
+			writeHTMLReply(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
 			return;
 		}
 
