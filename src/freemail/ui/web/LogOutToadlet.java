@@ -51,13 +51,8 @@ public class LogOutToadlet extends WebPage {
 	}
 
 	@Override
-	public void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
 		sessionManager.deleteSession(ctx);
 		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", "/Freemail/Login");
-	}
-
-	@Override
-	public void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		handleMethodGET(uri, req, ctx);
 	}
 }

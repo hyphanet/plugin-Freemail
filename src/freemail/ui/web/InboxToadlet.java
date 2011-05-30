@@ -43,8 +43,7 @@ public class InboxToadlet extends WebPage {
 	}
 
 	@Override
-	public void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx)
-			throws ToadletContextClosedException, IOException {
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -54,12 +53,6 @@ public class InboxToadlet extends WebPage {
 		addInfobox(contentNode, getDisplayName(folderName));
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-	}
-
-	@Override
-	public void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx)
-			throws ToadletContextClosedException, IOException {
-		handleMethodGET(uri, req, ctx);
 	}
 
 	@Override

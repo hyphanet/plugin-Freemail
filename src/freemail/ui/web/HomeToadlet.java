@@ -50,7 +50,7 @@ public class HomeToadlet extends WebPage {
 	}
 
 	@Override
-	public void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -64,10 +64,5 @@ public class HomeToadlet extends WebPage {
 		HTMLNode boxContent = addInfobox(contentNode, "Welcome to Freemail");
 		boxContent.addChild("p", "Freemail is an email-like messaging system that uses the Web of " +
 				"Trust plugin.");
-	}
-
-	@Override
-	public void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		handleMethodGET(uri, req, ctx);
 	}
 }

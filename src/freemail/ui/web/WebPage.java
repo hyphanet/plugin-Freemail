@@ -36,14 +36,24 @@ abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		super(client);
 	}
 
-	//All web pages must be able to handle both get and post (even if that means eg. redirecting
-	//post to get).
-	public abstract void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException;
-	public abstract void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException;
+	abstract void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException;
+
+	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		makeWebPage(uri, req, ctx, HTTPMethod.GET);
+	}
+
+	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		makeWebPage(uri, req, ctx, HTTPMethod.POST);
+	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {
 		HTMLNode infobox = parent.addChild("div", "class", "infobox");
 		infobox.addChild("div", "class", "infobox-header", title);
 		return infobox.addChild("div", "class", "infobox-content");
+	}
+
+	enum HTTPMethod {
+		GET,
+		POST;
 	}
 }

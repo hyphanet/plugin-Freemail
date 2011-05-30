@@ -60,7 +60,18 @@ public class LogInToadlet extends WebPage {
 	}
 
 	@Override
-	public void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
+		switch(method) {
+		case GET:
+			makeWebPageGet(ctx);
+			break;
+		case POST:
+			makeWebPagePost(req, ctx);
+			break;
+		}
+	}
+
+	private void makeWebPageGet(ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -82,8 +93,7 @@ public class LogInToadlet extends WebPage {
 		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Login" });
 	}
 
-	@Override
-	public void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		String pass;
 		try {
 			pass = req.getPartAsStringThrowing("formPassword", 32);
