@@ -25,6 +25,8 @@ import java.net.URI;
 
 import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
+import freenet.clients.http.PageMaker;
+import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -33,8 +35,8 @@ import freenet.support.api.HTTPRequest;
 public class LogOutToadlet extends WebPage {
 	private final SessionManager sessionManager;
 
-	public LogOutToadlet(HighLevelSimpleClient client, SessionManager sessionManager) {
-		super(client);
+	public LogOutToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
+		super(client, pageMaker);
 		this.sessionManager = sessionManager;
 	}
 
@@ -51,7 +53,7 @@ public class LogOutToadlet extends WebPage {
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		sessionManager.deleteSession(ctx);
 		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", "/Freemail/Login");
 	}

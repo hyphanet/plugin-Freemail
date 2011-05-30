@@ -42,7 +42,7 @@ public class LogInToadlet extends WebPage {
 	private final PluginRespirator pluginRespirator;
 
 	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager) {
-		super(client);
+		super(client, pluginRespirator.getPageMaker());
 		this.pluginRespirator = pluginRespirator;
 		this.accountManager = accountManager;
 	}
@@ -60,7 +60,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		switch(method) {
 		case GET:
 			makeWebPageGet(ctx);

@@ -25,6 +25,8 @@ import java.net.URI;
 
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.LinkEnabledCallback;
+import freenet.clients.http.PageMaker;
+import freenet.clients.http.PageNode;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -32,18 +34,23 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 abstract class WebPage extends Toadlet implements LinkEnabledCallback {
-	WebPage(HighLevelSimpleClient client) {
+	private final PageMaker pageMaker;
+
+	WebPage(HighLevelSimpleClient client, PageMaker pageMaker) {
 		super(client);
+		this.pageMaker = pageMaker;
 	}
 
-	abstract void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException;
+	abstract void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException;
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		makeWebPage(uri, req, ctx, HTTPMethod.GET);
+		PageNode page = pageMaker.getPageNode("Freemail", ctx);
+		makeWebPage(uri, req, ctx, HTTPMethod.GET, page);
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		makeWebPage(uri, req, ctx, HTTPMethod.POST);
+		PageNode page = pageMaker.getPageNode("Freemail", ctx);
+		makeWebPage(uri, req, ctx, HTTPMethod.POST, page);
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {

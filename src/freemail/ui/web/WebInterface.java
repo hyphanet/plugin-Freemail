@@ -51,7 +51,7 @@ public class WebInterface {
 		//Register the toadlets that should be visible in the menu
 		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator.getPageMaker());
 		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager());
-		LogOutToadlet logoutToadlet = new LogOutToadlet(null, pluginRespirator.getSessionManager("Freemail"));
+		LogOutToadlet logoutToadlet = new LogOutToadlet(null, pluginRespirator.getSessionManager("Freemail"), pluginRespirator.getPageMaker());
 		InboxToadlet inboxToadlet = new InboxToadlet(null, pluginRespirator.getSessionManager("Freemail"), pluginRespirator.getPageMaker());
 		registerToadlet(homeToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false);
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);

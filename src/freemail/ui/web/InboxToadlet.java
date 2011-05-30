@@ -34,17 +34,14 @@ import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
 	private final SessionManager sessionManager;
-	private final PageMaker pageMaker;
 
 	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
-		super(client);
+		super(client, pageMaker);
 		this.sessionManager = sessionManager;
-		this.pageMaker = pageMaker;
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method) throws ToadletContextClosedException, IOException {
-		PageNode page = pageMaker.getPageNode("Freemail", ctx);
+	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
