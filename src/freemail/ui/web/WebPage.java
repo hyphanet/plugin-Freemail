@@ -45,11 +45,13 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
+		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
 		makeWebPage(uri, req, ctx, HTTPMethod.GET, page);
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
+		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
 		makeWebPage(uri, req, ctx, HTTPMethod.POST, page);
 	}
 

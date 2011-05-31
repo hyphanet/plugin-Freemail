@@ -57,10 +57,22 @@ public class WebInterface {
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);
 		registerToadlet(logoutToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false);
 		registerToadlet(inboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InboxToadlet.name", "Freemail.InboxToadlet.title", false);
+
+		//Toadlets that don't go in the menu
+		CSSToadlet cssToadlet = new CSSToadlet(null, pluginRespirator.getPageMaker());
+		registerInvisibleToadlet(cssToadlet, true, false);
 	}
 
 	private void registerToadlet(WebPage webPage, String menu, boolean atFront, String name, String title, boolean fullOnly) {
 		container.register(webPage, menu, webPage.path(), atFront, name, title, fullOnly, webPage);
+
+		synchronized (registeredToadlets) {
+			registeredToadlets.add(webPage);
+		}
+	}
+
+	private void registerInvisibleToadlet(WebPage webPage, boolean atFront, boolean fullAccessOnly) {
+		container.register(webPage, null, webPage.path(), atFront, fullAccessOnly);
 
 		synchronized (registeredToadlets) {
 			registeredToadlets.add(webPage);
