@@ -58,7 +58,7 @@ public class InboxToadlet extends WebPage {
 		String identity = sessionManager.useSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 		MessageBank topLevelMessageBank = account.getMessageBank();
-		addMessageBank(folderList, topLevelMessageBank);
+		addMessageBank(folderList, topLevelMessageBank, "inbox");
 
 		//Add the messages
 		String folderName = req.getParam("folder", "inbox");
@@ -93,14 +93,15 @@ public class InboxToadlet extends WebPage {
 		return messageBank;
 	}
 
-	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank) {
+	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String link) {
 		//First add this message bank
 		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
-		folderDiv.addChild("p", messageBank.getName());
+		HTMLNode folderPara = folderDiv.addChild("p");
+		folderPara.addChild("a", "href", "?folder=" + link, messageBank.getName());
 
 		//Then add all the children recursively
 		for(MessageBank child : messageBank.listSubFolders()) {
-			addMessageBank(folderDiv, child);
+			addMessageBank(folderDiv, child, link + "." + child.getName());
 		}
 
 		return folderDiv;
