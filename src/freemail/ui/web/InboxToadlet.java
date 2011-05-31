@@ -47,7 +47,16 @@ public class InboxToadlet extends WebPage {
 
 		String folderName = req.getParam("folder", "inbox");
 
-		addInfobox(contentNode, getDisplayName(folderName));
+		HTMLNode infobox = addInfobox(contentNode, getDisplayName(folderName));
+		HTMLNode folderDiv = infobox.addChild("div", "class", "folderlist");
+		HTMLNode messageDiv = infobox.addChild("div", "class", "messagelist");
+
+		for(int i = 0; i < 10; i++) {
+			folderDiv.addChild("p", "Test folder " + i);
+		}
+		for(int i = 0; i < 10; i++) {
+			messageDiv.addChild("p", "Test message " + i);
+		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
