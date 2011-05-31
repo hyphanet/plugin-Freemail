@@ -45,20 +45,38 @@ public class InboxToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		String folderName = req.getParam("folder", "inbox");
+		HTMLNode container = contentNode.addChild("div", "class", "container");
 
-		HTMLNode infobox = addInfobox(contentNode, getDisplayName(folderName));
-		HTMLNode folderDiv = infobox.addChild("div", "class", "folderlist");
-		HTMLNode messageDiv = infobox.addChild("div", "class", "messagelist");
+		//Add the list of folders
+		HTMLNode folderList = container.addChild("div", "class", "folderlist");
+		addFolder(folderList, "Inbox");
+		HTMLNode freenet = addFolder(folderList, "Freenet");
+		HTMLNode freemail = addFolder(freenet, "Freemail");
+		addFolder(freemail, "Bugs");
 
-		for(int i = 0; i < 10; i++) {
-			folderDiv.addChild("p", "Test folder " + i);
-		}
-		for(int i = 0; i < 10; i++) {
-			messageDiv.addChild("p", "Test message " + i);
+		//Add the messages
+		HTMLNode messageList = container.addChild("div", "class", "messagelist");
+		for(int i = 1; i <= 10; i++) {
+			addMessage(messageList, "Test message " + i, "Zidel", "2011-05-31 12:30");
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private HTMLNode addFolder(HTMLNode parent, String folderName) {
+		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
+		folderDiv.addChild("p", folderName);
+		return folderDiv;
+	}
+
+	private void addMessage(HTMLNode parent, String title, String author, String date) {
+		HTMLNode message = parent.addChild("div", "class", "message");
+		HTMLNode titleDiv = message.addChild("div", "class", "title");
+		titleDiv.addChild("p", title);
+		HTMLNode authorDiv = message.addChild("div", "class", "author");
+		authorDiv.addChild("p", author);
+		HTMLNode dateDiv = message.addChild("div", "class", "date");
+		dateDiv.addChild("p", date);
 	}
 
 	@Override
@@ -69,9 +87,5 @@ public class InboxToadlet extends WebPage {
 	@Override
 	public String path() {
 		return "/Freemail/Inbox";
-	}
-
-	private String getDisplayName(String folderName) {
-		return folderName.replace(".", " > ");
 	}
 }
