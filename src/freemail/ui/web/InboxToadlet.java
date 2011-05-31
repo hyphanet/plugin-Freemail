@@ -22,9 +22,11 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.SortedMap;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
+import freemail.MailMessage;
 import freemail.MessageBank;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
@@ -59,12 +61,36 @@ public class InboxToadlet extends WebPage {
 		addMessageBank(folderList, topLevelMessageBank);
 
 		//Add the messages
+		String folderName = req.getParam("folder", "inbox");
+		MessageBank messageBank = getMessageBank(account, folderName);
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
-		for(int i = 1; i <= 10; i++) {
-			addMessage(messageList, "Test message " + i, "Zidel", "2011-05-31 12:30");
+		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
+		for(MailMessage msg : messages.values()) {
+			//FIXME: Initialization of MailMessage should be in MailMessage
+			msg.readHeaders();
+
+			addMessage(messageList, msg.getFirstHeader("Subject"), msg.getFirstHeader("From"), msg.getFirstHeader("Date"));
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	//TODO: Handle cases where folderName doesn't start with inbox
+	private MessageBank getMessageBank(FreemailAccount account, String folderName) {
+		if(folderName.equalsIgnoreCase("inbox")) {
+			return account.getMessageBank();
+		}
+
+		if(!folderName.startsWith("inbox")) {
+			return null;
+		}
+
+		//Find the correct subfolder. The account message bank is inbox, so strip it
+		MessageBank messageBank = account.getMessageBank();
+		for(String name : folderName.substring("index.".length()).split("\\.")) {
+			messageBank = messageBank.getSubFolder(name);
+		}
+		return messageBank;
 	}
 
 	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank) {

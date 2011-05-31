@@ -112,7 +112,7 @@ public class MessageBank {
 		return null;
 	}
 	
-	public synchronized SortedMap listMessages() {
+	public synchronized SortedMap<Integer, MailMessage> listMessages() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
 
 		Arrays.sort(files, new UIDComparator());
