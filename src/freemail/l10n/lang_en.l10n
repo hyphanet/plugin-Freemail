@@ -2,4 +2,8 @@ Freemail.Menu.Name=Freemail
 Freemail.Menu.Title=Freemail
 Freemail.HomeToadlet.name=Home
 Freemail.HomeToadlet.title=Home
+Freemail.LogoutToadlet.title=Logout
+Freemail.LogoutToadlet.name=Logout
+Freemail.InboxToadlet.title=Inbox
+Freemail.InboxToadlet.name=Inbox
 End
