@@ -25,6 +25,7 @@ import java.util.Set;
 
 import freemail.FreemailPlugin;
 import freemail.utils.Logger;
+import freenet.clients.http.SessionManager;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContainer;
 import freenet.pluginmanager.PluginRespirator;
@@ -48,18 +49,20 @@ public class WebInterface {
 		//Register our menu
 		pluginRespirator.getPageMaker().addNavigationCategory(CATEGORY_DEFAULT_PATH, FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
 
+		SessionManager sessionManager = pluginRespirator.getSessionManager("Freemail");
+
 		//Register the toadlets that should be visible in the menu
-		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator.getPageMaker());
-		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager());
-		LogOutToadlet logoutToadlet = new LogOutToadlet(null, pluginRespirator.getSessionManager("Freemail"), pluginRespirator.getPageMaker());
-		InboxToadlet inboxToadlet = new InboxToadlet(null, pluginRespirator.getSessionManager("Freemail"), pluginRespirator.getPageMaker());
+		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator.getPageMaker(), sessionManager);
+		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager(), sessionManager);
+		LogOutToadlet logoutToadlet = new LogOutToadlet(null, sessionManager, pluginRespirator.getPageMaker());
+		InboxToadlet inboxToadlet = new InboxToadlet(null, sessionManager, pluginRespirator.getPageMaker());
 		registerToadlet(homeToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false);
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);
 		registerToadlet(logoutToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false);
 		registerToadlet(inboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InboxToadlet.name", "Freemail.InboxToadlet.title", false);
 
 		//Toadlets that don't go in the menu
-		CSSToadlet cssToadlet = new CSSToadlet(null, pluginRespirator.getPageMaker());
+		CSSToadlet cssToadlet = new CSSToadlet(null, pluginRespirator.getPageMaker(), sessionManager);
 		registerInvisibleToadlet(cssToadlet, true, false);
 	}
 

@@ -26,14 +26,15 @@ import java.net.URI;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
+import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class HomeToadlet extends WebPage {
-	public HomeToadlet(HighLevelSimpleClient client, PageMaker pageMaker) {
-		super(client, pageMaker);
+	public HomeToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager) {
+		super(client, pageMaker, sessionManager);
 	}
 
 	@Override
@@ -60,5 +61,10 @@ public class HomeToadlet extends WebPage {
 		HTMLNode boxContent = addInfobox(contentNode, "Welcome to Freemail");
 		boxContent.addChild("p", "Freemail is an email-like messaging system that uses the Web of " +
 				"Trust plugin.");
+	}
+
+	@Override
+	boolean requiresValidSession() {
+		return false;
 	}
 }

@@ -31,6 +31,7 @@ import freemail.FreemailAccount;
 import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
+import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
@@ -41,8 +42,8 @@ public class LogInToadlet extends WebPage {
 	private final AccountManager accountManager;
 	private final PluginRespirator pluginRespirator;
 
-	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager) {
-		super(client, pluginRespirator.getPageMaker());
+	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager, SessionManager sessionManager) {
+		super(client, pluginRespirator.getPageMaker(), sessionManager);
 		this.pluginRespirator = pluginRespirator;
 		this.accountManager = accountManager;
 	}
@@ -137,5 +138,10 @@ public class LogInToadlet extends WebPage {
 
 		pluginRespirator.getSessionManager("Freemail").createSession(accountManager.getAccount(identity).getUsername(), ctx);
 		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", "/Freemail/");
+	}
+
+	@Override
+	boolean requiresValidSession() {
+		return false;
 	}
 }

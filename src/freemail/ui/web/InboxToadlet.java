@@ -33,11 +33,8 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
-	private final SessionManager sessionManager;
-
 	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
-		super(client, pageMaker);
-		this.sessionManager = sessionManager;
+		super(client, pageMaker, sessionManager);
 	}
 
 	@Override
@@ -87,5 +84,10 @@ public class InboxToadlet extends WebPage {
 	@Override
 	public String path() {
 		return "/Freemail/Inbox";
+	}
+
+	@Override
+	boolean requiresValidSession() {
+		return true;
 	}
 }

@@ -33,11 +33,8 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.api.HTTPRequest;
 
 public class LogOutToadlet extends WebPage {
-	private final SessionManager sessionManager;
-
 	public LogOutToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
-		super(client, pageMaker);
-		this.sessionManager = sessionManager;
+		super(client, pageMaker, sessionManager);
 	}
 
 	@Override
@@ -56,5 +53,10 @@ public class LogOutToadlet extends WebPage {
 	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		sessionManager.deleteSession(ctx);
 		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", "/Freemail/Login");
+	}
+
+	@Override
+	boolean requiresValidSession() {
+		return false;
 	}
 }

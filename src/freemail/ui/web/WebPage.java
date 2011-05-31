@@ -27,6 +27,7 @@ import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
+import freenet.clients.http.SessionManager;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -35,21 +36,34 @@ import freenet.support.api.HTTPRequest;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
+	final SessionManager sessionManager;
 
-	WebPage(HighLevelSimpleClient client, PageMaker pageMaker) {
+	WebPage(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager) {
 		super(client);
 		this.pageMaker = pageMaker;
+		this.sessionManager = sessionManager;
 	}
 
 	abstract void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException;
+	abstract boolean requiresValidSession();
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
+			writeTemporaryRedirect(ctx, "This page requires a valid session", "/Freemail/Login");
+			return;
+		}
+
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
 		makeWebPage(uri, req, ctx, HTTPMethod.GET, page);
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
+			writeTemporaryRedirect(ctx, "This page requires a valid session", "/Freemail/Login");
+			return;
+		}
+
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
 		makeWebPage(uri, req, ctx, HTTPMethod.POST, page);
