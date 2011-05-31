@@ -23,6 +23,9 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
+import freemail.AccountManager;
+import freemail.FreemailAccount;
+import freemail.MessageBank;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -33,8 +36,11 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
-	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
+	private final AccountManager accountManager;
+
+	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager) {
 		super(client, pageMaker, sessionManager);
+		this.accountManager = accountManager;
 	}
 
 	@Override
@@ -46,10 +52,11 @@ public class InboxToadlet extends WebPage {
 
 		//Add the list of folders
 		HTMLNode folderList = container.addChild("div", "class", "folderlist");
-		addFolder(folderList, "Inbox");
-		HTMLNode freenet = addFolder(folderList, "Freenet");
-		HTMLNode freemail = addFolder(freenet, "Freemail");
-		addFolder(freemail, "Bugs");
+
+		String identity = sessionManager.useSession(ctx).getUserID();
+		FreemailAccount account = accountManager.getAccount(identity);
+		MessageBank topLevelMessageBank = account.getMessageBank();
+		addMessageBank(folderList, topLevelMessageBank);
 
 		//Add the messages
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
@@ -60,9 +67,16 @@ public class InboxToadlet extends WebPage {
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private HTMLNode addFolder(HTMLNode parent, String folderName) {
+	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank) {
+		//First add this message bank
 		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
-		folderDiv.addChild("p", folderName);
+		folderDiv.addChild("p", messageBank.getName());
+
+		//Then add all the children recursively
+		for(MessageBank child : messageBank.listSubFolders()) {
+			addMessageBank(folderDiv, child);
+		}
+
 		return folderDiv;
 	}
 
