@@ -33,6 +33,7 @@ public class OwnIdentity extends Identity {
 		return insertURI;
 	}
 
+	@Override
 	public String toString() {
 		return "OwnIdentity " + getIdentityID();
 	}
