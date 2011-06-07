@@ -110,6 +110,7 @@ public class InboxToadlet extends WebPage {
 		return folderDiv;
 	}
 
+	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink) {
 		HTMLNode message = parent.addChild("div", "class", "message");
 
