@@ -56,7 +56,10 @@ public class InboxToadlet extends WebPage {
 		HTMLNode folderList = container.addChild("div", "class", "folderlist");
 
 		String identity = sessionManager.useSession(ctx).getUserID();
+
+		//FIXME: Handle invalid sessions (account will be null)
 		FreemailAccount account = accountManager.getAccount(identity);
+
 		MessageBank topLevelMessageBank = account.getMessageBank();
 		addMessageBank(folderList, topLevelMessageBank, "inbox");
 
