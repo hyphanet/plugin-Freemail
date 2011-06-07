@@ -35,6 +35,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 import freemail.imap.IMAPMessageFlags;
+import freemail.utils.Logger;
 
 public class MailMessage {
 	private File file;
@@ -335,6 +336,11 @@ public class MailMessage {
 	 * @return the generated message-id
 	 */
 	public static String generateMessageID(String domain, Date date) {
+		if(domain == null) {
+			Logger.error(MailMessage.class, "Domain passed to generateMessageID() was null");
+			new Exception("Domain passed to generateMessageID() was null").printStackTrace();
+		}
+
 		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
 	}
 
