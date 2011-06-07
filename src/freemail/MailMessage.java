@@ -29,6 +29,8 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Date;
+import java.util.Random;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -42,6 +44,7 @@ public class MailMessage {
 	private BufferedReader brdr;
 	private int msg_seqnum=0;
 	public IMAPMessageFlags flags;
+	private static final Random messageIdRandom = new Random();
 	
 	MailMessage(File f, int msg_seqnum) {
 		this.file = f;
@@ -321,6 +324,18 @@ public class MailMessage {
 	@Override
 	public String toString() {
 		return "MailMessage backed by " + file;
+	}
+
+	/**
+	 * Generated a message-id from the specified domain and date. The generated message-id will be
+	 * of the form &lt;local part&gt;@&lt;domain&gt;, where the local part is generated using the
+	 * specified date and a random number large enough that collisions are unlikely.
+	 * @param domain the domain part of the message-id
+	 * @param date the date used in the message-id
+	 * @return the generated message-id
+	 */
+	public static String generateMessageID(String domain, Date date) {
+		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
 	}
 
 	private static class MailMessageHeader {
