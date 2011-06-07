@@ -301,14 +301,16 @@ public class AccountManager {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		
 		MailMessage m = account.getMessageBank().createMessage();
+		Date currentDate = new Date();
 		
 		m.addHeader("From", "Dave Baker <dave@dbkr.freemail>");
 		m.addHeader("To", to.toString());
 		m.addHeader("Subject", "Welcome to Freemail!");
-		m.addHeader("Date", sdf.format(new Date()));
+		m.addHeader("Date", sdf.format(currentDate));
 		m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
 		m.addHeader("Content-Transfer-Encoding", "7bit");
 		m.addHeader("Content-Disposition", "inline");
+		m.addHeader("Message-id", "<" + MailMessage.generateMessageID(to.domain, currentDate) + ">");
 		
 		PrintStream ps = m.writeHeadersAndGetStream();
 		
