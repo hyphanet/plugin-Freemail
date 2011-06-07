@@ -34,6 +34,7 @@ import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.HTMLNode;
+import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
 
 public class MessageToadlet extends WebPage {
@@ -93,7 +94,12 @@ public class MessageToadlet extends WebPage {
 	private MailMessage getMessage(MessageBank messageBank, String messageId) {
 		for(MailMessage msg : messageBank.listMessages().values()) {
 			String msgId = msg.getFirstHeader("message-id");
-			if((msgId != null) && (msgId.equalsIgnoreCase(messageId))) {
+			if(msgId == null) {
+				Logger.error(this, "Message doesn't contain message-id: " + msg);
+				continue;
+			}
+
+			if(msgId.equalsIgnoreCase(messageId)) {
 				return msg;
 			}
 		}
