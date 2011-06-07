@@ -6,4 +6,6 @@ Freemail.LogoutToadlet.title=Logout
 Freemail.LogoutToadlet.name=Logout
 Freemail.InboxToadlet.title=Inbox
 Freemail.InboxToadlet.name=Inbox
+Freemail.LoginToadlet.title=Login
+Freemail.LoginToadlet.name=Login
 End
