@@ -100,13 +100,19 @@ public class Postman {
 			bmsg = mb.createMessage();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
+			Date currentDate = new Date();
 			
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");
 			bmsg.addHeader("Subject", "Undeliverable Freemail");
 			String origFrom = extractFromAddress(origmsg, isFreemailFormat);
-			if (origFrom != null)
+			if (origFrom != null) {
 				bmsg.addHeader("To", origFrom);
-			bmsg.addHeader("Date", sdf.format(new Date()));
+
+				//FIXME: We should add a message id even if we don't get the from address
+				String toDomain = origFrom.substring(origFrom.lastIndexOf("@") + 1);
+				bmsg.addHeader("Message-id", "<" + MailMessage.generateMessageID(toDomain, currentDate) + ">");
+			}
+			bmsg.addHeader("Date", sdf.format(currentDate));
 			bmsg.addHeader("MIME-Version", "1.0");
 			String boundary="boundary-";
 			Random rnd = new Random();
