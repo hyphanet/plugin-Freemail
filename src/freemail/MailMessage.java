@@ -318,6 +318,11 @@ public class MailMessage {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return "MailMessage backed by " + file;
+	}
+
 	private static class MailMessageHeader {
 		public String name;
 		public String val;
