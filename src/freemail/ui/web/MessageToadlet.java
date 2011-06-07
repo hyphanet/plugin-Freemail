@@ -25,6 +25,7 @@ import java.net.URI;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
+import freemail.MailMessage;
 import freemail.MessageBank;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
@@ -58,9 +59,60 @@ public class MessageToadlet extends WebPage {
 		MessageBank topLevelMessageBank = account.getMessageBank();
 		addMessageBank(folderList, topLevelMessageBank, "inbox");
 
-		//TODO: Add the message
+		//Add the message
+		String folderName = req.getParam("folder", "inbox");
+		MessageBank messageBank = getMessageBank(account, folderName);
+		String messageId = req.getParam("message", null);
+		MailMessage msg = getMessage(messageBank, messageId);
+
+		HTMLNode messageNode = container.addChild("div", "class", "message");
+
+		addMessageHeaders(messageNode, msg);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	//TODO: Handle cases where folderName doesn't start with inbox
+	private MessageBank getMessageBank(FreemailAccount account, String folderName) {
+		if(folderName.equalsIgnoreCase("inbox")) {
+			return account.getMessageBank();
+		}
+
+		if(!folderName.startsWith("inbox")) {
+			return null;
+		}
+
+		//Find the correct subfolder. The account message bank is inbox, so strip it
+		MessageBank messageBank = account.getMessageBank();
+		for(String name : folderName.substring("index.".length()).split("\\.")) {
+			messageBank = messageBank.getSubFolder(name);
+		}
+		return messageBank;
+	}
+
+	private MailMessage getMessage(MessageBank messageBank, String messageId) {
+		for(MailMessage msg : messageBank.listMessages().values()) {
+			if(msg.getFirstHeader("message-id").equalsIgnoreCase(messageId)) {
+				return msg;
+			}
+		}
+
+		return null;
+	}
+
+	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {
+		HTMLNode headerBox = messageNode.addChild("div", "class", "message-headers");
+		headerBox.addChild("p", "To: " + message.getFirstHeader("to"));
+		headerBox.addChild("p", "From: " + message.getFirstHeader("from"));
+
+		if(message.getFirstHeader("cc") != null) {
+			headerBox.addChild("p", "CC: " + message.getFirstHeader("cc"));
+		}
+		if(message.getFirstHeader("bcc") != null) {
+			headerBox.addChild("p", "BCC: " + message.getFirstHeader("bcc"));
+		}
+
+		headerBox.addChild("p", "Subject: " + message.getFirstHeader("subject"));
 	}
 
 	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String link) {
