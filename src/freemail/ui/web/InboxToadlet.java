@@ -69,7 +69,7 @@ public class InboxToadlet extends WebPage {
 			//FIXME: Initialization of MailMessage should be in MailMessage
 			msg.readHeaders();
 
-			addMessage(messageList, msg);
+			addMessage(messageList, msg, folderName);
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -107,10 +107,13 @@ public class InboxToadlet extends WebPage {
 		return folderDiv;
 	}
 
-	private void addMessage(HTMLNode parent, MailMessage msg) {
+	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink) {
 		HTMLNode message = parent.addChild("div", "class", "message");
+
 		HTMLNode titleDiv = message.addChild("div", "class", "title");
-		titleDiv.addChild("p", msg.getFirstHeader("Subject"));
+		String messageLink = "/Freemail/Message?folder=" + folderLink + "&messageid=" + msg.getFirstHeader("message-id");
+		titleDiv.addChild("p").addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
+
 		HTMLNode authorDiv = message.addChild("div", "class", "author");
 		authorDiv.addChild("p", msg.getFirstHeader("From"));
 		HTMLNode dateDiv = message.addChild("div", "class", "date");
