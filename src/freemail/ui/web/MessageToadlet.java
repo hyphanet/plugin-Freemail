@@ -92,7 +92,8 @@ public class MessageToadlet extends WebPage {
 
 	private MailMessage getMessage(MessageBank messageBank, String messageId) {
 		for(MailMessage msg : messageBank.listMessages().values()) {
-			if(msg.getFirstHeader("message-id").equalsIgnoreCase(messageId)) {
+			String msgId = msg.getFirstHeader("message-id");
+			if((msgId != null) && (msgId.equalsIgnoreCase(messageId))) {
 				return msg;
 			}
 		}
