@@ -248,14 +248,16 @@ public class AccountManager {
 			EmailAddress to = new EmailAddress(account.getUsername()+"@"+getKSKFreemailDomain(account.getProps()));
 		
 			MailMessage m = account.getMessageBank().createMessage();
+			Date currentDate = new Date();
 		
 			m.addHeader("From", "Freemail Daemon <nowhere@dontreply>");
 			m.addHeader("To", to.toString());
 			m.addHeader("Subject", "Your New Address");
-			m.addHeader("Date", sdf.format(new Date()));
+			m.addHeader("Date", sdf.format(currentDate));
 			m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
 			m.addHeader("Content-Transfer-Encoding", "7bit");
 			m.addHeader("Content-Disposition", "inline");
+			m.addHeader("Message-id", "<" + MailMessage.generateMessageID(getKSKFreemailDomain(account.getProps()), currentDate) + ">");
 		
 			PrintStream ps = m.writeHeadersAndGetStream();
 		
