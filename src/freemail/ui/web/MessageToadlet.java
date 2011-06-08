@@ -94,6 +94,14 @@ public class MessageToadlet extends WebPage {
 
 	private MailMessage getMessage(MessageBank messageBank, String messageId) {
 		for(MailMessage msg : messageBank.listMessages().values()) {
+			try {
+				msg.readHeaders();
+			} catch(IOException e) {
+				//Skip message for now
+				Logger.error(this, "Couldn't read message headers for " + msg);
+				continue;
+			}
+
 			String msgId = msg.getFirstHeader("message-id");
 			if(msgId == null) {
 				Logger.error(this, "Message doesn't contain message-id: " + msg);
