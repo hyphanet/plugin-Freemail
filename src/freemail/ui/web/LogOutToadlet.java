@@ -23,7 +23,6 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
-import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -44,9 +43,7 @@ public class LogOutToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		boolean ret = sessionManager.sessionExists(ctx);
-		Logger.debug(this, "Returning " + ret + " from isEnabled()");
-		return ret;
+		return sessionManager.sessionExists(ctx);
 	}
 
 	@Override
