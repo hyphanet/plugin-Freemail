@@ -117,7 +117,7 @@ public class InboxToadlet extends WebPage {
 		HTMLNode titleDiv = message.addChild("div", "class", "title");
 		String messageId = msg.getFirstHeader("message-id");
 		messageId = messageId.substring(1, messageId.length() - 1); //Strip < and >
-		String messageLink = "/Freemail/Message?folder=" + folderLink + "&messageid=" + messageId;
+		String messageLink = "/Freemail/Message?folder=" + folderLink + "&message=" + messageId;
 		titleDiv.addChild("p").addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
 
 		HTMLNode authorDiv = message.addChild("div", "class", "author");
