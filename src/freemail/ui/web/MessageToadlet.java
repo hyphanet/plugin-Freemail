@@ -100,6 +100,7 @@ public class MessageToadlet extends WebPage {
 				continue;
 			}
 
+			msgId = msgId.substring(1, msgId.length() - 1); //Strip < and >
 			if(msgId.equalsIgnoreCase(messageId)) {
 				return msg;
 			}
