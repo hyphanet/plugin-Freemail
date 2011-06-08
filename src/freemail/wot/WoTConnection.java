@@ -69,7 +69,7 @@ public class WoTConnection {
 	}
 
 	private Message sendBlocking(final Message msg) {
-		//Synchronize on pluginTalker so once on message can be sent at a time
+		//Synchronize on pluginTalker so only one message can be sent at a time
 		synchronized(pluginTalker) {
 			pluginTalker.send(msg.sfs, msg.data);
 
