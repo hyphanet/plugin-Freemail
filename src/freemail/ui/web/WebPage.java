@@ -75,6 +75,12 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		return infobox.addChild("div", "class", "infobox-content");
 	}
 
+	static HTMLNode addErrorbox(HTMLNode parent, String title) {
+		HTMLNode infobox = parent.addChild("div", "class", "infobox infobox-alert");
+		infobox.addChild("div", "class", "infobox-header", title);
+		return infobox.addChild("div", "class", "infobox-content");
+	}
+
 	enum HTTPMethod {
 		GET,
 		POST;
