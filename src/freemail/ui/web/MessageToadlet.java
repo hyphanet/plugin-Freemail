@@ -22,6 +22,9 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
@@ -71,6 +74,7 @@ public class MessageToadlet extends WebPage {
 		HTMLNode messageNode = container.addChild("div", "class", "message");
 
 		addMessageHeaders(messageNode, msg);
+		addMessageContents(messageNode, msg);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -144,6 +148,29 @@ public class MessageToadlet extends WebPage {
 		HTMLNode subjectPara = headerBox.addChild("p");
 		subjectPara.addChild("strong", "Subject:");
 		subjectPara.addChild("#", " " + message.getFirstHeader("subject"));
+	}
+
+	private void addMessageContents(HTMLNode messageNode, MailMessage message) {
+		HTMLNode messageContents = messageNode.addChild("div", "class", "message-content").addChild("p");
+
+		List<String> lines = new LinkedList<String>();
+		try {
+			String line = message.readLine();
+			while(line != null) {
+				lines.add(line);
+				line = message.readLine();
+			}
+		} catch(IOException e) {
+			//TODO: Report an error
+		}
+
+		Iterator<String> lineIterator = lines.iterator();
+		while(lineIterator.hasNext()) {
+			messageContents.addChild("#", lineIterator.next());
+			if(lineIterator.hasNext()) {
+				messageContents.addChild("br");
+			}
+		}
 	}
 
 	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String link) {
