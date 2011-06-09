@@ -171,7 +171,10 @@ public class MessageToadlet extends WebPage {
 				lines.add(line);
 			}
 		} catch(IOException e) {
-			//TODO: Report an error
+			//TODO: Better error message
+			HTMLNode errorBox = addErrorbox(messageContents, "Couldn't read message");
+			errorBox.addChild("p", "Couldn't read the message: " + e);
+			return;
 		}
 
 		Iterator<String> lineIterator = lines.iterator();
