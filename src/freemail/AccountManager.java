@@ -36,7 +36,6 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.security.SecureRandom;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
@@ -45,9 +44,6 @@ import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 
-import org.archive.util.Base32;
-
-import freemail.FreenetURI;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
@@ -151,22 +147,6 @@ public class AccountManager {
 		}
 		
 		return accfile;
-	}
-	
-	public static String getFreemailDomain(PropsFile accfile) {
-		FreenetURI mailsite;
-		try {
-			String pubkey=accfile.get("mailsite.pubkey");
-			if(pubkey==null) {
-				return null;
-			}
-			mailsite = new FreenetURI(pubkey);
-		} catch (MalformedURLException mfue) {
-			Logger.error(AccountManager.class,"Warning: Couldn't fetch mailsite public key from account file! Your account file is probably corrupt.");
-			return null;
-		}
-		
-		return Base32.encode(mailsite.getKeyBody().getBytes())+".freemail";
 	}
 	
 	public static String getKSKFreemailDomain(PropsFile accfile) {
@@ -369,7 +349,7 @@ public class AccountManager {
 
 		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
 		try {
-			putWelcomeMessage(account, new EmailAddress(oid.getIdentityID()+"@"+getFreemailDomain(accProps)));
+			putWelcomeMessage(account, new EmailAddress(oid.getIdentityID()+"@"+account.getAddressDomain()));
 		} catch (IOException e) {
 			//FIXME: Handle this properly
 			Logger.error(this, "Failed while sending welcome message to " + oid);
