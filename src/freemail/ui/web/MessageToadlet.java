@@ -119,17 +119,30 @@ public class MessageToadlet extends WebPage {
 
 	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {
 		HTMLNode headerBox = messageNode.addChild("div", "class", "message-headers");
-		headerBox.addChild("p", "To: " + message.getFirstHeader("to"));
-		headerBox.addChild("p", "From: " + message.getFirstHeader("from"));
+
+		HTMLNode toPara = headerBox.addChild("p");
+		toPara.addChild("strong", "To:");
+		toPara.addChild("#", " " + message.getFirstHeader("to"));
+
+		HTMLNode fromPara = headerBox.addChild("p");
+		fromPara.addChild("strong", "From:");
+		fromPara.addChild("#", " " + message.getFirstHeader("from"));
 
 		if(message.getFirstHeader("cc") != null) {
-			headerBox.addChild("p", "CC: " + message.getFirstHeader("cc"));
-		}
-		if(message.getFirstHeader("bcc") != null) {
-			headerBox.addChild("p", "BCC: " + message.getFirstHeader("bcc"));
+			HTMLNode ccPara = headerBox.addChild("p");
+			ccPara.addChild("strong", "CC:");
+			ccPara.addChild("#", " " + message.getFirstHeader("cc"));
 		}
 
-		headerBox.addChild("p", "Subject: " + message.getFirstHeader("subject"));
+		if(message.getFirstHeader("bcc") != null) {
+			HTMLNode bccPara = headerBox.addChild("p");
+			bccPara.addChild("strong", "BCC:");
+			bccPara.addChild("#", " " + message.getFirstHeader("bcc"));
+		}
+
+		HTMLNode subjectPara = headerBox.addChild("p");
+		subjectPara.addChild("strong", "Subject:");
+		subjectPara.addChild("#", " " + message.getFirstHeader("subject"));
 	}
 
 	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String link) {
