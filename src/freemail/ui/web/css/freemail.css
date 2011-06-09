@@ -1,10 +1,3 @@
-/* Make the debug messages as small as posible */
-p.debug {
-	margin: 0em;
-	padding: 0em;
-	border: 0em;
-}
-
 /* Hide the float containers */
 div.content {
 	margin: 0em;
