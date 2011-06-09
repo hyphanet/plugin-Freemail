@@ -21,7 +21,11 @@ package freemail;
 
 import java.io.File;
 
+import org.archive.util.Base32;
+
 import freemail.utils.PropsFile;
+import freenet.support.Base64;
+import freenet.support.IllegalBase64Exception;
 
 public class FreemailAccount {
 	private final String identity;
@@ -56,5 +60,14 @@ public class FreemailAccount {
 
 	public String getNickname() {
 		return nickname;
+	}
+
+	public String getAddressDomain() {
+		try {
+			return Base32.encode(Base64.decode(identity));
+		} catch(IllegalBase64Exception e) {
+			//This would mean that WoT has changed the encoding of the identity string
+			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
+		}
 	}
 }
