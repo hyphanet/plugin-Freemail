@@ -149,7 +149,7 @@ public class MessageToadlet extends WebPage {
 		//First add this message bank
 		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
 		HTMLNode folderPara = folderDiv.addChild("p");
-		folderPara.addChild("a", "href", "?folder=" + link, messageBank.getName());
+		folderPara.addChild("a", "href", "/Freemail/Inbox?folder=" + link, messageBank.getName());
 
 		//Then add all the children recursively
 		for(MessageBank child : messageBank.listSubFolders()) {
