@@ -14,13 +14,9 @@ div.message {
 }
 
 /* The real rules */
-
 div.folderlist {
 	float: left;
 	margin-right: 1em;
-}
-
-div.folder {
 }
 
 div.folder > div.folder {
@@ -61,7 +57,6 @@ div.author > p {
 	margin: 0em;
 	padding: 0em;
 }
-
 
 div.date {
 	float: left;
