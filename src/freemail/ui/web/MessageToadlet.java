@@ -62,6 +62,7 @@ public class MessageToadlet extends WebPage {
 
 		//Add the message
 		String folderName = req.getParam("folder", "inbox");
+		//FIXME: Message-id is unique so folder shouldn't be necessary
 		MessageBank messageBank = getMessageBank(account, folderName);
 		//FIXME: Handle messages without message-id. This applies to InboxToadlet as well
 		String messageId = req.getParam("message", null);
