@@ -81,3 +81,8 @@ div.date > p {
 	margin: 0em;
 	padding: 0em;
 }
+
+div.message-headers > p {
+	margin: 0em;
+	padding: 0em;
+}
