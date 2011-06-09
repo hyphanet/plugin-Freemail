@@ -190,9 +190,6 @@ public class AccountManager {
 	}
 	
 	private static boolean initAccFile(PropsFile accfile) {
-		Logger.normal(AccountManager.class,"Mailsite keys generated.");
-		Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
-
 		// generate an RSA keypair
 		Logger.normal(AccountManager.class,"Generating cryptographic keypair (this could take a few minutes)...");
 		
