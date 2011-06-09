@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.security.SecureRandom;
@@ -62,7 +61,6 @@ public class AccountManager {
 	public static final String NIMDIR = "nim";
 	
 	private static final String ACCOUNT_FILE = "accprops";
-	private static final int RTS_KEY_LENGTH = 32;
 	
 	private static final int ASYM_KEY_MODULUS_LENGTH = 4096;
 	private static final BigInteger ASYM_KEY_EXPONENT = new BigInteger("17", 10);
@@ -192,20 +190,6 @@ public class AccountManager {
 	}
 	
 	private static boolean initAccFile(PropsFile accfile) {
-		// initialise RTS KSK
-		Random rnd = new Random();
-		String rtskey = new String();
-
-		int i;
-		for (i = 0; i < RTS_KEY_LENGTH; i++) {
-			rtskey += (char)(rnd.nextInt(26) + (int)'a');
-		}
-
-		if (!accfile.put("rtskey", rtskey)) {
-			Logger.error(AccountManager.class, "Couldn't put rts key");
-			return false;
-		}
-
 		Logger.normal(AccountManager.class,"Mailsite keys generated.");
 		Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
 
