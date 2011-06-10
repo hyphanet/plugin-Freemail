@@ -96,82 +96,88 @@ public class Channel extends Postman {
 			}
 			Logger.normal(this,"Found a message!");
 
-			// parse the Freemail header(s) out.
-			PropsFile msgprops = PropsFile.createPropsFile(msg, true);
-			String s_id = msgprops.get("id");
-			if (s_id == null) {
-				Logger.error(this,"Got a message with an invalid header. Discarding.");
-				sm.slotUsed();
-				msgprops.closeReader();
-				msg.delete();
-				continue;
-			}
-
-			int id;
 			try {
-				id = Integer.parseInt(s_id);
-			} catch (NumberFormatException nfe) {
-				Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
-				sm.slotUsed();
-				msgprops.closeReader();
-				msg.delete();
-				continue;
-			}
-
-			MessageLog msglog = new MessageLog(this.channelDir);
-			boolean isDupe;
-			try {
-				isDupe = msglog.isPresent(id);
-			} catch (IOException ioe) {
-				Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
-				msgprops.closeReader();
-				msg.delete();
-				continue;
-			}
-			if (isDupe) {
-				Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
-				sm.slotUsed();
-				msgprops.closeReader();
-				msg.delete();
-				continue;
-			}
-
-			BufferedReader br = msgprops.getReader();
-			if (br == null) {
-				Logger.error(this,"Got an invalid message. Discarding.");
-				sm.slotUsed();
-				msgprops.closeReader();
-				msg.delete();
-				continue;
-			}
-
-			try {
-				this.storeMessage(br, mb);
-				msg.delete();
-			} catch (IOException ioe) {
-				msg.delete();
-				continue;
+				handleMessage(sm, msg, mb);
 			} catch (ConnectionTerminatedException cte) {
 				// terminated before we could validate the sender. Give up, and we won't mark the slot used so we'll
 				// pick it up next time.
 				return;
 			}
-			Logger.normal(this,"You've got mail!");
-			sm.slotUsed();
-			try {
-				msglog.add(id);
-			} catch (IOException ioe) {
-				// how should we handle this? Remove the message from the inbox again?
-				Logger.error(this,"warning: failed to write log file!");
-			}
-			String ack_key = this.channelProps.get("ackssk");
-			if (ack_key == null) {
-				Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
-				continue;
-			}
-			ack_key += "ack-"+id;
-			AckProcrastinator.put(ack_key);
 		}
+	}
+
+	private void handleMessage(SlotManager sm, File msg, MessageBank mb) throws ConnectionTerminatedException {
+		// parse the Freemail header(s) out.
+		PropsFile msgprops = PropsFile.createPropsFile(msg, true);
+		String s_id = msgprops.get("id");
+		if (s_id == null) {
+			Logger.error(this,"Got a message with an invalid header. Discarding.");
+			sm.slotUsed();
+			msgprops.closeReader();
+			msg.delete();
+			return;
+		}
+
+		int id;
+		try {
+			id = Integer.parseInt(s_id);
+		} catch (NumberFormatException nfe) {
+			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
+			sm.slotUsed();
+			msgprops.closeReader();
+			msg.delete();
+			return;
+		}
+
+		MessageLog msglog = new MessageLog(this.channelDir);
+		boolean isDupe;
+		try {
+			isDupe = msglog.isPresent(id);
+		} catch (IOException ioe) {
+			Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
+			msgprops.closeReader();
+			msg.delete();
+			return;
+		}
+		if (isDupe) {
+			Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
+			sm.slotUsed();
+			msgprops.closeReader();
+			msg.delete();
+			return;
+		}
+
+		BufferedReader br = msgprops.getReader();
+		if (br == null) {
+			Logger.error(this,"Got an invalid message. Discarding.");
+			sm.slotUsed();
+			msgprops.closeReader();
+			msg.delete();
+			return;
+		}
+
+		try {
+			this.storeMessage(br, mb);
+			msg.delete();
+		} catch (IOException ioe) {
+			msg.delete();
+			return;
+		}
+		Logger.normal(this,"You've got mail!");
+		sm.slotUsed();
+		try {
+			msglog.add(id);
+		} catch (IOException ioe) {
+			// how should we handle this? Remove the message from the inbox again?
+			Logger.error(this,"warning: failed to write log file!");
+		}
+		String ack_key = this.channelProps.get("ackssk");
+		if (ack_key == null) {
+			Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
+			return;
+		}
+		ack_key += "ack-"+id;
+		AckProcrastinator.put(ack_key);
 	}
 
 	private class HashSlotManager extends SlotManager {
