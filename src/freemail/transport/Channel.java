@@ -86,7 +86,11 @@ public class Channel extends Postman {
 			} catch (ConnectionTerminatedException cte) {
 				return;
 			} catch (FCPFetchException fe) {
-				// XXX: Slot should be marked dead if this is a fatal error
+				if(fe.isFatal()) {
+					Logger.normal(this, "Fatal fetch failure, marking slot as used");
+					sm.slotUsed();
+				}
+
 				Logger.minor(this,"No mail in slot (fetch returned "+fe.getMessage()+")");
 				continue;
 			}
