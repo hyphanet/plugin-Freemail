@@ -155,10 +155,20 @@ public class MessageToadlet extends WebPage {
 
 		List<String> lines = new LinkedList<String>();
 		try {
-			String line = message.readLine();
-			while(line != null) {
+			boolean inHeader = true;
+			while(true) {
+				String line = message.readLine();
+				if(line == null) break;
+
+				if((line.equals("")) && inHeader) {
+					inHeader = false;
+					continue;
+				}
+				if(inHeader) {
+					continue;
+				}
+
 				lines.add(line);
-				line = message.readLine();
 			}
 		} catch(IOException e) {
 			//TODO: Report an error
