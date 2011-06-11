@@ -69,6 +69,14 @@ public class Channel extends Postman {
 		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
 		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
 
+		//Verify (to some extent) that the channel has been initialized
+		if(!channelDir.isDirectory()) {
+			return null;
+		}
+		if(!new File(channelDir, CHANNEL_PROPS_NAME).isFile()) {
+			return null;
+		}
+
 		Channel channel;
 		synchronized(instances) {
 			channel = instances.get(channelDir);
