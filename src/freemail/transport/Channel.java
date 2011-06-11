@@ -58,6 +58,13 @@ public class Channel extends Postman {
 	private final File channelDir;
 	private final PropsFile channelProps;
 
+	/**
+	 * Returns the Channel used between the two given identities. If the channel has not yet been
+	 * initialized {@code null} will be returned on a best-effort basis.
+	 * @param localIdentity the local side of the channel
+	 * @param remoteIdentity the remote side of the channel
+	 * @return the Channel used between the two given identities
+	 */
 	public static Channel getChannel(FreemailAccount localIdentity, String remoteIdentity) {
 		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
 		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
