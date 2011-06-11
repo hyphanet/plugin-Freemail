@@ -47,7 +47,7 @@
 
 	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
 		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5" nowarn="true">
+		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" nowarn="true">
 			<exclude name="**/test/*" />
 			<exclude name="org/bouncycastle/util/IPTest.java" />
 			<exclude name="org/bouncycastle/util/AllTests.java" />
@@ -68,13 +68,13 @@
 		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
 
 		<!-- Compile the patched version file -->
-		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5">
+		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
 			<include name="${version.src}"/>
 		</javac>
 		
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.5" target="1.5">
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${lib}"/>
