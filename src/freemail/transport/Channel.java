@@ -53,6 +53,15 @@ public class Channel extends Postman {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
 
+	//The keys used in the props file
+	private static class PropsKeys {
+		private static final String PRIVATE_KEY = "privateKey";
+		private static final String PUBLIC_KEY = "publicKey";
+		private static final String FETCH_SLOT = "fetchSlot";
+		private static final String SEND_SLOT = "sendSlot";
+		private static final String IS_INITIATOR = "isInitiator";
+	}
+
 	private static final Map<File, Channel> instances = new HashMap<File, Channel>();
 
 	private final File channelDir;
@@ -126,29 +135,29 @@ public class Channel extends Postman {
 		}
 
 		PropsFile channelProps = PropsFile.createPropsFile(new File(channelDir, CHANNEL_PROPS_NAME));
-		channelProps.put("isInitiator", "" + isInitiator);
-		channelProps.put("fetchslot", fetchSlot);
-		channelProps.put("sendslot", sendSlot);
-		channelProps.put("privatekey", keys.privkey);
-		channelProps.put("publickey", keys.pubkey);
+		channelProps.put(PropsKeys.IS_INITIATOR, "" + isInitiator);
+		channelProps.put(PropsKeys.FETCH_SLOT, fetchSlot);
+		channelProps.put(PropsKeys.SEND_SLOT, sendSlot);
+		channelProps.put(PropsKeys.PRIVATE_KEY, keys.privkey);
+		channelProps.put(PropsKeys.PUBLIC_KEY, keys.pubkey);
 
 		return true;
 	}
 
 	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
-		String slots = this.channelProps.get("fetchslot");
+		String slots = this.channelProps.get(PropsKeys.FETCH_SLOT);
 		if (slots == null) {
-			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no 'fetchslot' entry!");
+			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no '" + PropsKeys.FETCH_SLOT + "' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
 
-		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(channelProps, "fetchslot"), null, slots);
+		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(channelProps, PropsKeys.FETCH_SLOT), null, slots);
 		sm.setPollAhead(POLL_AHEAD);
 
-		String basekey = this.channelProps.get("privkey");
+		String basekey = this.channelProps.get(PropsKeys.PRIVATE_KEY);
 		if (basekey == null) {
-			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no 'privkey' entry!");
+			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no '" + PropsKeys.PRIVATE_KEY + "' entry!");
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
