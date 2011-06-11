@@ -54,8 +54,8 @@ public class Channel extends Postman {
 
 	private static final Map<File, Channel> instances = new HashMap<File, Channel>();
 
-	private File channelDir;
-	private PropsFile channelProps;
+	private final File channelDir;
+	private final PropsFile channelProps;
 
 	public static Channel getChannel(FreemailAccount localIdentity, String remoteIdentity) {
 		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
