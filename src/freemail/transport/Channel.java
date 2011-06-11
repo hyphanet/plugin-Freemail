@@ -29,11 +29,14 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.archive.util.Base32;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 
 import freemail.AckProcrastinator;
+import freemail.FreemailAccount;
 import freemail.MessageBank;
 import freemail.Postman;
 import freemail.SlotManager;
@@ -45,9 +48,35 @@ import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 
 public class Channel extends Postman {
+	private static final String CHANNEL_DIR_NAME = "channels";
+	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
+
+	private static final Map<File, Channel> instances = new HashMap<File, Channel>();
+
 	private File channelDir;
 	private PropsFile channelProps;
+
+	public static Channel getChannel(FreemailAccount localIdentity, String remoteIdentity) {
+		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
+		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
+
+		Channel channel;
+		synchronized(instances) {
+			channel = instances.get(channelDir);
+			if(channel == null) {
+				channel = new Channel(channelDir);
+				instances.put(channelDir, channel);
+			}
+		}
+
+		return channel;
+	}
+
+	private Channel(File channelDir) {
+		this.channelDir = channelDir;
+		channelProps = PropsFile.createPropsFile(new File(channelDir, CHANNEL_PROPS_NAME));
+	}
 
 	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
 		String slots = this.channelProps.get("fetchslot");
