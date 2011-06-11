@@ -44,6 +44,7 @@ import freemail.SlotSaveCallback;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
+import freemail.fcp.SSKKeyPair;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 
@@ -76,6 +77,38 @@ public class Channel extends Postman {
 	private Channel(File channelDir) {
 		this.channelDir = channelDir;
 		channelProps = PropsFile.createPropsFile(new File(channelDir, CHANNEL_PROPS_NAME));
+	}
+
+	/**
+	 * Initiates a new channel using the given values.
+	 * @param localIdentity the local side of the channel
+	 * @param remoteIdentity the remote side of the channel
+	 * @param isInitiator {@code true} if the local side sent the RTS, {@code false} otherwise
+	 * @param fetchSlot the first slot to use for fetching
+	 * @param sendSlot the first slot to use for sending
+	 * @param keys the keypair for the new channel
+	 * @return {@code true} if the channel was initiated successfully, {@code false} otherwise
+	 */
+	public static boolean initializeChannel(FreemailAccount localIdentity, String remoteIdentity,
+			boolean isInitiator, String fetchSlot, String sendSlot, SSKKeyPair keys) {
+		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
+		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
+
+		if(!channelDir.exists()) {
+			if(!channelDir.mkdirs()) {
+				Logger.error(Channel.class, "Couldn't create channel directory: " + channelDir);
+				return false;
+			}
+		}
+
+		PropsFile channelProps = PropsFile.createPropsFile(new File(channelDir, CHANNEL_PROPS_NAME));
+		channelProps.put("isInitiator", "" + isInitiator);
+		channelProps.put("fetchslot", fetchSlot);
+		channelProps.put("sendslot", sendSlot);
+		channelProps.put("privatekey", keys.privkey);
+		channelProps.put("publickey", keys.pubkey);
+
+		return true;
 	}
 
 	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
