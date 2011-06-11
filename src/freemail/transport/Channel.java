@@ -74,9 +74,18 @@ public class Channel extends Postman {
 		return channel;
 	}
 
+	/**
+	 * Creates a new Channel using the given directory, which must be initialized with the
+	 * properties of the new Channel.
+	 * @param channelDir the directory used by the new Channel
+	 */
 	private Channel(File channelDir) {
+		assert channelDir.isDirectory();
 		this.channelDir = channelDir;
-		channelProps = PropsFile.createPropsFile(new File(channelDir, CHANNEL_PROPS_NAME));
+
+		File channelPropsFile = new File(channelDir, CHANNEL_PROPS_NAME);
+		assert channelPropsFile.exists();
+		channelProps = PropsFile.createPropsFile(channelPropsFile);
 	}
 
 	/**
