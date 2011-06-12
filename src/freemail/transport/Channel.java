@@ -176,6 +176,16 @@ public class Channel extends Postman {
 		return sendMessage(fcpClient, sfs, message);
 	}
 
+	/**
+	 * Sends a message to the remote side of the channel containing the given headers and the data
+	 * read from {@code message}. "messagetype" must be set in {@code header}.
+	 * @param fcpClient the HighLevelFCPClient used to send the message
+	 * @param header the headers to prepend to the message
+	 * @param message the data to be sent
+	 * @return {@code true} if the message was sent successfully
+	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
+	 * @throws IOException if the InputStream throws an IOException
+	 */
 	boolean sendMessage(HighLevelFCPClient fcpClient, SimpleFieldSet header, InputStream message) throws ConnectionTerminatedException, IOException {
 		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 
