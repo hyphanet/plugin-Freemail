@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +43,9 @@ import freemail.Postman;
 import freemail.SlotManager;
 import freemail.SlotSaveCallback;
 import freemail.fcp.ConnectionTerminatedException;
+import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPFetchException;
+import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 import freemail.utils.Logger;
@@ -142,6 +145,50 @@ public class Channel extends Postman {
 		channelProps.put(PropsKeys.PUBLIC_KEY, keys.pubkey);
 
 		return true;
+	}
+
+	/**
+	 * Sends the data read from the InputStream to the remote side of the Channel. If this method
+	 * returns {@code true} the data has been sent successfully, however this does not mean that it
+	 * has been received by the recipient.
+	 * @param data the data to be sent
+	 * @param fcpClient the HighLevelFCPClient used to send the message
+	 * @return {@code true} if the message was sent successfully
+	 * @throws IOException if the InputStream throws an IOException
+	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
+	 */
+	public boolean sendMessage(InputStream data, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
+		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+		while(true) {
+			String slot = channelProps.get(PropsKeys.SEND_SLOT);
+
+			FCPInsertErrorMessage fcpMessage;
+			try {
+				fcpMessage = fcpClient.put(data, baseKey + slot);
+			} catch(FCPBadFileException e) {
+				throw new IOException(e);
+			}
+
+			if(fcpMessage == null) {
+				slot = calculateNextSlot(slot);
+				channelProps.put(PropsKeys.SEND_SLOT, slot);
+				return true;
+			}
+
+			if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+				slot = calculateNextSlot(slot);
+
+				//Write the new slot each round so we won't have
+				//to check all of them again if we fail
+				channelProps.put(PropsKeys.SEND_SLOT, slot);
+
+				Logger.debug(this, "Insert collided, trying slot " + slot);
+				continue;
+			}
+
+			Logger.debug(this, "Insert to slot " + slot + " failed: " + fcpMessage);
+			return false;
+		}
 	}
 
 	private String calculateNextSlot(String slot) {
