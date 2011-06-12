@@ -83,8 +83,12 @@ public class Channel extends Postman {
 	 * @param localIdentity the local side of the channel
 	 * @param remoteIdentity the remote side of the channel
 	 * @return the Channel used between the two given identities
+	 * @throws NullPointerException if any of the arguments are {@code null}
 	 */
 	public static Channel getChannel(FreemailAccount localIdentity, String remoteIdentity) {
+		if(localIdentity == null) throw new NullPointerException("Parameter localIdentity was null");
+		if(remoteIdentity == null) throw new NullPointerException("Parameter remoteIdentity was null");
+
 		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
 		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
 
@@ -131,9 +135,16 @@ public class Channel extends Postman {
 	 * @param sendSlot the first slot to use for sending
 	 * @param keys the keypair for the new channel
 	 * @return {@code true} if the channel was initiated successfully, {@code false} otherwise
+	 * @throws NullPointerException if any of the parameters are {@code null}
 	 */
 	public static boolean initializeChannel(FreemailAccount localIdentity, String remoteIdentity,
 			boolean isInitiator, String fetchSlot, String sendSlot, SSKKeyPair keys) {
+		if(localIdentity == null) throw new NullPointerException("Parameter localIdentity was null");
+		if(remoteIdentity == null) throw new NullPointerException("Parameter remoteIdentity was null");
+		if(fetchSlot == null) throw new NullPointerException("Parameter fetchSlot was null");
+		if(sendSlot == null) throw new NullPointerException("Parameter sendSlot was null");
+		if(keys == null) throw new NullPointerException("Parameter keys was null");
+
 		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
 		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
 
