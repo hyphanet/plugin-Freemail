@@ -178,7 +178,8 @@ public class Channel extends Postman {
 
 	/**
 	 * Sends a message to the remote side of the channel containing the given headers and the data
-	 * read from {@code message}. "messagetype" must be set in {@code header}.
+	 * read from {@code message}. "messagetype" must be set in {@code header}. If message is
+	 * {@code null} no data will be sent after the header.
 	 * @param fcpClient the HighLevelFCPClient used to send the message
 	 * @param header the headers to prepend to the message
 	 * @param message the data to be sent
@@ -189,9 +190,6 @@ public class Channel extends Postman {
 	boolean sendMessage(HighLevelFCPClient fcpClient, SimpleFieldSet header, InputStream message) throws ConnectionTerminatedException, IOException {
 		assert (fcpClient != null);
 		assert (header.get("messagetype") != null);
-
-		//FIXME: We could let this be null with some changes
-		assert (message != null);
 
 		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 
@@ -208,7 +206,7 @@ public class Channel extends Postman {
 		headerString.append("\r\n");
 
 		ByteArrayInputStream headerBytes = new ByteArrayInputStream(headerString.toString().getBytes("UTF-8"));
-		SequenceInputStream data = new SequenceInputStream(headerBytes, message);
+		InputStream data = (message == null) ? headerBytes : new SequenceInputStream(headerBytes, message);
 		while(true) {
 			String slot = channelProps.get(PropsKeys.SEND_SLOT);
 
