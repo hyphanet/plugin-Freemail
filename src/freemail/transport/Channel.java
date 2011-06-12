@@ -164,8 +164,12 @@ public class Channel extends Postman {
 	 * @return {@code true} if the message was sent successfully
 	 * @throws IOException if the InputStream throws an IOException
 	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
+	 * @throws NullPointerException if any of the arguments are {@code null}
 	 */
 	public boolean sendMessage(InputStream message, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
+		if(message == null) throw new NullPointerException("Parameter message was null");
+		if(fcpClient == null) throw new NullPointerException("Parameter fcpClient was null");
+
 		long messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
 		channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 
