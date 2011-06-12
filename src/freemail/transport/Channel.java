@@ -144,6 +144,15 @@ public class Channel extends Postman {
 		return true;
 	}
 
+	private String calculateNextSlot(String slot) {
+		byte[] buf = Base32.decode(slot);
+		SHA256Digest sha256 = new SHA256Digest();
+		sha256.update(buf, 0, buf.length);
+		sha256.doFinal(buf, 0);
+
+		return Base32.encode(buf);
+	}
+
 	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
 		String slots = this.channelProps.get(PropsKeys.FETCH_SLOT);
 		if (slots == null) {
@@ -282,12 +291,7 @@ public class Channel extends Postman {
 
 		@Override
 		protected String incSlot(String slot) {
-			byte[] buf = Base32.decode(slot);
-			SHA256Digest sha256 = new SHA256Digest();
-			sha256.update(buf, 0, buf.length);
-			sha256.doFinal(buf, 0);
-
-			return Base32.encode(buf);
+			return calculateNextSlot(slot);
 		}
 	}
 
