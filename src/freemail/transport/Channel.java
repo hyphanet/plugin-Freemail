@@ -23,6 +23,7 @@
 package freemail.transport;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -30,6 +31,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.SequenceInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -151,14 +153,21 @@ public class Channel extends Postman {
 	 * Sends the data read from the InputStream to the remote side of the Channel. If this method
 	 * returns {@code true} the data has been sent successfully, however this does not mean that it
 	 * has been received by the recipient.
-	 * @param data the data to be sent
+	 * @param message the data to be sent
 	 * @param fcpClient the HighLevelFCPClient used to send the message
 	 * @return {@code true} if the message was sent successfully
 	 * @throws IOException if the InputStream throws an IOException
 	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
 	 */
-	public boolean sendMessage(InputStream data, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
+	public boolean sendMessage(InputStream message, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
 		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+
+		//FIXME: Add a real id
+		String header =
+				"messagetype=message\r\n" +
+				"id=123\r\n\r\n";
+		ByteArrayInputStream headerBytes = new ByteArrayInputStream(header.getBytes("UTF-8"));
+		SequenceInputStream data = new SequenceInputStream(headerBytes, message);
 		while(true) {
 			String slot = channelProps.get(PropsKeys.SEND_SLOT);
 
