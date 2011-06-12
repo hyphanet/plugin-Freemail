@@ -53,6 +53,8 @@ import freemail.fcp.SSKKeyPair;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 
+//FIXME: The message id gives away how many messages has been sent over the channel.
+//       Could it be replaced by a different solution that gives away less information?
 public class Channel extends Postman {
 	private static final String CHANNEL_DIR_NAME = "channels";
 	private static final String CHANNEL_PROPS_NAME = "props";
@@ -65,6 +67,7 @@ public class Channel extends Postman {
 		private static final String FETCH_SLOT = "fetchSlot";
 		private static final String SEND_SLOT = "sendSlot";
 		private static final String IS_INITIATOR = "isInitiator";
+		private static final String MESSAGE_ID = "messageId";
 	}
 
 	private static final Map<File, Channel> instances = new HashMap<File, Channel>();
@@ -145,6 +148,7 @@ public class Channel extends Postman {
 		channelProps.put(PropsKeys.SEND_SLOT, sendSlot);
 		channelProps.put(PropsKeys.PRIVATE_KEY, keys.privkey);
 		channelProps.put(PropsKeys.PUBLIC_KEY, keys.pubkey);
+		channelProps.put(PropsKeys.MESSAGE_ID, "0");
 
 		return true;
 	}
@@ -162,10 +166,12 @@ public class Channel extends Postman {
 	public boolean sendMessage(InputStream message, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
 		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 
-		//FIXME: Add a real id
+		long messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
+		channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+
 		String header =
 				"messagetype=message\r\n" +
-				"id=123\r\n\r\n";
+				"id=" + messageId + "\r\n\r\n";
 		ByteArrayInputStream headerBytes = new ByteArrayInputStream(header.getBytes("UTF-8"));
 		SequenceInputStream data = new SequenceInputStream(headerBytes, message);
 		while(true) {
