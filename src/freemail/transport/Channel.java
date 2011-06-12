@@ -187,6 +187,12 @@ public class Channel extends Postman {
 	 * @throws IOException if the InputStream throws an IOException
 	 */
 	boolean sendMessage(HighLevelFCPClient fcpClient, SimpleFieldSet header, InputStream message) throws ConnectionTerminatedException, IOException {
+		assert (fcpClient != null);
+		assert (header.get("messagetype") != null);
+
+		//FIXME: We could let this be null with some changes
+		assert (message != null);
+
 		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 
 		//SimpleFieldSet seems to only output using \n,
