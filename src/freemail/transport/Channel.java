@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.SequenceInputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.archive.util.Base32;
@@ -52,6 +53,7 @@ import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
+import freenet.support.SimpleFieldSet;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -164,15 +166,32 @@ public class Channel extends Postman {
 	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
 	 */
 	public boolean sendMessage(InputStream message, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
-		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-
 		long messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
 		channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 
-		String header =
-				"messagetype=message\r\n" +
-				"id=" + messageId + "\r\n\r\n";
-		ByteArrayInputStream headerBytes = new ByteArrayInputStream(header.getBytes("UTF-8"));
+		SimpleFieldSet sfs = new SimpleFieldSet(true);
+		sfs.putOverwrite("messagetype", "message");
+		sfs.putOverwrite("id", "" + messageId);
+
+		return sendMessage(fcpClient, sfs, message);
+	}
+
+	boolean sendMessage(HighLevelFCPClient fcpClient, SimpleFieldSet header, InputStream message) throws ConnectionTerminatedException, IOException {
+		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+
+		//SimpleFieldSet seems to only output using \n,
+		//but we need \n\r so we need to do it manually
+		StringBuilder headerString = new StringBuilder();
+		Iterator<String> headerKeyIterator = header.keyIterator();
+		while(headerKeyIterator.hasNext()) {
+			String key = headerKeyIterator.next();
+			String value = header.get(key);
+
+			headerString.append(key + "=" + value + "\r\n");
+		}
+		headerString.append("\r\n");
+
+		ByteArrayInputStream headerBytes = new ByteArrayInputStream(headerString.toString().getBytes("UTF-8"));
 		SequenceInputStream data = new SequenceInputStream(headerBytes, message);
 		while(true) {
 			String slot = channelProps.get(PropsKeys.SEND_SLOT);
