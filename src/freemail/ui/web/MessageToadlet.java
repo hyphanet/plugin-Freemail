@@ -30,6 +30,7 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
+import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -101,6 +102,14 @@ public class MessageToadlet extends WebPage {
 
 	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {
 		HTMLNode headerBox = messageNode.addChild("div", "class", "message-headers");
+
+		try {
+			message.readHeaders();
+		} catch(IOException e) {
+			Logger.error(this, "Caugth IOException reading headers for " + message);
+			headerBox.addChild("p", "There was a problem reading the message headers");
+			return;
+		}
 
 		HTMLNode toPara = headerBox.addChild("p");
 		toPara.addChild("strong", "To:");
