@@ -6,7 +6,7 @@ div.content {
 	width: 100%;
 }
 
-div.message {
+div.messagelist > div.message {
 	margin: 0.0em;
 	padding: 0.0em;
 	border: 0.0em solid black;
