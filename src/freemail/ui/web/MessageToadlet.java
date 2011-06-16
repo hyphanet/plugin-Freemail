@@ -37,7 +37,6 @@ import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.HTMLNode;
-import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
 
 public class MessageToadlet extends WebPage {
@@ -65,11 +64,10 @@ public class MessageToadlet extends WebPage {
 
 		//Add the message
 		String folderName = req.getParam("folder", "inbox");
-		//FIXME: Message-id is unique so folder shouldn't be necessary
 		MessageBank messageBank = getMessageBank(account, folderName);
-		//FIXME: Handle messages without message-id. This applies to InboxToadlet as well
-		String messageId = req.getParam("message", null);
-		MailMessage msg = getMessage(messageBank, messageId);
+
+		String messageUid = req.getParam("uid", "0");
+		MailMessage msg = getMessage(messageBank, Integer.parseInt(messageUid));
 
 		HTMLNode messageNode = container.addChild("div", "class", "message");
 
@@ -97,29 +95,8 @@ public class MessageToadlet extends WebPage {
 		return messageBank;
 	}
 
-	private MailMessage getMessage(MessageBank messageBank, String messageId) {
-		for(MailMessage msg : messageBank.listMessages().values()) {
-			try {
-				msg.readHeaders();
-			} catch(IOException e) {
-				//Skip message for now
-				Logger.error(this, "Couldn't read message headers for " + msg);
-				continue;
-			}
-
-			String msgId = msg.getFirstHeader("message-id");
-			if(msgId == null) {
-				Logger.error(this, "Message doesn't contain message-id: " + msg);
-				continue;
-			}
-
-			msgId = msgId.substring(1, msgId.length() - 1); //Strip < and >
-			if(msgId.equalsIgnoreCase(messageId)) {
-				return msg;
-			}
-		}
-
-		return null;
+	private MailMessage getMessage(MessageBank messageBank, int messageUid) {
+		return messageBank.listMessages().get(Integer.valueOf(messageUid));
 	}
 
 	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {

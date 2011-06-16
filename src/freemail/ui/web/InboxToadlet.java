@@ -22,6 +22,7 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import freemail.AccountManager;
@@ -68,11 +69,11 @@ public class InboxToadlet extends WebPage {
 		MessageBank messageBank = getMessageBank(account, folderName);
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
 		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
-		for(MailMessage msg : messages.values()) {
+		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
 			//FIXME: Initialization of MailMessage should be in MailMessage
-			msg.readHeaders();
+			message.getValue().readHeaders();
 
-			addMessage(messageList, msg, folderName);
+			addMessage(messageList, message.getValue(), folderName, message.getKey());
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -111,13 +112,11 @@ public class InboxToadlet extends WebPage {
 	}
 
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
-	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink) {
+	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink, int messageNum) {
 		HTMLNode message = parent.addChild("div", "class", "message");
 
 		HTMLNode titleDiv = message.addChild("div", "class", "title");
-		String messageId = msg.getFirstHeader("message-id");
-		messageId = messageId.substring(1, messageId.length() - 1); //Strip < and >
-		String messageLink = "/Freemail/Message?folder=" + folderLink + "&message=" + messageId;
+		String messageLink = "/Freemail/Message?folder=" + folderLink + "&uid=" + messageNum;
 		titleDiv.addChild("p").addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
 
 		HTMLNode authorDiv = message.addChild("div", "class", "author");
