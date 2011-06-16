@@ -33,8 +33,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.SequenceInputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.archive.util.Base32;
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -76,6 +80,7 @@ public class Channel extends Postman {
 
 	private final File channelDir;
 	private final PropsFile channelProps;
+	private final Set<Observer> observers = new HashSet<Observer>();
 
 	/**
 	 * Returns the Channel used between the two given identities. If the channel has not yet been
@@ -261,6 +266,56 @@ public class Channel extends Postman {
 		sha256.doFinal(buf, 0);
 
 		return Base32.encode(buf);
+	}
+
+	public void startFetch(ScheduledExecutorService executor) {
+		executor.submit(new Fetcher(executor));
+	}
+
+	private static class Fetcher implements Runnable {
+		private final ScheduledExecutorService executor;
+
+		private Fetcher(ScheduledExecutorService executor) {
+			this.executor = executor;
+		}
+
+		@Override
+		public void run() {
+			//TODO: Try fetching messages
+
+			//Reschedule
+			executor.schedule(this, 5, TimeUnit.MINUTES);
+		}
+	}
+
+	/**
+	 * Adds an observer to this Channel.
+	 * @param observer the observer that should be added
+	 * @throws NullPointerException if {@code observer} is {@code null}
+	 */
+	public void addObserver(Observer observer) {
+		if(observer == null) throw new NullPointerException();
+
+		synchronized(observers) {
+			observers.add(observer);
+		}
+	}
+
+	/**
+	 * Removes an observer from this Channel.
+	 * @param observer the observer that should be removed
+	 */
+	public void removeObserver(Observer observer) {
+		//This is a bug in the caller, but leave it as an assert since it won't corrupt any state
+		assert (observer != null);
+
+		synchronized(observers) {
+			observers.remove(observer);
+		}
+	}
+
+	public interface Observer {
+		public void fetched(InputStream data);
 	}
 
 	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
