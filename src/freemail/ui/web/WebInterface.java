@@ -68,14 +68,29 @@ public class WebInterface {
 		registerInvisibleToadlet(messageToadlet, true, false);
 	}
 
-	private void registerToadlet(WebPage webPage, String menu, boolean atFront, String name, String title, boolean fullOnly) {
-		container.register(webPage, menu, webPage.path(), atFront, name, title, fullOnly, webPage);
+	/**
+	 * Register a new menu item with the web interface
+	 * @param webPage the web page to add
+	 * @param menu the menu to add the page to
+	 * @param atFront {@code true} if the page should be added to the front of the path-check queue
+	 * @param name the name of the menu item
+	 * @param tooltip the tooltip of the menu item
+	 * @param fullOnly {@code true} if the item should only be shown if the client has full access
+	 */
+	private void registerToadlet(WebPage webPage, String menu, boolean atFront, String name, String tooltip, boolean fullOnly) {
+		container.register(webPage, menu, webPage.path(), atFront, name, tooltip, fullOnly, webPage);
 
 		synchronized (registeredToadlets) {
 			registeredToadlets.add(webPage);
 		}
 	}
 
+	/**
+	 * Register a Toadlet with the web interface
+	 * @param webPage the web page to register
+	 * @param atFront {@code true} if the page should be added to the front of the path-check queue
+	 * @param fullAccessOnly {@code true} if the item should only be shown if the client has full access
+	 */
 	private void registerInvisibleToadlet(WebPage webPage, boolean atFront, boolean fullAccessOnly) {
 		container.register(webPage, null, webPage.path(), atFront, fullAccessOnly);
 
