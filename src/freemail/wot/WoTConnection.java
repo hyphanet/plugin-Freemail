@@ -20,8 +20,10 @@
 
 package freemail.wot;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import freemail.utils.SimpleFieldSetFactory;
 import freenet.pluginmanager.FredPluginTalker;
@@ -66,6 +68,41 @@ public class WoTConnection {
 		}
 
 		return ownIdentities;
+	}
+
+	public Set<Identity> getAllTrustedIdentities(String trusterId) {
+		return getAllIdentities(trusterId, TrustSelection.TRUSTED);
+	}
+
+	public Set<Identity> getAllUntrustedIdentities(String trusterId) {
+		return getAllIdentities(trusterId, TrustSelection.UNTRUSTED);
+	}
+
+	private Set<Identity> getAllIdentities(String trusterId, TrustSelection selection) {
+		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
+		sfs.putOverwrite("Message", "GetIdentitiesByScore");
+		sfs.putOverwrite("Truster", trusterId);
+		sfs.putOverwrite("Selection", selection.value);
+		sfs.putOverwrite("Context", "");
+		sfs.put("WantTrustValues", false);
+
+		Message response = sendBlocking(new Message(sfs, null));
+
+		final Set<Identity> identities = new HashSet<Identity>();
+		for(int count = 0;; count++) {
+			String identityID = response.sfs.get("Identity" + count);
+			if(identityID == null) {
+				//Got all the identities
+				break;
+			}
+
+			String requestURI = response.sfs.get("RequestURI" + count);
+			String nickname = response.sfs.get("Nickname" + count);
+
+			identities.add(new Identity(identityID, requestURI, nickname));
+		}
+
+		return identities;
 	}
 
 	private Message sendBlocking(final Message msg) {
@@ -115,6 +152,17 @@ public class WoTConnection {
 				reply = new Message(params, data);
 				replyLock.notify();
 			}
+		}
+	}
+
+	private enum TrustSelection {
+		TRUSTED("+"),
+		ZERO("0"),
+		UNTRUSTED("-");
+
+		private final String value;
+		private TrustSelection(String value) {
+			this.value = value;
 		}
 	}
 }
