@@ -44,9 +44,15 @@ public class NewMessageToadlet extends WebPage {
 
 		HTMLNode messageBox = addInfobox(contentNode, "New message");
 		HTMLNode messageForm = ctx.addFormChild(messageBox, path(), "newMessage");
-		messageForm.addChild("input", new String[] {"name",    "type"},
-		                              new String[] {"subject", "text"});
-		messageForm.addChild("textarea", "name", "message-text");
+
+		HTMLNode subjectBox = addInfobox(messageForm, "Subject");
+		subjectBox.addChild("input", new String[] {"name",    "type", "size"},
+		                             new String[] {"subject", "text", "100"});
+
+		HTMLNode messageBodyBox = addInfobox(messageForm, "Text");
+		messageBodyBox.addChild("textarea", new String[] {"name",         "cols", "rows", "class"},
+		                                    new String[] {"message-text", "100",  "30",   "message-text"});
+
 		messageForm.addChild("input", new String[] {"type",   "value"},
 		                              new String[] {"submit", "Send"});
 
