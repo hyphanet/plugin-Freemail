@@ -8,4 +8,6 @@ Freemail.InboxToadlet.title=Inbox
 Freemail.InboxToadlet.name=Inbox
 Freemail.LoginToadlet.title=Login
 Freemail.LoginToadlet.name=Login
+Freemail.NewMessageToadlet.title=New message
+Freemail.NewMessageToadlet.name=New message
 End
