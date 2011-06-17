@@ -23,6 +23,7 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
+import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -39,6 +40,20 @@ public class NewMessageToadlet extends WebPage {
 
 	@Override
 	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
+		switch(method) {
+		case GET:
+			makeWebPageGet(ctx, page);
+			break;
+		default:
+			//This will only happen if a new value is added to HTTPMethod, so log it and send an
+			//error message
+			assert false : "HTTPMethod has unknown value: " + method;
+			Logger.error(this, "HTTPMethod has unknown value: " + method);
+			writeHTMLReply(ctx, 200, "OK", "Unknown HTTP method " + method + ". This is a bug in Freemail");
+		}
+	}
+
+	private void makeWebPageGet(ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
