@@ -47,6 +47,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
 	private WebInterface webInterface = null;
+	private volatile PluginRespirator pluginRespirator = null;
+	private WoTConnection wotConnection = null;
 	
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
@@ -57,6 +59,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 	
 	public void runPlugin(PluginRespirator pr) {
+		pluginRespirator = pr;
+
 		startFcp(true);
 		startWorkers(true);
 		startServers(true);
@@ -69,18 +73,15 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		pr.getNode().executor.execute(new Runnable() {
 			@Override
 			public void run() {
-				WoTConnection wot = null;
+				WoTConnection wot = getWotConnection();
 				while(wot == null) {
 					try {
-						wot = new WoTConnection(pr);
-					} catch (PluginNotFoundException e) {
-						Logger.error(this, "Couldn't find the Web of Trust plugin");
-						try {
-							Thread.sleep(60 * 1000);
-						} catch (InterruptedException ie) {
-							//Just try again
-						}
+						Thread.sleep(60 * 1000);
+					} catch (InterruptedException ie) {
+						//Just try again
 					}
+
+					wot = getWotConnection();
 				}
 				List<OwnIdentity> oids = wot.getAllOwnIdentities();
 				accountManager.addIdentities(oids);
@@ -90,6 +91,17 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 	public long getRealVersion() {
 		return Version.BUILD_NO;
+	}
+
+	public synchronized WoTConnection getWotConnection() {
+		if(wotConnection == null) {
+			try {
+				wotConnection = new WoTConnection(pluginRespirator);
+			} catch(PluginNotFoundException e) {
+				return null;
+			}
+		}
+		return wotConnection;
 	}
 
 	@Override
