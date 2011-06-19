@@ -26,10 +26,12 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import freemail.utils.Logger;
 import freemail.wot.Identity;
+import freemail.wot.WoTConnection;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -41,8 +43,11 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 
 public class NewMessageToadlet extends WebPage {
-	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
+	private final WoTConnection wotConnection;
+
+	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnection wotConnection) {
 		super(client, pageMaker, sessionManager);
+		this.wotConnection = wotConnection;
 	}
 
 	@Override
@@ -146,7 +151,25 @@ public class NewMessageToadlet extends WebPage {
 	 * @return a Set containing the matched identities
 	 */
 	private Set<Identity> matchIdentities(Set<String> identities, String currentUser) {
-		return new HashSet<Identity>();
+		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(currentUser);
+		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(currentUser));
+
+		Set<Identity> matches = new HashSet<Identity>();
+		for(Identity wotIdentity : wotIdentities) {
+			Iterator<String> identityIterator = identities.iterator();
+			while(identityIterator.hasNext()) {
+				String identity = identityIterator.next();
+				String identityID = identity.substring(identity.lastIndexOf("@") + 1, identity.length() - ".freemail".length());
+				if(wotIdentity.getIdentityID().equals(identityID)) {
+					//Identity id match fully so this is the only possible match
+					Logger.debug(this, "Matched identity " + identityID);
+					matches.add(wotIdentity);
+					identityIterator.remove();
+				}
+			}
+		}
+
+		return matches;
 	}
 
 	@Override
