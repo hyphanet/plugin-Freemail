@@ -20,10 +20,16 @@
 
 package freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import freemail.utils.Logger;
+import freemail.wot.Identity;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -31,6 +37,7 @@ import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.HTMLNode;
+import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 
 public class NewMessageToadlet extends WebPage {
@@ -43,6 +50,9 @@ public class NewMessageToadlet extends WebPage {
 		switch(method) {
 		case GET:
 			makeWebPageGet(ctx, page);
+			break;
+		case POST:
+			makeWebPagePost(req, ctx, page);
 			break;
 		default:
 			//This will only happen if a new value is added to HTTPMethod, so log it and send an
@@ -76,6 +86,67 @@ public class NewMessageToadlet extends WebPage {
 		                              new String[] {"submit", "Send"});
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException, ToadletContextClosedException {
+		//Read list of recipients. Whitespace seems to be the only reasonable way to separate
+		//identities, but people will probably use all sorts of characters that can also appear in
+		//nicknames, so the matching should be sufficiently fuzzy to handle that
+		Set<String> identities = new HashSet<String>();
+
+		Bucket b = req.getPart("to");
+		BufferedReader data;
+		try {
+			data = new BufferedReader(new InputStreamReader(b.getInputStream(), "UTF-8"));
+		} catch(UnsupportedEncodingException e) {
+			throw new AssertionError();
+		} catch(IOException e) {
+			throw new AssertionError();
+		}
+
+		String line = data.readLine();
+		while(line != null) {
+			String[] parts = line.split("\\s");
+			for(String part : parts) {
+				identities.add(part);
+			}
+			line = data.readLine();
+		}
+
+		matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
+
+		if(!identities.isEmpty()) {
+			//TODO: Handle this properly
+			HTMLNode pageNode = page.outer;
+			HTMLNode contentNode = page.content;
+
+			HTMLNode errorBox = addErrorbox(contentNode, "Ambiguous identities");
+			HTMLNode errorPara = errorBox.addChild("p", "There were " + identities.size() + " " +
+					"recipients that could not be found in the Web of Trust:");
+			HTMLNode identityList = errorPara.addChild("ul");
+			for(String s : identities) {
+				identityList.addChild("li", s);
+			}
+
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
+		}
+
+		//TODO: Actually send the message
+		writeHTMLReply(ctx, 200, "OK", "Nothing here yet");
+	}
+
+	/**
+	 * Checks the identities listed in {@code identities} against the identities known by WoT. The
+	 * identities that found in WoT (without ambiguity) are removed from the list. The returned list
+	 * contains the full identity id of the matched identity. If no identities were matched an empty
+	 * set is returned.
+	 * @param identities the identities to match
+	 * @param currentUser the logged in user
+	 * @return a Set containing the matched identities
+	 */
+	private Set<Identity> matchIdentities(Set<String> identities, String currentUser) {
+		return new HashSet<Identity>();
 	}
 
 	@Override
