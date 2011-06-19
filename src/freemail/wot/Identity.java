@@ -42,4 +42,19 @@ public class Identity {
 	public String getNickname() {
 		return nickname;
 	}
+
+	@Override
+	public int hashCode() {
+		return identityID.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Identity)) {
+			return false;
+		}
+
+		Identity other = (Identity) obj;
+		return identityID.equals(other.identityID);
+	}
 }
