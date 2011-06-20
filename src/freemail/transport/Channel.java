@@ -83,6 +83,9 @@ public class Channel extends Postman {
 	private Fetcher fetcher;
 	private final Object fetcherLock = new Object();
 
+	private Sender sender;
+	private final Object senderLock = new Object();
+
 	public Channel(File channelDir, ScheduledExecutorService executor) {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
@@ -105,6 +108,7 @@ public class Channel extends Postman {
 
 	public void startTasks() {
 		startFetcher();
+		startSender();
 	}
 
 	private void startFetcher() {
@@ -125,6 +129,27 @@ public class Channel extends Postman {
 				f = fetcher;
 			}
 			executor.execute(f);
+		}
+	}
+
+	private void startSender() {
+		//Start sender if possible
+		String sendSlot;
+		String isInitiator;
+		String privateKey;
+		synchronized(channelProps) {
+			sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
+			isInitiator = channelProps.get(PropsKeys.IS_INITIATOR);
+			privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+		}
+
+		if((sendSlot != null) && (isInitiator != null) && (privateKey != null)) {
+			Sender s;
+			synchronized(senderLock) {
+				sender = new Sender();
+				s = sender;
+			}
+			executor.execute(s);
 		}
 	}
 
@@ -271,6 +296,13 @@ public class Channel extends Postman {
 
 			//Reschedule
 			executor.schedule(this, 5, TimeUnit.MINUTES);
+		}
+	}
+
+	private class Sender implements Runnable {
+		@Override
+		public void run() {
+			//TODO: Try sending messages
 		}
 	}
 
