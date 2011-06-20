@@ -20,9 +20,13 @@
 package freemail;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.archive.util.Base32;
 
+import freemail.transport.Channel;
+import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
@@ -33,6 +37,7 @@ public class FreemailAccount {
 	private final File accdir;
 	private final PropsFile accprops;
 	private final MessageBank mb;
+	private final Map<String, Channel> channels = new HashMap<String, Channel>();
 	
 	FreemailAccount(String identity, String nickname, File _accdir, PropsFile _accprops) {
 		this.identity = identity;
@@ -40,6 +45,20 @@ public class FreemailAccount {
 		accdir = _accdir;
 		accprops = _accprops;
 		mb = new MessageBank(this);
+
+		//Create and start all the channels
+		File channelDir = new File(accdir, "channels");
+		if(!channelDir.exists()) {
+			if(!channelDir.mkdir()) {
+				Logger.error(this, "Couldn't create channel directory: " + channelDir);
+			}
+		}
+
+		for(File f : channelDir.listFiles()) {
+			Channel channel = new Channel(f, FreemailPlugin.getExecutor());
+			channel.startTasks();
+			channels.put(f.getName(), channel);
+		}
 	}
 	
 	public String getUsername() {
