@@ -153,6 +153,7 @@ public class NewMessageToadlet extends WebPage {
 	private Set<Identity> matchIdentities(Set<String> identities, String currentUser) {
 		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(currentUser);
 		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(currentUser));
+		wotIdentities.addAll(wotConnection.getAllOwnIdentities());
 
 		Set<Identity> matches = new HashSet<Identity>();
 		for(Identity wotIdentity : wotIdentities) {
