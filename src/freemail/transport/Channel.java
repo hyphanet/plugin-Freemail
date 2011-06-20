@@ -214,6 +214,14 @@ public class Channel extends Postman {
 			return false;
 		}
 
+		Sender s;
+		synchronized(senderLock) {
+			s = sender;
+		}
+		if(s != null) {
+			executor.execute(s);
+		}
+
 		return true;
 	}
 
