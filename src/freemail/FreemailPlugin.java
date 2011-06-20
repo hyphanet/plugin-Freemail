@@ -25,6 +25,8 @@ package freemail;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import freemail.l10n.FreemailL10n;
 import freemail.ui.web.WebInterface;
@@ -47,6 +49,8 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
+	private final static ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(0);
+
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
 	private WoTConnection wotConnection = null;
@@ -68,6 +72,10 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		startIdentityFetch(pr, getAccountManager());
 
 		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
+	}
+
+	public static ScheduledExecutorService getExecutor() {
+		return executor;
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
