@@ -78,8 +78,12 @@ public class Channel extends Postman {
 	private final File channelDir;
 	private final PropsFile channelProps;
 	private final Set<Observer> observers = new HashSet<Observer>();
+	private final ScheduledExecutorService executor;
 
-	public Channel(File channelDir) {
+	public Channel(File channelDir, ScheduledExecutorService executor) {
+		if(executor == null) throw new NullPointerException();
+		this.executor = executor;
+
 		assert channelDir.isDirectory();
 		this.channelDir = channelDir;
 
@@ -232,17 +236,11 @@ public class Channel extends Postman {
 		return Base32.encode(buf);
 	}
 
-	public void startFetch(ScheduledExecutorService executor) {
-		executor.submit(new Fetcher(executor));
+	public void startFetch() {
+		executor.submit(new Fetcher());
 	}
 
-	private static class Fetcher implements Runnable {
-		private final ScheduledExecutorService executor;
-
-		private Fetcher(ScheduledExecutorService executor) {
-			this.executor = executor;
-		}
-
+	private class Fetcher implements Runnable {
 		@Override
 		public void run() {
 			//TODO: Try fetching messages
