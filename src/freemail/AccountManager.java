@@ -311,6 +311,8 @@ public class AccountManager {
 
 	private void addIdentity(OwnIdentity oid) {
 		File accountDir = new File(datadir, oid.getIdentityID());
+		FreemailAccount account = null;
+		PropsFile accProps = null;
 
 		if(!accountDir.exists()) {
 			//Need to create a new account
@@ -320,20 +322,21 @@ public class AccountManager {
 				return;
 			}
 
-			PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
 			initAccFile(accProps);
 
-			FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
+			account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
 			try {
 				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getAddressDomain()));
 			} catch (IOException e) {
 				//FIXME: Handle this properly
 				Logger.error(this, "Failed while sending welcome message to " + oid);
 			}
+		} else {
+			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+			account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
 		}
 
-		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
 		accounts.put(oid.getIdentityID(), account);
 
 		//Now start a SingleAccountWatcher for this account
