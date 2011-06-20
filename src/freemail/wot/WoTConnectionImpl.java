@@ -46,6 +46,7 @@ public class WoTConnectionImpl implements WoTConnection {
 		pluginTalker = pr.getPluginTalker(new WoTConnectionTalker(), WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
 	}
 
+	@Override
 	public List<OwnIdentity> getAllOwnIdentities() {
 		Message response = sendBlocking(
 				new Message(
@@ -70,10 +71,12 @@ public class WoTConnectionImpl implements WoTConnection {
 		return ownIdentities;
 	}
 
+	@Override
 	public Set<Identity> getAllTrustedIdentities(String trusterId) {
 		return getAllIdentities(trusterId, TrustSelection.TRUSTED);
 	}
 
+	@Override
 	public Set<Identity> getAllUntrustedIdentities(String trusterId) {
 		return getAllIdentities(trusterId, TrustSelection.UNTRUSTED);
 	}
