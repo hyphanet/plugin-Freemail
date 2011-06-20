@@ -41,7 +41,7 @@ public class NewMessageToadletTest extends TestCase {
 		Method m = NewMessageToadlet.class.getDeclaredMethod("matchIdentities", Set.class, String.class);
 		m.setAccessible(true);
 
-		NewMessageToadlet toadlet = new NewMessageToadlet(null, null, null, new FakeWoTConnection());
+		NewMessageToadlet toadlet = new NewMessageToadlet(null, null, null, new FakeWoTConnection(), null);
 		Set<String> set = new HashSet<String>();
 		set.add(identity.getNickname() + "@" + identity.getIdentityID() + ".freemail");
 

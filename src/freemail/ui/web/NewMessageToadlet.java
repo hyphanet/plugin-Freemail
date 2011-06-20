@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import freemail.Freemail;
+import freemail.FreemailAccount;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
@@ -44,10 +46,12 @@ import freenet.support.api.HTTPRequest;
 
 public class NewMessageToadlet extends WebPage {
 	private final WoTConnection wotConnection;
+	private final Freemail freemail;
 
-	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnection wotConnection) {
+	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnection wotConnection, Freemail freemail) {
 		super(client, pageMaker, sessionManager);
 		this.wotConnection = wotConnection;
+		this.freemail = freemail;
 	}
 
 	@Override
@@ -136,6 +140,8 @@ public class NewMessageToadlet extends WebPage {
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
 		}
+
+		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 
 		//TODO: Actually send the message
 		writeHTMLReply(ctx, 200, "OK", "Nothing here yet");
