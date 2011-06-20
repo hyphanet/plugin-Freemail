@@ -30,7 +30,8 @@ import freemail.l10n.FreemailL10n;
 import freemail.ui.web.WebInterface;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
-import freemail.wot.WoTConnectionImpl;
+import freemail.wot.WoTConnection;
+import freemail.wot.WoTConnections;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginBaseL10n;
@@ -48,7 +49,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
                                                         FredPluginRealVersioned, FredPluginL10n {
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
-	private WoTConnectionImpl wotConnection = null;
+	private WoTConnection wotConnection = null;
 	
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
@@ -73,7 +74,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		pr.getNode().executor.execute(new Runnable() {
 			@Override
 			public void run() {
-				WoTConnectionImpl wot = getWotConnection();
+				WoTConnection wot = getWotConnection();
 				while(wot == null) {
 					try {
 						Thread.sleep(60 * 1000);
@@ -93,10 +94,10 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		return Version.BUILD_NO;
 	}
 
-	public synchronized WoTConnectionImpl getWotConnection() {
+	public synchronized WoTConnection getWotConnection() {
 		if(wotConnection == null) {
 			try {
-				wotConnection = new WoTConnectionImpl(pluginRespirator);
+				wotConnection = WoTConnections.wotConnection(pluginRespirator);
 			} catch(PluginNotFoundException e) {
 				return null;
 			}
