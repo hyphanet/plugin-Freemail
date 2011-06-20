@@ -314,10 +314,21 @@ public class AccountManager {
 
 		if(!accountDir.exists()) {
 			//Need to create a new account
-			if(!initializeIdentity(oid)) {
+			if(!accountDir.mkdir()) {
 				//Account creation failed, so don't start it and try again on next startup
 				//FIXME: Need better error handling
 				return;
+			}
+
+			PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+			initAccFile(accProps);
+
+			FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
+			try {
+				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getAddressDomain()));
+			} catch (IOException e) {
+				//FIXME: Handle this properly
+				Logger.error(this, "Failed while sending welcome message to " + oid);
 			}
 		}
 
@@ -335,27 +346,6 @@ public class AccountManager {
 			singleAccountWatcherList.add(saw);
 			singleAccountWatcherThreadList.add(t);
 		}
-	}
-
-	private boolean initializeIdentity(OwnIdentity oid) {
-		File accountDir = new File(datadir, oid.getIdentityID());
-		if(!accountDir.mkdir()) {
-			Logger.error(this, "Creation of account directory failed (" + accountDir + ")");
-			return false;
-		}
-
-		PropsFile accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-		initAccFile(accProps);
-
-		FreemailAccount account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
-		try {
-			putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getAddressDomain()));
-		} catch (IOException e) {
-			//FIXME: Handle this properly
-			Logger.error(this, "Failed while sending welcome message to " + oid);
-		}
-
-		return true;
 	}
 
 	void terminate() {
