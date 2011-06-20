@@ -1,5 +1,5 @@
 /*
- * WoTConnection.java
+ * WoTConnectionImpl.java
  * This file is part of Freemail
  * Copyright (C) 2011 Martin Nyhus
  *
@@ -33,7 +33,7 @@ import freenet.pluginmanager.PluginTalker;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 
-public class WoTConnection {
+public class WoTConnectionImpl {
 	private static final String WOT_PLUGIN_NAME = "plugins.WebOfTrust.WebOfTrust";
 	private static final String CONNECTION_IDENTIFIER = "Freemail";
 
@@ -42,7 +42,7 @@ public class WoTConnection {
 	private Message reply = null;
 	private final Object replyLock = new Object();
 
-	public WoTConnection(PluginRespirator pr) throws PluginNotFoundException {
+	public WoTConnectionImpl(PluginRespirator pr) throws PluginNotFoundException {
 		pluginTalker = pr.getPluginTalker(new WoTConnectionTalker(), WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
 	}
 

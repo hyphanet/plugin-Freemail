@@ -31,7 +31,7 @@ import java.util.Set;
 
 import freemail.utils.Logger;
 import freemail.wot.Identity;
-import freemail.wot.WoTConnection;
+import freemail.wot.WoTConnectionImpl;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -43,9 +43,9 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 
 public class NewMessageToadlet extends WebPage {
-	private final WoTConnection wotConnection;
+	private final WoTConnectionImpl wotConnection;
 
-	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnection wotConnection) {
+	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnectionImpl wotConnection) {
 		super(client, pageMaker, sessionManager);
 		this.wotConnection = wotConnection;
 	}
