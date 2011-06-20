@@ -104,6 +104,11 @@ public class Channel extends Postman {
 			}
 		}
 		channelProps = PropsFile.createPropsFile(channelPropsFile);
+
+		//Message id is needed for queuing messages so it must be present
+		if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
+			channelProps.put(PropsKeys.MESSAGE_ID, "0");
+		}
 	}
 
 	public void startTasks() {
