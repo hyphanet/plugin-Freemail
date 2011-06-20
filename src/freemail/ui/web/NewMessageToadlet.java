@@ -31,6 +31,7 @@ import java.util.Set;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
+import freemail.transport.Channel;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
@@ -122,7 +123,7 @@ public class NewMessageToadlet extends WebPage {
 			line = data.readLine();
 		}
 
-		matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
+		Set<Identity> matches = matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
 
 		if(!identities.isEmpty()) {
 			//TODO: Handle this properly
@@ -141,10 +142,16 @@ public class NewMessageToadlet extends WebPage {
 			return;
 		}
 
-		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
+		for(Identity identity : matches) {
+			FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
+			Channel channel = account.getChannel(identity.getIdentityID());
 
-		//TODO: Actually send the message
-		writeHTMLReply(ctx, 200, "OK", "Nothing here yet");
+			//TODO: Add the proper email headers
+			Bucket messageText = req.getPart("message-text");
+			channel.sendMessage(messageText.getInputStream());
+		}
+
+		writeHTMLReply(ctx, 200, "OK", "Message sent");
 	}
 
 	/**
