@@ -32,10 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.SequenceInputStream;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -76,58 +74,24 @@ public class Channel extends Postman {
 		private static final String MESSAGE_ID = "messageId";
 	}
 
-	private static final Map<File, Channel> instances = new HashMap<File, Channel>();
-
 	private final File channelDir;
 	private final PropsFile channelProps;
 	private final Set<Observer> observers = new HashSet<Observer>();
 
-	/**
-	 * Returns the Channel used between the two given identities. If the channel has not yet been
-	 * initialized {@code null} will be returned on a best-effort basis.
-	 * @param localIdentity the local side of the channel
-	 * @param remoteIdentity the remote side of the channel
-	 * @return the Channel used between the two given identities
-	 * @throws NullPointerException if any of the arguments are {@code null}
-	 */
-	public static Channel getChannel(FreemailAccount localIdentity, String remoteIdentity) {
-		if(localIdentity == null) throw new NullPointerException("Parameter localIdentity was null");
-		if(remoteIdentity == null) throw new NullPointerException("Parameter remoteIdentity was null");
-
-		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
-		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
-
-		//Verify (to some extent) that the channel has been initialized
-		if(!channelDir.isDirectory()) {
-			return null;
-		}
-		if(!new File(channelDir, CHANNEL_PROPS_NAME).isFile()) {
-			return null;
-		}
-
-		Channel channel;
-		synchronized(instances) {
-			channel = instances.get(channelDir);
-			if(channel == null) {
-				channel = new Channel(channelDir);
-				instances.put(channelDir, channel);
-			}
-		}
-
-		return channel;
-	}
-
-	/**
-	 * Creates a new Channel using the given directory, which must be initialized with the
-	 * properties of the new Channel.
-	 * @param channelDir the directory used by the new Channel
-	 */
-	private Channel(File channelDir) {
+	public Channel(File channelDir) {
 		assert channelDir.isDirectory();
 		this.channelDir = channelDir;
 
 		File channelPropsFile = new File(channelDir, CHANNEL_PROPS_NAME);
-		assert channelPropsFile.exists();
+		if(!channelPropsFile.exists()) {
+			try {
+				if(!channelPropsFile.createNewFile()) {
+					Logger.error(this, "Could not create new props file in " + channelDir);
+				}
+			} catch(IOException e) {
+				Logger.error(this, "Could not create new props file in " + channelDir);
+			}
+		}
 		channelProps = PropsFile.createPropsFile(channelPropsFile);
 	}
 
