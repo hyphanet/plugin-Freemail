@@ -80,6 +80,9 @@ public class Channel extends Postman {
 	private final Set<Observer> observers = new HashSet<Observer>();
 	private final ScheduledExecutorService executor;
 
+	private Fetcher fetcher;
+	private final Object fetcherLock = new Object();
+
 	public Channel(File channelDir, ScheduledExecutorService executor) {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
@@ -98,6 +101,31 @@ public class Channel extends Postman {
 			}
 		}
 		channelProps = PropsFile.createPropsFile(channelPropsFile);
+	}
+
+	public void startTasks() {
+		startFetcher();
+	}
+
+	private void startFetcher() {
+		//Start fetcher if possible
+		String fetchSlot;
+		String isInitiator;
+		String publicKey;
+		synchronized(channelProps) {
+			fetchSlot = channelProps.get(PropsKeys.FETCH_SLOT);
+			isInitiator = channelProps.get(PropsKeys.IS_INITIATOR);
+			publicKey = channelProps.get(PropsKeys.PUBLIC_KEY);
+		}
+
+		if((fetchSlot != null) && (isInitiator != null) && (publicKey != null)) {
+			Fetcher f;
+			synchronized(fetcherLock) {
+				fetcher = new Fetcher();
+				f = fetcher;
+			}
+			executor.execute(f);
+		}
 	}
 
 	/**
@@ -234,10 +262,6 @@ public class Channel extends Postman {
 		sha256.doFinal(buf, 0);
 
 		return Base32.encode(buf);
-	}
-
-	public void startFetch() {
-		executor.submit(new Fetcher());
 	}
 
 	private class Fetcher implements Runnable {
