@@ -30,7 +30,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.SequenceInputStream;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,6 +63,7 @@ import freenet.support.SimpleFieldSet;
 public class Channel extends Postman {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
+	private static final String OUTBOX_DIR_NAME = "outbox";
 
 	//The keys used in the props file
 	private static class PropsKeys {
@@ -93,28 +97,60 @@ public class Channel extends Postman {
 	}
 
 	/**
-	 * Sends the data read from the InputStream to the remote side of the Channel. If this method
-	 * returns {@code true} the data has been sent successfully, however this does not mean that it
-	 * has been received by the recipient.
+	 * Places the data read from {@code message} on the send queue
 	 * @param message the data to be sent
-	 * @param fcpClient the HighLevelFCPClient used to send the message
-	 * @return {@code true} if the message was sent successfully
-	 * @throws IOException if the InputStream throws an IOException
-	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
-	 * @throws NullPointerException if any of the arguments are {@code null}
+	 * @return {@code true} if the message was placed on the queue
+	 * @throws NullPointerException if {@code message} is {@code null}
 	 */
-	public boolean sendMessage(InputStream message, HighLevelFCPClient fcpClient) throws IOException, ConnectionTerminatedException {
+	public boolean sendMessage(InputStream message) {
 		if(message == null) throw new NullPointerException("Parameter message was null");
-		if(fcpClient == null) throw new NullPointerException("Parameter fcpClient was null");
 
 		long messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
 		channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 
-		SimpleFieldSet sfs = new SimpleFieldSet(true);
-		sfs.putOverwrite("messagetype", "message");
-		sfs.putOverwrite("id", "" + messageId);
+		//Write the message and attributes to the outbox
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		File messageFile = new File(outbox, "message-" + messageId);
+		if(messageFile.exists()) {
+			//TODO: Pick next message id?
+			Logger.error(this, "Message id already in use");
+			return false;
+		}
 
-		return sendMessage(fcpClient, sfs, message);
+		try {
+			if(!messageFile.createNewFile()) {
+				Logger.error(this, "Couldn't create message file: " + messageFile);
+				return false;
+			}
+
+			OutputStream os = new FileOutputStream(messageFile);
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
+
+			//Write the header that will be sent later
+			pw.print("messagetype=message\r\n");
+			pw.print("messageid=" + messageId + "\r\n");
+			pw.print("\r\n");
+			pw.flush();
+
+			//And the message contents
+			byte[] buffer = new byte[1024];
+			while(true) {
+				int count = message.read(buffer, 0, buffer.length);
+				if(count == -1) break;
+
+				os.write(buffer, 0, count);
+			}
+		} catch(IOException e) {
+			if(messageFile.exists()) {
+				if(!messageFile.delete()) {
+					Logger.error(this, "Couldn't delete message file (" + messageFile + ") after IOException");
+				}
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
