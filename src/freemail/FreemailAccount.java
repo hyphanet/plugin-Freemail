@@ -89,4 +89,22 @@ public class FreemailAccount {
 			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
 		}
 	}
+
+	public Channel getChannel(String remoteIdentity) {
+		Channel channel = channels.get(remoteIdentity);
+		if(channel == null) {
+			File channelsDir = new File(accdir, "channels");
+			File newChannelDir = new File(channelsDir, remoteIdentity);
+			if(!newChannelDir.mkdir()) {
+				Logger.error(this, "Couldn't create the channel directory");
+				return null;
+			}
+
+			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor());
+			channel.startTasks();
+			channels.put(remoteIdentity, channel);
+		}
+
+		return channel;
+	}
 }
