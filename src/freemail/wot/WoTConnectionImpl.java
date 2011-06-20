@@ -33,7 +33,7 @@ import freenet.pluginmanager.PluginTalker;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 
-public class WoTConnectionImpl implements WoTConnection {
+class WoTConnectionImpl implements WoTConnection {
 	private static final String WOT_PLUGIN_NAME = "plugins.WebOfTrust.WebOfTrust";
 	private static final String CONNECTION_IDENTIFIER = "Freemail";
 
@@ -42,7 +42,7 @@ public class WoTConnectionImpl implements WoTConnection {
 	private Message reply = null;
 	private final Object replyLock = new Object();
 
-	public WoTConnectionImpl(PluginRespirator pr) throws PluginNotFoundException {
+	WoTConnectionImpl(PluginRespirator pr) throws PluginNotFoundException {
 		pluginTalker = pr.getPluginTalker(new WoTConnectionTalker(), WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
 	}
 
