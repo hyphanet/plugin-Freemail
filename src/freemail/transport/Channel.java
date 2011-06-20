@@ -42,7 +42,6 @@ import org.archive.util.Base32;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 
 import freemail.AckProcrastinator;
-import freemail.FreemailAccount;
 import freemail.MessageBank;
 import freemail.Postman;
 import freemail.SlotManager;
@@ -52,7 +51,6 @@ import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.HighLevelFCPClient;
-import freemail.fcp.SSKKeyPair;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freenet.support.SimpleFieldSet;
@@ -60,7 +58,6 @@ import freenet.support.SimpleFieldSet;
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
 public class Channel extends Postman {
-	private static final String CHANNEL_DIR_NAME = "channels";
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
 
@@ -93,46 +90,6 @@ public class Channel extends Postman {
 			}
 		}
 		channelProps = PropsFile.createPropsFile(channelPropsFile);
-	}
-
-	/**
-	 * Initiates a new channel using the given values.
-	 * @param localIdentity the local side of the channel
-	 * @param remoteIdentity the remote side of the channel
-	 * @param isInitiator {@code true} if the local side sent the RTS, {@code false} otherwise
-	 * @param fetchSlot the first slot to use for fetching
-	 * @param sendSlot the first slot to use for sending
-	 * @param keys the keypair for the new channel
-	 * @return {@code true} if the channel was initiated successfully, {@code false} otherwise
-	 * @throws NullPointerException if any of the parameters are {@code null}
-	 */
-	public static boolean initializeChannel(FreemailAccount localIdentity, String remoteIdentity,
-			boolean isInitiator, String fetchSlot, String sendSlot, SSKKeyPair keys) {
-		if(localIdentity == null) throw new NullPointerException("Parameter localIdentity was null");
-		if(remoteIdentity == null) throw new NullPointerException("Parameter remoteIdentity was null");
-		if(fetchSlot == null) throw new NullPointerException("Parameter fetchSlot was null");
-		if(sendSlot == null) throw new NullPointerException("Parameter sendSlot was null");
-		if(keys == null) throw new NullPointerException("Parameter keys was null");
-
-		String channelPath = CHANNEL_DIR_NAME + File.pathSeparator + remoteIdentity;
-		File channelDir = new File(localIdentity.getAccountDir(), channelPath);
-
-		if(!channelDir.exists()) {
-			if(!channelDir.mkdirs()) {
-				Logger.error(Channel.class, "Couldn't create channel directory: " + channelDir);
-				return false;
-			}
-		}
-
-		PropsFile channelProps = PropsFile.createPropsFile(new File(channelDir, CHANNEL_PROPS_NAME));
-		channelProps.put(PropsKeys.IS_INITIATOR, "" + isInitiator);
-		channelProps.put(PropsKeys.FETCH_SLOT, fetchSlot);
-		channelProps.put(PropsKeys.SEND_SLOT, sendSlot);
-		channelProps.put(PropsKeys.PRIVATE_KEY, keys.privkey);
-		channelProps.put(PropsKeys.PUBLIC_KEY, keys.pubkey);
-		channelProps.put(PropsKeys.MESSAGE_ID, "0");
-
-		return true;
 	}
 
 	/**
