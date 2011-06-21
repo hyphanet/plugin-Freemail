@@ -93,7 +93,11 @@ public class LogInToadlet extends WebPage {
 		HTMLNode ownIdSelector = loginForm.addChild("select", "name", "OwnIdentityID");
 		for(FreemailAccount account : accountManager.getAllAccounts()) {
 			//FIXME: Nickname might be ambiguous
-			ownIdSelector.addChild("option", "value", account.getUsername(), account.getNickname());
+			String nickname = account.getNickname();
+			if(nickname == null) {
+				nickname = account.getUsername();
+			}
+			ownIdSelector.addChild("option", "value", account.getUsername(), nickname);
 		}
 		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Login" });
 	}
