@@ -199,8 +199,11 @@ public class Channel extends Postman {
 	public boolean sendMessage(InputStream message) {
 		if(message == null) throw new NullPointerException("Parameter message was null");
 
-		long messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
-		channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+		long messageId;
+		synchronized(channelProps) {
+			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
+			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+		}
 
 		//Write the message and attributes to the outbox
 		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
@@ -277,7 +280,10 @@ public class Channel extends Postman {
 		assert (fcpClient != null);
 		assert (header.get("messagetype") != null);
 
-		String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+		String baseKey;
+		synchronized(channelProps) {
+			baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+		}
 
 		//SimpleFieldSet seems to only output using \n,
 		//but we need \n\r so we need to do it manually
@@ -294,7 +300,10 @@ public class Channel extends Postman {
 		ByteArrayInputStream headerBytes = new ByteArrayInputStream(headerString.toString().getBytes("UTF-8"));
 		InputStream data = (message == null) ? headerBytes : new SequenceInputStream(headerBytes, message);
 		while(true) {
-			String slot = channelProps.get(PropsKeys.SEND_SLOT);
+			String slot;
+			synchronized(channelProps) {
+				slot = channelProps.get(PropsKeys.SEND_SLOT);
+			}
 
 			FCPInsertErrorMessage fcpMessage;
 			try {
@@ -305,7 +314,9 @@ public class Channel extends Postman {
 
 			if(fcpMessage == null) {
 				slot = calculateNextSlot(slot);
-				channelProps.put(PropsKeys.SEND_SLOT, slot);
+				synchronized(channelProps) {
+					channelProps.put(PropsKeys.SEND_SLOT, slot);
+				}
 				return true;
 			}
 
@@ -314,7 +325,9 @@ public class Channel extends Postman {
 
 				//Write the new slot each round so we won't have
 				//to check all of them again if we fail
-				channelProps.put(PropsKeys.SEND_SLOT, slot);
+				synchronized(channelProps) {
+					channelProps.put(PropsKeys.SEND_SLOT, slot);
+				}
 
 				Logger.debug(this, "Insert collided, trying slot " + slot);
 				continue;
@@ -523,7 +536,10 @@ public class Channel extends Postman {
 			// how should we handle this? Remove the message from the inbox again?
 			Logger.error(this,"warning: failed to write log file!");
 		}
-		String ack_key = this.channelProps.get("ackssk");
+		String ack_key;
+		synchronized(this.channelProps) {
+			ack_key = this.channelProps.get("ackssk");
+		}
 		if (ack_key == null) {
 			Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
 			return;
@@ -592,7 +608,9 @@ public class Channel extends Postman {
 
 		@Override
 		public void saveSlots(String slots, Object userdata) {
-			propsFile.put(keyName, slots);
+			synchronized(propsFile) {
+				propsFile.put(keyName, slots);
+			}
 		}
 	}
 }
