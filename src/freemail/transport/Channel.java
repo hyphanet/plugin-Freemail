@@ -360,13 +360,25 @@ public class Channel extends Postman {
 				return;
 			}
 
-			boolean isInitiator;
+			String isInitiator;
 			synchronized(channelProps) {
-				//TODO: Handle missing key
-				isInitiator = Boolean.parseBoolean(channelProps.get(PropsKeys.IS_INITIATOR));
+				isInitiator = channelProps.get(PropsKeys.IS_INITIATOR);
 			}
 
-			basekey += (isInitiator ? "i-" : "r-");
+			if(isInitiator == null) {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.IS_INITIATOR + "' entry!");
+				//TODO: Either delete the channel or resend the RTS
+				return;
+			}
+			if(isInitiator.equalsIgnoreCase("true")) {
+				basekey += "i-";
+			} else if(isInitiator.equalsIgnoreCase("false")) {
+				basekey += "r-";
+			} else {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - '" + PropsKeys.IS_INITIATOR + "' entry contains an invalid value: " + isInitiator);
+				//TODO: Either delete the channel or resend the RTS
+				return;
+			}
 
 			String slot;
 			while((slot = slotManager.getNextSlot()) != null) {
