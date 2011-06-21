@@ -92,9 +92,17 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 					wot = getWotConnection();
 				}
+
 				List<OwnIdentity> oids = wot.getAllOwnIdentities();
+				for(OwnIdentity oid : oids) {
+					for(FreemailAccount account : accountManager.getAllAccounts()) {
+						if(account.getUsername().equals(oid.getIdentityID())) {
+							account.setNickname(oid.getNickname());
+						}
+					}
+				}
 			}
-		}, "Freemail OwnIdentity fetcher");
+		}, "Freemail OwnIdentity nickname fetcher");
 	}
 
 	public long getRealVersion() {
