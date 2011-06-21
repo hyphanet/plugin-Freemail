@@ -31,6 +31,7 @@ import freemail.ui.web.WebInterface;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
+import freemail.wot.WoTConnections;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginBaseL10n;
@@ -96,7 +97,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	public synchronized WoTConnection getWotConnection() {
 		if(wotConnection == null) {
 			try {
-				wotConnection = new WoTConnection(pluginRespirator);
+				wotConnection = WoTConnections.wotConnection(pluginRespirator);
 			} catch(PluginNotFoundException e) {
 				return null;
 			}

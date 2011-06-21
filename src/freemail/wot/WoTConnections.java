@@ -1,5 +1,5 @@
 /*
- * WoTConnection.java
+ * WoTConnections.java
  * This file is part of Freemail
  * Copyright (C) 2011 Martin Nyhus
  *
@@ -20,11 +20,11 @@
 
 package freemail.wot;
 
-import java.util.List;
-import java.util.Set;
+import freenet.pluginmanager.PluginNotFoundException;
+import freenet.pluginmanager.PluginRespirator;
 
-public interface WoTConnection {
-	public List<OwnIdentity> getAllOwnIdentities();
-	public Set<Identity> getAllTrustedIdentities(String trusterId);
-	public Set<Identity> getAllUntrustedIdentities(String trusterId);
+public class WoTConnections {
+	public static WoTConnection wotConnection(PluginRespirator pr) throws PluginNotFoundException {
+		return new WoTConnectionImpl(pr);
+	}
 }
