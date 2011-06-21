@@ -401,7 +401,6 @@ public class Channel extends Postman {
 				File result;
 				try {
 					result = fcpClient.fetch(key);
-					handleMessage(slotManager, result, null);
 				} catch(ConnectionTerminatedException e) {
 					return;
 				} catch(FCPFetchException e) {
@@ -412,6 +411,28 @@ public class Channel extends Postman {
 
 					Logger.minor(this, "No mail in slot (fetch returned " + e.getMessage() + ")");
 					continue;
+				}
+
+				PropsFile messageProps = PropsFile.createPropsFile(result, true);
+				String messageType = messageProps.get("messagetype");
+
+				if(messageType == null) {
+					Logger.error(this, "Got message without messagetype, discarding");
+					result.delete();
+					continue;
+				}
+
+				if(messageType.equals("message")) {
+					try {
+						handleMessage(slotManager, result, null);
+					} catch(ConnectionTerminatedException e) {
+						result.delete();
+						return;
+					}
+				} else {
+					Logger.error(this, "Got message of unknown type: " + messageType);
+					result.delete();
+					slotManager.slotUsed();
 				}
 			}
 
