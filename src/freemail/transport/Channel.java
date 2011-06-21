@@ -73,6 +73,7 @@ public class Channel extends Postman {
 		private static final String SEND_SLOT = "sendSlot";
 		private static final String IS_INITIATOR = "isInitiator";
 		private static final String MESSAGE_ID = "messageId";
+		private static final String CHANNEL_STATE = "state";
 	}
 
 	private final File channelDir;
@@ -114,6 +115,8 @@ public class Channel extends Postman {
 	public void startTasks() {
 		startFetcher();
 		startSender();
+		startRTSSender();
+		startCTSFetcher();
 	}
 
 	private void startFetcher() {
@@ -156,6 +159,32 @@ public class Channel extends Postman {
 			}
 			executor.execute(s);
 		}
+	}
+
+	private void startRTSSender() {
+		String state;
+		synchronized(channelProps) {
+			state = channelProps.get(PropsKeys.CHANNEL_STATE);
+		}
+
+		if((state != null) && state.equals("cts-received")) {
+			return;
+		}
+
+		executor.execute(new RTSSender());
+	}
+
+	private void startCTSFetcher() {
+		String state;
+		synchronized(channelProps) {
+			state = channelProps.get(PropsKeys.CHANNEL_STATE);
+		}
+
+		if((state != null) && state.equals("cts-received")) {
+			return;
+		}
+
+		executor.execute(new CTSFetcher());
 	}
 
 	/**
@@ -316,6 +345,20 @@ public class Channel extends Postman {
 		@Override
 		public void run() {
 			//TODO: Try sending messages
+		}
+	}
+
+	private class RTSSender implements Runnable {
+		@Override
+		public void run() {
+			//TODO: Check if RTS should be sent
+		}
+	}
+
+	private class CTSFetcher implements Runnable {
+		@Override
+		public void run() {
+			//TODO: Check if CTS should be fetched
 		}
 	}
 
