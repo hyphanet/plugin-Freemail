@@ -110,6 +110,13 @@ public class Channel extends Postman {
 
 		//Write the message and attributes to the outbox
 		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		if(!outbox.exists()) {
+			if(!outbox.mkdir()) {
+				Logger.error(this, "Couldn't create outbox directory: " + outbox);
+				return false;
+			}
+		}
+
 		File messageFile = new File(outbox, "message-" + messageId);
 		if(messageFile.exists()) {
 			//TODO: Pick next message id?
