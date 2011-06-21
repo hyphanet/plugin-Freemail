@@ -325,7 +325,8 @@ public class AccountManager {
 			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
 			initAccFile(accProps);
 
-			account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
+			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+			account.setNickname(oid.getNickname());
 			try {
 				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getAddressDomain()));
 			} catch (IOException e) {
@@ -334,7 +335,8 @@ public class AccountManager {
 			}
 		} else {
 			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-			account = new FreemailAccount(oid.getIdentityID(), oid.getNickname(), accountDir, accProps);
+			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+			account.setNickname(oid.getNickname());
 		}
 
 		accounts.put(oid.getIdentityID(), account);

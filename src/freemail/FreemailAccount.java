@@ -33,15 +33,14 @@ import freenet.support.IllegalBase64Exception;
 
 public class FreemailAccount {
 	private final String identity;
-	private final String nickname;
+	private String nickname = null;
 	private final File accdir;
 	private final PropsFile accprops;
 	private final MessageBank mb;
 	private final Map<String, Channel> channels = new HashMap<String, Channel>();
 	
-	FreemailAccount(String identity, String nickname, File _accdir, PropsFile _accprops) {
+	FreemailAccount(String identity, File _accdir, PropsFile _accprops) {
 		this.identity = identity;
-		this.nickname = nickname;
 		accdir = _accdir;
 		accprops = _accprops;
 		mb = new MessageBank(this);
@@ -77,8 +76,12 @@ public class FreemailAccount {
 		return mb;
 	}
 
-	public String getNickname() {
+	public synchronized String getNickname() {
 		return nickname;
+	}
+
+	public synchronized void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 
 	public String getAddressDomain() {
