@@ -88,11 +88,11 @@ public class Channel extends Postman {
 	private Sender sender;
 	private final Object senderLock = new Object();
 
-	public Channel(File channelDir, ScheduledExecutorService executor) {
+	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient) {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
-		this.fcpClient = null;
+		this.fcpClient = fcpClient;
 
 		assert channelDir.isDirectory();
 		this.channelDir = channelDir;
