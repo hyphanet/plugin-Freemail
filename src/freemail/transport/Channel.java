@@ -80,6 +80,7 @@ public class Channel extends Postman {
 	private final PropsFile channelProps;
 	private final Set<Observer> observers = new HashSet<Observer>();
 	private final ScheduledExecutorService executor;
+	private final HighLevelFCPClient fcpClient;
 
 	private Fetcher fetcher;
 	private final Object fetcherLock = new Object();
@@ -90,6 +91,8 @@ public class Channel extends Postman {
 	public Channel(File channelDir, ScheduledExecutorService executor) {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
+
+		this.fcpClient = null;
 
 		assert channelDir.isDirectory();
 		this.channelDir = channelDir;
@@ -334,7 +337,58 @@ public class Channel extends Postman {
 	private class Fetcher implements Runnable {
 		@Override
 		public void run() {
-			//TODO: Try fetching messages
+			String slots;
+			synchronized(channelProps) {
+				slots = channelProps.get(PropsKeys.FETCH_SLOT);
+			}
+			if(slots == null) {
+				Logger.error(this, "Channel " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.FETCH_SLOT + "' entry!");
+				//TODO: Either delete the channel or resend the RTS
+				return;
+			}
+
+			HashSlotManager slotManager = new HashSlotManager(new ChannelSlotSaveImpl(channelProps, PropsKeys.FETCH_SLOT), null, slots);
+			slotManager.setPollAhead(POLL_AHEAD);
+
+			String basekey;
+			synchronized(channelProps) {
+				basekey = channelProps.get(PropsKeys.PRIVATE_KEY);
+			}
+			if(basekey == null) {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.PRIVATE_KEY + "' entry!");
+				//TODO: Either delete the channel or resend the RTS
+				return;
+			}
+
+			boolean isInitiator;
+			synchronized(channelProps) {
+				//TODO: Handle missing key
+				isInitiator = Boolean.parseBoolean(channelProps.get(PropsKeys.IS_INITIATOR));
+			}
+
+			basekey += (isInitiator ? "i-" : "r-");
+
+			String slot;
+			while((slot = slotManager.getNextSlot()) != null) {
+				String key = basekey + slot;
+
+				Logger.minor(this, "Attempting to fetch mail on key " + key);
+				File result;
+				try {
+					result = fcpClient.fetch(key);
+					handleMessage(slotManager, result, null);
+				} catch(ConnectionTerminatedException e) {
+					return;
+				} catch(FCPFetchException e) {
+					if(e.isFatal()) {
+						Logger.normal(this, "Fatal fetch failure, marking slot as used");
+						slotManager.slotUsed();
+					}
+
+					Logger.minor(this, "No mail in slot (fetch returned " + e.getMessage() + ")");
+					continue;
+				}
+			}
 
 			//Reschedule
 			executor.schedule(this, 5, TimeUnit.MINUTES);
@@ -390,63 +444,6 @@ public class Channel extends Postman {
 
 	public interface Observer {
 		public void fetched(InputStream data);
-	}
-
-	public void fetch(MessageBank mb, HighLevelFCPClient fcpcli) {
-		String slots = this.channelProps.get(PropsKeys.FETCH_SLOT);
-		if (slots == null) {
-			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no '" + PropsKeys.FETCH_SLOT + "' entry!");
-			// TODO: probably delete the contact. it's useless now.
-			return;
-		}
-
-		HashSlotManager sm = new HashSlotManager(new ChannelSlotSaveImpl(channelProps, PropsKeys.FETCH_SLOT), null, slots);
-		sm.setPollAhead(POLL_AHEAD);
-
-		String basekey = this.channelProps.get(PropsKeys.PRIVATE_KEY);
-		if (basekey == null) {
-			Logger.error(this,"Contact "+this.channelDir.getName()+" is corrupt - account file has no '" + PropsKeys.PRIVATE_KEY + "' entry!");
-			// TODO: probably delete the contact. it's useless now.
-			return;
-		}
-		String slot;
-		while ( (slot = sm.getNextSlot()) != null) {
-			// the slot should be 52 characters long, since this is how long a 256 bit string ends up when base32 encoded.
-			// (the slots being base32 encoded SHA-256 checksums)
-			// TODO: remove this once the bug is ancient history, or if actually want to check the slots, do so in the SlotManagers.
-			// a fix for the bug causing this (https://bugs.freenetproject.org/view.php?id=1087) was committed on Feb 4 2007,
-			// anybody who has started using Freemail after that date is not affected.
-			if(slot.length()!=52) {
-				Logger.normal(this,"Ignoring malformed slot "+slot+" (probably due to previous bug). Please the fix the entry in "+this.channelDir);
-				break;
-			}
-			String key = basekey+slot;
-
-			Logger.minor(this,"Attempting to fetch mail on key "+key);
-			File msg = null;
-			try {
-				msg = fcpcli.fetch(key);
-			} catch (ConnectionTerminatedException cte) {
-				return;
-			} catch (FCPFetchException fe) {
-				if(fe.isFatal()) {
-					Logger.normal(this, "Fatal fetch failure, marking slot as used");
-					sm.slotUsed();
-				}
-
-				Logger.minor(this,"No mail in slot (fetch returned "+fe.getMessage()+")");
-				continue;
-			}
-			Logger.normal(this,"Found a message!");
-
-			try {
-				handleMessage(sm, msg, mb);
-			} catch (ConnectionTerminatedException cte) {
-				// terminated before we could validate the sender. Give up, and we won't mark the slot used so we'll
-				// pick it up next time.
-				return;
-			}
-		}
 	}
 
 	private void handleMessage(SlotManager sm, File msg, MessageBank mb) throws ConnectionTerminatedException {
