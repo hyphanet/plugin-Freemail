@@ -134,7 +134,7 @@ public class SingleAccountWatcher implements Runnable {
 				if (this.nf != null) {
 					nf.fetch();
 				}
-//				this.rtsf.poll();
+				this.rtsf.poll();
 				if(stopping) {
 					break;
 				}
