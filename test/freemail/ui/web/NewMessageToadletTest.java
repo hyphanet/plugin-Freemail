@@ -71,5 +71,10 @@ public class NewMessageToadletTest extends TestCase {
 		public Set<Identity> getAllUntrustedIdentities(String trusterId) {
 			return new HashSet<Identity>();
 		}
+
+		@Override
+		public Identity getIdentity(String identityID, String trusterID) {
+			throw new UnsupportedOperationException();
+		}
 	}
 }

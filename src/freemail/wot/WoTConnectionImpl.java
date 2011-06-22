@@ -108,6 +108,21 @@ class WoTConnectionImpl implements WoTConnection {
 		return identities;
 	}
 
+	@Override
+	public Identity getIdentity(String identity, String trusterId) {
+		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
+		sfs.putOverwrite("Message", "GetIdentity");
+		sfs.putOverwrite("Identity", identity);
+		sfs.putOverwrite("Truster", trusterId);
+
+		Message response = sendBlocking(new Message(sfs, null));
+
+		String requestURI = response.sfs.get("RequestURI");
+		String nickname = response.sfs.get("Nickname");
+
+		return new Identity(identity, requestURI, nickname);
+	}
+
 	private Message sendBlocking(final Message msg) {
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		synchronized(pluginTalker) {

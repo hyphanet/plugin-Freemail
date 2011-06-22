@@ -27,4 +27,5 @@ public interface WoTConnection {
 	public List<OwnIdentity> getAllOwnIdentities();
 	public Set<Identity> getAllTrustedIdentities(String trusterId);
 	public Set<Identity> getAllUntrustedIdentities(String trusterId);
+	public Identity getIdentity(String identity, String truster);
 }
