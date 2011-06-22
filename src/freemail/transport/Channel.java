@@ -74,6 +74,7 @@ public class Channel extends Postman {
 		private static final String IS_INITIATOR = "isInitiator";
 		private static final String MESSAGE_ID = "messageId";
 		private static final String CHANNEL_STATE = "state";
+		private static final String RTS_SENT_AT = "rts-sent-at";
 	}
 
 	private final File channelDir;
@@ -463,7 +464,58 @@ public class Channel extends Postman {
 		public void run() {
 			Logger.debug(this, "RTSSender running");
 
-			//TODO: Check if RTS should be sent
+			//Check when the RTS should be sent
+			long sendRtsIn = sendRTSIn();
+			if(sendRtsIn < 0) {
+				return;
+			}
+			if(sendRtsIn > 0) {
+				executor.schedule(this, sendRtsIn, TimeUnit.MILLISECONDS);
+				return;
+			}
+
+			//TODO: Send RTS
+		}
+
+		/**
+		 * Returns the number of milliseconds left to when the RTS should be sent, or -1 if it
+		 * should not be sent.
+		 * @return the number of milliseconds left to when the RTS should be sent
+		 */
+		private long sendRTSIn() {
+			//Check if the CTS has been received
+			String channelState;
+			synchronized(channelProps) {
+				channelState = channelProps.get(PropsKeys.CHANNEL_STATE);
+			}
+			if((channelState != null) && channelState.equals("cts-received")) {
+				Logger.debug(this, "CTS has been received");
+				return -1;
+			}
+
+			//Check when the RTS should be (re)sent
+			String rtsSentAt;
+			synchronized(channelProps) {
+				rtsSentAt = channelProps.get(PropsKeys.RTS_SENT_AT);
+			}
+
+			if(rtsSentAt != null) {
+				long sendTime;
+				try {
+					sendTime = Long.parseLong(rtsSentAt);
+				} catch(NumberFormatException e) {
+					Logger.debug(this, "Illegal value in " + PropsKeys.RTS_SENT_AT + " field, assuming 0");
+					sendTime = 0;
+				}
+
+				long timeToResend = (24 * 60 * 60 * 1000) - (System.currentTimeMillis() - sendTime);
+				if(timeToResend > 0) {
+					return timeToResend;
+				}
+			}
+
+			//Send the RTS immediately
+			return 0;
 		}
 	}
 
