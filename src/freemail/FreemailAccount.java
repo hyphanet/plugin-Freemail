@@ -83,6 +83,9 @@ public class FreemailAccount {
 
 	public synchronized void setNickname(String nickname) {
 		this.nickname = nickname;
+		synchronized(accprops) {
+			accprops.put("nickname", nickname);
+		}
 	}
 
 	public String getAddressDomain() {
