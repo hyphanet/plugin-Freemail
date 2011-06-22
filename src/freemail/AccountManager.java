@@ -97,6 +97,17 @@ public class AccountManager {
 			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile);
 			account.setNickname(accFile.get("nickname"));
 			accounts.put(accountDir.getName(), account);
+
+			//Now start a SingleAccountWatcher for this account
+			SingleAccountWatcher saw = new SingleAccountWatcher(account);
+			Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
+			t.setDaemon(true);
+			t.start();
+
+			synchronized(singleAccountWatcherList) {
+				singleAccountWatcherList.add(saw);
+				singleAccountWatcherThreadList.add(t);
+			}
 		}
 	}
 	
