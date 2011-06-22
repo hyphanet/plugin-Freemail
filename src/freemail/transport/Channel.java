@@ -410,7 +410,9 @@ public class Channel extends Postman {
 
 				if(messageType.equals("message")) {
 					try {
-						handleMessage(slotManager, result, null);
+						if(handleMessage(result, null)) {
+							slotManager.slotUsed();
+						}
 					} catch(ConnectionTerminatedException e) {
 						result.delete();
 						return;
@@ -489,15 +491,14 @@ public class Channel extends Postman {
 		public void fetched(InputStream data);
 	}
 
-	private void handleMessage(SlotManager sm, File msg, MessageBank mb) throws ConnectionTerminatedException {
+	private boolean handleMessage(File msg, MessageBank mb) throws ConnectionTerminatedException {
 		// parse the Freemail header(s) out.
 		PropsFile msgprops = PropsFile.createPropsFile(msg, true);
 		String s_id = msgprops.get("id");
 		if (s_id == null) {
 			Logger.error(this,"Got a message with an invalid header. Discarding.");
-			sm.slotUsed();
 			msgprops.closeReader();
-			return;
+			return true;
 		}
 
 		int id;
@@ -505,9 +506,8 @@ public class Channel extends Postman {
 			id = Integer.parseInt(s_id);
 		} catch (NumberFormatException nfe) {
 			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
-			sm.slotUsed();
 			msgprops.closeReader();
-			return;
+			return true;
 		}
 
 		MessageLog msglog = new MessageLog(this.channelDir);
@@ -517,30 +517,27 @@ public class Channel extends Postman {
 		} catch (IOException ioe) {
 			Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
 			msgprops.closeReader();
-			return;
+			return false;
 		}
 		if (isDupe) {
 			Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
-			sm.slotUsed();
 			msgprops.closeReader();
-			return;
+			return true;
 		}
 
 		BufferedReader br = msgprops.getReader();
 		if (br == null) {
 			Logger.error(this,"Got an invalid message. Discarding.");
-			sm.slotUsed();
 			msgprops.closeReader();
-			return;
+			return true;
 		}
 
 		try {
 			this.storeMessage(br, mb);
 		} catch (IOException ioe) {
-			return;
+			return false;
 		}
 		Logger.normal(this,"You've got mail!");
-		sm.slotUsed();
 		try {
 			msglog.add(id);
 		} catch (IOException ioe) {
@@ -553,10 +550,12 @@ public class Channel extends Postman {
 		}
 		if (ack_key == null) {
 			Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
-			return;
+			return true;
 		}
 		ack_key += "ack-"+id;
 		AckProcrastinator.put(ack_key);
+
+		return true;
 	}
 
 	private boolean handleAck(File result) {
