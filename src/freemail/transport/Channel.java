@@ -119,7 +119,6 @@ public class Channel extends Postman {
 		startFetcher();
 		startSender();
 		startRTSSender();
-		startCTSFetcher();
 	}
 
 	private void startFetcher() {
@@ -175,19 +174,6 @@ public class Channel extends Postman {
 		}
 
 		executor.execute(new RTSSender());
-	}
-
-	private void startCTSFetcher() {
-		String state;
-		synchronized(channelProps) {
-			state = channelProps.get(PropsKeys.CHANNEL_STATE);
-		}
-
-		if((state != null) && state.equals("cts-received")) {
-			return;
-		}
-
-		executor.execute(new CTSFetcher());
 	}
 
 	/**
@@ -452,13 +438,6 @@ public class Channel extends Postman {
 		@Override
 		public void run() {
 			//TODO: Check if RTS should be sent
-		}
-	}
-
-	private class CTSFetcher implements Runnable {
-		@Override
-		public void run() {
-			//TODO: Check if CTS should be fetched
 		}
 	}
 
