@@ -429,6 +429,10 @@ public class Channel extends Postman {
 					if(success) {
 						slotManager.slotUsed();
 					}
+				} else if(messageType.equals("ack")) {
+					if(handleAck(result)) {
+						slotManager.slotUsed();
+					}
 				} else {
 					Logger.error(this, "Got message of unknown type: " + messageType);
 					result.delete();
@@ -560,6 +564,30 @@ public class Channel extends Postman {
 		}
 		ack_key += "ack-"+id;
 		AckProcrastinator.put(ack_key);
+	}
+
+	private boolean handleAck(File result) {
+		PropsFile ackProps = PropsFile.createPropsFile(result);
+		String id = ackProps.get("id");
+
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		if(!outbox.exists()) {
+			Logger.minor(this, "Got ack for message " + id + ", but the outbox doesn't exist");
+			return true;
+		}
+
+		File message = new File(outbox, "message-" + id);
+		if(!message.exists()) {
+			Logger.minor(this, "Got ack for message " + id + ", but the message doesn't exist");
+			return true;
+		}
+
+		if(!message.delete()) {
+			Logger.error(this, "Couldn't delete " + message);
+			return false;
+		}
+
+		return true;
 	}
 
 	private class HashSlotManager extends SlotManager {
