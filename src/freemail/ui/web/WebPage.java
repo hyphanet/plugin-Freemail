@@ -23,6 +23,7 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
+import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
@@ -55,7 +56,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
+
+		long start = System.nanoTime();
 		makeWebPage(uri, req, ctx, HTTPMethod.GET, page);
+		long time = ((System.nanoTime() - start) / 1000) / 1000;
+		Logger.debug(this, "Page generation (get) took " + time  + " ms");
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -66,7 +71,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
+
+		long start = System.nanoTime();
 		makeWebPage(uri, req, ctx, HTTPMethod.POST, page);
+		long time = ((System.nanoTime() - start) / 1000) / 1000;
+		Logger.debug(this, "Page generation (post) took " + time  + " ms");
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {
