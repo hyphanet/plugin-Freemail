@@ -32,8 +32,11 @@ import freemail.fcp.FCPContext;
 import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
 import freemail.utils.Logger;
+import freemail.wot.WoTConnection;
+import freemail.wot.WoTConnections;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
+import freenet.pluginmanager.PluginNotFoundException;
 
 public abstract class Freemail implements ConfigClient {
 	private static final String TEMPDIRNAME = "temp";
@@ -102,6 +105,10 @@ public abstract class Freemail implements ConfigClient {
 		smtpl = new SMTPListener(accountManager, sender, configurator);
 	}
 	
+	public WoTConnection getWotConnection() {
+		return null;
+	}
+
 	public static File getTempDir() {
 		return Freemail.tempdir;
 	}
