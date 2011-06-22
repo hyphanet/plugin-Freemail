@@ -417,9 +417,6 @@ public class Channel extends Postman {
 					}
 				} else if(messageType.equals("cts")) {
 					Logger.minor(this, "Successfully received CTS");
-					if(!result.delete()) {
-						Logger.error(this, "Deletion of cts file (" + result + ") failed");
-					}
 
 					boolean success;
 					synchronized(channelProps) {
@@ -435,8 +432,11 @@ public class Channel extends Postman {
 					}
 				} else {
 					Logger.error(this, "Got message of unknown type: " + messageType);
-					result.delete();
 					slotManager.slotUsed();
+				}
+
+				if(!result.delete()) {
+					Logger.error(this, "Deletion of " + result + " failed");
 				}
 			}
 
@@ -497,7 +497,6 @@ public class Channel extends Postman {
 			Logger.error(this,"Got a message with an invalid header. Discarding.");
 			sm.slotUsed();
 			msgprops.closeReader();
-			msg.delete();
 			return;
 		}
 
@@ -508,7 +507,6 @@ public class Channel extends Postman {
 			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
 			sm.slotUsed();
 			msgprops.closeReader();
-			msg.delete();
 			return;
 		}
 
@@ -519,14 +517,12 @@ public class Channel extends Postman {
 		} catch (IOException ioe) {
 			Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
 			msgprops.closeReader();
-			msg.delete();
 			return;
 		}
 		if (isDupe) {
 			Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
 			sm.slotUsed();
 			msgprops.closeReader();
-			msg.delete();
 			return;
 		}
 
@@ -535,15 +531,12 @@ public class Channel extends Postman {
 			Logger.error(this,"Got an invalid message. Discarding.");
 			sm.slotUsed();
 			msgprops.closeReader();
-			msg.delete();
 			return;
 		}
 
 		try {
 			this.storeMessage(br, mb);
-			msg.delete();
 		} catch (IOException ioe) {
-			msg.delete();
 			return;
 		}
 		Logger.normal(this,"You've got mail!");
