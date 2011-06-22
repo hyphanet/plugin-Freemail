@@ -22,19 +22,36 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
+import javax.naming.SizeLimitExceededException;
+
+import freemail.AccountManager;
 import freemail.utils.Logger;
+import freemail.wot.OwnIdentity;
+import freemail.wot.WoTConnection;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
-	AddAccountToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager) {
+	private final PluginRespirator pluginRespirator;
+	private final WoTConnection wotConnection;
+	private final AccountManager accountManager;
+
+	AddAccountToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator, WoTConnection wotConnection, AccountManager accountManager) {
 		super(client, pageMaker, sessionManager);
+
+		this.pluginRespirator = pluginRespirator;
+		this.wotConnection = wotConnection;
+		this.accountManager = accountManager;
 	}
 
 	@Override
@@ -49,7 +66,7 @@ public class AddAccountToadlet extends WebPage {
 			makeWebPageGet(ctx);
 			break;
 		case POST:
-			makeWebPagePost();
+			makeWebPagePost(ctx, req);
 			break;
 		default:
 			//This will only happen if a new value is added to HTTPMethod, so log it and send an
@@ -64,8 +81,64 @@ public class AddAccountToadlet extends WebPage {
 		writeTemporaryRedirect(ctx, "Redirecting to login page", "/Freemail/Login");
 	}
 
-	private void makeWebPagePost() {
-		throw new UnsupportedOperationException();
+	private void makeWebPagePost(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
+		//Check the form password
+		String pass;
+		try {
+			pass = req.getPartAsStringThrowing("formPassword", 32);
+		} catch(SizeLimitExceededException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
+			return;
+		} catch(NoSuchElementException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
+			return;
+		}
+
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
+			return;
+		}
+
+		//Get the identity id
+		String identity;
+		try {
+			identity = req.getPartAsStringThrowing("OwnIdentityID", 64);
+		} catch(SizeLimitExceededException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got OwnIdentityID that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("OwnIdentityID", 100));
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
+			return;
+		} catch(NoSuchElementException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got POST request without OwnIdentityID");
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
+			return;
+		}
+
+		//Fetch identity from WoT
+		OwnIdentity ownIdentity = null;
+		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+			if(oid.getIdentityID().equals(identity)) {
+				ownIdentity = oid;
+				break;
+			}
+		}
+
+		if(ownIdentity == null) {
+			Logger.error(this, "Requested identity (" + identity + ") doesn't exist");
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The specified identitiy doesn't exist");
+			return;
+		}
+
+		List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
+		toAdd.add(ownIdentity);
+		accountManager.addIdentities(toAdd);
 	}
 
 	@Override

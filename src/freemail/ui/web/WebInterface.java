@@ -66,7 +66,7 @@ public class WebInterface {
 		//Toadlets that don't go in the menu
 		CSSToadlet cssToadlet = new CSSToadlet(null, pluginRespirator.getPageMaker(), sessionManager);
 		MessageToadlet messageToadlet = new MessageToadlet(null, sessionManager, pluginRespirator.getPageMaker(), freemail.getAccountManager());
-		AddAccountToadlet addAccountToadlet = new AddAccountToadlet(null, pluginRespirator.getPageMaker(), sessionManager);
+		AddAccountToadlet addAccountToadlet = new AddAccountToadlet(null, pluginRespirator.getPageMaker(), sessionManager, pluginRespirator, freemail.getWotConnection(), freemail.getAccountManager());
 		registerInvisibleToadlet(cssToadlet, true, false);
 		registerInvisibleToadlet(messageToadlet, true, false);
 		registerInvisibleToadlet(addAccountToadlet, true, false);
