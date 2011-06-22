@@ -49,7 +49,7 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private final static ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(0);
+	private final static ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
 
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
