@@ -83,6 +83,21 @@ public class AccountManager {
 		if (!datadir.exists()) {
 			datadir.mkdir();
 		}
+
+		for(File accountDir : datadir.listFiles()) {
+			if(!accountDir.isDirectory()) {
+				continue;
+			}
+
+			PropsFile accFile = getAccountFile(accountDir);
+			if (accFile == null) {
+				Logger.error(this, "Couldn't initialise account from directory '"+accountDir.getName()+"' - ignoring.");
+				continue;
+			}
+			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile);
+			account.setNickname(accFile.get("nickname"));
+			accounts.put(accountDir.getName(), account);
+		}
 	}
 	
 	public FreemailAccount getAccount(String username) {
