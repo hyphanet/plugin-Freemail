@@ -415,6 +415,20 @@ public class Channel extends Postman {
 						result.delete();
 						return;
 					}
+				} else if(messageType.equals("cts")) {
+					Logger.minor(this, "Successfully received CTS");
+					if(!result.delete()) {
+						Logger.error(this, "Deletion of cts file (" + result + ") failed");
+					}
+
+					boolean success;
+					synchronized(channelProps) {
+						success = channelProps.put("status", "cts-received");
+					}
+
+					if(success) {
+						slotManager.slotUsed();
+					}
 				} else {
 					Logger.error(this, "Got message of unknown type: " + messageType);
 					result.delete();
