@@ -112,6 +112,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	@Override
 	public synchronized WoTConnection getWotConnection() {
 		if(wotConnection == null) {
+			if(pluginRespirator == null) {
+				//runPlugin() hasn't been called yet
+				return null;
+			}
+
 			try {
 				wotConnection = WoTConnections.wotConnection(pluginRespirator);
 			} catch(PluginNotFoundException e) {
