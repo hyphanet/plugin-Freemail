@@ -516,7 +516,10 @@ public class Channel extends Postman {
 				return;
 			}
 
-			//TODO: Get RTS KSK
+			//Get RTS KSK
+			PropsFile mailsiteProps = PropsFile.createPropsFile(mailsite, false);
+			String rtsKey = mailsiteProps.get("rtsksk");
+
 			//TODO: Generate RTS values
 			//TODO: Sign
 			//TODO: Encrypt
