@@ -577,6 +577,9 @@ public class Channel extends Postman {
 			senderMailsiteKey = senderMailsiteKey.substring(0, senderMailsiteKey.indexOf("/"));
 			senderMailsiteKey = senderMailsiteKey + "/mailsite/0/mailpage";
 
+			//Now build the RTS
+			StringBuffer rtsmessage = buildRTSMessage(senderMailsiteKey, recipient.getIdentityID(), privateKey, initiatorSlot, responderSlot);
+
 			//TODO: Sign
 			//TODO: Encrypt
 			//TODO: Insert
@@ -622,6 +625,17 @@ public class Channel extends Postman {
 
 			//Send the RTS immediately
 			return 0;
+		}
+
+		private StringBuffer buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot) {
+			StringBuffer rtsMessage = new StringBuffer();
+			rtsMessage.append("mailsite=" + senderMailsiteKey + "\r\n");
+			rtsMessage.append("to=" + recipientIdentityID + "\r\n");
+			rtsMessage.append("channel=" + channelPrivateKey + "\r\n");
+			rtsMessage.append("initiatorSlot=" + initiatorSlot + "\r\n");
+			rtsMessage.append("responderSlot=" + responderSlot + "\r\n");
+			rtsMessage.append("\r\n");
+			return rtsMessage;
 		}
 	}
 
