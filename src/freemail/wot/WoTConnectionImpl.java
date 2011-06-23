@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import freemail.utils.Logger;
 import freemail.utils.SimpleFieldSetFactory;
 import freenet.pluginmanager.FredPluginTalker;
 import freenet.pluginmanager.PluginNotFoundException;
@@ -125,10 +126,10 @@ class WoTConnectionImpl implements WoTConnection {
 
 	private Message sendBlocking(final Message msg) {
 		//Synchronize on pluginTalker so only one message can be sent at a time
+		final Message retValue;
 		synchronized(pluginTalker) {
 			pluginTalker.send(msg.sfs, msg.data);
 
-			final Message retValue;
 			synchronized(replyLock) {
 				while(reply == null) {
 					try {
@@ -141,9 +142,14 @@ class WoTConnectionImpl implements WoTConnection {
 				retValue = reply;
 				reply = null;
 			}
-
-			return retValue;
 		}
+
+		if("Error".equals(retValue.sfs.get("Message"))) {
+			String original = retValue.sfs.get("OriginalMessage");
+			Logger.error(this, "Got error message from WoT. Original message was " + original);
+		}
+
+		return retValue;
 	}
 
 	private static class Message {
