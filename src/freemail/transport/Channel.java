@@ -35,6 +35,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.SequenceInputStream;
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -55,6 +56,7 @@ import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.HighLevelFCPClient;
+import freemail.fcp.SSKKeyPair;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
@@ -341,6 +343,14 @@ public class Channel extends Postman {
 		return Base32.encode(buf);
 	}
 
+	private String generateRandomSlot() {
+		SHA256Digest sha256 = new SHA256Digest();
+		byte[] buf = new byte[sha256.getDigestSize()];
+		SecureRandom rnd = new SecureRandom();
+		rnd.nextBytes(buf);
+		return Base32.encode(buf);
+	}
+
 	private class Fetcher implements Runnable {
 		@Override
 		public void run() {
@@ -520,7 +530,41 @@ public class Channel extends Postman {
 			PropsFile mailsiteProps = PropsFile.createPropsFile(mailsite, false);
 			String rtsKey = mailsiteProps.get("rtsksk");
 
-			//TODO: Generate RTS values
+			//Get or generate RTS values
+			String privateKey;
+			String publicKey;
+			String initiatorSlot;
+			String responderSlot;
+			synchronized(channelProps) {
+				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+				publicKey = channelProps.get(PropsKeys.PUBLIC_KEY);
+				initiatorSlot = channelProps.get(PropsKeys.SEND_SLOT);
+				responderSlot = channelProps.get(PropsKeys.FETCH_SLOT);
+
+				if((privateKey == null) || (publicKey == null)) {
+					SSKKeyPair keyPair;
+					try {
+						keyPair = fcpClient.makeSSK();
+					} catch(ConnectionTerminatedException e) {
+						Logger.debug(this, "FCP connection has been terminated");
+						return;
+					}
+					privateKey = keyPair.privkey;
+					publicKey = keyPair.pubkey;
+				}
+				if(initiatorSlot == null) {
+					initiatorSlot = generateRandomSlot();
+				}
+				if(responderSlot == null) {
+					responderSlot = generateRandomSlot();
+				}
+
+				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
+				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
+				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
+				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
+			}
+
 			//TODO: Sign
 			//TODO: Encrypt
 			//TODO: Insert
