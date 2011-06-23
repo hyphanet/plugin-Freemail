@@ -501,7 +501,8 @@ public class Channel extends Postman {
 			}
 
 			//FIXME: Get the truster id in a better way
-			Identity recipient = wotConnection.getIdentity(channelDir.getName(), channelDir.getParentFile().getParentFile().getName());
+			String senderId = channelDir.getParentFile().getParentFile().getName();
+			Identity recipient = wotConnection.getIdentity(channelDir.getName(), senderId);
 			if(recipient == null) {
 				Logger.debug(this, "Trying again in 5 minutes");
 				executor.schedule(this, 5, TimeUnit.MINUTES);
@@ -564,6 +565,17 @@ public class Channel extends Postman {
 				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
 				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
 			}
+
+			//Get the senders mailsite key
+			Identity sender = wotConnection.getIdentity(senderId, senderId);
+			if(sender == null) {
+				Logger.debug(this, "Trying again in 5 minutes");
+				executor.schedule(this, 5, TimeUnit.MINUTES);
+				return;
+			}
+			String senderMailsiteKey = recipient.getRequestURI();
+			senderMailsiteKey = senderMailsiteKey.substring(0, senderMailsiteKey.indexOf("/"));
+			senderMailsiteKey = senderMailsiteKey + "/mailsite/0/mailpage";
 
 			//TODO: Sign
 			//TODO: Encrypt
