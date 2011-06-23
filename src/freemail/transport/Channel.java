@@ -570,8 +570,8 @@ public class Channel extends Postman {
 			}
 
 			//Get the senders mailsite key
-			Identity sender = wotConnection.getIdentity(senderId, senderId);
-			if(sender == null) {
+			Identity senderIdentity = wotConnection.getIdentity(senderId, senderId);
+			if(senderIdentity == null) {
 				Logger.debug(this, "Trying again in 5 minutes");
 				executor.schedule(this, 5, TimeUnit.MINUTES);
 				return;
