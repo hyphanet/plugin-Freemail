@@ -71,6 +71,7 @@ import freemail.fcp.FCPFetchException;
 import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.SSKKeyPair;
+import freemail.utils.DateStringFactory;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
@@ -622,8 +623,24 @@ public class Channel extends Postman {
 
 			byte[] rtsMessage = encryptMessage(signedMessage, keyModulus, keyExponent);
 
-			//TODO: Insert
-			//TODO: Update channel props file
+			//Insert
+			int slot;
+			try {
+				slot = fcpClient.slotInsert(rtsMessage, "KSK@" + rtsKey + "-" + DateStringFactory.getKeyString(), 1, "");
+			} catch(ConnectionTerminatedException e) {
+				return;
+			}
+			if(slot < 0) {
+				Logger.debug(this, "Slot insert failed, trying again in 5 minutes");
+				executor.schedule(this, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			//Update channel props file
+			synchronized(channelProps) {
+				channelProps.put(PropsKeys.CHANNEL_STATE, "rts-sent");
+				channelProps.put(PropsKeys.RTS_SENT_AT, Long.toString(System.currentTimeMillis()));
+			}
 		}
 
 		/**
