@@ -21,6 +21,7 @@
 package freemail.wot;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -147,6 +148,11 @@ class WoTConnectionImpl implements WoTConnection {
 		if("Error".equals(retValue.sfs.get("Message"))) {
 			String original = retValue.sfs.get("OriginalMessage");
 			Logger.error(this, "Got error message from WoT. Original message was " + original);
+			Iterator<String> keyIterator = retValue.sfs.keyIterator();
+			while(keyIterator.hasNext()) {
+				String key = keyIterator.next();
+				Logger.debug(this, key + "=" + retValue.sfs.get(key));
+			}
 		}
 
 		return retValue;
