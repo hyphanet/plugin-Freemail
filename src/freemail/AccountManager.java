@@ -201,7 +201,7 @@ public class AccountManager {
 		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
 	
-	private static boolean initAccFile(PropsFile accfile) {
+	private static boolean initAccFile(PropsFile accfile, OwnIdentity oid) {
 		//Initialise RTS KSK
 		Random rnd = new Random();
 		String rtskey = new String();
@@ -234,6 +234,11 @@ public class AccountManager {
 		accfile.put("asymkey.pubexponent", pub.getExponent().toString(32));
 		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
 		
+		String privateKey = oid.getInsertURI();
+		privateKey = privateKey.substring(0, privateKey.indexOf("/"));
+		privateKey = privateKey + "/mailsite/";
+		accfile.put("mailsite.privkey", privateKey);
+
 		Logger.normal(AccountManager.class,"Account creation completed.");
 		return true;
 	}
@@ -369,7 +374,7 @@ public class AccountManager {
 			}
 
 			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-			initAccFile(accProps);
+			initAccFile(accProps, oid);
 
 			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps, freemail);
 			account.setNickname(oid.getNickname());
