@@ -504,6 +504,7 @@ public class Channel extends Postman {
 				return;
 			}
 			if(sendRtsIn > 0) {
+				Logger.debug(this, "Rescheduling RTSSender in " + sendRtsIn + " ms when the RTS is due to be inserted");
 				executor.schedule(this, sendRtsIn, TimeUnit.MILLISECONDS);
 				return;
 			}
