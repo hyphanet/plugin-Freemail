@@ -410,23 +410,6 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		Logger.normal(this,"Original message intended for us :)");
 		
-		// create the inbound contact
-		InboundContact ibct = new InboundContact(this.contact_dir, their_mailsite_furi);
-		
-		ibct.setProp("commssk", rtsprops.get("commssk"));
-		String ackssk = rtsprops.get("ackssk");
-		if (!ackssk.endsWith("/")) ackssk += "/";
-		ibct.setProp("ackssk", ackssk);
-		ibct.setProp("slots", rtsprops.get("initialslot"));
-		
-		// insert the cts at some point
-		AckProcrastinator.put(ackssk+"cts");
-		
-		msfile.delete();
-		rtsfile.delete();
-		
-		Logger.normal(this,"Inbound contact created!");
-		
 		return true;
 	}
 	
