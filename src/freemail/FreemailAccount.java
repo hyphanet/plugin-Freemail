@@ -127,6 +127,7 @@ public class FreemailAccount {
 			Logger.debug(this, "Got RTS for existing channel");
 			channel.processRTS(rtsProps);
 		} else {
+			Logger.debug(this, "Creating new channel from RTS");
 			File channelsDir = new File(accdir, "channels");
 			File newChannelDir = new File(channelsDir, remoteIdentity);
 			if(!newChannelDir.mkdir()) {

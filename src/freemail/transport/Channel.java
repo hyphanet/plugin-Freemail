@@ -143,6 +143,8 @@ public class Channel extends Postman {
 	}
 
 	public void processRTS(PropsFile rtsProps) {
+		Logger.debug(this, "Processing RTS");
+
 		//TODO: Set public key using private key
 		//TODO: Handle cases where we get a second RTS
 
