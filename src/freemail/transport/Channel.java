@@ -523,7 +523,7 @@ public class Channel extends Postman {
 			Logger.debug(this, "Getting identity from WoT");
 			Identity recipient = wotConnection.getIdentity(channelDir.getName(), senderId);
 			if(recipient == null) {
-				Logger.debug(this, "Trying again in 5 minutes");
+				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
 				executor.schedule(this, 5, TimeUnit.MINUTES);
 				return;
 			}
@@ -591,7 +591,7 @@ public class Channel extends Postman {
 			Logger.debug(this, "Getting sender identity from WoT");
 			Identity senderIdentity = wotConnection.getIdentity(senderId, senderId);
 			if(senderIdentity == null) {
-				Logger.debug(this, "Trying again in 5 minutes");
+				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
 				executor.schedule(this, 5, TimeUnit.MINUTES);
 				return;
 			}
