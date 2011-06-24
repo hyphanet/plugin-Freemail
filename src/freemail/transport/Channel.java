@@ -519,6 +519,7 @@ public class Channel extends Postman {
 
 			//FIXME: Get the truster id in a better way
 			String senderId = channelDir.getParentFile().getParentFile().getName();
+			Logger.debug(this, "Getting identity from WoT");
 			Identity recipient = wotConnection.getIdentity(channelDir.getName(), senderId);
 			if(recipient == null) {
 				Logger.debug(this, "Trying again in 5 minutes");
@@ -534,6 +535,7 @@ public class Channel extends Postman {
 			//Fetch the mailsite
 			File mailsite;
 			try {
+				Logger.debug(this, "Fetching mailsite from " + mailsiteKey);
 				mailsite = fcpClient.fetch(mailsiteKey);
 			} catch(ConnectionTerminatedException e) {
 				Logger.debug(this, "FCP connection has been terminated");
@@ -562,6 +564,7 @@ public class Channel extends Postman {
 				if((privateKey == null) || (publicKey == null)) {
 					SSKKeyPair keyPair;
 					try {
+						Logger.debug(this, "Making new key pair");
 						keyPair = fcpClient.makeSSK();
 					} catch(ConnectionTerminatedException e) {
 						Logger.debug(this, "FCP connection has been terminated");
@@ -584,6 +587,7 @@ public class Channel extends Postman {
 			}
 
 			//Get the senders mailsite key
+			Logger.debug(this, "Getting sender identity from WoT");
 			Identity senderIdentity = wotConnection.getIdentity(senderId, senderId);
 			if(senderIdentity == null) {
 				Logger.debug(this, "Trying again in 5 minutes");
@@ -626,7 +630,9 @@ public class Channel extends Postman {
 			//Insert
 			int slot;
 			try {
-				slot = fcpClient.slotInsert(rtsMessage, "KSK@" + rtsKey + "-" + DateStringFactory.getKeyString(), 1, "");
+				String key = "KSK@" + rtsKey + "-" + DateStringFactory.getKeyString();
+				Logger.debug(this, "Inserting RTS to " + key);
+				slot = fcpClient.slotInsert(rtsMessage, key, 1, "");
 			} catch(ConnectionTerminatedException e) {
 				return;
 			}
