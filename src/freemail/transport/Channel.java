@@ -47,7 +47,13 @@ import org.archive.util.Base32;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.paddings.PKCS7Padding;
+import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
 import freemail.AccountManager;
@@ -598,7 +604,23 @@ public class Channel extends Postman {
 				return;
 			}
 
-			//TODO: Encrypt
+			//Encrypt the message using the recipients public key
+			String keyModulus = mailsiteProps.get("asymkey.modulus");
+			if(keyModulus == null) {
+				Logger.error(this, "Mailsite is missing public key modulus");
+				executor.schedule(this, 1, TimeUnit.HOURS);
+				return;
+			}
+
+			String keyExponent = mailsiteProps.get("asymkey.pubexponent");
+			if(keyExponent == null) {
+				Logger.error(this, "Mailsite is missing public key exponent");
+				executor.schedule(this, 1, TimeUnit.HOURS);
+				return;
+			}
+
+			byte[] rtsMessage = encryptMessage(signedMessage, keyModulus, keyExponent);
+
 			//TODO: Insert
 			//TODO: Update channel props file
 		}
@@ -689,6 +711,32 @@ public class Channel extends Postman {
 			System.arraycopy(signature, 0, signedMessage, rtsMessageBytes.length, signature.length);
 
 			return signedMessage;
+		}
+
+		private byte[] encryptMessage(byte[] signedMessage, String keyModulus, String keyExponent) {
+			//Make a new symmetric key for the message
+			byte[] aesKeyAndIV = new byte[32 + 16];
+			SecureRandom rnd = new SecureRandom();
+			rnd.nextBytes(aesKeyAndIV);
+
+			//Encrypt the message with the new symmetric key
+			PaddedBufferedBlockCipher aesCipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
+			KeyParameter aesKeyParameters = new KeyParameter(aesKeyAndIV, 16, 32);
+			ParametersWithIV aesParameters = new ParametersWithIV(aesKeyParameters, aesKeyAndIV, 0, 16);
+			aesCipher.init(true, aesParameters);
+
+			byte[] encryptedMessage = new byte[aesCipher.getOutputSize(signedMessage.length)];
+			int offset = aesCipher.processBytes(signedMessage, 0, signedMessage.length, encryptedMessage, 0);
+
+			try {
+				aesCipher.doFinal(encryptedMessage, offset);
+			} catch(InvalidCipherTextException e) {
+				Logger.error(this, "Failed to perform symmertic encryption on RTS data: " + e.getMessage());
+				e.printStackTrace();
+				return null;
+			}
+
+			return encryptedMessage;
 		}
 	}
 
