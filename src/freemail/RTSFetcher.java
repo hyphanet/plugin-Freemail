@@ -380,27 +380,6 @@ public class RTSFetcher implements SlotSaveCallback {
 		Logger.normal(this,"Signature valid :)");
 		// the signature is valid! Hooray!
 		// Now verify the message is for us
-		String our_mailsite_keybody;
-		try {
-			our_mailsite_keybody = new FreenetURI(account.getProps().get("mailsite.pubkey")).getKeyBody();
-		} catch (MalformedURLException mfue) {
-			Logger.normal(this,"Local mailsite URI is invalid! Corrupt account file?");
-			msfile.delete();
-			rtsfile.delete();
-			return false;
-		}
-		
-		String our_domain_alias = account.getProps().get("domain_alias");
-		FreenetURI mailsite_furi;
-		try {
-			mailsite_furi = new FreenetURI(our_mailsite_keybody);
-		} catch (MalformedURLException mfe) {
-			msfile.delete();
-			rtsfile.delete();
-			return false;
-		}
-		String our_subdomain = Base32.encode(mailsite_furi.getKeyBody().getBytes());
-		
 		if(!account.getUsername().equals(rtsprops.get("to"))) {
 			Logger.normal(this,"Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
