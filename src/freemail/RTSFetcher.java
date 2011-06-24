@@ -401,7 +401,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 		String our_subdomain = Base32.encode(mailsite_furi.getKeyBody().getBytes());
 		
-		if (!rtsprops.get("to").equalsIgnoreCase(our_subdomain) && our_domain_alias != null && !rtsprops.get("to").equals(our_domain_alias)) {
+		if(!account.getUsername().equals(rtsprops.get("to"))) {
 			Logger.normal(this,"Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();
