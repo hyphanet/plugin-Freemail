@@ -492,23 +492,20 @@ public class RTSFetcher implements SlotSaveCallback {
 	private void validate_rts(PropsFile rts) throws Exception {
 		StringBuffer missing = new StringBuffer();
 		
-		if (rts.get("commssk") == null) {
-			missing.append("commssk, ");
-		}
-		if (rts.get("ackssk") == null) {
-			missing.append("ackssk, ");
-		}
-		if (rts.get("messagetype") == null) {
-			missing.append("messagetype, ");
+		if (rts.get("mailsite") == null) {
+			missing.append("mailsite, ");
 		}
 		if (rts.get("to") == null) {
 			missing.append("to, ");
 		}
-		if (rts.get("mailsite") == null) {
-			missing.append("mailsite, ");
+		if (rts.get("channel") == null) {
+			missing.append("channel, ");
 		}
-		if (rts.get("initialslot") == null) {
-			missing.append("initialslot, ");
+		if (rts.get("initiatorSlot") == null) {
+			missing.append("initiatorSlot, ");
+		}
+		if (rts.get("responderSlot") == null) {
+			missing.append("responderSlot, ");
 		}
 		
 		if (missing.length() == 0) return;
