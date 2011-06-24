@@ -142,6 +142,20 @@ public class Channel extends Postman {
 		}
 	}
 
+	public void processRTS(PropsFile rtsProps) {
+		//TODO: Set public key using private key
+		//TODO: Handle cases where we get a second RTS
+
+		synchronized(channelProps) {
+			channelProps.put(PropsKeys.IS_INITIATOR, "false");
+			channelProps.put(PropsKeys.PRIVATE_KEY, rtsProps.get("channel"));
+			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
+			channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get("responderSlot"));
+			channelProps.put(PropsKeys.MESSAGE_ID, "0");
+			channelProps.put(PropsKeys.CHANNEL_STATE, "rts-received");
+		}
+	}
+
 	public void startTasks() {
 		startFetcher();
 		startSender();

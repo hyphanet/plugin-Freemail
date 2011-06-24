@@ -116,4 +116,30 @@ public class FreemailAccount {
 
 		return channel;
 	}
+
+	public Channel createChannelFromRTS(PropsFile rtsProps) {
+		String remoteIdentity = rtsProps.get("mailsite");
+		remoteIdentity = remoteIdentity.substring(remoteIdentity.indexOf("@") + 1); //Strip USK@
+		remoteIdentity = remoteIdentity.substring(0, remoteIdentity.indexOf(","));
+
+		Channel channel = channels.get(remoteIdentity);
+		if(channel != null) {
+			Logger.debug(this, "Got RTS for existing channel");
+			channel.processRTS(rtsProps);
+		} else {
+			File channelsDir = new File(accdir, "channels");
+			File newChannelDir = new File(channelsDir, remoteIdentity);
+			if(!newChannelDir.mkdir()) {
+				Logger.error(this, "Couldn't create the channel directory");
+				return null;
+			}
+
+			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
+			channel.processRTS(rtsProps);
+			channel.startTasks();
+			channels.put(remoteIdentity, channel);
+		}
+
+		return channel;
+	}
 }
