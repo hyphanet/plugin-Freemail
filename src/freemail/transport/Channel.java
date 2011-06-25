@@ -463,7 +463,7 @@ public class Channel extends Postman {
 
 	private class Fetcher implements Runnable {
 		@Override
-		public void run() {
+		public synchronized void run() {
 			Logger.debug(this, "Fetcher running");
 
 			String slots;
@@ -579,7 +579,7 @@ public class Channel extends Postman {
 
 	private class Sender implements Runnable {
 		@Override
-		public void run() {
+		public synchronized void run() {
 			Logger.debug(this, "Sender running");
 
 			//TODO: Try sending messages
@@ -588,7 +588,7 @@ public class Channel extends Postman {
 
 	private class RTSSender implements Runnable {
 		@Override
-		public void run() {
+		public synchronized void run() {
 			Logger.debug(this, "RTSSender running");
 
 			//Check when the RTS should be sent
