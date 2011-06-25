@@ -192,6 +192,72 @@ public class Channel extends Postman {
 				Logger.debug(this, PropsKeys.RECIPIENT_STATE + " is already set to " + channelProps.get(PropsKeys.RECIPIENT_STATE));
 			}
 		}
+
+		//Queue the CTS insert
+		queueCTS();
+		startTasks();
+	}
+
+	//TODO: This is mostly duplicated from sendMessage
+	private void queueCTS() {
+		long messageId;
+		synchronized(channelProps) {
+			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
+			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+		}
+
+		//Write the message and attributes to the outbox
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		if(!outbox.exists()) {
+			if(!outbox.mkdir()) {
+				Logger.error(this, "Couldn't create outbox directory: " + outbox);
+				return;
+			}
+		}
+
+		File messageFile = new File(outbox, "message-" + messageId);
+		if(messageFile.exists()) {
+			//TODO: Pick next message id?
+			Logger.error(this, "Message id already in use");
+			return;
+		}
+
+		try {
+			if(!messageFile.createNewFile()) {
+				Logger.error(this, "Couldn't create message file: " + messageFile);
+				return;
+			}
+
+			OutputStream os = new FileOutputStream(messageFile);
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
+
+			//First the local properties
+			pw.write("status=unsent\r\n");
+			pw.write("\r\n");
+
+			//Then what will be the header of the inserted message
+			pw.print("messagetype=cts\r\n");
+			pw.print("\r\n");
+			pw.flush();
+		} catch(IOException e) {
+			if(messageFile.exists()) {
+				if(!messageFile.delete()) {
+					Logger.error(this, "Couldn't delete message file (" + messageFile + ") after IOException");
+				}
+			}
+
+			return;
+		}
+
+		Sender s;
+		synchronized(senderLock) {
+			s = sender;
+		}
+		if(s != null) {
+			executor.execute(s);
+		}
+
+		return;
 	}
 
 	public void startTasks() {
