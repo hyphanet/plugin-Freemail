@@ -573,7 +573,7 @@ public class Channel extends Postman {
 			}
 
 			//Reschedule
-			executor.schedule(this, 5, TimeUnit.MINUTES);
+			executor.schedule(fetcher, 5, TimeUnit.MINUTES);
 		}
 	}
 
