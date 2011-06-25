@@ -700,6 +700,10 @@ public class Channel extends Postman {
 				channelProps.put(PropsKeys.SENDER_STATE, "rts-sent");
 				channelProps.put(PropsKeys.RTS_SENT_AT, Long.toString(System.currentTimeMillis()));
 			}
+
+			long delay = sendRTSIn();
+			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
+			executor.schedule(this, delay, TimeUnit.MILLISECONDS);
 		}
 
 		/**
