@@ -697,6 +697,7 @@ public class Channel extends Postman {
 
 			//Update channel props file
 			synchronized(channelProps) {
+				//TODO: What if we've gotten the CTS while inserting the RTS?
 				channelProps.put(PropsKeys.SENDER_STATE, "rts-sent");
 				channelProps.put(PropsKeys.RTS_SENT_AT, Long.toString(System.currentTimeMillis()));
 			}
