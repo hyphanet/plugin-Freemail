@@ -405,7 +405,7 @@ public class Channel extends Postman {
 
 			String basekey;
 			synchronized(channelProps) {
-				basekey = channelProps.get(PropsKeys.PRIVATE_KEY);
+				basekey = channelProps.get(PropsKeys.PUBLIC_KEY);
 			}
 			if(basekey == null) {
 				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.PRIVATE_KEY + "' entry!");
