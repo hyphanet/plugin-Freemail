@@ -25,6 +25,7 @@ package freemail.transport;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -582,7 +583,104 @@ public class Channel extends Postman {
 		public synchronized void run() {
 			Logger.debug(this, "Sender running");
 
-			//TODO: Try sending messages
+			//Get a message from the outbox
+			File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+			if(!outbox.exists()) {
+				Logger.debug(this, "Outbox directory doesn't exist, so no messages to send");
+				return;
+			}
+
+			File[] messages = outbox.listFiles();
+			if(messages == null) {
+				Logger.error(this, "Couldn't list messages in the outbox, trying again later");
+				executor.schedule(sender, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			//Pick the first message
+			File message = null;
+			for(File msg : messages) {
+				if(msg.isFile()) {
+					message = msg;
+					Logger.debug(this, "Sending " + message);
+					break;
+				}
+
+				Logger.debug(this, "Unexpected file in outbox: " + msg);
+			}
+			if(message == null) {
+				Logger.debug(this, "Didn't find any messages to send");
+				return;
+			}
+
+			String baseKey;
+			synchronized(channelProps) {
+				baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+			}
+			if(baseKey == null) {
+				Logger.debug(this, "Can't insert, missing private key");
+				return;
+			}
+
+			InputStream data;
+			try {
+				//TODO: Read past the header
+				data = new FileInputStream(message);
+			} catch(FileNotFoundException e1) {
+				Logger.debug(this, "Message file deleted after listing files, trying again later");
+				executor.schedule(sender, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			while(true) {
+				String slot;
+				synchronized(channelProps) {
+					slot = channelProps.get(PropsKeys.SEND_SLOT);
+				}
+
+				FCPInsertErrorMessage fcpMessage;
+				try {
+					fcpMessage = fcpClient.put(data, baseKey + slot);
+				} catch(FCPBadFileException e) {
+					Logger.debug(this, "Caugth " + e);
+					return;
+				} catch(ConnectionTerminatedException e) {
+					Logger.debug(this, "Caugth " + e);
+					return;
+				}
+
+				if(fcpMessage == null) {
+					slot = calculateNextSlot(slot);
+					synchronized(channelProps) {
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+					}
+
+					break;
+				}
+
+				if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+					slot = calculateNextSlot(slot);
+
+					//Write the new slot each round so we won't have
+					//to check all of them again if we fail
+					synchronized(channelProps) {
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+					}
+
+					Logger.debug(this, "Insert collided, trying slot " + slot);
+					continue;
+				}
+
+				Logger.debug(this, "Insert to slot " + slot + " failed: " + fcpMessage);
+				executor.schedule(sender, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			message.delete();
+
+			//Check for more messages
+			executor.execute(sender);
+			return;
 		}
 	}
 
