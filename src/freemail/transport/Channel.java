@@ -93,7 +93,8 @@ public class Channel extends Postman {
 		private static final String SEND_SLOT = "sendSlot";
 		private static final String IS_INITIATOR = "isInitiator";
 		private static final String MESSAGE_ID = "messageId";
-		private static final String CHANNEL_STATE = "state";
+		private static final String SENDER_STATE = "sender-state";
+		private static final String RECIPIENT_STATE = "recipient-state";
 		private static final String RTS_SENT_AT = "rts-sent-at";
 	}
 
@@ -154,7 +155,7 @@ public class Channel extends Postman {
 			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
 			channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get("responderSlot"));
 			channelProps.put(PropsKeys.MESSAGE_ID, "0");
-			channelProps.put(PropsKeys.CHANNEL_STATE, "rts-received");
+			channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
 		}
 	}
 
@@ -209,7 +210,7 @@ public class Channel extends Postman {
 	private void startRTSSender() {
 		String state;
 		synchronized(channelProps) {
-			state = channelProps.get(PropsKeys.CHANNEL_STATE);
+			state = channelProps.get(PropsKeys.SENDER_STATE);
 		}
 
 		if((state != null) && state.equals("cts-received")) {
@@ -661,7 +662,7 @@ public class Channel extends Postman {
 
 			//Update channel props file
 			synchronized(channelProps) {
-				channelProps.put(PropsKeys.CHANNEL_STATE, "rts-sent");
+				channelProps.put(PropsKeys.SENDER_STATE, "rts-sent");
 				channelProps.put(PropsKeys.RTS_SENT_AT, Long.toString(System.currentTimeMillis()));
 			}
 		}
@@ -675,7 +676,7 @@ public class Channel extends Postman {
 			//Check if the CTS has been received
 			String channelState;
 			synchronized(channelProps) {
-				channelState = channelProps.get(PropsKeys.CHANNEL_STATE);
+				channelState = channelProps.get(PropsKeys.SENDER_STATE);
 			}
 			if((channelState != null) && channelState.equals("cts-received")) {
 				Logger.debug(this, "CTS has been received");
