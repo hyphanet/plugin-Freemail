@@ -150,12 +150,47 @@ public class Channel extends Postman {
 		//TODO: Handle cases where we get a second RTS
 
 		synchronized(channelProps) {
-			channelProps.put(PropsKeys.IS_INITIATOR, "false");
-			channelProps.put(PropsKeys.PRIVATE_KEY, rtsProps.get("channel"));
-			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
-			channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get("responderSlot"));
-			channelProps.put(PropsKeys.MESSAGE_ID, "0");
-			channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
+			if(channelProps.get(PropsKeys.IS_INITIATOR) == null) {
+				Logger.debug(this, "Setting " + PropsKeys.IS_INITIATOR + " to false");
+				channelProps.put(PropsKeys.IS_INITIATOR, "false");
+			} else {
+				Logger.debug(this, PropsKeys.IS_INITIATOR + " is already set to " + channelProps.get(PropsKeys.IS_INITIATOR));
+			}
+
+			if(channelProps.get(PropsKeys.PRIVATE_KEY) == null) {
+				Logger.debug(this, "Setting " + PropsKeys.PRIVATE_KEY + " to " + rtsProps.get("channel"));
+				channelProps.put(PropsKeys.PRIVATE_KEY, rtsProps.get("channel"));
+			} else {
+				Logger.debug(this, PropsKeys.PRIVATE_KEY + " is already set to " + channelProps.get(PropsKeys.PRIVATE_KEY));
+			}
+
+			if(channelProps.get(PropsKeys.FETCH_SLOT) == null) {
+				Logger.debug(this, "Setting " + PropsKeys.FETCH_SLOT + " to " + rtsProps.get("initiatorSlot"));
+				channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
+			} else {
+				Logger.debug(this, PropsKeys.FETCH_SLOT + " is already set to " + channelProps.get(PropsKeys.FETCH_SLOT));
+			}
+
+			if(channelProps.get(PropsKeys.SEND_SLOT) == null) {
+				Logger.debug(this, "Setting " + PropsKeys.SEND_SLOT + " to " + rtsProps.get("responderSlot"));
+				channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get("responderSlot"));
+			} else {
+				Logger.debug(this, PropsKeys.SEND_SLOT + " is already set to " + channelProps.get(PropsKeys.SEND_SLOT));
+			}
+
+			if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
+				Logger.debug(this, "Setting " + PropsKeys.MESSAGE_ID + " to 0");
+				channelProps.put(PropsKeys.MESSAGE_ID, "0");
+			} else {
+				Logger.debug(this, PropsKeys.MESSAGE_ID + " is already set to " + channelProps.get(PropsKeys.MESSAGE_ID));
+			}
+
+			if(channelProps.get(PropsKeys.RECIPIENT_STATE) == null) {
+				Logger.debug(this, "Setting " + PropsKeys.RECIPIENT_STATE + " to rts-received");
+				channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
+			} else {
+				Logger.debug(this, PropsKeys.RECIPIENT_STATE + " is already set to " + channelProps.get(PropsKeys.RECIPIENT_STATE));
+			}
 		}
 	}
 
