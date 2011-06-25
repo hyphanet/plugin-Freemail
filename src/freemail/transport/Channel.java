@@ -442,6 +442,7 @@ public class Channel extends Postman {
 				try {
 					result = fcpClient.fetch(key);
 				} catch(ConnectionTerminatedException e) {
+					Logger.debug(this, "Connection terminated");
 					return;
 				} catch(FCPFetchException e) {
 					if(e.isFatal()) {
@@ -468,6 +469,7 @@ public class Channel extends Postman {
 							slotManager.slotUsed();
 						}
 					} catch(ConnectionTerminatedException e) {
+						Logger.debug(this, "Connection terminated");
 						result.delete();
 						return;
 					}
