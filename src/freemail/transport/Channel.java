@@ -23,7 +23,6 @@
 package freemail.transport;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,12 +34,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +74,6 @@ import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
-import freenet.support.SimpleFieldSet;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -370,79 +366,6 @@ public class Channel extends Postman {
 		executor.execute(sender);
 
 		return true;
-	}
-
-	/**
-	 * Sends a message to the remote side of the channel containing the given headers and the data
-	 * read from {@code message}. "messagetype" must be set in {@code header}. If message is
-	 * {@code null} no data will be sent after the header.
-	 * @param fcpClient the HighLevelFCPClient used to send the message
-	 * @param header the headers to prepend to the message
-	 * @param message the data to be sent
-	 * @return {@code true} if the message was sent successfully
-	 * @throws ConnectionTerminatedException if the FCP connection is terminated while sending
-	 * @throws IOException if the InputStream throws an IOException
-	 */
-	boolean sendMessage(HighLevelFCPClient fcpClient, SimpleFieldSet header, InputStream message) throws ConnectionTerminatedException, IOException {
-		assert (fcpClient != null);
-		assert (header.get("messagetype") != null);
-
-		String baseKey;
-		synchronized(channelProps) {
-			baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-		}
-
-		//SimpleFieldSet seems to only output using \n,
-		//but we need \n\r so we need to do it manually
-		StringBuilder headerString = new StringBuilder();
-		Iterator<String> headerKeyIterator = header.keyIterator();
-		while(headerKeyIterator.hasNext()) {
-			String key = headerKeyIterator.next();
-			String value = header.get(key);
-
-			headerString.append(key + "=" + value + "\r\n");
-		}
-		headerString.append("\r\n");
-
-		ByteArrayInputStream headerBytes = new ByteArrayInputStream(headerString.toString().getBytes("UTF-8"));
-		InputStream data = (message == null) ? headerBytes : new SequenceInputStream(headerBytes, message);
-		while(true) {
-			String slot;
-			synchronized(channelProps) {
-				slot = channelProps.get(PropsKeys.SEND_SLOT);
-			}
-
-			FCPInsertErrorMessage fcpMessage;
-			try {
-				fcpMessage = fcpClient.put(data, baseKey + slot);
-			} catch(FCPBadFileException e) {
-				throw new IOException(e);
-			}
-
-			if(fcpMessage == null) {
-				slot = calculateNextSlot(slot);
-				synchronized(channelProps) {
-					channelProps.put(PropsKeys.SEND_SLOT, slot);
-				}
-				return true;
-			}
-
-			if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-				slot = calculateNextSlot(slot);
-
-				//Write the new slot each round so we won't have
-				//to check all of them again if we fail
-				synchronized(channelProps) {
-					channelProps.put(PropsKeys.SEND_SLOT, slot);
-				}
-
-				Logger.debug(this, "Insert collided, trying slot " + slot);
-				continue;
-			}
-
-			Logger.debug(this, "Insert to slot " + slot + " failed: " + fcpMessage);
-			return false;
-		}
 	}
 
 	private String calculateNextSlot(String slot) {
