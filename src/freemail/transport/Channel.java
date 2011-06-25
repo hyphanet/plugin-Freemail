@@ -697,12 +697,17 @@ public class Channel extends Postman {
 
 			//Update channel props file
 			synchronized(channelProps) {
-				//TODO: What if we've gotten the CTS while inserting the RTS?
-				channelProps.put(PropsKeys.SENDER_STATE, "rts-sent");
+				//Check if we've gotten the CTS while inserting the RTS
+				if(!"cts-received".equals(channelProps.get(PropsKeys.SENDER_STATE))) {
+					channelProps.put(PropsKeys.SENDER_STATE, "rts-sent");
+				}
 				channelProps.put(PropsKeys.RTS_SENT_AT, Long.toString(System.currentTimeMillis()));
 			}
 
 			long delay = sendRTSIn();
+			if(delay < 0) {
+				return;
+			}
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
 			executor.schedule(this, delay, TimeUnit.MILLISECONDS);
 		}
