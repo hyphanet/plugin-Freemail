@@ -57,4 +57,9 @@ public class Identity {
 		Identity other = (Identity) obj;
 		return identityID.equals(other.identityID);
 	}
+
+	@Override
+	public String toString() {
+		return "Identity " + identityID;
+	}
 }
