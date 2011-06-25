@@ -260,6 +260,7 @@ public class Channel extends Postman {
 		return;
 	}
 
+	//TODO: The subtasks must support being called multiple times
 	public void startTasks() {
 		startFetcher();
 		startSender();
