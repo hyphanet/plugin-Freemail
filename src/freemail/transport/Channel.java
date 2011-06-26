@@ -433,6 +433,7 @@ public class Channel extends Postman {
 
 				if(messageType == null) {
 					Logger.error(this, "Got message without messagetype, discarding");
+					slotManager.slotUsed();
 					result.delete();
 					continue;
 				}
