@@ -1038,18 +1038,67 @@ public class Channel extends Postman {
 			// how should we handle this? Remove the message from the inbox again?
 			Logger.error(this,"warning: failed to write log file!");
 		}
-		String ack_key;
-		synchronized(this.channelProps) {
-			ack_key = this.channelProps.get("ackssk");
-		}
-		if (ack_key == null) {
-			Logger.error(this,"Warning! Can't send message acknowledgement - don't have an 'ackssk' entry! This message will eventually bounce, even though you've received it.");
-			return true;
-		}
-		ack_key += "ack-"+id;
-		AckProcrastinator.put(ack_key);
+
+		queueAck(id);
 
 		return true;
+	}
+
+	//TODO: This is mostly duplicated from sendMessage
+	private void queueAck(int ackId) {
+		long messageId;
+		synchronized(channelProps) {
+			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
+			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+		}
+
+		//Write the message and attributes to the outbox
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		if(!outbox.exists()) {
+			if(!outbox.mkdir()) {
+				Logger.error(this, "Couldn't create outbox directory: " + outbox);
+				return;
+			}
+		}
+
+		File messageFile = new File(outbox, "message-" + messageId);
+		if(messageFile.exists()) {
+			//TODO: Pick next message id?
+			Logger.error(this, "Message id already in use");
+			return;
+		}
+
+		try {
+			if(!messageFile.createNewFile()) {
+				Logger.error(this, "Couldn't create message file: " + messageFile);
+				return;
+			}
+
+			OutputStream os = new FileOutputStream(messageFile);
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
+
+			//First the local properties
+			pw.write("status=unsent\r\n");
+			pw.write("\r\n");
+
+			//Then what will be the header of the inserted message
+			pw.print("messagetype=ack\r\n");
+			pw.print("id=" + ackId + "\r\n");
+			pw.print("\r\n");
+			pw.flush();
+		} catch(IOException e) {
+			if(messageFile.exists()) {
+				if(!messageFile.delete()) {
+					Logger.error(this, "Couldn't delete message file (" + messageFile + ") after IOException");
+				}
+			}
+
+			return;
+		}
+
+		sender.execute();
+
+		return;
 	}
 
 	private boolean handleAck(File result) {
