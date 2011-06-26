@@ -427,6 +427,7 @@ public class Channel extends Postman {
 					Logger.minor(this, "No mail in slot (fetch returned " + e.getMessage() + ")");
 					continue;
 				}
+				Logger.debug(this, "Fetch successful");
 
 				PropsFile messageProps = PropsFile.createPropsFile(result, true);
 				String messageType = messageProps.get("messagetype");
