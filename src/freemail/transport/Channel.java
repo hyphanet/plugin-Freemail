@@ -932,7 +932,7 @@ public class Channel extends Postman {
 		PropsFile msgprops = PropsFile.createPropsFile(msg, true);
 		String s_id = msgprops.get("id");
 		if (s_id == null) {
-			Logger.error(this,"Got a message with an invalid header. Discarding.");
+			Logger.error(this,"Message is missing id. Discarding.");
 			msgprops.closeReader();
 			return true;
 		}
