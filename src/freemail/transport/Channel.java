@@ -323,7 +323,7 @@ public class Channel extends Postman {
 
 			//Write the header that will be sent later
 			pw.print("messagetype=message\r\n");
-			pw.print("messageid=" + messageId + "\r\n");
+			pw.print("id=" + messageId + "\r\n");
 			pw.print("\r\n");
 			pw.flush();
 
