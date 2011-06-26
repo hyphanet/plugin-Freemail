@@ -537,6 +537,7 @@ public class Channel extends Postman {
 					slot = channelProps.get(PropsKeys.SEND_SLOT);
 				}
 
+				Logger.debug(this, "Inserting data to " + baseKey + slot);
 				FCPInsertErrorMessage fcpMessage;
 				try {
 					fcpMessage = fcpClient.put(data, baseKey + slot);
