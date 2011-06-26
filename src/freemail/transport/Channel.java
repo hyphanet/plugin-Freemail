@@ -157,12 +157,7 @@ public class Channel extends Postman {
 				Logger.debug(this, PropsKeys.PRIVATE_KEY + " is already set to " + channelProps.get(PropsKeys.PRIVATE_KEY));
 			}
 
-			if(channelProps.get(PropsKeys.FETCH_SLOT) == null) {
-				Logger.debug(this, "Setting " + PropsKeys.FETCH_SLOT + " to " + rtsProps.get("initiatorSlot"));
-				channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
-			} else {
-				Logger.debug(this, PropsKeys.FETCH_SLOT + " is already set to " + channelProps.get(PropsKeys.FETCH_SLOT));
-			}
+			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
 
 			if(channelProps.get(PropsKeys.SEND_SLOT) == null) {
 				Logger.debug(this, "Setting " + PropsKeys.SEND_SLOT + " to " + rtsProps.get("responderSlot"));
