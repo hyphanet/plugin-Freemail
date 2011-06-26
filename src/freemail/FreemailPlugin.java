@@ -131,6 +131,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		Logger.error(this, "terminate() called");
 		webInterface.terminate();
 		Logger.error(this, "Web interface terminated, proceeding with normal termination");
+		executor.shutdown();
 		super.terminate();
 	}
 
