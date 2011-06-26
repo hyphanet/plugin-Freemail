@@ -372,6 +372,20 @@ public class Channel extends Postman {
 		public synchronized void run() {
 			Logger.debug(this, "Fetcher running");
 
+			try {
+				realRun();
+			} catch(RuntimeException e) {
+				Logger.debug(this, "Caugth " + e);
+				e.printStackTrace();
+				throw e;
+			} catch(Error e) {
+				Logger.debug(this, "Caugth " + e);
+				e.printStackTrace();
+				throw e;
+			}
+		}
+
+		private void realRun() {
 			String slots;
 			synchronized(channelProps) {
 				slots = channelProps.get(PropsKeys.FETCH_SLOT);
