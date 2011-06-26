@@ -503,6 +503,20 @@ public class Channel extends Postman {
 		public synchronized void run() {
 			Logger.debug(this, "Sender running");
 
+			try {
+				realRun();
+			} catch(RuntimeException e) {
+				Logger.debug(this, "Caugth " + e);
+				e.printStackTrace();
+				throw e;
+			} catch(Error e) {
+				Logger.debug(this, "Caugth " + e);
+				e.printStackTrace();
+				throw e;
+			}
+		}
+
+		private void realRun() {
 			//Get a message from the outbox
 			File outbox = new File(channelDir, OUTBOX_DIR_NAME);
 			if(!outbox.exists()) {
@@ -626,6 +640,20 @@ public class Channel extends Postman {
 		public synchronized void run() {
 			Logger.debug(this, "RTSSender running");
 
+			try {
+				realRun();
+			} catch(RuntimeException e) {
+				Logger.debug(this, "Caugth " + e);
+				e.printStackTrace();
+				throw e;
+			} catch(Error e) {
+				Logger.debug(this, "Caugth " + e);
+				e.printStackTrace();
+				throw e;
+			}
+		}
+
+		private void realRun() {
 			//Check when the RTS should be sent
 			long sendRtsIn = sendRTSIn();
 			if(sendRtsIn < 0) {
