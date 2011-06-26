@@ -701,6 +701,7 @@ public class Channel extends Postman {
 				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
 				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
 				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
+				channelProps.put(PropsKeys.IS_INITIATOR, "true");
 			}
 
 			//Get the senders mailsite key
