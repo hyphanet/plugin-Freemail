@@ -455,7 +455,7 @@ public class Channel extends Postman {
 
 				if(messageType.equals("message")) {
 					try {
-						if(handleMessage(result, null)) {
+						if(handleMessage(result, account.getMessageBank())) {
 							slotManager.slotUsed();
 						}
 					} catch(ConnectionTerminatedException e) {
