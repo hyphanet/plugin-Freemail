@@ -37,6 +37,8 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -1101,10 +1103,10 @@ public class Channel extends Postman {
 		return true;
 	}
 
-	private QueuedMessage[] getSendQueue() {
+	private List<QueuedMessage> getSendQueue() {
 		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
 		File[] files = outbox.listFiles();
-		QueuedMessage[] messages = new QueuedMessage[files.length];
+		List<QueuedMessage> messages = new LinkedList<QueuedMessage>();
 
 		for(int i = 0; i < files.length; i++) {
 			if(files[i].getName().equals(INDEX_NAME)) {
@@ -1118,11 +1120,11 @@ public class Channel extends Postman {
 				// how did that get there? just delete it
 				Logger.normal(this,"Found spurious file in send queue: '"+files[i].getName()+"' - deleting.");
 				files[i].delete();
-				messages[i] = null;
+				messages.add(null);
 				continue;
 			}
 
-			messages[i] = new QueuedMessage(uid);
+			messages.add(new QueuedMessage(uid));
 		}
 
 		return messages;
