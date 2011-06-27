@@ -1101,6 +1101,100 @@ public class Channel extends Postman {
 		return true;
 	}
 
+	private QueuedMessage[] getSendQueue() {
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		File[] files = outbox.listFiles();
+		QueuedMessage[] messages = new QueuedMessage[files.length];
+
+		for(int i = 0; i < files.length; i++) {
+			if(files[i].getName().equals(INDEX_NAME)) {
+				continue;
+			}
+
+			int uid;
+			try {
+				uid = Integer.parseInt(files[i].getName());
+			} catch (NumberFormatException nfe) {
+				// how did that get there? just delete it
+				Logger.normal(this,"Found spurious file in send queue: '"+files[i].getName()+"' - deleting.");
+				files[i].delete();
+				messages[i] = null;
+				continue;
+			}
+
+			messages[i] = new QueuedMessage(uid);
+		}
+
+		return messages;
+	}
+
+	private class QueuedMessage {
+		private final int uid;
+		private long addedTime;
+		private long firstSendTime;
+		private long lastSendTime;
+		private final File file;
+
+		private QueuedMessage(int uid) {
+			this.uid = uid;
+
+			File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+			file = new File(outbox, Integer.toString(uid));
+
+			String first;
+			String last;
+			String added;
+			synchronized(messageIndex) {
+				first = messageIndex.get(uid+".firstSendTime");
+				last = messageIndex.get(uid+".lastSendTime");
+				added = messageIndex.get(uid+".addedTime");
+			}
+
+			if(first == null) {
+				firstSendTime = -1;
+			} else {
+				firstSendTime = Long.parseLong(first);
+			}
+
+			if(last == null) {
+				this.lastSendTime = -1;
+			} else {
+				this.lastSendTime = Long.parseLong(last);
+			}
+
+			if(added == null) {
+				this.addedTime = System.currentTimeMillis();
+			} else {
+				this.addedTime = Long.parseLong(added);
+			}
+		}
+
+		public boolean setMessageFile(File newfile) {
+			return newfile.renameTo(this.file);
+		}
+
+		public boolean saveProps() {
+			boolean suc = true;
+			synchronized(messageIndex) {
+				suc &= messageIndex.put(uid+".first_send_time", this.firstSendTime);
+				suc &= messageIndex.put(uid+".last_send_time", this.lastSendTime);
+				suc &= messageIndex.put(uid+".added_time", this.addedTime);
+			}
+
+			return suc;
+		}
+
+		public boolean delete() {
+			synchronized(messageIndex) {
+				messageIndex.remove(this.uid+".slot");
+				messageIndex.remove(this.uid+".first_send_time");
+				messageIndex.remove(this.uid+".last_send_time");
+			}
+
+			return this.file.delete();
+		}
+	}
+
 	private class HashSlotManager extends SlotManager {
 		HashSlotManager(SlotSaveCallback cb, Object userdata, String slotlist) {
 			super(cb, userdata, slotlist);
