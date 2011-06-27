@@ -568,6 +568,15 @@ public class Channel extends Postman {
 			baseKey += sendCode + "-";
 
 			for(QueuedMessage message : sendQueue) {
+				if(message.lastSendTime != -1) {
+					long timeSinceSent = System.currentTimeMillis() - message.lastSendTime;
+					if(timeSinceSent < 24 * 60 * 60 * 1000) {
+						//Don't resent just yet
+						executor.schedule(sender, (24 * 60 * 60 * 1000) - timeSinceSent, TimeUnit.MILLISECONDS);
+						continue;
+					}
+				}
+
 				Logger.debug(this, "Getting data stream");
 				InputStream data;
 				try {
