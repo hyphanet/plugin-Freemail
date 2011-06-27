@@ -192,7 +192,7 @@ public class Channel extends Postman {
 			}
 		}
 
-		File messageFile = new File(outbox, "message-" + messageId);
+		File messageFile = new File(outbox, "" + messageId);
 		if(messageFile.exists()) {
 			//TODO: Pick next message id?
 			Logger.error(this, "Message id already in use");
@@ -307,7 +307,7 @@ public class Channel extends Postman {
 			}
 		}
 
-		File messageFile = new File(outbox, "message-" + messageId);
+		File messageFile = new File(outbox, "" + messageId);
 		if(messageFile.exists()) {
 			//TODO: Pick next message id?
 			Logger.error(this, "Message id already in use");
@@ -1037,7 +1037,7 @@ public class Channel extends Postman {
 			}
 		}
 
-		File messageFile = new File(outbox, "message-" + messageId);
+		File messageFile = new File(outbox, "" + messageId);
 		if(messageFile.exists()) {
 			//TODO: Pick next message id?
 			Logger.error(this, "Message id already in use");
