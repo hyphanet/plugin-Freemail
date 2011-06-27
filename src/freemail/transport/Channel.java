@@ -577,6 +577,11 @@ public class Channel extends Postman {
 				if(!message.waitForAck) {
 					Logger.debug(this, "Deleting message");
 					message.delete();
+				} else {
+					message.lastSendTime = System.currentTimeMillis();
+					if(message.firstSendTime == -1) {
+						message.firstSendTime = message.lastSendTime;
+					}
 				}
 			}
 		}
