@@ -562,49 +562,13 @@ public class Channel extends Postman {
 					return;
 				}
 
-				while(true) {
-					String slot;
-					synchronized(channelProps) {
-						slot = channelProps.get(PropsKeys.SEND_SLOT);
-					}
-
-					Logger.debug(this, "Inserting data to " + baseKey + slot);
-					FCPInsertErrorMessage fcpMessage;
-					try {
-						fcpMessage = fcpClient.put(data, baseKey + slot);
-					} catch(FCPBadFileException e) {
-						Logger.debug(this, "Caugth " + e);
-						return;
-					} catch(ConnectionTerminatedException e) {
-						Logger.debug(this, "Caugth " + e);
-						return;
-					}
-
-					if(fcpMessage == null) {
-						Logger.debug(this, "Insert successful");
-						slot = calculateNextSlot(slot);
-						synchronized(channelProps) {
-							channelProps.put(PropsKeys.SEND_SLOT, slot);
-						}
-
-						break;
-					}
-
-					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-						slot = calculateNextSlot(slot);
-
-						//Write the new slot each round so we won't have
-						//to check all of them again if we fail
-						synchronized(channelProps) {
-							channelProps.put(PropsKeys.SEND_SLOT, slot);
-						}
-
-						Logger.debug(this, "Insert collided, trying slot " + slot);
+				try {
+					if(!insertMessage(baseKey, data)) {
 						continue;
 					}
-
-					Logger.debug(this, "Insert to slot " + slot + " failed: " + fcpMessage);
-					executor.schedule(sender, 5, TimeUnit.MINUTES);
+				} catch(FCPBadFileException e) {
+					continue;
+				} catch(ConnectionTerminatedException e) {
 					return;
 				}
 
@@ -612,6 +576,43 @@ public class Channel extends Postman {
 					Logger.debug(this, "Deleting message");
 					message.delete();
 				}
+			}
+		}
+
+		private boolean insertMessage(String baseKey, InputStream data) throws FCPBadFileException, ConnectionTerminatedException {
+			while(true) {
+				String slot;
+				synchronized(channelProps) {
+					slot = channelProps.get(PropsKeys.SEND_SLOT);
+				}
+
+				Logger.debug(this, "Inserting data to " + baseKey + slot);
+				FCPInsertErrorMessage fcpMessage = fcpClient.put(data, baseKey + slot);
+
+				if(fcpMessage == null) {
+					Logger.debug(this, "Insert successful");
+					slot = calculateNextSlot(slot);
+					synchronized(channelProps) {
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+					}
+
+					return true;
+				}
+
+				if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+					slot = calculateNextSlot(slot);
+
+					//Write the new slot each round so we won't have
+					//to check all of them again if we fail
+					synchronized(channelProps) {
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+					}
+
+					Logger.debug(this, "Insert collided, trying slot " + slot);
+					continue;
+				}
+
+				return false;
 			}
 		}
 
