@@ -207,6 +207,10 @@ public class Channel extends Postman {
 				return;
 			}
 
+			synchronized(messageIndex) {
+				messageIndex.put(messageId + ".waitForAck", "false");
+			}
+
 			OutputStream os = new FileOutputStream(messageFile);
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
 
@@ -316,6 +320,10 @@ public class Channel extends Postman {
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Couldn't create message file: " + messageFile);
 				return false;
+			}
+
+			synchronized(messageIndex) {
+				messageIndex.put(messageId + ".waitForAck", "true");
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
@@ -1021,6 +1029,10 @@ public class Channel extends Postman {
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Couldn't create message file: " + messageFile);
 				return;
+			}
+
+			synchronized(messageIndex) {
+				messageIndex.put(messageId + ".waitForAck", "false");
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
