@@ -37,8 +37,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -98,7 +96,6 @@ public class Channel extends Postman {
 
 	private final File channelDir;
 	private final PropsFile channelProps;
-	private final Set<Observer> observers = new HashSet<Observer>();
 	private final ScheduledExecutorService executor;
 	private final HighLevelFCPClient fcpClient;
 	private final Freemail freemail;
@@ -962,36 +959,6 @@ public class Channel extends Postman {
 
 			return rtsMessage;
 		}
-	}
-
-	/**
-	 * Adds an observer to this Channel.
-	 * @param observer the observer that should be added
-	 * @throws NullPointerException if {@code observer} is {@code null}
-	 */
-	public void addObserver(Observer observer) {
-		if(observer == null) throw new NullPointerException();
-
-		synchronized(observers) {
-			observers.add(observer);
-		}
-	}
-
-	/**
-	 * Removes an observer from this Channel.
-	 * @param observer the observer that should be removed
-	 */
-	public void removeObserver(Observer observer) {
-		//This is a bug in the caller, but leave it as an assert since it won't corrupt any state
-		assert (observer != null);
-
-		synchronized(observers) {
-			observers.remove(observer);
-		}
-	}
-
-	public interface Observer {
-		public void fetched(InputStream data);
 	}
 
 	private boolean handleMessage(File msg, MessageBank mb) throws ConnectionTerminatedException {
