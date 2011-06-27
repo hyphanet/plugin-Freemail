@@ -1108,18 +1108,18 @@ public class Channel extends Postman {
 		File[] files = outbox.listFiles();
 		List<QueuedMessage> messages = new LinkedList<QueuedMessage>();
 
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().equals(INDEX_NAME)) {
+		for(File file : files) {
+			if(file.getName().equals(INDEX_NAME)) {
 				continue;
 			}
 
 			int uid;
 			try {
-				uid = Integer.parseInt(files[i].getName());
+				uid = Integer.parseInt(file.getName());
 			} catch (NumberFormatException nfe) {
 				// how did that get there? just delete it
-				Logger.normal(this,"Found spurious file in send queue: '"+files[i].getName()+"' - deleting.");
-				files[i].delete();
+				Logger.normal(this,"Found spurious file in send queue: '"+file.getName()+"' - deleting.");
+				file.delete();
 				continue;
 			}
 
