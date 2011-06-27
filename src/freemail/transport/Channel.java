@@ -201,14 +201,21 @@ public class Channel extends Postman {
 			return;
 		}
 
+		QueuedMessage message;
 		try {
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Couldn't create message file: " + messageFile);
 				return;
 			}
 
+			message = new QueuedMessage(messageId);
+			message.addedTime = System.currentTimeMillis();
+			message.firstSendTime = -1;
+			message.lastSendTime = -1;
+			message.waitForAck = false;
+
 			synchronized(messageIndex) {
-				messageIndex.put(messageId + ".waitForAck", "false");
+				message.saveProps();
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
@@ -228,6 +235,7 @@ public class Channel extends Postman {
 			return;
 		}
 
+		message.setMessageFile(messageFile);
 		sender.execute();
 
 		return;
@@ -316,14 +324,21 @@ public class Channel extends Postman {
 			return false;
 		}
 
+		QueuedMessage queuedMessage;
 		try {
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Couldn't create message file: " + messageFile);
 				return false;
 			}
 
+			queuedMessage = new QueuedMessage(messageId);
+			queuedMessage.addedTime = System.currentTimeMillis();
+			queuedMessage.firstSendTime = -1;
+			queuedMessage.lastSendTime = -1;
+			queuedMessage.waitForAck = true;
+
 			synchronized(messageIndex) {
-				messageIndex.put(messageId + ".waitForAck", "true");
+				queuedMessage.saveProps();
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
@@ -353,6 +368,7 @@ public class Channel extends Postman {
 			return false;
 		}
 
+		queuedMessage.setMessageFile(messageFile);
 		sender.execute();
 
 		return true;
@@ -1032,14 +1048,21 @@ public class Channel extends Postman {
 			return;
 		}
 
+		QueuedMessage message;
 		try {
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Couldn't create message file: " + messageFile);
 				return;
 			}
 
+			message = new QueuedMessage(messageId);
+			message.addedTime = System.currentTimeMillis();
+			message.firstSendTime = -1;
+			message.lastSendTime = -1;
+			message.waitForAck = false;
+
 			synchronized(messageIndex) {
-				messageIndex.put(messageId + ".waitForAck", "false");
+				message.saveProps();
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
@@ -1060,6 +1083,7 @@ public class Channel extends Postman {
 			return;
 		}
 
+		message.setMessageFile(messageFile);
 		sender.execute();
 
 		return;
