@@ -1120,7 +1120,6 @@ public class Channel extends Postman {
 				// how did that get there? just delete it
 				Logger.normal(this,"Found spurious file in send queue: '"+files[i].getName()+"' - deleting.");
 				files[i].delete();
-				messages.add(null);
 				continue;
 			}
 
