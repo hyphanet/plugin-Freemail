@@ -1116,18 +1116,18 @@ public class Channel extends Postman {
 	}
 
 	private class QueuedMessage {
-		private final int uid;
+		private final long uid;
 		private long addedTime;
 		private long firstSendTime;
 		private long lastSendTime;
 		private boolean waitForAck;
 		private final File file;
 
-		private QueuedMessage(int uid) {
+		private QueuedMessage(long uid) {
 			this.uid = uid;
 
 			File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-			file = new File(outbox, Integer.toString(uid));
+			file = new File(outbox, Long.toString(uid));
 
 			String first;
 			String last;
