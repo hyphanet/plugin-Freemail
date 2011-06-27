@@ -567,8 +567,10 @@ public class Channel extends Postman {
 						continue;
 					}
 				} catch(FCPBadFileException e) {
+					//IOException while reading the InputStream, so try the next message
 					continue;
 				} catch(ConnectionTerminatedException e) {
+					//Connection is closed so the rest would also throw this
 					return;
 				}
 
