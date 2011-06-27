@@ -56,7 +56,6 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
 import freemail.AccountManager;
-import freemail.AckProcrastinator;
 import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.MessageBank;
