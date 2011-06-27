@@ -208,12 +208,12 @@ public class Channel extends Postman {
 				return;
 			}
 
+			synchronized(messageIndex) {
+				messageIndex.put(messageId + ".status", "unsent");
+			}
+
 			OutputStream os = new FileOutputStream(messageFile);
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
-
-			//First the local properties
-			pw.write("status=unsent\r\n");
-			pw.write("\r\n");
 
 			//Then what will be the header of the inserted message
 			pw.print("messagetype=cts\r\n");
@@ -1083,12 +1083,12 @@ public class Channel extends Postman {
 				return;
 			}
 
+			synchronized(messageIndex) {
+				messageIndex.put(messageId + ".status", "unsent");
+			}
+
 			OutputStream os = new FileOutputStream(messageFile);
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
-
-			//First the local properties
-			pw.write("status=unsent\r\n");
-			pw.write("\r\n");
 
 			//Then what will be the header of the inserted message
 			pw.print("messagetype=ack\r\n");
