@@ -1177,9 +1177,9 @@ public class Channel extends Postman {
 		public boolean saveProps() {
 			boolean suc = true;
 			synchronized(messageIndex) {
-				suc &= messageIndex.put(uid+".first_send_time", this.firstSendTime);
-				suc &= messageIndex.put(uid+".last_send_time", this.lastSendTime);
-				suc &= messageIndex.put(uid+".added_time", this.addedTime);
+				suc &= messageIndex.put(uid+".firstSendTime", this.firstSendTime);
+				suc &= messageIndex.put(uid+".lastSendTime", this.lastSendTime);
+				suc &= messageIndex.put(uid+".addedTime", this.addedTime);
 			}
 
 			return suc;
@@ -1188,8 +1188,8 @@ public class Channel extends Postman {
 		public boolean delete() {
 			synchronized(messageIndex) {
 				messageIndex.remove(this.uid+".slot");
-				messageIndex.remove(this.uid+".first_send_time");
-				messageIndex.remove(this.uid+".last_send_time");
+				messageIndex.remove(this.uid+".firstSendTime");
+				messageIndex.remove(this.uid+".lastSendTime");
 			}
 
 			return this.file.delete();
