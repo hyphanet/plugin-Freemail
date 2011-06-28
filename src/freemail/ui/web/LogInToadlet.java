@@ -29,6 +29,8 @@ import javax.naming.SizeLimitExceededException;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.utils.Logger;
+import freemail.wot.OwnIdentity;
+import freemail.wot.WoTConnection;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
@@ -41,11 +43,13 @@ import freenet.support.api.HTTPRequest;
 public class LogInToadlet extends WebPage {
 	private final AccountManager accountManager;
 	private final PluginRespirator pluginRespirator;
+	private final WoTConnection wotConnection;
 
-	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager, SessionManager sessionManager) {
+	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager, SessionManager sessionManager, WoTConnection wotConnection) {
 		super(client, pluginRespirator.getPageMaker(), sessionManager);
 		this.pluginRespirator = pluginRespirator;
 		this.accountManager = accountManager;
+		this.wotConnection = wotConnection;
 	}
 
 	@Override
@@ -82,6 +86,7 @@ public class LogInToadlet extends WebPage {
 		HTMLNode contentNode = page.content;
 
 		addLoginBox(contentNode);
+		addNewAccountBox(contentNode);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -100,6 +105,21 @@ public class LogInToadlet extends WebPage {
 			ownIdSelector.addChild("option", "value", account.getUsername(), nickname);
 		}
 		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Login" });
+	}
+
+	private void addNewAccountBox(HTMLNode parent) {
+		HTMLNode boxContent = addInfobox(parent, "Add account");
+
+		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
+		HTMLNode ownIdSelector = addAccountForm.addChild("select", "name", "OwnIdentityID");
+
+		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+			if(accountManager.getAccount(oid.getIdentityID()) == null) {
+				//FIXME: Nickname might be ambiguous
+				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
+			}
+		}
+		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Add account" });
 	}
 
 	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
