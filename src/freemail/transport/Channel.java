@@ -35,6 +35,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.SequenceInputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,8 +44,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.archive.util.Base32;
+import org.bouncycastle.crypto.AsymmetricBlockCipher;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
 
+import freemail.AccountManager;
 import freemail.AckProcrastinator;
 import freemail.Freemail;
 import freemail.FreemailAccount;
@@ -581,9 +587,17 @@ public class Channel extends Postman {
 			senderMailsiteKey = senderMailsiteKey + "/mailsite/0/mailpage";
 
 			//Now build the RTS
-			StringBuffer rtsmessage = buildRTSMessage(senderMailsiteKey, recipient.getIdentityID(), privateKey, initiatorSlot, responderSlot);
+			byte[] rtsMessageBytes = buildRTSMessage(senderMailsiteKey, recipient.getIdentityID(), privateKey, initiatorSlot, responderSlot);
+			if(rtsMessageBytes == null) {
+				return;
+			}
 
-			//TODO: Sign
+			//Sign the message
+			byte[] signedMessage = signRtsMessage(rtsMessageBytes);
+			if(signedMessage == null) {
+				return;
+			}
+
 			//TODO: Encrypt
 			//TODO: Insert
 			//TODO: Update channel props file
@@ -630,7 +644,7 @@ public class Channel extends Postman {
 			return 0;
 		}
 
-		private StringBuffer buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot) {
+		private byte[] buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot) {
 			StringBuffer rtsMessage = new StringBuffer();
 			rtsMessage.append("mailsite=" + senderMailsiteKey + "\r\n");
 			rtsMessage.append("to=" + recipientIdentityID + "\r\n");
@@ -638,7 +652,43 @@ public class Channel extends Postman {
 			rtsMessage.append("initiatorSlot=" + initiatorSlot + "\r\n");
 			rtsMessage.append("responderSlot=" + responderSlot + "\r\n");
 			rtsMessage.append("\r\n");
-			return rtsMessage;
+
+			byte[] rtsMessageBytes;
+			try {
+				rtsMessageBytes = rtsMessage.toString().getBytes("UTF-8");
+			} catch(UnsupportedEncodingException e) {
+				Logger.error(this, "JVM doesn't support UTF-8 charset");
+				e.printStackTrace();
+				return null;
+			}
+
+			return rtsMessageBytes;
+		}
+
+		private byte[] signRtsMessage(byte[] rtsMessageBytes) {
+			SHA256Digest sha256 = new SHA256Digest();
+			sha256.update(rtsMessageBytes, 0, rtsMessageBytes.length);
+			byte[] hash = new byte[sha256.getDigestSize()];
+			sha256.doFinal(hash, 0);
+
+			RSAKeyParameters ourPrivateKey = AccountManager.getPrivateKey(account.getProps());
+
+			AsymmetricBlockCipher signatureCipher = new RSAEngine();
+			signatureCipher.init(true, ourPrivateKey);
+			byte[] signature = null;
+			try {
+				signature = signatureCipher.processBlock(hash, 0, hash.length);
+			} catch(InvalidCipherTextException e) {
+				Logger.error(this, "Failed to RSA encrypt hash: " + e.getMessage());
+				e.printStackTrace();
+				return null;
+			}
+
+			byte[] signedMessage = new byte[rtsMessageBytes.length + signature.length];
+			System.arraycopy(rtsMessageBytes, 0, signedMessage, 0, rtsMessageBytes.length);
+			System.arraycopy(signature, 0, signedMessage, rtsMessageBytes.length, signature.length);
+
+			return signedMessage;
 		}
 	}
 
