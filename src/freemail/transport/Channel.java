@@ -36,6 +36,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -736,7 +737,24 @@ public class Channel extends Postman {
 				return null;
 			}
 
-			return encryptedMessage;
+			RSAKeyParameters recipientPublicKey = new RSAKeyParameters(false, new BigInteger(keyModulus, 32), new BigInteger(keyExponent, 32));
+			AsymmetricBlockCipher keyCipher = new RSAEngine();
+			keyCipher.init(true, recipientPublicKey);
+			byte[] encryptedAesParameters = null;
+			try {
+				encryptedAesParameters = keyCipher.processBlock(aesKeyAndIV, 0, aesKeyAndIV.length);
+			} catch(InvalidCipherTextException e) {
+				Logger.error(this, "Failed to perform asymmertic encryption on RTS symmetric key: " + e.getMessage());
+				e.printStackTrace();
+				return null;
+			}
+
+			//Assemble the final message
+			byte[] rtsMessage = new byte[encryptedAesParameters.length + encryptedMessage.length];
+			System.arraycopy(encryptedAesParameters, 0, rtsMessage, 0, encryptedAesParameters.length);
+			System.arraycopy(encryptedMessage, 0, rtsMessage, encryptedAesParameters.length, encryptedMessage.length);
+
+			return rtsMessage;
 		}
 	}
 
