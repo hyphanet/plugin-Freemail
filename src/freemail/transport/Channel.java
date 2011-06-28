@@ -105,12 +105,8 @@ public class Channel extends Postman {
 	private final HighLevelFCPClient fcpClient;
 	private final Freemail freemail;
 	private final FreemailAccount account;
-
-	private Fetcher fetcher;
-	private final Object fetcherLock = new Object();
-
-	private Sender sender;
-	private final Object senderLock = new Object();
+	private final Fetcher fetcher = new Fetcher();
+	private final Sender sender = new Sender();
 
 	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) {
 		if(executor == null) throw new NullPointerException();
@@ -249,13 +245,7 @@ public class Channel extends Postman {
 			return;
 		}
 
-		Sender s;
-		synchronized(senderLock) {
-			s = sender;
-		}
-		if(s != null) {
-			executor.execute(s);
-		}
+		executor.execute(sender);
 
 		return;
 	}
@@ -279,12 +269,7 @@ public class Channel extends Postman {
 		}
 
 		if((fetchSlot != null) && (isInitiator != null) && (publicKey != null)) {
-			Fetcher f;
-			synchronized(fetcherLock) {
-				fetcher = new Fetcher();
-				f = fetcher;
-			}
-			executor.execute(f);
+			executor.submit(fetcher);
 		}
 	}
 
@@ -300,12 +285,7 @@ public class Channel extends Postman {
 		}
 
 		if((sendSlot != null) && (isInitiator != null) && (privateKey != null)) {
-			Sender s;
-			synchronized(senderLock) {
-				sender = new Sender();
-				s = sender;
-			}
-			executor.execute(s);
+			executor.submit(sender);
 		}
 	}
 
@@ -386,13 +366,7 @@ public class Channel extends Postman {
 			return false;
 		}
 
-		Sender s;
-		synchronized(senderLock) {
-			s = sender;
-		}
-		if(s != null) {
-			executor.execute(s);
-		}
+		executor.execute(sender);
 
 		return true;
 	}
