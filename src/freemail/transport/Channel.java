@@ -88,11 +88,12 @@ public class Channel extends Postman {
 		private static final String PUBLIC_KEY = "publicKey";
 		private static final String FETCH_SLOT = "fetchSlot";
 		private static final String SEND_SLOT = "sendSlot";
-		private static final String IS_INITIATOR = "isInitiator";
 		private static final String MESSAGE_ID = "messageId";
 		private static final String SENDER_STATE = "sender-state";
 		private static final String RECIPIENT_STATE = "recipient-state";
 		private static final String RTS_SENT_AT = "rts-sent-at";
+		private static final String SEND_CODE = "sendCode";
+		private static final String FETCH_CODE = "fetchCode";
 	}
 
 	private final File channelDir;
@@ -143,13 +144,6 @@ public class Channel extends Postman {
 		//TODO: Handle cases where we get a second RTS
 
 		synchronized(channelProps) {
-			if(channelProps.get(PropsKeys.IS_INITIATOR) == null) {
-				Logger.debug(this, "Setting " + PropsKeys.IS_INITIATOR + " to false");
-				channelProps.put(PropsKeys.IS_INITIATOR, "false");
-			} else {
-				Logger.debug(this, PropsKeys.IS_INITIATOR + " is already set to " + channelProps.get(PropsKeys.IS_INITIATOR));
-			}
-
 			if(channelProps.get(PropsKeys.PRIVATE_KEY) == null) {
 				Logger.debug(this, "Setting " + PropsKeys.PRIVATE_KEY + " to " + rtsProps.get("channel"));
 				channelProps.put(PropsKeys.PRIVATE_KEY, rtsProps.get("channel"));
@@ -158,6 +152,11 @@ public class Channel extends Postman {
 			}
 
 			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
+			channelProps.put(PropsKeys.FETCH_CODE, "i");
+
+			if(channelProps.get(PropsKeys.SEND_CODE) == null) {
+				channelProps.put(PropsKeys.SEND_CODE, "r");
+			}
 
 			if(channelProps.get(PropsKeys.SEND_SLOT) == null) {
 				Logger.debug(this, "Setting " + PropsKeys.SEND_SLOT + " to " + rtsProps.get("responderSlot"));
@@ -252,15 +251,15 @@ public class Channel extends Postman {
 	private void startFetcher() {
 		//Start fetcher if possible
 		String fetchSlot;
-		String isInitiator;
+		String fetchCode;
 		String publicKey;
 		synchronized(channelProps) {
 			fetchSlot = channelProps.get(PropsKeys.FETCH_SLOT);
-			isInitiator = channelProps.get(PropsKeys.IS_INITIATOR);
+			fetchCode = channelProps.get(PropsKeys.FETCH_CODE);
 			publicKey = channelProps.get(PropsKeys.PUBLIC_KEY);
 		}
 
-		if((fetchSlot != null) && (isInitiator != null) && (publicKey != null)) {
+		if((fetchSlot != null) && (fetchCode != null) && (publicKey != null)) {
 			executor.submit(fetcher);
 		}
 	}
@@ -268,15 +267,15 @@ public class Channel extends Postman {
 	private void startSender() {
 		//Start sender if possible
 		String sendSlot;
-		String isInitiator;
+		String sendCode;
 		String privateKey;
 		synchronized(channelProps) {
 			sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
-			isInitiator = channelProps.get(PropsKeys.IS_INITIATOR);
+			sendCode = channelProps.get(PropsKeys.SEND_CODE);
 			privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 		}
 
-		if((sendSlot != null) && (isInitiator != null) && (privateKey != null)) {
+		if((sendSlot != null) && (sendCode != null) && (privateKey != null)) {
 			executor.submit(sender);
 		}
 	}
@@ -408,25 +407,17 @@ public class Channel extends Postman {
 				return;
 			}
 
-			String isInitiator;
+			String fetchCode;
 			synchronized(channelProps) {
-				isInitiator = channelProps.get(PropsKeys.IS_INITIATOR);
+				fetchCode = channelProps.get(PropsKeys.FETCH_CODE);
 			}
 
-			if(isInitiator == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.IS_INITIATOR + "' entry!");
+			if(fetchCode == null) {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.FETCH_CODE + "' entry!");
 				//TODO: Either delete the channel or resend the RTS
 				return;
 			}
-			if(isInitiator.equalsIgnoreCase("true")) {
-				basekey += "i-";
-			} else if(isInitiator.equalsIgnoreCase("false")) {
-				basekey += "r-";
-			} else {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - '" + PropsKeys.IS_INITIATOR + "' entry contains an invalid value: " + isInitiator);
-				//TODO: Either delete the channel or resend the RTS
-				return;
-			}
+			basekey += fetchCode + "-";
 
 			String slot;
 			while((slot = slotManager.getNextSlot()) != null) {
@@ -696,7 +687,8 @@ public class Channel extends Postman {
 				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
 				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
 				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
-				channelProps.put(PropsKeys.IS_INITIATOR, "true");
+				channelProps.put(PropsKeys.SEND_CODE, "i");
+				channelProps.put(PropsKeys.FETCH_CODE, "r");
 			}
 
 			//Get the senders mailsite key
