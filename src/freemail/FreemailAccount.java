@@ -57,7 +57,7 @@ public class FreemailAccount {
 		}
 
 		for(File f : channelDir.listFiles()) {
-			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail);
+			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
 			channel.startTasks();
 			channels.put(f.getName(), channel);
 		}
@@ -109,7 +109,7 @@ public class FreemailAccount {
 				return null;
 			}
 
-			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail);
+			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
 			channel.startTasks();
 			channels.put(remoteIdentity, channel);
 		}
