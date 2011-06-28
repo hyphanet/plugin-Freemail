@@ -146,9 +146,14 @@ public class Channel extends Postman {
 		Logger.debug(this, "Processing RTS");
 
 		//TODO: Set public key using private key
-		//TODO: Handle cases where we get a second RTS
 
 		synchronized(channelProps) {
+			if(channelProps.get(PropsKeys.RECIPIENT_STATE) == null) {
+				channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
+			} else {
+				return;
+			}
+
 			if(channelProps.get(PropsKeys.PRIVATE_KEY) == null) {
 				channelProps.put(PropsKeys.PRIVATE_KEY, rtsProps.get("channel"));
 			}
@@ -166,10 +171,6 @@ public class Channel extends Postman {
 
 			if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
 				channelProps.put(PropsKeys.MESSAGE_ID, "0");
-			}
-
-			if(channelProps.get(PropsKeys.RECIPIENT_STATE) == null) {
-				channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
 			}
 		}
 
