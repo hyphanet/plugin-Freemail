@@ -45,6 +45,7 @@ import org.archive.util.Base32;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 
 import freemail.AckProcrastinator;
+import freemail.Freemail;
 import freemail.MessageBank;
 import freemail.Postman;
 import freemail.SlotManager;
@@ -82,6 +83,7 @@ public class Channel extends Postman {
 	private final Set<Observer> observers = new HashSet<Observer>();
 	private final ScheduledExecutorService executor;
 	private final HighLevelFCPClient fcpClient;
+	private final Freemail freemail;
 
 	private Fetcher fetcher;
 	private final Object fetcherLock = new Object();
@@ -89,11 +91,14 @@ public class Channel extends Postman {
 	private Sender sender;
 	private final Object senderLock = new Object();
 
-	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient) {
+	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail) {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
 		this.fcpClient = fcpClient;
+
+		if(freemail == null) throw new NullPointerException();
+		this.freemail = freemail;
 
 		assert channelDir.isDirectory();
 		this.channelDir = channelDir;

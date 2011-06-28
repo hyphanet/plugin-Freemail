@@ -92,7 +92,7 @@ public abstract class Freemail implements ConfigClient {
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
-		accountManager = new AccountManager(datadir);
+		accountManager = new AccountManager(datadir, this);
 		
 		sender = new MessageSender(accountManager);
 		

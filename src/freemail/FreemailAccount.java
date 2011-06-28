@@ -39,12 +39,14 @@ public class FreemailAccount {
 	private final PropsFile accprops;
 	private final MessageBank mb;
 	private final Map<String, Channel> channels = new HashMap<String, Channel>();
+	private final Freemail freemail;
 	
-	FreemailAccount(String identity, File _accdir, PropsFile _accprops) {
+	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
 		this.identity = identity;
 		accdir = _accdir;
 		accprops = _accprops;
 		mb = new MessageBank(this);
+		this.freemail = freemail;
 
 		//Create and start all the channels
 		File channelDir = new File(accdir, "channels");
@@ -55,7 +57,7 @@ public class FreemailAccount {
 		}
 
 		for(File f : channelDir.listFiles()) {
-			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient());
+			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail);
 			channel.startTasks();
 			channels.put(f.getName(), channel);
 		}
@@ -107,7 +109,7 @@ public class FreemailAccount {
 				return null;
 			}
 
-			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient());
+			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail);
 			channel.startTasks();
 			channels.put(remoteIdentity, channel);
 		}

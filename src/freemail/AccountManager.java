@@ -77,12 +77,16 @@ public class AccountManager {
 	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
 
 	private final File datadir;
+	private final Freemail freemail;
 	
-	public AccountManager(File _datadir) {
+	public AccountManager(File _datadir, Freemail freemail) {
 		datadir = _datadir;
 		if (!datadir.exists()) {
 			datadir.mkdir();
 		}
+
+		if(freemail == null) throw new NullPointerException();
+		this.freemail = freemail;
 
 		for(File accountDir : datadir.listFiles()) {
 			if(!accountDir.isDirectory()) {
@@ -94,7 +98,7 @@ public class AccountManager {
 				Logger.error(this, "Couldn't initialise account from directory '"+accountDir.getName()+"' - ignoring.");
 				continue;
 			}
-			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile);
+			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile, freemail);
 			account.setNickname(accFile.get("nickname"));
 			accounts.put(accountDir.getName(), account);
 
@@ -367,7 +371,7 @@ public class AccountManager {
 			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
 			initAccFile(accProps);
 
-			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps, freemail);
 			account.setNickname(oid.getNickname());
 			try {
 				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getAddressDomain()));
@@ -377,7 +381,7 @@ public class AccountManager {
 			}
 		} else {
 			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
-			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps);
+			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps, freemail);
 			account.setNickname(oid.getNickname());
 		}
 
