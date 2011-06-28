@@ -104,6 +104,7 @@ public class Channel extends Postman {
 	private final FreemailAccount account;
 	private final Fetcher fetcher = new Fetcher();
 	private final Sender sender = new Sender();
+	private final RTSSender rtsSender = new RTSSender();
 	private final PropsFile messageIndex;
 
 	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) {
@@ -290,7 +291,7 @@ public class Channel extends Postman {
 			return;
 		}
 
-		new RTSSender().execute();
+		rtsSender.execute();
 	}
 
 	/**
