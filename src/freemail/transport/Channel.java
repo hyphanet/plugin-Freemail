@@ -57,6 +57,8 @@ import freemail.fcp.FCPInsertErrorMessage;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
+import freemail.wot.Identity;
+import freemail.wot.WoTConnection;
 import freenet.support.SimpleFieldSet;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
@@ -479,7 +481,47 @@ public class Channel extends Postman {
 				return;
 			}
 
-			//TODO: Send RTS
+			//Get mailsite key from WoT
+			WoTConnection wotConnection = freemail.getWotConnection();
+			if(wotConnection == null) {
+				//WoT isn't loaded, so try again later
+				Logger.debug(this, "WoT not loaded, trying again in 5 minutes");
+				executor.schedule(this, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			//FIXME: Get the truster id in a better way
+			Identity recipient = wotConnection.getIdentity(channelDir.getName(), channelDir.getParentFile().getParentFile().getName());
+			if(recipient == null) {
+				Logger.debug(this, "Trying again in 5 minutes");
+				executor.schedule(this, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			//Strip the WoT part from the key and add the Freemail path
+			String mailsiteKey = recipient.getRequestURI();
+			mailsiteKey = mailsiteKey.substring(0, mailsiteKey.indexOf("/"));
+			mailsiteKey = mailsiteKey + "/mailsite/0/mailpage";
+
+			//Fetch the mailsite
+			File mailsite;
+			try {
+				mailsite = fcpClient.fetch(mailsiteKey);
+			} catch(ConnectionTerminatedException e) {
+				Logger.debug(this, "FCP connection has been terminated");
+				return;
+			} catch(FCPFetchException e) {
+				Logger.debug(this, "Mailsite fetch failed (" + e + "), trying again in 5 minutes");
+				executor.schedule(this, 5, TimeUnit.MINUTES);
+				return;
+			}
+
+			//TODO: Get RTS KSK
+			//TODO: Generate RTS values
+			//TODO: Sign
+			//TODO: Encrypt
+			//TODO: Insert
+			//TODO: Update channel props file
 		}
 
 		/**
