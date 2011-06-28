@@ -593,9 +593,11 @@ public class Channel extends Postman {
 					}
 				} catch(FCPBadFileException e) {
 					//IOException while reading the InputStream, so try the next message
+					Logger.debug(this, "Caugth " + e);
 					continue;
 				} catch(ConnectionTerminatedException e) {
 					//Connection is closed so the rest would also throw this
+					Logger.debug(this, "Caugth " + e);
 					return;
 				}
 
