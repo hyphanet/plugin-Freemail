@@ -36,6 +36,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 import java.security.SecureRandom;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,6 +74,8 @@ import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
+import freenet.keys.FreenetURI;
+import freenet.keys.InsertableClientSSK;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -154,8 +157,18 @@ public class Channel extends Postman {
 				return;
 			}
 
+			InsertableClientSSK privateKey;
+			try {
+				FreenetURI privateURI = new FreenetURI(rtsProps.get("channel"));
+				privateKey = InsertableClientSSK.create(privateURI);
+			} catch(MalformedURLException e) {
+				Logger.debug(this, "RTS contained malformed private key");
+				return;
+			}
+
 			if(channelProps.get(PropsKeys.PRIVATE_KEY) == null) {
-				channelProps.put(PropsKeys.PRIVATE_KEY, rtsProps.get("channel"));
+				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey.getInsertURI().toString());
+				channelProps.put(PropsKeys.PUBLIC_KEY, privateKey.getURI().toString());
 			}
 
 			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
