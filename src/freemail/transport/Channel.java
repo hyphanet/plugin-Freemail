@@ -531,27 +531,27 @@ public class Channel extends Postman {
 				return;
 			}
 
+			String baseKey;
+			synchronized(channelProps) {
+				baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+			}
+			if(baseKey == null) {
+				Logger.debug(this, "Can't insert, missing private key");
+				return;
+			}
+
+			String sendCode;
+			synchronized(channelProps) {
+				sendCode = channelProps.get(PropsKeys.SEND_CODE);
+			}
+			if(sendCode == null) {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
+				//TODO: Either delete the channel or resend the RTS
+				return;
+			}
+			baseKey += sendCode + "-";
+
 			for(QueuedMessage message : sendQueue) {
-				String baseKey;
-				synchronized(channelProps) {
-					baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-				}
-				if(baseKey == null) {
-					Logger.debug(this, "Can't insert, missing private key");
-					return;
-				}
-
-				String sendCode;
-				synchronized(channelProps) {
-					sendCode = channelProps.get(PropsKeys.SEND_CODE);
-				}
-				if(sendCode == null) {
-					Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
-					//TODO: Either delete the channel or resend the RTS
-					return;
-				}
-				baseKey += sendCode + "-";
-
 				Logger.debug(this, "Getting data stream");
 				InputStream data;
 				try {
