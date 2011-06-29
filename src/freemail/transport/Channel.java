@@ -80,6 +80,7 @@ public class Channel extends Postman {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
 	private static final String OUTBOX_DIR_NAME = "outbox";
+	private static final String INDEX_NAME = "index";
 
 	//The keys used in the props file
 	private static class PropsKeys {
@@ -104,6 +105,7 @@ public class Channel extends Postman {
 	private final FreemailAccount account;
 	private final Fetcher fetcher = new Fetcher();
 	private final Sender sender = new Sender();
+	private final PropsFile messageIndex;
 
 	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) {
 		if(executor == null) throw new NullPointerException();
@@ -134,6 +136,10 @@ public class Channel extends Postman {
 		if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
 			channelProps.put(PropsKeys.MESSAGE_ID, "0");
 		}
+
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		File indexFile = new File(outbox, INDEX_NAME);
+		messageIndex = PropsFile.createPropsFile(indexFile);
 	}
 
 	public void processRTS(PropsFile rtsProps) {
@@ -317,10 +323,14 @@ public class Channel extends Postman {
 				return false;
 			}
 
+			synchronized(messageIndex) {
+				messageIndex.put(messageId + ".status", "unsent");
+			}
+
 			OutputStream os = new FileOutputStream(messageFile);
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
 
-			//Write the header that will be sent later
+			//Then what will be the header of the inserted message
 			pw.print("messagetype=message\r\n");
 			pw.print("id=" + messageId + "\r\n");
 			pw.print("\r\n");
