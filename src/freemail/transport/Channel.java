@@ -606,7 +606,10 @@ public class Channel extends Postman {
 				return;
 			}
 
-			message.delete();
+			if(!message.waitForAck) {
+				Logger.debug(this, "Deleting message");
+				message.delete();
+			}
 
 			//Check for more messages
 			executor.execute(sender);
@@ -1110,6 +1113,7 @@ public class Channel extends Postman {
 		private long addedTime;
 		private long firstSendTime;
 		private long lastSendTime;
+		private boolean waitForAck;
 		private final File file;
 
 		private QueuedMessage(int uid) {
@@ -1121,10 +1125,12 @@ public class Channel extends Postman {
 			String first;
 			String last;
 			String added;
+			String wait;
 			synchronized(messageIndex) {
 				first = messageIndex.get(uid+".firstSendTime");
 				last = messageIndex.get(uid+".lastSendTime");
 				added = messageIndex.get(uid+".addedTime");
+				wait = messageIndex.get(uid+".waitForAck");
 			}
 
 			if(first == null) {
@@ -1144,6 +1150,8 @@ public class Channel extends Postman {
 			} else {
 				this.addedTime = Long.parseLong(added);
 			}
+
+			waitForAck = Boolean.parseBoolean(wait);
 		}
 
 		public boolean setMessageFile(File newfile) {
@@ -1166,6 +1174,7 @@ public class Channel extends Postman {
 				messageIndex.remove(this.uid+".slot");
 				messageIndex.remove(this.uid+".firstSendTime");
 				messageIndex.remove(this.uid+".lastSendTime");
+				messageIndex.remove(uid + ".waitForAck");
 			}
 
 			return this.file.delete();
