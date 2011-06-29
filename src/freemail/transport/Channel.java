@@ -525,35 +525,12 @@ public class Channel extends Postman {
 		}
 
 		private void realRun() {
-			//Get a message from the outbox
-			File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-			if(!outbox.exists()) {
-				Logger.debug(this, "Outbox directory doesn't exist, so no messages to send");
-				return;
-			}
-
-			File[] messages = outbox.listFiles();
-			if(messages == null) {
-				Logger.error(this, "Couldn't list messages in the outbox, trying again later");
-				executor.schedule(sender, 5, TimeUnit.MINUTES);
-				return;
-			}
-
-			//Pick the first message
-			File message = null;
-			for(File msg : messages) {
-				if(msg.isFile()) {
-					message = msg;
-					Logger.debug(this, "Sending " + message);
-					break;
-				}
-
-				Logger.debug(this, "Unexpected file in outbox: " + msg);
-			}
-			if(message == null) {
+			List<QueuedMessage> sendQueue = getSendQueue();
+			if(sendQueue.isEmpty()) {
 				Logger.debug(this, "Didn't find any messages to send");
 				return;
 			}
+			QueuedMessage message = sendQueue.get(0);
 
 			String baseKey;
 			synchronized(channelProps) {
@@ -577,8 +554,7 @@ public class Channel extends Postman {
 
 			InputStream data;
 			try {
-				//TODO: Read past the header
-				data = new FileInputStream(message);
+				data = new FileInputStream(message.file);
 			} catch(FileNotFoundException e1) {
 				Logger.debug(this, "Message file deleted after listing files, trying again later");
 				executor.schedule(sender, 5, TimeUnit.MINUTES);
