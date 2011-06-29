@@ -224,7 +224,7 @@ public class Channel extends Postman {
 			return;
 		}
 
-		executor.execute(sender);
+		sender.execute();
 
 		return;
 	}
@@ -248,7 +248,7 @@ public class Channel extends Postman {
 		}
 
 		if((fetchSlot != null) && (fetchCode != null) && (publicKey != null)) {
-			executor.submit(fetcher);
+			fetcher.execute();
 		}
 	}
 
@@ -264,7 +264,7 @@ public class Channel extends Postman {
 		}
 
 		if((sendSlot != null) && (sendCode != null) && (privateKey != null)) {
-			executor.submit(sender);
+			sender.execute();
 		}
 	}
 
@@ -278,7 +278,7 @@ public class Channel extends Postman {
 			return;
 		}
 
-		executor.execute(new RTSSender());
+		new RTSSender().execute();
 	}
 
 	/**
@@ -345,7 +345,7 @@ public class Channel extends Postman {
 			return false;
 		}
 
-		executor.execute(sender);
+		sender.execute();
 
 		return true;
 	}
@@ -476,6 +476,10 @@ public class Channel extends Postman {
 			//Reschedule
 			executor.schedule(fetcher, 5, TimeUnit.MINUTES);
 		}
+
+		public void execute() {
+			executor.execute(fetcher);
+		}
 	}
 
 	private class Sender implements Runnable {
@@ -593,6 +597,10 @@ public class Channel extends Postman {
 			//Check for more messages
 			executor.execute(sender);
 			return;
+		}
+
+		public void execute() {
+			executor.execute(sender);
 		}
 	}
 
@@ -763,6 +771,10 @@ public class Channel extends Postman {
 			}
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
 			executor.schedule(this, delay, TimeUnit.MILLISECONDS);
+		}
+
+		public void execute() {
+			executor.execute(this);
 		}
 
 		/**
