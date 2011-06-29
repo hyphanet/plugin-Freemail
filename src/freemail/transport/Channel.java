@@ -532,88 +532,91 @@ public class Channel extends Postman {
 			}
 			QueuedMessage message = sendQueue.get(0);
 
-			String baseKey;
-			synchronized(channelProps) {
-				baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-			}
-			if(baseKey == null) {
-				Logger.debug(this, "Can't insert, missing private key");
-				return;
-			}
-
-			String sendCode;
-			synchronized(channelProps) {
-				sendCode = channelProps.get(PropsKeys.SEND_CODE);
-			}
-			if(sendCode == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
-				//TODO: Either delete the channel or resend the RTS
-				return;
-			}
-			baseKey += sendCode + "-";
-
-			InputStream data;
-			try {
-				data = new FileInputStream(message.file);
-			} catch(FileNotFoundException e1) {
-				Logger.debug(this, "Message file deleted after listing files, trying again later");
-				executor.schedule(sender, 5, TimeUnit.MINUTES);
-				return;
-			}
-
-			while(true) {
-				String slot;
+				String baseKey;
 				synchronized(channelProps) {
-					slot = channelProps.get(PropsKeys.SEND_SLOT);
+					baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+				}
+				if(baseKey == null) {
+					Logger.debug(this, "Can't insert, missing private key");
+					return;
 				}
 
-				Logger.debug(this, "Inserting data to " + baseKey + slot);
-				FCPInsertErrorMessage fcpMessage;
+				String sendCode;
+				synchronized(channelProps) {
+					sendCode = channelProps.get(PropsKeys.SEND_CODE);
+				}
+				if(sendCode == null) {
+					Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
+					//TODO: Either delete the channel or resend the RTS
+					return;
+				}
+				baseKey += sendCode + "-";
+
+				Logger.debug(this, "Getting data stream");
+				InputStream data;
 				try {
-					fcpMessage = fcpClient.put(data, baseKey + slot);
-				} catch(FCPBadFileException e) {
-					Logger.debug(this, "Caugth " + e);
-					return;
-				} catch(ConnectionTerminatedException e) {
-					Logger.debug(this, "Caugth " + e);
+					data = new FileInputStream(message.file);
+				} catch(FileNotFoundException e1) {
+					Logger.debug(this, "Message file deleted after listing files, trying again later");
+					executor.schedule(sender, 5, TimeUnit.MINUTES);
 					return;
 				}
 
-				if(fcpMessage == null) {
-					slot = calculateNextSlot(slot);
+				while(true) {
+					String slot;
 					synchronized(channelProps) {
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
+						slot = channelProps.get(PropsKeys.SEND_SLOT);
 					}
 
-					break;
-				}
-
-				if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-					slot = calculateNextSlot(slot);
-
-					//Write the new slot each round so we won't have
-					//to check all of them again if we fail
-					synchronized(channelProps) {
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
+					Logger.debug(this, "Inserting data to " + baseKey + slot);
+					FCPInsertErrorMessage fcpMessage;
+					try {
+						fcpMessage = fcpClient.put(data, baseKey + slot);
+					} catch(FCPBadFileException e) {
+						Logger.debug(this, "Caugth " + e);
+						return;
+					} catch(ConnectionTerminatedException e) {
+						Logger.debug(this, "Caugth " + e);
+						return;
 					}
 
-					Logger.debug(this, "Insert collided, trying slot " + slot);
-					continue;
+					if(fcpMessage == null) {
+						Logger.debug(this, "Insert successful");
+						slot = calculateNextSlot(slot);
+						synchronized(channelProps) {
+							channelProps.put(PropsKeys.SEND_SLOT, slot);
+						}
+
+						break;
+					}
+
+					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+						slot = calculateNextSlot(slot);
+
+						//Write the new slot each round so we won't have
+						//to check all of them again if we fail
+						synchronized(channelProps) {
+							channelProps.put(PropsKeys.SEND_SLOT, slot);
+						}
+
+						Logger.debug(this, "Insert collided, trying slot " + slot);
+						continue;
+					}
+
+					Logger.debug(this, "Insert to slot " + slot + " failed: " + fcpMessage);
+					executor.schedule(sender, 5, TimeUnit.MINUTES);
+					return;
 				}
 
-				Logger.debug(this, "Insert to slot " + slot + " failed: " + fcpMessage);
-				executor.schedule(sender, 5, TimeUnit.MINUTES);
+				if(!message.waitForAck) {
+					Logger.debug(this, "Deleting message");
+					message.delete();
+				}
+
+				//Check for more messages
+				Logger.debug(this, "Rescheduling sender");
+				executor.execute(sender);
 				return;
-			}
-
-			if(!message.waitForAck) {
-				Logger.debug(this, "Deleting message");
-				message.delete();
-			}
-
-			//Check for more messages
-			executor.execute(sender);
-			return;
 		}
 
 		public void execute() {
