@@ -530,8 +530,8 @@ public class Channel extends Postman {
 				Logger.debug(this, "Didn't find any messages to send");
 				return;
 			}
-			QueuedMessage message = sendQueue.get(0);
 
+			for(QueuedMessage message : sendQueue) {
 				String baseKey;
 				synchronized(channelProps) {
 					baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
@@ -612,11 +612,7 @@ public class Channel extends Postman {
 					Logger.debug(this, "Deleting message");
 					message.delete();
 				}
-
-				//Check for more messages
-				Logger.debug(this, "Rescheduling sender");
-				executor.execute(sender);
-				return;
+			}
 		}
 
 		public void execute() {
