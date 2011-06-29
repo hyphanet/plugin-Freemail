@@ -478,6 +478,7 @@ public class Channel extends Postman {
 		}
 
 		public void execute() {
+			Logger.debug(this, "Scheduling Fetcher for execution");
 			executor.execute(fetcher);
 		}
 	}
@@ -600,6 +601,7 @@ public class Channel extends Postman {
 		}
 
 		public void execute() {
+			Logger.debug(this, "Scheduling Sender for execution");
 			executor.execute(sender);
 		}
 	}
@@ -774,6 +776,7 @@ public class Channel extends Postman {
 		}
 
 		public void execute() {
+			Logger.debug(this, "Scheduling RTSSender for execution");
 			executor.execute(this);
 		}
 
