@@ -521,6 +521,17 @@ public class Channel extends Postman {
 				return;
 			}
 
+			String sendCode;
+			synchronized(channelProps) {
+				sendCode = channelProps.get(PropsKeys.SEND_CODE);
+			}
+			if(sendCode == null) {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
+				//TODO: Either delete the channel or resend the RTS
+				return;
+			}
+			baseKey += sendCode + "-";
+
 			InputStream data;
 			try {
 				//TODO: Read past the header
