@@ -21,8 +21,12 @@
 package freemail.ui.web;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashSet;
@@ -142,13 +146,22 @@ public class NewMessageToadlet extends WebPage {
 			return;
 		}
 
+		//Build message header
+		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
+		//TODO: Check for newlines etc.
+		//TODO: Add date
+		String messageHeader =
+			"Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n" +
+			"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getUsername() + ".freemail>\r\n" +
+			"To: " + getBucketAsString(b) + "\r\n" +
+			"\r\n";
+		InputStream messageHeaderStream = new ByteArrayInputStream(messageHeader.getBytes("UTF-8"));
+
 		for(Identity identity : matches) {
-			FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 			Channel channel = account.getChannel(identity.getIdentityID());
 
-			//TODO: Add the proper email headers
 			Bucket messageText = req.getPart("message-text");
-			channel.sendMessage(messageText.getInputStream());
+			channel.sendMessage(new SequenceInputStream(messageHeaderStream, messageText.getInputStream()));
 		}
 
 		HTMLNode pageNode = page.outer;
@@ -158,6 +171,37 @@ public class NewMessageToadlet extends WebPage {
 		infobox.addChild("p", "Your message was sent");
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private String getBucketAsString(Bucket b) {
+		InputStream is;
+		try {
+			is = b.getInputStream();
+		} catch(IOException e1) {
+			return null;
+		}
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+		byte[] buffer = new byte[1024];
+		while(true) {
+			int read;
+			try {
+				read = is.read(buffer);
+			} catch(IOException e) {
+				return null;
+			}
+			if(read == -1) {
+				break;
+			}
+
+			baos.write(buffer, 0, read);
+		}
+
+		try {
+			return new String(baos.toByteArray(), "UTF-8");
+		} catch(UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 
 	/**
