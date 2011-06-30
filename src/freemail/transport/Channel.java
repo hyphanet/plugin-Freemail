@@ -1151,6 +1151,9 @@ public class Channel extends Postman {
 		File[] files = outbox.listFiles();
 		List<QueuedMessage> messages = new LinkedList<QueuedMessage>();
 
+		if(files == null) {
+			return messages;
+		}
 		for(File file : files) {
 			if(file.getName().equals(INDEX_NAME)) {
 				continue;
