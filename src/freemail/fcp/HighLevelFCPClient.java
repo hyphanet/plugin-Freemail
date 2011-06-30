@@ -178,6 +178,10 @@ public class HighLevelFCPClient implements FCPClient {
 		FileInputStream fis;
 		if(basekey.startsWith("USK@")) {
 			basekey = basekey.replace("USK@", "SSK@");
+
+			if(basekey.charAt(basekey.length() - 1) == '/') {
+				basekey = basekey.substring(0, basekey.length() - 1);
+			}
 		}
 		while (carryon) {
 			Logger.normal(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
@@ -215,6 +219,10 @@ public class HighLevelFCPClient implements FCPClient {
 		ByteArrayInputStream bis;
 		if(basekey.startsWith("USK@")) {
 			basekey = basekey.replace("USK@", "SSK@");
+
+			if(basekey.charAt(basekey.length() - 1) == '/') {
+				basekey = basekey.substring(0, basekey.length() - 1);
+			}
 		}
 		while (carryon) {
 			Logger.normal(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
