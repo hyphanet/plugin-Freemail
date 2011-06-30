@@ -162,7 +162,7 @@ public class Channel extends Postman {
 				FreenetURI privateURI = new FreenetURI(rtsProps.get("channel"));
 				privateKey = InsertableClientSSK.create(privateURI);
 			} catch(MalformedURLException e) {
-				Logger.debug(this, "RTS contained malformed private key");
+				Logger.debug(this, "RTS contained malformed private key: " + rtsProps.get("channel"));
 				return;
 			}
 
