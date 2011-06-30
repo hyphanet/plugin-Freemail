@@ -458,7 +458,14 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		if (rts.get("mailsite") == null) {
 			missing.append("mailsite, ");
+		} else {
+			String mailsite = rts.get("mailsite");
+			if(!mailsite.matches("^USK@\\S{43,44},\\S{43,44},\\S{7}/\\w+/-?[0-9]+/.*$")) {
+				Logger.error(this, "RTS contains malformed mailsite key: " + mailsite);
+				throw new Exception();
+			}
 		}
+
 		if (rts.get("to") == null) {
 			missing.append("to, ");
 		}
