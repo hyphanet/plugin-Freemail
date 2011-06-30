@@ -151,7 +151,13 @@ public class NewMessageToadlet extends WebPage {
 			channel.sendMessage(messageText.getInputStream());
 		}
 
-		writeHTMLReply(ctx, 200, "OK", "Message sent");
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
+
+		HTMLNode infobox = addInfobox(contentNode, "Message sent");
+		infobox.addChild("p", "Your message was sent");
+
+		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
 	/**
