@@ -469,9 +469,17 @@ public class RTSFetcher implements SlotSaveCallback {
 		if (rts.get("to") == null) {
 			missing.append("to, ");
 		}
+
 		if (rts.get("channel") == null) {
 			missing.append("channel, ");
+		} else {
+			String channel = rts.get("channel");
+			if(!channel.matches("^SSK@\\S{43,44},\\S{43,44},\\S{7}/$")) {
+				Logger.error(this, "RTS contains malformed channel key: " + channel);
+				throw new Exception();
+			}
 		}
+
 		if (rts.get("initiatorSlot") == null) {
 			missing.append("initiatorSlot, ");
 		}
