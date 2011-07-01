@@ -486,6 +486,13 @@ public class Channel extends Postman {
 					Logger.debug(this, "Connection terminated");
 					return;
 				} catch(FCPFetchException e) {
+					if(e.getCode() == FCPFetchException.INVALID_URI) {
+						//Could be a local bug or we could have gotten a bad key in the RTS
+						//TODO: This won't fix itself, so make sure the user notices
+						Logger.error(this, "Fetch failed because the URI was invalid");
+						return;
+					}
+
 					if(e.isFatal()) {
 						Logger.normal(this, "Fatal fetch failure, marking slot as used");
 						slotManager.slotUsed();
