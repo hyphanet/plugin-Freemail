@@ -150,11 +150,6 @@ public class Channel extends Postman {
 		Logger.debug(this, "Processing RTS");
 
 		synchronized(channelProps) {
-			if(channelProps.get(PropsKeys.RECIPIENT_STATE) != null) {
-				Logger.debug(this, "Skipping RTS processing because recipient state isn't null");
-				return;
-			}
-
 			//Because of the way InsertableClientSSK works we need to add a document name (the part
 			//after the final /) to the key before it is passed to FreenetURI. This must be removed
 			//again when we store the keys to the props file
@@ -173,6 +168,26 @@ public class Channel extends Postman {
 				publicKey = publicKey.substring(0, publicKey.length() - documentName.length());
 			} catch(MalformedURLException e) {
 				Logger.debug(this, "RTS contained malformed private key: " + rtsProps.get("channel"));
+				return;
+			}
+
+			if(!privateKey.equals(channelProps.get(PropsKeys.PRIVATE_KEY))) {
+				/* The keys in the RTS are not the same as the ones we already have (if we have
+				 * any). This will happen when the other side deletes the channel and then sends us
+				 * another message. Delete the old values so we start using the new ones, except
+				 * message id since we might still have messages in the outbox.
+				 */
+				channelProps.remove(PropsKeys.PRIVATE_KEY);
+				channelProps.remove(PropsKeys.PUBLIC_KEY);
+				channelProps.remove(PropsKeys.SEND_CODE);
+				channelProps.remove(PropsKeys.SEND_SLOT);
+				channelProps.remove(PropsKeys.FETCH_CODE);
+				channelProps.remove(PropsKeys.FETCH_SLOT);
+				channelProps.remove(PropsKeys.RECIPIENT_STATE);
+			}
+
+			if(channelProps.get(PropsKeys.RECIPIENT_STATE) != null) {
+				Logger.debug(this, "Skipping RTS processing because recipient state isn't null");
 				return;
 			}
 
