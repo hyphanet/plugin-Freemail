@@ -847,9 +847,21 @@ public class Channel extends Postman {
 				return;
 			}
 
+			int senderMailsiteEdition;
+			String senderEdition = wotConnection.getProperty(account.getUsername(), WoTProperties.MAILSITE_EDITION);
+			if(edition == null) {
+				senderMailsiteEdition = 1;
+			} else {
+				try {
+					senderMailsiteEdition = Integer.parseInt(senderEdition);
+				} catch(NumberFormatException e) {
+					senderMailsiteEdition = 1;
+				}
+			}
+
 			String senderMailsiteKey = senderIdentity.getRequestURI();
 			senderMailsiteKey = senderMailsiteKey.substring(0, senderMailsiteKey.indexOf("/"));
-			senderMailsiteKey = senderMailsiteKey + "/mailsite/0/mailpage";
+			senderMailsiteKey = senderMailsiteKey + "/mailsite/-" + senderMailsiteEdition + "/mailpage";
 
 			//Now build the RTS
 			byte[] rtsMessageBytes = buildRTSMessage(senderMailsiteKey, recipient.getIdentityID(), privateKey, initiatorSlot, responderSlot);
