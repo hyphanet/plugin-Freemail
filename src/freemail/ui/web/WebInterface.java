@@ -104,7 +104,7 @@ public class WebInterface {
 	}
 
 	public void terminate() {
-		Logger.error(this, "Unregistering toadlets");
+		Logger.debug(this, "Unregistering toadlets");
 		synchronized (registeredToadlets) {
 			for(Toadlet t : registeredToadlets) {
 				container.unregister(t);
@@ -112,7 +112,7 @@ public class WebInterface {
 			registeredToadlets.clear();
 		}
 
-		Logger.error(this, "Removing navigation category");
+		Logger.debug(this, "Removing navigation category");
 		pluginRespirator.getPageMaker().removeNavigationCategory(FREEMAIL_CATEGORY_NAME);
 	}
 }
