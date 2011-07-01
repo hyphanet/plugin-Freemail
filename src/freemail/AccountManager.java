@@ -103,7 +103,7 @@ public class AccountManager {
 			accounts.put(accountDir.getName(), account);
 
 			//Now start a SingleAccountWatcher for this account
-			SingleAccountWatcher saw = new SingleAccountWatcher(account);
+			SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
 			Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
 			t.setDaemon(true);
 			t.start();
@@ -393,7 +393,7 @@ public class AccountManager {
 		accounts.put(oid.getIdentityID(), account);
 
 		//Now start a SingleAccountWatcher for this account
-		SingleAccountWatcher saw = new SingleAccountWatcher(account);
+		SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
 		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
 		t.setDaemon(true);
 		t.start();

@@ -28,6 +28,7 @@ import java.lang.InterruptedException;
 
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
+import freemail.wot.WoTConnection;
 
 public class SingleAccountWatcher implements Runnable {
 	/**
@@ -46,11 +47,14 @@ public class SingleAccountWatcher implements Runnable {
 	private final File obctdir;
 	private final File ibctdir;
 	private final FreemailAccount account;
+	private final Freemail freemail;
 
-	SingleAccountWatcher(FreemailAccount acc) {
+	SingleAccountWatcher(FreemailAccount acc, Freemail freemail) {
 		this.account = acc;
 		File contacts_dir = new File(account.getAccountDir(), CONTACTS_DIR);
 		
+		this.freemail = freemail;
+
 		if (!contacts_dir.exists()) {
 			contacts_dir.mkdir();
 		}
@@ -109,8 +113,13 @@ public class SingleAccountWatcher implements Runnable {
 				// is it time we inserted the mailsite?
 				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
 					MailSite ms = new MailSite(account.getProps());
-					if (ms.publish() > 0) {
+					int edition = ms.publish();
+					if (edition > 0) {
 						this.mailsite_last_upload = System.currentTimeMillis();
+						WoTConnection wotConnection = freemail.getWotConnection();
+						if(wotConnection != null) {
+							wotConnection.setProperty(account.getUsername(), "Freemail.mailsite", "" + edition);
+						}
 					}
 				}
 				if(stopping) {
