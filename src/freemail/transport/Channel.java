@@ -902,6 +902,10 @@ public class Channel extends Postman {
 
 		private byte[] buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot) {
 			assert (senderMailsiteKey.matches("^USK@\\S{43,44},\\S{43,44},\\S{7}/\\w+/-?[0-9]+/.*$")) : "Malformed sender mailsite: " + senderMailsiteKey;
+			assert (recipientIdentityID != null);
+			assert (channelPrivateKey.matches("^SSK@\\S{43,44},\\S{43,44},\\S{7}/$")) : "Malformed channel key: " + channelPrivateKey;
+			assert (initiatorSlot != null);
+			assert (responderSlot != null);
 
 			StringBuffer rtsMessage = new StringBuffer();
 			rtsMessage.append("mailsite=" + senderMailsiteKey + "\r\n");
