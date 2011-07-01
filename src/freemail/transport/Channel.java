@@ -151,9 +151,8 @@ public class Channel extends Postman {
 		//TODO: Set public key using private key
 
 		synchronized(channelProps) {
-			if(channelProps.get(PropsKeys.RECIPIENT_STATE) == null) {
-				channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
-			} else {
+			if(channelProps.get(PropsKeys.RECIPIENT_STATE) != null) {
+				Logger.debug(this, "Skipping RTS processing because recipient state isn't null");
 				return;
 			}
 
@@ -185,6 +184,8 @@ public class Channel extends Postman {
 			if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
 				channelProps.put(PropsKeys.MESSAGE_ID, "0");
 			}
+
+			channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
 		}
 
 		//Queue the CTS insert
