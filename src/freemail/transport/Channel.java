@@ -631,18 +631,8 @@ public class Channel extends Postman {
 					}
 				}
 
-				Logger.debug(this, "Getting data stream");
-				InputStream data;
 				try {
-					data = new FileInputStream(message.file);
-				} catch(FileNotFoundException e1) {
-					Logger.debug(this, "Message file deleted after listing files, trying again later");
-					executor.schedule(sender, 5, TimeUnit.MINUTES);
-					return;
-				}
-
-				try {
-					if(!insertMessage(baseKey, data)) {
+					if(!insertMessage(baseKey, message.file)) {
 						continue;
 					}
 				} catch(FCPBadFileException e) {
@@ -667,8 +657,17 @@ public class Channel extends Postman {
 			}
 		}
 
-		private boolean insertMessage(String baseKey, InputStream data) throws FCPBadFileException, ConnectionTerminatedException {
+		private boolean insertMessage(String baseKey, File message) throws FCPBadFileException, ConnectionTerminatedException {
 			while(true) {
+				Logger.debug(this, "Getting data stream");
+				InputStream data;
+				try {
+					data = new FileInputStream(message);
+				} catch(FileNotFoundException e) {
+					Logger.debug(this, "Message file deleted after listing files, trying again later");
+					return false;
+				}
+
 				String slot;
 				synchronized(channelProps) {
 					slot = channelProps.get(PropsKeys.SEND_SLOT);
