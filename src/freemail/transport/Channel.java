@@ -74,6 +74,7 @@ import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
+import freemail.wot.WoTProperties;
 import freenet.keys.FreenetURI;
 import freenet.keys.InsertableClientSSK;
 
@@ -735,7 +736,7 @@ public class Channel extends Postman {
 
 			//Get the mailsite edition
 			int mailisteEdition;
-			String edition = wotConnection.getProperty(channelDir.getName(), "Freemail.mailsite");
+			String edition = wotConnection.getProperty(channelDir.getName(), WoTProperties.MAILSITE_EDITION);
 			if(edition == null) {
 				mailisteEdition = 1;
 			} else {

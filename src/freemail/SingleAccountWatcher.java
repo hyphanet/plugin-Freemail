@@ -29,6 +29,7 @@ import java.lang.InterruptedException;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
 import freemail.wot.WoTConnection;
+import freemail.wot.WoTProperties;
 
 public class SingleAccountWatcher implements Runnable {
 	/**
@@ -118,7 +119,7 @@ public class SingleAccountWatcher implements Runnable {
 						this.mailsite_last_upload = System.currentTimeMillis();
 						WoTConnection wotConnection = freemail.getWotConnection();
 						if(wotConnection != null) {
-							wotConnection.setProperty(account.getUsername(), "Freemail.mailsite", "" + edition);
+							wotConnection.setProperty(account.getUsername(), WoTProperties.MAILSITE_EDITION, "" + edition);
 						}
 					}
 				}
