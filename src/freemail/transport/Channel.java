@@ -936,12 +936,19 @@ public class Channel extends Postman {
 		 */
 		private long sendRTSIn() {
 			//Check if the CTS has been received
-			String channelState;
+			String senderState;
+			String recipientState;
 			synchronized(channelProps) {
-				channelState = channelProps.get(PropsKeys.SENDER_STATE);
+				senderState = channelProps.get(PropsKeys.SENDER_STATE);
+				recipientState = channelProps.get(PropsKeys.RECIPIENT_STATE);
 			}
-			if((channelState != null) && channelState.equals("cts-received")) {
+			if((senderState != null) && senderState.equals("cts-received")) {
 				Logger.debug(this, "CTS has been received");
+				return -1;
+			}
+			if((recipientState != null) && (recipientState.equals("rts-received") || recipientState.equals("cts-sent"))) {
+				//We've received an RTS from the other side
+				Logger.debug(this, "RTS received from other side");
 				return -1;
 			}
 
