@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import freemail.l10n.FreemailL10n;
 import freemail.ui.web.WebInterface;
@@ -133,6 +134,12 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		Logger.error(this, "Web interface terminated, proceeding with normal termination");
 		executor.shutdown();
 		super.terminate();
+
+		try {
+			executor.awaitTermination(1, TimeUnit.HOURS);
+		} catch(InterruptedException e) {
+			Logger.debug(this, "Thread was interrupted while waiting for excutor to terminate.");
+		}
 	}
 
 	@Override
