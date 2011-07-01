@@ -156,18 +156,30 @@ public class Channel extends Postman {
 				return;
 			}
 
-			InsertableClientSSK privateKey;
+			//Because of the way InsertableClientSSK works we need to add a document name (the part
+			//after the final /) to the key before it is passed to FreenetURI. This must be removed
+			//again when we store the keys to the props file
+			String privateKey = "";
+			String publicKey = "";
 			try {
-				FreenetURI privateURI = new FreenetURI(rtsProps.get("channel"));
-				privateKey = InsertableClientSSK.create(privateURI);
+				final String documentName = "documentName";
+
+				FreenetURI privateURI = new FreenetURI(rtsProps.get("channel") + documentName);
+				InsertableClientSSK insertableKey = InsertableClientSSK.create(privateURI);
+
+				privateKey = insertableKey.getInsertURI().toString();
+				privateKey = privateKey.substring(0, privateKey.length() - documentName.length());
+
+				publicKey = insertableKey.getURI().toString();
+				publicKey = publicKey.substring(0, publicKey.length() - documentName.length());
 			} catch(MalformedURLException e) {
 				Logger.debug(this, "RTS contained malformed private key: " + rtsProps.get("channel"));
 				return;
 			}
 
 			if(channelProps.get(PropsKeys.PRIVATE_KEY) == null) {
-				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey.getInsertURI().toString());
-				channelProps.put(PropsKeys.PUBLIC_KEY, privateKey.getURI().toString());
+				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
+				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
 			}
 
 			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
