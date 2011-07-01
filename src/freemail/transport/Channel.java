@@ -149,8 +149,6 @@ public class Channel extends Postman {
 	public void processRTS(PropsFile rtsProps) {
 		Logger.debug(this, "Processing RTS");
 
-		//TODO: Set public key using private key
-
 		synchronized(channelProps) {
 			if(channelProps.get(PropsKeys.RECIPIENT_STATE) != null) {
 				Logger.debug(this, "Skipping RTS processing because recipient state isn't null");
