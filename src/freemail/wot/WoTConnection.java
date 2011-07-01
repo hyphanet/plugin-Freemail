@@ -28,4 +28,6 @@ public interface WoTConnection {
 	public Set<Identity> getAllTrustedIdentities(String trusterId);
 	public Set<Identity> getAllUntrustedIdentities(String trusterId);
 	public Identity getIdentity(String identity, String truster);
+	public boolean setProperty(String identity, String key, String value);
+	public String getProperty(String identity, String key);
 }

@@ -76,5 +76,15 @@ public class NewMessageToadletTest extends TestCase {
 		public Identity getIdentity(String identityID, String trusterID) {
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public boolean setProperty(String identityID, String key, String value) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getProperty(String identityID, String key) {
+			throw new UnsupportedOperationException();
+		}
 	}
 }
