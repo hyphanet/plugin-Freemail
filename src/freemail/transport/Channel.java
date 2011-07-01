@@ -733,10 +733,23 @@ public class Channel extends Postman {
 				return;
 			}
 
+			//Get the mailsite edition
+			int mailisteEdition;
+			String edition = wotConnection.getProperty(channelDir.getName(), "Freemail.mailsite");
+			if(edition == null) {
+				mailisteEdition = 1;
+			} else {
+				try {
+					mailisteEdition = Integer.parseInt(edition);
+				} catch(NumberFormatException e) {
+					mailisteEdition = 1;
+				}
+			}
+
 			//Strip the WoT part from the key and add the Freemail path
 			String mailsiteKey = recipient.getRequestURI();
 			mailsiteKey = mailsiteKey.substring(0, mailsiteKey.indexOf("/"));
-			mailsiteKey = mailsiteKey + "/mailsite/0/mailpage";
+			mailsiteKey = mailsiteKey + "/mailsite/-" + mailisteEdition + "/mailpage";
 
 			//Fetch the mailsite
 			File mailsite;
