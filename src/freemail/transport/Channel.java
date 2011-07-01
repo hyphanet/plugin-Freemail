@@ -921,6 +921,10 @@ public class Channel extends Postman {
 			}
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
 			executor.schedule(this, delay, TimeUnit.MILLISECONDS);
+
+			//Start the fetcher and the sender now that we have keys, slots etc.
+			sender.execute();
+			fetcher.execute();
 		}
 
 		public void execute() {
