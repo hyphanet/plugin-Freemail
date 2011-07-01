@@ -423,7 +423,7 @@ public class Channel extends Postman {
 	private class Fetcher implements Runnable {
 		@Override
 		public synchronized void run() {
-			Logger.debug(this, "Fetcher running");
+			Logger.debug(this, "Fetcher running (" + this + ")");
 
 			try {
 				realRun();
@@ -549,12 +549,17 @@ public class Channel extends Postman {
 			Logger.debug(this, "Scheduling Fetcher for execution");
 			executor.execute(fetcher);
 		}
+
+		@Override
+		public String toString() {
+			return "Fetcher [" + account.getUsername() + "->" + channelDir.getName() + "]";
+		}
 	}
 
 	private class Sender implements Runnable {
 		@Override
 		public synchronized void run() {
-			Logger.debug(this, "Sender running");
+			Logger.debug(this, "Sender running (" + this + ")");
 
 			try {
 				realRun();
@@ -683,12 +688,17 @@ public class Channel extends Postman {
 			Logger.debug(this, "Scheduling Sender for execution");
 			executor.execute(sender);
 		}
+
+		@Override
+		public String toString() {
+			return "Sender [" + account.getUsername() + "->" + channelDir.getName() + "]";
+		}
 	}
 
 	private class RTSSender implements Runnable {
 		@Override
 		public synchronized void run() {
-			Logger.debug(this, "RTSSender running");
+			Logger.debug(this, "RTSSender running (" + this + ")");
 
 			try {
 				realRun();
@@ -1022,6 +1032,11 @@ public class Channel extends Postman {
 			System.arraycopy(encryptedMessage, 0, rtsMessage, encryptedAesParameters.length, encryptedMessage.length);
 
 			return rtsMessage;
+		}
+
+		@Override
+		public String toString() {
+			return "RTSSender [" + account.getUsername() + "->" + channelDir.getName() + "]";
 		}
 	}
 
