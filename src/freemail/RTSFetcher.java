@@ -299,7 +299,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 		
 		// verify the signature
-		String their_mailsite_raw = rtsprops.get("mailsite");
+		String their_mailsite = rtsprops.get("mailsite");
 		
 		SHA256Digest sha256 = new SHA256Digest();
 		sha256.update(plaintext, 0, messagebytes);
@@ -307,23 +307,6 @@ public class RTSFetcher implements SlotSaveCallback {
 		sha256.doFinal(our_hash, 0);
 		
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
-		
-		FreenetURI their_mailsite_furi;
-		try {
-			their_mailsite_furi = new FreenetURI(their_mailsite_raw);
-		} catch (MalformedURLException mfue) {
-			Logger.normal(this,"Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
-			rtsfile.delete();
-			return true;
-		}
-		
-		String their_mailsite = "USK@"+their_mailsite_furi.getKeyBody()+"/"+their_mailsite_furi.getSuffix();
-		
-		if (!their_mailsite.endsWith("/")) {
-			their_mailsite += "/";
-		}
-		their_mailsite += AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
-		
 		
 		Logger.normal(this,"Trying to fetch sender's mailsite: "+their_mailsite);
 		File msfile;
