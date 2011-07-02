@@ -789,7 +789,8 @@ public class Channel extends Postman {
 				executor.schedule(this, 5, TimeUnit.MINUTES);
 				return;
 			}
-			String senderMailsiteKey = recipient.getRequestURI();
+
+			String senderMailsiteKey = senderIdentity.getRequestURI();
 			senderMailsiteKey = senderMailsiteKey.substring(0, senderMailsiteKey.indexOf("/"));
 			senderMailsiteKey = senderMailsiteKey + "/mailsite/0/mailpage";
 
