@@ -416,6 +416,11 @@ public class Channel extends Postman {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "Channel [" + account.getUsername() + "->" + channelDir.getName() + "]";
+	}
+
 	private String calculateNextSlot(String slot) {
 		byte[] buf = Base32.decode(slot);
 		SHA256Digest sha256 = new SHA256Digest();
