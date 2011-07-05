@@ -1145,19 +1145,13 @@ public class Channel extends Postman {
 	private boolean handleAck(File result) {
 		PropsFile ackProps = PropsFile.createPropsFile(result);
 		String id = ackProps.get("id");
-
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		if(!outbox.exists()) {
-			Logger.minor(this, "Got ack for message " + id + ", but the outbox doesn't exist");
+		if(id == null) {
+			Logger.debug(this, "Received ack without id, discarding");
 			return true;
 		}
 
-		File message = new File(outbox, "message-" + id);
-		if(!message.exists()) {
-			Logger.minor(this, "Got ack for message " + id + ", but the message doesn't exist");
-			return true;
-		}
-
+		long messageId = Long.parseLong(id);
+		QueuedMessage message = new QueuedMessage(messageId);
 		if(!message.delete()) {
 			Logger.error(this, "Couldn't delete " + message);
 			return false;
