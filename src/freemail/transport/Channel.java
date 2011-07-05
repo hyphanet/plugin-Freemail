@@ -1241,10 +1241,6 @@ public class Channel extends Postman {
 			waitForAck = Boolean.parseBoolean(wait);
 		}
 
-		public boolean setMessageFile(File newfile) {
-			return newfile.renameTo(this.file);
-		}
-
 		public boolean saveProps() {
 			boolean suc = true;
 			synchronized(messageIndex) {
