@@ -23,6 +23,8 @@
 package freemail.transport;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -219,7 +221,6 @@ public class Channel extends Postman {
 		startTasks();
 	}
 
-	//TODO: This is mostly duplicated from sendMessage
 	private void queueCTS() {
 		long messageId;
 		synchronized(channelProps) {
@@ -227,60 +228,17 @@ public class Channel extends Postman {
 			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 		}
 
-		//Write the message and attributes to the outbox
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		if(!outbox.exists()) {
-			if(!outbox.mkdir()) {
-				Logger.error(this, "Couldn't create outbox directory: " + outbox);
-				return;
-			}
-		}
+		//Build the header of the inserted message
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintWriter pw = new PrintWriter(baos);
+		pw.print("messagetype=cts\r\n");
+		pw.close();
+		InputStream header = new ByteArrayInputStream(baos.toByteArray());
 
-		File messageFile = new File(outbox, "" + messageId);
-		if(messageFile.exists()) {
-			//TODO: Pick next message id?
-			Logger.error(this, "Message id already in use");
-			return;
-		}
+		//CTS doesn't have any data
+		InputStream data = new ByteArrayInputStream(new byte[0]);
 
-		QueuedMessage message;
-		try {
-			if(!messageFile.createNewFile()) {
-				Logger.error(this, "Couldn't create message file: " + messageFile);
-				return;
-			}
-
-			message = new QueuedMessage(messageId);
-			message.addedTime = System.currentTimeMillis();
-			message.firstSendTime = -1;
-			message.lastSendTime = -1;
-			message.waitForAck = false;
-
-			synchronized(messageIndex) {
-				message.saveProps();
-			}
-
-			OutputStream os = new FileOutputStream(messageFile);
-			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
-
-			//Then what will be the header of the inserted message
-			pw.print("messagetype=cts\r\n");
-			pw.print("\r\n");
-			pw.flush();
-		} catch(IOException e) {
-			if(messageFile.exists()) {
-				if(!messageFile.delete()) {
-					Logger.error(this, "Couldn't delete message file (" + messageFile + ") after IOException");
-				}
-			}
-
-			return;
-		}
-
-		message.setMessageFile(messageFile);
-		sender.execute();
-
-		return;
+		queueMessage(messageId, header, data, false);
 	}
 
 	public void startTasks() {
@@ -349,6 +307,21 @@ public class Channel extends Postman {
 			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 		}
 
+		//Build the header of the inserted message
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintWriter pw = new PrintWriter(baos);
+		pw.print("messagetype=message\r\n");
+		pw.print("id=" + messageId + "\r\n");
+		pw.close();
+		byte[] headerBytes = baos.toByteArray();
+
+		return queueMessage(messageId, new ByteArrayInputStream(headerBytes), message, true);
+	}
+
+	private boolean queueMessage(long messageId, InputStream header, InputStream data, boolean waitForAck) {
+		assert (header != null);
+		assert (data != null);
+
 		//Write the message and attributes to the outbox
 		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
 		if(!outbox.exists()) {
@@ -376,7 +349,7 @@ public class Channel extends Postman {
 			queuedMessage.addedTime = System.currentTimeMillis();
 			queuedMessage.firstSendTime = -1;
 			queuedMessage.lastSendTime = -1;
-			queuedMessage.waitForAck = true;
+			queuedMessage.waitForAck = waitForAck;
 
 			synchronized(messageIndex) {
 				queuedMessage.saveProps();
@@ -386,15 +359,20 @@ public class Channel extends Postman {
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
 
 			//Then what will be the header of the inserted message
-			pw.print("messagetype=message\r\n");
-			pw.print("id=" + messageId + "\r\n");
-			pw.print("\r\n");
+			byte[] buffer = new byte[1024];
+			while(true) {
+				int count = header.read(buffer, 0, buffer.length);
+				if(count == -1) break;
+
+				os.write(buffer, 0, count);
+			}
+
+			pw.write("\r\n");
 			pw.flush();
 
 			//And the message contents
-			byte[] buffer = new byte[1024];
 			while(true) {
-				int count = message.read(buffer, 0, buffer.length);
+				int count = data.read(buffer, 0, buffer.length);
 				if(count == -1) break;
 
 				os.write(buffer, 0, count);
@@ -1151,7 +1129,6 @@ public class Channel extends Postman {
 		return true;
 	}
 
-	//TODO: This is mostly duplicated from sendMessage
 	private void queueAck(int ackId) {
 		long messageId;
 		synchronized(channelProps) {
@@ -1159,61 +1136,18 @@ public class Channel extends Postman {
 			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 		}
 
-		//Write the message and attributes to the outbox
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		if(!outbox.exists()) {
-			if(!outbox.mkdir()) {
-				Logger.error(this, "Couldn't create outbox directory: " + outbox);
-				return;
-			}
-		}
+		//Build the header of the inserted message
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintWriter pw = new PrintWriter(baos);
+		pw.print("messagetype=ack\r\n");
+		pw.print("id=" + ackId + "\r\n");
+		pw.close();
+		InputStream header = new ByteArrayInputStream(baos.toByteArray());
 
-		File messageFile = new File(outbox, "" + messageId);
-		if(messageFile.exists()) {
-			//TODO: Pick next message id?
-			Logger.error(this, "Message id already in use");
-			return;
-		}
+		//Acks don't have any data
+		InputStream data = new ByteArrayInputStream(new byte[0]);
 
-		QueuedMessage message;
-		try {
-			if(!messageFile.createNewFile()) {
-				Logger.error(this, "Couldn't create message file: " + messageFile);
-				return;
-			}
-
-			message = new QueuedMessage(messageId);
-			message.addedTime = System.currentTimeMillis();
-			message.firstSendTime = -1;
-			message.lastSendTime = -1;
-			message.waitForAck = false;
-
-			synchronized(messageIndex) {
-				message.saveProps();
-			}
-
-			OutputStream os = new FileOutputStream(messageFile);
-			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
-
-			//Then what will be the header of the inserted message
-			pw.print("messagetype=ack\r\n");
-			pw.print("id=" + ackId + "\r\n");
-			pw.print("\r\n");
-			pw.flush();
-		} catch(IOException e) {
-			if(messageFile.exists()) {
-				if(!messageFile.delete()) {
-					Logger.error(this, "Couldn't delete message file (" + messageFile + ") after IOException");
-				}
-			}
-
-			return;
-		}
-
-		message.setMessageFile(messageFile);
-		sender.execute();
-
-		return;
+		queueMessage(messageId, header, data, false);
 	}
 
 	private boolean handleAck(File result) {
