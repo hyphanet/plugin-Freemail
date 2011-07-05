@@ -39,11 +39,12 @@ import freemail.config.Configurator;
 import freenet.pluginmanager.PluginNotFoundException;
 
 public abstract class Freemail implements ConfigClient {
-	private static final String TEMPDIRNAME = "temp";
-	protected static final String DEFAULT_DATADIR = "data";
-	private static final String GLOBALDATADIR = "globaldata";
+	private static final String BASEDIR = "Freemail";
+	private static final String TEMPDIRNAME = BASEDIR + "/temp";
+	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
+	private static final String GLOBALDATADIR = BASEDIR + "/globaldata";
 	private static final String ACKDIR = "delayedacks";
-	protected static final String CFGFILE = "globalconfig";
+	protected static final String CFGFILE = BASEDIR + "/globalconfig";
 	private File datadir;
 	private static File globaldatadir;
 	private static File tempdir;
