@@ -444,7 +444,7 @@ public class Channel extends Postman {
 				basekey = channelProps.get(PropsKeys.PUBLIC_KEY);
 			}
 			if(basekey == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.PRIVATE_KEY + "' entry!");
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.PUBLIC_KEY + "' entry!");
 				//TODO: Either delete the channel or resend the RTS
 				return;
 			}
