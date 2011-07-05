@@ -642,6 +642,7 @@ public class Channel extends Postman {
 
 				try {
 					if(!insertMessage(baseKey, message.file)) {
+						Logger.debug(this, "Insert of " + message + " failed");
 						continue;
 					}
 				} catch(FCPBadFileException e) {
@@ -708,6 +709,7 @@ public class Channel extends Postman {
 					continue;
 				}
 
+				Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
 				return false;
 			}
 		}
