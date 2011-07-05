@@ -629,11 +629,15 @@ public class Channel extends Postman {
 			for(QueuedMessage message : sendQueue) {
 				if(message.lastSendTime != -1) {
 					long timeSinceSent = System.currentTimeMillis() - message.lastSendTime;
-					if(timeSinceSent < 24 * 60 * 60 * 1000) {
+					long timeToResend = (24 * 60 * 60 * 1000) - timeSinceSent;
+					if(timeToResend > 0) {
 						//Don't resent just yet
-						executor.schedule(sender, (24 * 60 * 60 * 1000) - timeSinceSent, TimeUnit.MILLISECONDS);
+						Logger.debug(this, "Message due to be resent in " + timeToResend + " ms");
+						executor.schedule(sender, timeToResend, TimeUnit.MILLISECONDS);
 						continue;
 					}
+
+					Logger.debug(this, "Resending " + message);
 				}
 
 				try {
