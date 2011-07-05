@@ -68,12 +68,13 @@ public class InboxToadlet extends WebPage {
 		String folderName = req.getParam("folder", "inbox");
 		MessageBank messageBank = getMessageBank(account, folderName);
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
+		HTMLNode messageTable = messageList.addChild("table");
 		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
 		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
 			//FIXME: Initialization of MailMessage should be in MailMessage
 			message.getValue().readHeaders();
 
-			addMessage(messageList, message.getValue(), folderName, message.getKey());
+			addMessage(messageTable, message.getValue(), folderName, message.getKey());
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -113,16 +114,16 @@ public class InboxToadlet extends WebPage {
 
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink, int messageNum) {
-		HTMLNode message = parent.addChild("div", "class", "message");
+		HTMLNode message = parent.addChild("tr", "class", "message");
 
-		HTMLNode titleDiv = message.addChild("div", "class", "title");
+		HTMLNode titleCell = message.addChild("td", "class", "title");
 		String messageLink = "/Freemail/Message?folder=" + folderLink + "&uid=" + messageNum;
-		titleDiv.addChild("p").addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
+		titleCell.addChild("p").addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
 
-		HTMLNode authorDiv = message.addChild("div", "class", "author");
-		authorDiv.addChild("p", msg.getFirstHeader("From"));
-		HTMLNode dateDiv = message.addChild("div", "class", "date");
-		dateDiv.addChild("p", msg.getFirstHeader("Date"));
+		HTMLNode authorCell = message.addChild("td", "class", "author");
+		authorCell.addChild("p", msg.getFirstHeader("From"));
+		HTMLNode dateCell = message.addChild("td", "class", "date");
+		dateCell.addChild("p", msg.getFirstHeader("Date"));
 	}
 
 	@Override
