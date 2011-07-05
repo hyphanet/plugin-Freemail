@@ -331,17 +331,10 @@ public class Channel extends Postman {
 			}
 		}
 
-		File messageFile = new File(outbox, "" + messageId);
-		if(messageFile.exists()) {
-			//TODO: Pick next message id?
-			Logger.error(this, "Message id already in use");
-			return false;
-		}
-
-		QueuedMessage queuedMessage;
+		QueuedMessage queuedMessage = new QueuedMessage(messageId);
 		try {
-			if(!messageFile.createNewFile()) {
-				Logger.error(this, "Couldn't create message file: " + messageFile);
+			if(!queuedMessage.file.createNewFile()) {
+				Logger.error(this, "Couldn't create message file: " + queuedMessage.file);
 				return false;
 			}
 
@@ -355,7 +348,7 @@ public class Channel extends Postman {
 				queuedMessage.saveProps();
 			}
 
-			OutputStream os = new FileOutputStream(messageFile);
+			OutputStream os = new FileOutputStream(queuedMessage.file);
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
 
 			//Then what will be the header of the inserted message
@@ -378,16 +371,15 @@ public class Channel extends Postman {
 				os.write(buffer, 0, count);
 			}
 		} catch(IOException e) {
-			if(messageFile.exists()) {
-				if(!messageFile.delete()) {
-					Logger.error(this, "Couldn't delete message file (" + messageFile + ") after IOException");
+			if(queuedMessage.file.exists()) {
+				if(!queuedMessage.file.delete()) {
+					Logger.error(this, "Couldn't delete message file (" + queuedMessage.file + ") after IOException");
 				}
 			}
 
 			return false;
 		}
 
-		queuedMessage.setMessageFile(messageFile);
 		sender.execute();
 
 		return true;
