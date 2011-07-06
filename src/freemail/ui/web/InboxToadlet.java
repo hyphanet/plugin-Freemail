@@ -153,7 +153,9 @@ public class InboxToadlet extends WebPage {
 		}
 
 		for(MailMessage message : selectedMessages) {
-			message.delete();
+			if(!req.getPartAsString("delete", 100).equals("")) {
+				message.delete();
+			}
 		}
 
 		writeTemporaryRedirect(ctx, "", "/Freemail/Inbox?folder=" + req.getPartAsString("folder", 100));
