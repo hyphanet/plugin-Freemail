@@ -115,15 +115,29 @@ public class InboxToadlet extends WebPage {
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink, int messageNum) {
 		HTMLNode message = parent.addChild("tr", "class", "message");
+		boolean read = msg.flags.get("\\seen");
 
-		HTMLNode titleCell = message.addChild("td", "class", "title");
 		String messageLink = "/Freemail/Message?folder=" + folderLink + "&uid=" + messageNum;
-		titleCell.addChild("p").addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
+		HTMLNode title = message.addChild("td", "class", "title");
+		title = title.addChild("p");
+		if(!read) {
+			title = title.addChild("strong");
+		}
+		title.addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
 
-		HTMLNode authorCell = message.addChild("td", "class", "author");
-		authorCell.addChild("p", msg.getFirstHeader("From"));
-		HTMLNode dateCell = message.addChild("td", "class", "date");
-		dateCell.addChild("p", msg.getFirstHeader("Date"));
+		HTMLNode author = message.addChild("td", "class", "author");
+		author = author.addChild("p");
+		if(!read) {
+			author = author.addChild("strong");
+		}
+		author.addChild("#", msg.getFirstHeader("From"));
+
+		HTMLNode date = message.addChild("td", "class", "date");
+		date = date.addChild("p");
+		if(!read) {
+			date = date.addChild("strong");
+		}
+		date.addChild("#", msg.getFirstHeader("Date"));
 	}
 
 	@Override
