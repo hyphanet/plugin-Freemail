@@ -29,6 +29,7 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
+import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -51,6 +52,23 @@ public class InboxToadlet extends WebPage {
 
 	@Override
 	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
+		switch(method) {
+		case GET:
+			makeWebPageGet(req, ctx, page);
+			break;
+		case POST:
+			makeWebPagePost();
+			break;
+		default:
+			//This will only happen if a new value is added to HTTPMethod, so log it and send an
+			//error message
+			assert false : "HTTPMethod has unknown value: " + method;
+			Logger.error(this, "HTTPMethod has unknown value: " + method);
+			writeHTMLReply(ctx, 200, "OK", "Unknown HTTP method " + method + ". This is a bug in Freemail");
+		}
+	}
+
+	private void makeWebPageGet(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -85,6 +103,10 @@ public class InboxToadlet extends WebPage {
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void makeWebPagePost() {
+		throw new UnsupportedOperationException();
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox
