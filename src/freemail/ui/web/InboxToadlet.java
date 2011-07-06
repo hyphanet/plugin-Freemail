@@ -153,7 +153,11 @@ public class InboxToadlet extends WebPage {
 		}
 
 		for(MailMessage message : selectedMessages) {
-			if(!req.getPartAsString("delete", 100).equals("")) {
+			if(!req.getPartAsString("move", 100).equals("")) {
+				MessageBank destination = getMessageBank(account, req.getPartAsString("destination", 100));
+				message.copyTo(destination.createMessage());
+				message.delete();
+			} else if(!req.getPartAsString("delete", 100).equals("")) {
 				message.delete();
 			}
 		}
