@@ -6,13 +6,6 @@ div.content {
 	width: 100%;
 }
 
-div.messagelist > div.message {
-	margin: 0.0em;
-	padding: 0.0em;
-	border: 0.0em solid black;
-	clear: both;
-}
-
 /* The real rules */
 div.folderlist {
 	float: left;
@@ -32,42 +25,6 @@ div.messagelist {
 	float: left;
 	margin-left: 1em;
 	width: 70%;
-}
-
-div.title {
-	float: left;
-	overflow: hidden;
-	width: 50%;
-	margin-right: 1em;
-}
-
-div.title > p {
-	margin: 0em;
-	padding: 0em;
-}
-
-div.author {
-	float: left;
-	width: 20%;
-	overflow: hidden;
-	margin-right: 1em;
-}
-
-div.author > p {
-	margin: 0em;
-	padding: 0em;
-}
-
-div.date {
-	float: left;
-	width: 20%;
-	overflow: hidden;
-	margin-right: 1em;
-}
-
-div.date > p {
-	margin: 0em;
-	padding: 0em;
 }
 
 div.message-headers > p {
