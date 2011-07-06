@@ -91,6 +91,8 @@ public class InboxToadlet extends WebPage {
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
 		messageList = pluginRespirator.addFormChild(messageList, "InboxToadlet", "action");
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
+		                              new String[] {"hidden", "folder", folderName});
+		messageList.addChild("input", new String[] {"type",   "name",   "value"},
 		                              new String[] {"submit", "delete", "Delete"});
 
 		HTMLNode messageTable = messageList.addChild("table");
