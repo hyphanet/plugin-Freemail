@@ -23,6 +23,8 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -101,6 +103,17 @@ public class InboxToadlet extends WebPage {
 		//Add buttons
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
 		                              new String[] {"submit", "delete", "Delete"});
+
+		HTMLNode folderDropdown = messageList.addChild("select", "name", "destination");
+		for(String folder : getAllFolders(account)) {
+			if(folder.equals(folderName)) {
+				//Skip the current folder, since we don't want to move messages there
+				continue;
+			}
+			folderDropdown.addChild("option", "value", folder, folder.replace(".", "/"));
+		}
+		messageList.addChild("input", new String[] {"type",   "name", "value"},
+		                              new String[] {"submit", "move", "Move"});
 
 		//Add the message list
 		HTMLNode messageTable = messageList.addChild("table");
@@ -227,6 +240,21 @@ public class InboxToadlet extends WebPage {
 			date = date.addChild("strong");
 		}
 		date.addChild("#", msg.getFirstHeader("Date"));
+	}
+
+	private List<String> getAllFolders(FreemailAccount account) {
+		List<String> folderList = new LinkedList<String>();
+		MessageBank topLevel = account.getMessageBank();
+		folderList.add(topLevel.getName());
+		addSubfolders(folderList, topLevel, topLevel.getName());
+		return folderList;
+	}
+
+	private void addSubfolders(List<String> folders, MessageBank folder, String name) {
+		for(MessageBank mb : folder.listSubFolders()) {
+			folders.add(name + "." + mb.getName());
+			addSubfolders(folders, mb, name + "." + mb.getName());
+		}
 	}
 
 	@Override
