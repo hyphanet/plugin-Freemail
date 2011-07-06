@@ -35,15 +35,18 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
 	private final AccountManager accountManager;
+	private final PluginRespirator pluginRespirator;
 
-	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager) {
+	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager, PluginRespirator pluginRespirator) {
 		super(client, pageMaker, sessionManager);
 		this.accountManager = accountManager;
+		this.pluginRespirator = pluginRespirator;
 	}
 
 	@Override
@@ -64,10 +67,14 @@ public class InboxToadlet extends WebPage {
 		MessageBank topLevelMessageBank = account.getMessageBank();
 		addMessageBank(folderList, topLevelMessageBank, "inbox");
 
-		//Add the messages
+		//Add the messages and related features
 		String folderName = req.getParam("folder", "inbox");
 		MessageBank messageBank = getMessageBank(account, folderName);
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
+		messageList = pluginRespirator.addFormChild(messageList, "InboxToadlet", "action");
+		messageList.addChild("input", new String[] {"type",   "name",   "value"},
+		                              new String[] {"submit", "delete", "Delete"});
+
 		HTMLNode messageTable = messageList.addChild("table");
 		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
 		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
