@@ -117,6 +117,10 @@ public class InboxToadlet extends WebPage {
 		HTMLNode message = parent.addChild("tr", "class", "message");
 		boolean read = msg.flags.get("\\seen");
 
+		HTMLNode checkBox = message.addChild("td");
+		checkBox.addChild("input", new String[] {"type",     "name"},
+		                           new String[] {"checkbox", "msg-" + messageNum});
+
 		String messageLink = "/Freemail/Message?folder=" + folderLink + "&uid=" + messageNum;
 		HTMLNode title = message.addChild("td", "class", "title");
 		title = title.addChild("p");
