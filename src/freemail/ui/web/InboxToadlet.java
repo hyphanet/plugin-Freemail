@@ -90,16 +90,19 @@ public class InboxToadlet extends WebPage {
 		MessageBank topLevelMessageBank = account.getMessageBank();
 		addMessageBank(folderList, topLevelMessageBank, "inbox");
 
-		//Add the messages and related features
+		//Add the container for the message list and the buttons
 		String folderName = req.getParam("folder", "inbox");
 		MessageBank messageBank = getMessageBank(account, folderName);
 		HTMLNode messageList = container.addChild("div", "class", "messagelist");
 		messageList = pluginRespirator.addFormChild(messageList, "InboxToadlet", "action");
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
 		                              new String[] {"hidden", "folder", folderName});
+
+		//Add buttons
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
 		                              new String[] {"submit", "delete", "Delete"});
 
+		//Add the message list
 		HTMLNode messageTable = messageList.addChild("table");
 		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
 		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
