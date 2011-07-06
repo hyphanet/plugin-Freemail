@@ -1,4 +1,4 @@
-/* Hide the float containers */
+/* Hide the float container */
 div.content {
 	margin: 0em;
 	padding: 0em;
@@ -6,7 +6,7 @@ div.content {
 	width: 100%;
 }
 
-/* The real rules */
+/* Folder list */
 div.folderlist {
 	float: left;
 	margin-right: 1em;
@@ -21,12 +21,14 @@ div.folder > p {
 	padding: 0.0em;
 }
 
+/* Inbox message list */
 div.messagelist {
 	float: left;
 	margin-left: 1em;
 	width: 70%;
 }
 
+/* Message page */
 div.message-headers > p {
 	margin: 0em;
 	padding: 0em;
