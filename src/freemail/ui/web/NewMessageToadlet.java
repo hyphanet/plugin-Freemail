@@ -30,7 +30,6 @@ import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -217,38 +216,6 @@ public class NewMessageToadlet extends WebPage {
 		} catch(UnsupportedEncodingException e) {
 			return null;
 		}
-	}
-
-	/**
-	 * Checks the identities listed in {@code identities} against the identities known by WoT. The
-	 * identities that found in WoT (without ambiguity) are removed from the list. The returned list
-	 * contains the full identity id of the matched identity. If no identities were matched an empty
-	 * set is returned.
-	 * @param identities the identities to match
-	 * @param currentUser the logged in user
-	 * @return a Set containing the matched identities
-	 */
-	private Set<Identity> matchIdentities(Set<String> identities, String currentUser) {
-		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(currentUser);
-		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(currentUser));
-		wotIdentities.addAll(wotConnection.getAllOwnIdentities());
-
-		Set<Identity> matches = new HashSet<Identity>();
-		for(Identity wotIdentity : wotIdentities) {
-			Iterator<String> identityIterator = identities.iterator();
-			while(identityIterator.hasNext()) {
-				String identity = identityIterator.next();
-				String identityID = identity.substring(identity.lastIndexOf("@") + 1, identity.length() - ".freemail".length());
-				if(wotIdentity.getIdentityID().equals(identityID)) {
-					//Identity id match fully so this is the only possible match
-					Logger.debug(this, "Matched identity " + identityID);
-					matches.add(wotIdentity);
-					identityIterator.remove();
-				}
-			}
-		}
-
-		return matches;
 	}
 
 	@Override
