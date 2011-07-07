@@ -31,6 +31,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import freemail.Freemail;
@@ -38,6 +41,7 @@ import freemail.FreemailAccount;
 import freemail.transport.Channel;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
+import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
@@ -127,18 +131,27 @@ public class NewMessageToadlet extends WebPage {
 			line = data.readLine();
 		}
 
-		Set<Identity> matches = matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
+		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
+		Map<String, List<Identity>> matches = messageSender.matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
 
-		if(!identities.isEmpty()) {
+		//Check if there were any unknown or ambiguous identities
+		List<String> failedRecipients = new LinkedList<String>();
+		for(Map.Entry<String, List<Identity>> entry : matches.entrySet()) {
+			if(entry.getValue().size() != 1) {
+				failedRecipients.add(entry.getKey());
+			}
+		}
+
+		if(failedRecipients.size() != 0) {
 			//TODO: Handle this properly
 			HTMLNode pageNode = page.outer;
 			HTMLNode contentNode = page.content;
 
 			HTMLNode errorBox = addErrorbox(contentNode, "Ambiguous identities");
-			HTMLNode errorPara = errorBox.addChild("p", "There were " + identities.size() + " " +
-					"recipients that could not be found in the Web of Trust:");
+			HTMLNode errorPara = errorBox.addChild("p", "There were " + failedRecipients.size() +
+					" recipients that could not be found in the Web of Trust:");
 			HTMLNode identityList = errorPara.addChild("ul");
-			for(String s : identities) {
+			for(String s : failedRecipients) {
 				identityList.addChild("li", s);
 			}
 
@@ -157,8 +170,10 @@ public class NewMessageToadlet extends WebPage {
 			"\r\n";
 		InputStream messageHeaderStream = new ByteArrayInputStream(messageHeader.getBytes("UTF-8"));
 
-		for(Identity identity : matches) {
-			Channel channel = account.getChannel(identity.getIdentityID());
+		for(List<Identity> identityList : matches.values()) {
+			assert (identityList.size() == 1);
+
+			Channel channel = account.getChannel(identityList.get(0).getIdentityID());
 
 			Bucket messageText = req.getPart("message-text");
 			channel.sendMessage(new SequenceInputStream(messageHeaderStream, messageText.getInputStream()));
