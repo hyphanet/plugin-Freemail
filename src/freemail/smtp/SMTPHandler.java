@@ -250,17 +250,22 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
+		String address = parts[1];
+		if(address.startsWith("<") && address.endsWith(">")) {
+			address = address.substring(1, address.length() - 1);
+		}
+
 		//Check if the identity is in WoT
 		IdentityMatcher matcher = new IdentityMatcher(wotConnection);
 		Set<String> recipient = new HashSet<String>();
-		recipient.add(parts[1]);
+		recipient.add(address);
 		Map<String, List<Identity>> matches = matcher.matchIdentities(recipient, account.getUsername());
-		if(matches.get(parts[1]).size() != 1) {
+		if(matches.get(address).size() != 1) {
 			this.ps.print("550 No such user\r\n");
 			return;
 		}
 		
-		this.to.add(matches.get(parts[1]).get(0));
+		this.to.add(matches.get(address).get(0));
 		
 		this.ps.print("250 OK\r\n");
 	}
