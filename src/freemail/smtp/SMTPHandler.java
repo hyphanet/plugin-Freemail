@@ -22,6 +22,7 @@
 package freemail.smtp;
 
 import java.net.Socket;
+import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.BufferedReader;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.SequenceInputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +43,12 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MessageSender;
 import freemail.ServerHandler;
+import freemail.transport.Channel;
 import freemail.utils.EmailAddress;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
+import freenet.support.api.Bucket;
 
 import org.bouncycastle.util.encoders.Base64;
 
@@ -59,7 +63,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	private final AccountManager accountmanager;
 	private final WoTConnection wotConnection;
 	
-	private Vector to;
+	private Vector<Identity> to;
 	
 	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender, WoTConnection wotConnection) throws IOException {
 		super(client);
@@ -258,19 +262,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("550 No such user\r\n");
 			return;
 		}
-
-		EmailAddress addr = new EmailAddress(parts[1]);
-		if (addr.user == null || addr.domain == null) {
-			this.ps.print("504 Bad address\r\n");
-			return;
-		}
 		
-		if (!addr.is_freemail_address()) {
-			this.ps.print("553 Not a Freemail address\r\n");
-			return;
-		}
-		
-		this.to.add(addr);
+		this.to.add(matches.get(parts[1]).get(0));
 		
 		this.ps.print("250 OK\r\n");
 	}
@@ -310,7 +303,10 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 			
-			this.msgsender.sendMessage(this.account, to, tempfile);
+			for(Identity identity : to) {
+				Channel channel = account.getChannel(identity.getIdentityID());
+				channel.sendMessage(new FileInputStream(tempfile));
+			}
 			
 			tempfile.delete();
 			
