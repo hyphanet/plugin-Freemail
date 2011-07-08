@@ -154,10 +154,10 @@ class WoTConnectionImpl implements WoTConnection {
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
 		synchronized(pluginTalker) {
-			pluginTalker.send(msg.sfs, msg.data);
-
 			synchronized(replyLock) {
 				assert (reply == null) : "Reply was " + reply;
+
+				pluginTalker.send(msg.sfs, msg.data);
 
 				while(reply == null) {
 					try {
