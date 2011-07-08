@@ -30,6 +30,10 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import freemail.Freemail;
@@ -38,6 +42,8 @@ import freemail.FreemailAccount;
 import freemail.MessageSender;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
+import freemail.wot.Identity;
+import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
 
 import org.bouncycastle.util.encoders.Base64;
@@ -243,6 +249,16 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
+		//Check if the identity is in WoT
+		IdentityMatcher matcher = new IdentityMatcher(null);
+		Set<String> recipient = new HashSet<String>();
+		recipient.add(parts[1]);
+		Map<String, List<Identity>> matches = matcher.matchIdentities(recipient, account.getUsername());
+		if(matches.get(parts[1]).size() != 1) {
+			this.ps.print("550 No such user\r\n");
+			return;
+		}
+
 		EmailAddress addr = new EmailAddress(parts[1]);
 		if (addr.user == null || addr.domain == null) {
 			this.ps.print("504 Bad address\r\n");
