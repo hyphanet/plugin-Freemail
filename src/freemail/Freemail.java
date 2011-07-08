@@ -103,7 +103,7 @@ public abstract class Freemail implements ConfigClient {
 		
 		
 		imapl = new IMAPListener(accountManager, configurator);
-		smtpl = new SMTPListener(accountManager, sender, configurator, this);
+		smtpl = new SMTPListener(accountManager, configurator, this);
 	}
 	
 	public WoTConnection getWotConnection() {

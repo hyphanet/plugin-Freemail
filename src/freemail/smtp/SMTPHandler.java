@@ -41,7 +41,6 @@ import java.util.Vector;
 import freemail.Freemail;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
-import freemail.MessageSender;
 import freemail.ServerHandler;
 import freemail.transport.Channel;
 import freemail.utils.EmailAddress;
@@ -57,7 +56,6 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
 	private FreemailAccount account;
-	private final MessageSender msgsender;
 	public static final String MY_HOSTNAME = "localhost";
 	
 	private final AccountManager accountmanager;
@@ -65,10 +63,9 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	
 	private Vector<Identity> to;
 	
-	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender, WoTConnection wotConnection) throws IOException {
+	public SMTPHandler(AccountManager accMgr, Socket client, WoTConnection wotConnection) throws IOException {
 		super(client);
 		accountmanager = accMgr;
-		this.msgsender = sender;
 		this.account = null;
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
