@@ -156,6 +156,7 @@ class WoTConnectionImpl implements WoTConnection {
 		synchronized(pluginTalker) {
 			synchronized(replyLock) {
 				assert (reply == null) : "Reply was " + reply;
+				reply = null;
 
 				pluginTalker.send(msg.sfs, msg.data);
 
