@@ -595,6 +595,7 @@ public class Channel extends Postman {
 			}
 			baseKey += sendCode + "-";
 
+			boolean insertFailed = false;
 			for(QueuedMessage message : sendQueue) {
 				if(message.lastSendTime != -1) {
 					long timeSinceSent = System.currentTimeMillis() - message.lastSendTime;
@@ -612,6 +613,7 @@ public class Channel extends Postman {
 				try {
 					if(!insertMessage(baseKey, message.file)) {
 						Logger.debug(this, "Insert of " + message + " failed");
+						insertFailed = true;
 						continue;
 					}
 				} catch(FCPBadFileException e) {
@@ -633,6 +635,11 @@ public class Channel extends Postman {
 						message.firstSendTime = message.lastSendTime;
 					}
 				}
+			}
+
+			if(insertFailed) {
+				Logger.debug(this, "Retrying failed inserts in 5 minutes");
+				executor.schedule(this, 5, TimeUnit.MINUTES);
 			}
 		}
 
