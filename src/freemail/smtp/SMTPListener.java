@@ -26,11 +26,13 @@ import java.net.InetAddress;
 import java.io.IOException;
 
 import freemail.AccountManager;
+import freemail.Freemail;
 import freemail.MessageSender;
 import freemail.ServerListener;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
 import freemail.utils.Logger;
+import freemail.wot.WoTConnection;
 
 public class SMTPListener extends ServerListener implements Runnable,ConfigClient {
 	private static final int LISTENPORT = 3025;
@@ -38,10 +40,12 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 	private String bindaddress;
 	private int bindport;
 	private final AccountManager accountManager;
+	private final Freemail freemail;
 	
-	public SMTPListener(AccountManager accMgr, MessageSender sender, Configurator cfg) {
+	public SMTPListener(AccountManager accMgr, MessageSender sender, Configurator cfg, Freemail freemail) {
 		this.msgsender = sender;
 		this.accountManager = accMgr;
+		this.freemail = freemail;
 		cfg.register("smtp_bind_address", this, "127.0.0.1");
 		cfg.register("smtp_bind_port", this, Integer.toString(LISTENPORT));
 	}
@@ -66,7 +70,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
 		while (!sock.isClosed()) {
 			try {
-				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), this.msgsender);
+				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), this.msgsender, freemail.getWotConnection());
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
 				newthread.start();

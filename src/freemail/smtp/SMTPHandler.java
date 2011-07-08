@@ -38,6 +38,7 @@ import freemail.FreemailAccount;
 import freemail.MessageSender;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
+import freemail.wot.WoTConnection;
 
 import org.bouncycastle.util.encoders.Base64;
 
@@ -50,10 +51,11 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	public static final String MY_HOSTNAME = "localhost";
 	
 	private final AccountManager accountmanager;
+	private final WoTConnection wotConnection;
 	
 	private Vector to;
 	
-	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender) throws IOException {
+	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender, WoTConnection wotConnection) throws IOException {
 		super(client);
 		accountmanager = accMgr;
 		this.msgsender = sender;
@@ -61,6 +63,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
+		this.wotConnection = wotConnection;
 		
 		this.to = new Vector();
 	}
@@ -250,7 +253,6 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("553 Not a Freemail address\r\n");
 			return;
 		}
-		
 		
 		this.to.add(addr);
 		
