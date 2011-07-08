@@ -20,8 +20,48 @@
 
 package freemail.wot;
 
-public class IdentityMatcher {
-	public IdentityMatcher() {
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import freemail.utils.Logger;
+
+public class IdentityMatcher {
+	private final WoTConnection wotConnection;
+
+	public IdentityMatcher(WoTConnection wotConnection) {
+		this.wotConnection = wotConnection;
+	}
+
+	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity) {
+		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
+		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(wotOwnIdentity));
+		wotIdentities.addAll(wotConnection.getAllOwnIdentities());
+
+		Map<String, List<Identity>> allMatches = new HashMap<String, List<Identity>>(recipients.size());
+
+		for(String recipient : recipients) {
+			List<Identity> matches = new LinkedList<Identity>();
+			allMatches.put(recipient, matches);
+
+			//Matches <anything>@<identity id>.freemail
+			if(recipient.matches(".*@[A-Za-z0-9~\\-]{43,44}\\.freemail")) {
+				String recipientID = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
+				for(Identity wotIdentity : wotIdentities) {
+					if(wotIdentity.getIdentityID().equals(recipientID)) {
+						Logger.debug(this, "Matched identity " + recipientID);
+						matches.add(wotIdentity);
+					}
+				}
+			}
+
+			if(matches.isEmpty()) {
+				Logger.debug(this, "No matches found for: " + recipient);
+			}
+		}
+
+		return allMatches;
 	}
 }
