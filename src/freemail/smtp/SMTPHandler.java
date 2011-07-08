@@ -254,7 +254,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 		
 		//Check if the identity is in WoT
-		IdentityMatcher matcher = new IdentityMatcher(null);
+		IdentityMatcher matcher = new IdentityMatcher(wotConnection);
 		Set<String> recipient = new HashSet<String>();
 		recipient.add(parts[1]);
 		Map<String, List<Identity>> matches = matcher.matchIdentities(recipient, account.getUsername());
