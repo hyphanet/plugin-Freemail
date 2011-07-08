@@ -1157,6 +1157,8 @@ public class Channel extends Postman {
 			return true;
 		}
 
+		Logger.debug(this, "Got ack with id " + id);
+
 		long messageId = Long.parseLong(id);
 		QueuedMessage message = new QueuedMessage(messageId);
 		if(!message.delete()) {
