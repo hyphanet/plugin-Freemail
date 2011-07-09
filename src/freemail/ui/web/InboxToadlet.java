@@ -22,8 +22,10 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.SortedMap;
 
 import javax.naming.SizeLimitExceededException;
@@ -133,18 +135,22 @@ public class InboxToadlet extends WebPage {
 		String folderName = req.getParam("folder", "inbox");
 		MessageBank messageBank = getMessageBank(account, folderName);
 
+		Set<MailMessage> selectedMessages = new HashSet<MailMessage>();
 		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
 			int num = messageEntry.getKey();
 			try {
 				//If this doesn't throw NoSuchElementException the box was checked
 				req.getPartAsStringThrowing("msg-" + num, 100);
-
-				messageEntry.getValue().delete();
+				selectedMessages.add(messageEntry.getValue());
 			} catch(SizeLimitExceededException e) {
 				Logger.debug(this, "msg-" + num + ": Size limit");
 			} catch(NoSuchElementException e) {
 				Logger.debug(this, "msg-" + num + ": No such element");
 			}
+		}
+
+		for(MailMessage message : selectedMessages) {
+			message.delete();
 		}
 
 		writeTemporaryRedirect(ctx, "", "/Freemail/Inbox?folder=" + req.getPartAsString("folder", 100));
