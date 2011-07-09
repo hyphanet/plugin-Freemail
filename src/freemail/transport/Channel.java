@@ -740,8 +740,7 @@ public class Channel extends Postman {
 				return;
 			}
 
-			//FIXME: Get the truster id in a better way
-			String senderId = channelDir.getParentFile().getParentFile().getName();
+			String senderId = account.getUsername();
 			Logger.debug(this, "Getting identity from WoT");
 			Identity recipient = wotConnection.getIdentity(channelDir.getName(), senderId);
 			if(recipient == null) {
