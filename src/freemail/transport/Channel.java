@@ -747,9 +747,18 @@ public class Channel extends Postman {
 				return;
 			}
 
+			String remoteId;
+			synchronized(channelProps) {
+				 remoteId = channelProps.get(PropsKeys.REMOTE_ID);
+			}
+			if(remoteId == null) {
+				Logger.debug(this, "Missing remote identity");
+				return;
+			}
+
 			String senderId = account.getUsername();
 			Logger.debug(this, "Getting identity from WoT");
-			Identity recipient = wotConnection.getIdentity(channelDir.getName(), senderId);
+			Identity recipient = wotConnection.getIdentity(remoteId, senderId);
 			if(recipient == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
 				executor.schedule(this, 5, TimeUnit.MINUTES);
@@ -758,7 +767,7 @@ public class Channel extends Postman {
 
 			//Get the mailsite edition
 			int mailisteEdition;
-			String edition = wotConnection.getProperty(channelDir.getName(), WoTProperties.MAILSITE_EDITION);
+			String edition = wotConnection.getProperty(remoteId, WoTProperties.MAILSITE_EDITION);
 			if(edition == null) {
 				mailisteEdition = 1;
 			} else {
