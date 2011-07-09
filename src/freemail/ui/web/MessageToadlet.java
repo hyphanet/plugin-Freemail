@@ -75,6 +75,12 @@ public class MessageToadlet extends WebPage {
 		addMessageHeaders(messageNode, msg);
 		addMessageContents(messageNode, msg);
 
+		//Mark message as read
+		if(!msg.flags.get("\\seen")) {
+			msg.flags.set("\\seen", true);
+			msg.storeFlags();
+		}
+
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
