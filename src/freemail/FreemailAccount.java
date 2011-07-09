@@ -110,6 +110,7 @@ public class FreemailAccount {
 			}
 
 			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
+			channel.setRemoteIdentity(remoteIdentity);
 			channel.startTasks();
 			channels.put(remoteIdentity, channel);
 		}
@@ -136,6 +137,7 @@ public class FreemailAccount {
 			}
 
 			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
+			channel.setRemoteIdentity(remoteIdentity);
 			channel.processRTS(rtsProps);
 			channel.startTasks();
 			channels.put(remoteIdentity, channel);

@@ -100,6 +100,7 @@ public class Channel extends Postman {
 		private static final String RTS_SENT_AT = "rts-sent-at";
 		private static final String SEND_CODE = "sendCode";
 		private static final String FETCH_CODE = "fetchCode";
+		private static final String REMOTE_ID = "remoteID";
 	}
 
 	private final File channelDir;
@@ -219,6 +220,12 @@ public class Channel extends Postman {
 		//Queue the CTS insert
 		queueCTS();
 		startTasks();
+	}
+
+	public void setRemoteIdentity(String remoteID) {
+		synchronized(channelProps) {
+			channelProps.put(PropsKeys.REMOTE_ID, remoteID);
+		}
 	}
 
 	private void queueCTS() {
