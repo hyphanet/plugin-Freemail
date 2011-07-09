@@ -23,7 +23,10 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.SortedMap;
+
+import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
@@ -57,7 +60,7 @@ public class InboxToadlet extends WebPage {
 			makeWebPageGet(req, ctx, page);
 			break;
 		case POST:
-			makeWebPagePost();
+			makeWebPagePost(req, ctx);
 			break;
 		default:
 			//This will only happen if a new value is added to HTTPMethod, so log it and send an
@@ -107,8 +110,44 @@ public class InboxToadlet extends WebPage {
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void makeWebPagePost() {
-		throw new UnsupportedOperationException();
+	@SuppressWarnings("deprecation")
+	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		String pass;
+		try {
+			pass = req.getPartAsStringThrowing("formPassword", 32);
+		} catch (SizeLimitExceededException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
+			return;
+		} catch (NoSuchElementException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
+			return;
+		}
+
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
+			return;
+		}
+
+		String identity = sessionManager.useSession(ctx).getUserID();
+		FreemailAccount account = accountManager.getAccount(identity);
+		String folderName = req.getParam("folder", "inbox");
+		MessageBank messageBank = getMessageBank(account, folderName);
+
+		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
+			int num = messageEntry.getKey();
+			try {
+				//If this doesn't throw NoSuchElementException the box was checked
+				req.getPartAsStringThrowing("msg-" + num, 100);
+
+				messageEntry.getValue().delete();
+			} catch(SizeLimitExceededException e) {
+				Logger.debug(this, "msg-" + num + ": Size limit");
+			} catch(NoSuchElementException e) {
+				Logger.debug(this, "msg-" + num + ": No such element");
+			}
+		}
+
+		writeTemporaryRedirect(ctx, "", "/Freemail/Inbox?folder=" + req.getPartAsString("folder", 100));
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox
