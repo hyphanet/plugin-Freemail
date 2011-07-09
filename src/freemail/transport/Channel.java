@@ -394,7 +394,7 @@ public class Channel extends Postman {
 
 	@Override
 	public String toString() {
-		return "Channel [" + account.getUsername() + "->" + channelDir.getName() + "]";
+		return "Channel [" + channelDir + "]";
 	}
 
 	private String calculateNextSlot(String slot) {
@@ -553,7 +553,7 @@ public class Channel extends Postman {
 
 		@Override
 		public String toString() {
-			return "Fetcher [" + account.getUsername() + "->" + channelDir.getName() + "]";
+			return "Fetcher [" + channelDir + "]";
 		}
 	}
 
@@ -704,7 +704,7 @@ public class Channel extends Postman {
 
 		@Override
 		public String toString() {
-			return "Sender [" + account.getUsername() + "->" + channelDir.getName() + "]";
+			return "Sender [" + channelDir + "]";
 		}
 	}
 
@@ -1080,7 +1080,7 @@ public class Channel extends Postman {
 
 		@Override
 		public String toString() {
-			return "RTSSender [" + account.getUsername() + "->" + channelDir.getName() + "]";
+			return "RTSSender [" + channelDir + "]";
 		}
 	}
 
