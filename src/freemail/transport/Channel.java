@@ -1263,7 +1263,11 @@ public class Channel extends Postman {
 				messageIndex.remove(uid + ".waitForAck");
 			}
 
-			return this.file.delete();
+			if(file.exists()) {
+				return this.file.delete();
+			}
+
+			return true;
 		}
 	}
 
