@@ -1264,7 +1264,10 @@ public class Channel extends Postman {
 			}
 
 			if(file.exists()) {
-				return this.file.delete();
+				if(!file.delete()) {
+					Logger.debug(this, "Couldn't delete " + file);
+					return false;
+				}
 			}
 
 			return true;
