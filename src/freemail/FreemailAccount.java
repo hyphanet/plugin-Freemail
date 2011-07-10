@@ -57,6 +57,11 @@ public class FreemailAccount {
 		}
 
 		for(File f : channelDir.listFiles()) {
+			if(!f.isDirectory()) {
+				Logger.debug(this, "Spurious file in channel directory: " + f);
+				continue;
+			}
+
 			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
 			channel.startTasks();
 			channels.add(channel);
