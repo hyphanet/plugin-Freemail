@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
+import freemail.FreemailPlugin;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
@@ -43,6 +44,8 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
+	private static final List<AccountCreationTask> accountCreationTasks = new LinkedList<AccountCreationTask>();
+
 	private final PluginRespirator pluginRespirator;
 	private final WoTConnection wotConnection;
 	private final AccountManager accountManager;
@@ -145,28 +148,13 @@ public class AddAccountToadlet extends WebPage {
 			return;
 		}
 
-		//Fetch identity from WoT
-		OwnIdentity ownIdentity = null;
-		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
-			if(oid.getIdentityID().equals(identity)) {
-				ownIdentity = oid;
-				break;
-			}
+		AccountCreationTask task = new AccountCreationTask(accountManager, identity, wotConnection);
+		FreemailPlugin.getExecutor().submit(task);
+		synchronized(accountCreationTasks) {
+			accountCreationTasks.add(task);
 		}
 
-		if(ownIdentity == null) {
-			Logger.error(this, "Requested identity (" + identity + ") doesn't exist");
-
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The specified identitiy doesn't exist");
-			return;
-		}
-
-		List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
-		toAdd.add(ownIdentity);
-		accountManager.addIdentities(toAdd);
-
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/AddAccount?identity=" + ownIdentity.getIdentityID());
+		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/AddAccount?identity=" + identity);
 	}
 
 	@Override
@@ -177,5 +165,66 @@ public class AddAccountToadlet extends WebPage {
 	@Override
 	public String path() {
 		return "/Freemail/AddAccount";
+	}
+
+	private static class AccountCreationTask implements Runnable {
+		private final AccountManager accountManager;
+		private final String identityID;
+		private final WoTConnection wotConnection;
+
+		private final Object stateLock = new Object();
+		private State state = State.STARTING;
+
+		private AccountCreationTask(AccountManager accountManager, String identityID, WoTConnection wotConnection) {
+			this.accountManager = accountManager;
+			this.identityID = identityID;
+			this.wotConnection = wotConnection;
+		}
+
+		@Override
+		public void run() {
+			//Fetch identity from WoT
+			setState(State.FETCHING);
+			OwnIdentity ownIdentity = null;
+			for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+				if(oid.getIdentityID().equals(identityID)) {
+					ownIdentity = oid;
+					break;
+				}
+			}
+
+			if(ownIdentity == null) {
+				Logger.error(this, "Requested identity (" + identityID + ") doesn't exist");
+				setState(State.ERROR);
+				return;
+			}
+
+			setState(State.WORKING);
+			List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
+			toAdd.add(ownIdentity);
+			accountManager.addIdentities(toAdd);
+
+			setState(State.FINISHED);
+		}
+
+		private State getState() {
+			synchronized(stateLock) {
+				return state;
+			}
+		}
+
+		private void setState(State newState) {
+			synchronized(stateLock) {
+				state = newState;
+			}
+		}
+
+		private enum State {
+			STARTING,
+			FETCHING,
+			WORKING,
+			FINISHED,
+			ERROR;
+		}
 	}
 }
