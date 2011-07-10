@@ -140,36 +140,33 @@ public class FreemailAccount {
 	}
 
 	public Channel createChannelFromRTS(PropsFile rtsProps) {
+		//First try to find a channel with the same key
+		String rtsPrivateKey = rtsProps.get("channel");
+		for(Channel c : channels) {
+			if(rtsPrivateKey.equals(c.getPrivateKey())) {
+				c.processRTS(rtsProps);
+				return c;
+			}
+		}
+
+		//Create a new channel from the RTS values
+		Logger.debug(this, "Creating new channel from RTS");
+		File channelsDir = new File(accdir, "channels");
+		File newChannelDir = new File(channelsDir, "" + nextChannelNum++);
+		if(!newChannelDir.mkdir()) {
+			Logger.error(this, "Couldn't create the channel directory");
+			return null;
+		}
+
 		String remoteIdentity = rtsProps.get("mailsite");
 		remoteIdentity = remoteIdentity.substring(remoteIdentity.indexOf("@") + 1); //Strip USK@
 		remoteIdentity = remoteIdentity.substring(0, remoteIdentity.indexOf(","));
 
-		Channel channel = null;
-		for(Channel c : channels) {
-			if(remoteIdentity.equals(c.getRemoteIdentity())) {
-				channel = c;
-				break;
-			}
-		}
-
-		if(channel != null) {
-			Logger.debug(this, "Got RTS for existing channel");
-			channel.processRTS(rtsProps);
-		} else {
-			Logger.debug(this, "Creating new channel from RTS");
-			File channelsDir = new File(accdir, "channels");
-			File newChannelDir = new File(channelsDir, "" + nextChannelNum++);
-			if(!newChannelDir.mkdir()) {
-				Logger.error(this, "Couldn't create the channel directory");
-				return null;
-			}
-
-			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
-			channel.setRemoteIdentity(remoteIdentity);
-			channel.processRTS(rtsProps);
-			channel.startTasks();
-			channels.add(channel);
-		}
+		Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
+		channel.setRemoteIdentity(remoteIdentity);
+		channel.processRTS(rtsProps);
+		channel.startTasks();
+		channels.add(channel);
 
 		return channel;
 	}
