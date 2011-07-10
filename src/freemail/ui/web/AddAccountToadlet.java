@@ -129,6 +129,30 @@ public class AddAccountToadlet extends WebPage {
 			return;
 		}
 
+		String action;
+		try {
+			action = req.getPartAsStringThrowing("action", 64);
+		} catch(SizeLimitExceededException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got action that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("action", 100));
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
+			return;
+		} catch(NoSuchElementException e) {
+			action = "addAccount";
+		}
+
+		if("addAccount".equals(action)) {
+			addAccount(ctx, req);
+		} else {
+			Logger.error(this, "Got unknown action: " + action);
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
+		}
+	}
+
+	private void addAccount(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
 		//Get the identity id
 		String identity;
 		try {
