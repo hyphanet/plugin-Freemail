@@ -145,6 +145,8 @@ public class AddAccountToadlet extends WebPage {
 
 		if("addAccount".equals(action)) {
 			addAccount(ctx, req);
+		} else if("setPassword".equals(action)) {
+			setPassword(ctx, req);
 		} else {
 			Logger.error(this, "Got unknown action: " + action);
 			//TODO: Write a better message
@@ -180,6 +182,77 @@ public class AddAccountToadlet extends WebPage {
 		}
 
 		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/AddAccount?identity=" + identity);
+	}
+
+	private void setPassword(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
+		//Get the identity id
+		String identity;
+		try {
+			identity = req.getPartAsStringThrowing("identity", 64);
+		} catch(SizeLimitExceededException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got identity that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("identity", 100));
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
+			return;
+		} catch(NoSuchElementException e) {
+			//Someone is deliberately passing bad data, or there is a bug in the PUT code
+			Logger.error(this, "Got POST request without identity");
+
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
+			return;
+		}
+
+		AccountCreationTask task = null;
+		synchronized(accountCreationTasks) {
+			for(AccountCreationTask t : accountCreationTasks) {
+				if(t.identityID.equals(identity)) {
+					task = t;
+					break;
+				}
+			}
+		}
+
+		String password;
+		try {
+			password = req.getPartAsStringThrowing("password", 64);
+		} catch(SizeLimitExceededException e) {
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The password was too long");
+			return;
+		} catch(NoSuchElementException e) {
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "Missing password");
+			return;
+		}
+
+		String passwordVerification;
+		try {
+			passwordVerification = req.getPartAsStringThrowing("passwordVerify", 64);
+		} catch(SizeLimitExceededException e) {
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The passwords were different");
+			return;
+		} catch(NoSuchElementException e) {
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The passwords were different");
+			return;
+		}
+
+		if(!password.equals(passwordVerification)) {
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "The passwords were different");
+			return;
+		}
+
+		synchronized(task.passwordLock) {
+			task.password = password;
+			task.passwordLock.notify();
+		}
+
+		writeTemporaryRedirect(ctx, "Redirecting to status page", "/Freemail/AddAccount?identity=" + identity);
 	}
 
 	@Override
