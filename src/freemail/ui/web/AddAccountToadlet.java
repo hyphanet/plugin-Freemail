@@ -39,6 +39,7 @@ import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
@@ -63,7 +64,7 @@ public class AddAccountToadlet extends WebPage {
 	void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		switch(method) {
 		case GET:
-			makeWebPageGet(ctx);
+			makeWebPageGet(ctx, req);
 			break;
 		case POST:
 			makeWebPagePost(ctx, req);
@@ -77,8 +78,33 @@ public class AddAccountToadlet extends WebPage {
 		}
 	}
 
-	private void makeWebPageGet(ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		writeTemporaryRedirect(ctx, "Redirecting to login page", "/Freemail/Login");
+	private void makeWebPageGet(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
+		String identity = req.getParam("identity");
+
+		PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
+
+		HTMLNode infobox = addInfobox(contentNode, "Choose a password");
+		infobox.addChild("p", "While your account in being created, please select a password. This" +
+				"will be used when logging in to your account from an email client");
+
+		HTMLNode passwordForm = pluginRespirator.addFormChild(infobox, "/Freemail/AddAccount", "password");
+		passwordForm.addChild("input", new String[] {"type",   "name",   "value"},
+		                               new String[] {"hidden", "action", "setPassword"});
+
+		//FIXME: Doing it this way allows the password of any identity to be changed
+		passwordForm.addChild("input", new String[] {"type",   "name",     "value"},
+		                               new String[] {"hidden", "identity", identity});
+
+		passwordForm.addChild("input", new String[] {"type",     "name"},
+		                               new String[] {"password", "password"});
+		passwordForm.addChild("input", new String[] {"type",     "name"},
+		                               new String[] {"password", "passwordVerify"});
+		passwordForm.addChild("input", new String[] {"type", "name", "value"},
+		                               new String[] {"submit", "submit", "Set password"});
+
+		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
 	private void makeWebPagePost(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
