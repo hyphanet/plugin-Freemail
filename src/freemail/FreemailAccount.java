@@ -40,6 +40,8 @@ public class FreemailAccount {
 	private final MessageBank mb;
 	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
+
+	private int nextChannelNum = 0;
 	
 	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
 		this.identity = identity;
@@ -59,6 +61,16 @@ public class FreemailAccount {
 		for(File f : channelDir.listFiles()) {
 			if(!f.isDirectory()) {
 				Logger.debug(this, "Spurious file in channel directory: " + f);
+				continue;
+			}
+
+			try {
+				int num = Integer.parseInt(f.getName());
+				if(num >= nextChannelNum) {
+					nextChannelNum = num + 1;
+				}
+			} catch(NumberFormatException e) {
+				Logger.debug(this, "Found directory with malformed name: " + f);
 				continue;
 			}
 
@@ -113,7 +125,7 @@ public class FreemailAccount {
 
 		//The channel didn't exist, so create a new one
 		File channelsDir = new File(accdir, "channels");
-		File newChannelDir = new File(channelsDir, remoteIdentity);
+		File newChannelDir = new File(channelsDir, "" + nextChannelNum++);
 		if(!newChannelDir.mkdir()) {
 			Logger.error(this, "Couldn't create the channel directory");
 			return null;
@@ -146,7 +158,7 @@ public class FreemailAccount {
 		} else {
 			Logger.debug(this, "Creating new channel from RTS");
 			File channelsDir = new File(accdir, "channels");
-			File newChannelDir = new File(channelsDir, remoteIdentity);
+			File newChannelDir = new File(channelsDir, "" + nextChannelNum++);
 			if(!newChannelDir.mkdir()) {
 				Logger.error(this, "Couldn't create the channel directory");
 				return null;
