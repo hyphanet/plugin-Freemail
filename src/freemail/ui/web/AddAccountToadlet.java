@@ -271,7 +271,7 @@ public class AddAccountToadlet extends WebPage {
 		private final WoTConnection wotConnection;
 
 		private final Object stateLock = new Object();
-		private State state = State.STARTING;
+		private TaskState state = TaskState.STARTING;
 
 		private final Object passwordLock = new Object();
 		private String password = null;
@@ -285,7 +285,7 @@ public class AddAccountToadlet extends WebPage {
 		@Override
 		public void run() {
 			//Fetch identity from WoT
-			setState(State.FETCHING);
+			setState(TaskState.FETCHING);
 			OwnIdentity ownIdentity = null;
 			for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
 				if(oid.getIdentityID().equals(identityID)) {
@@ -296,12 +296,12 @@ public class AddAccountToadlet extends WebPage {
 
 			if(ownIdentity == null) {
 				Logger.error(this, "Requested identity (" + identityID + ") doesn't exist");
-				setState(State.ERROR);
+				setState(TaskState.ERROR);
 				return;
 			}
 
 			//Create account
-			setState(State.WORKING);
+			setState(TaskState.WORKING);
 			List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
 			toAdd.add(ownIdentity);
 			accountManager.addIdentities(toAdd);
@@ -323,32 +323,32 @@ public class AddAccountToadlet extends WebPage {
 					AccountManager.changePassword(account, password);
 				} catch(Exception e) {
 					Logger.error(this, "Caugth " + e + " while setting password for new account");
-					setState(State.ERROR);
+					setState(TaskState.ERROR);
 					return;
 				}
 			}
 
-			setState(State.FINISHED);
+			setState(TaskState.FINISHED);
 		}
 
-		private State getState() {
+		private TaskState getState() {
 			synchronized(stateLock) {
 				return state;
 			}
 		}
 
-		private void setState(State newState) {
+		private void setState(TaskState newState) {
 			synchronized(stateLock) {
 				state = newState;
 			}
 		}
+	}
 
-		private enum State {
-			STARTING,
-			FETCHING,
-			WORKING,
-			FINISHED,
-			ERROR;
-		}
+	private enum TaskState {
+		STARTING,
+		FETCHING,
+		WORKING,
+		FINISHED,
+		ERROR;
 	}
 }
