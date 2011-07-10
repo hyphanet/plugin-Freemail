@@ -166,7 +166,7 @@ public class AddAccountToadlet extends WebPage {
 		toAdd.add(ownIdentity);
 		accountManager.addIdentities(toAdd);
 
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/Login");
+		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/AddAccount?identity=" + ownIdentity.getIdentityID());
 	}
 
 	@Override
