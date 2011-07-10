@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
+import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
@@ -175,6 +176,9 @@ public class AddAccountToadlet extends WebPage {
 		private final Object stateLock = new Object();
 		private State state = State.STARTING;
 
+		private final Object passwordLock = new Object();
+		private String password = null;
+
 		private AccountCreationTask(AccountManager accountManager, String identityID, WoTConnection wotConnection) {
 			this.accountManager = accountManager;
 			this.identityID = identityID;
@@ -199,10 +203,33 @@ public class AddAccountToadlet extends WebPage {
 				return;
 			}
 
+			//Create account
 			setState(State.WORKING);
 			List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
 			toAdd.add(ownIdentity);
 			accountManager.addIdentities(toAdd);
+			FreemailAccount account = accountManager.getAccount(identityID);
+
+			//Set the password for the new account
+			//TODO: Should this time out in case the user doesn't set the password? The account
+			//      works fine at this point anyway
+			synchronized(passwordLock) {
+				while(password == null) {
+					try {
+						passwordLock.wait();
+					} catch(InterruptedException e) {
+						//Check again
+					}
+				}
+
+				try {
+					AccountManager.changePassword(account, password);
+				} catch(Exception e) {
+					Logger.error(this, "Caugth " + e + " while setting password for new account");
+					setState(State.ERROR);
+					return;
+				}
+			}
 
 			setState(State.FINISHED);
 		}
