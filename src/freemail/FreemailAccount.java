@@ -20,8 +20,8 @@
 package freemail;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.archive.util.Base32;
 
@@ -38,7 +38,7 @@ public class FreemailAccount {
 	private final File accdir;
 	private final PropsFile accprops;
 	private final MessageBank mb;
-	private final Map<String, Channel> channels = new HashMap<String, Channel>();
+	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
 	
 	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
@@ -59,7 +59,7 @@ public class FreemailAccount {
 		for(File f : channelDir.listFiles()) {
 			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
 			channel.startTasks();
-			channels.put(f.getName(), channel);
+			channels.add(channel);
 		}
 	}
 	
@@ -100,20 +100,24 @@ public class FreemailAccount {
 	}
 
 	public Channel getChannel(String remoteIdentity) {
-		Channel channel = channels.get(remoteIdentity);
-		if(channel == null) {
-			File channelsDir = new File(accdir, "channels");
-			File newChannelDir = new File(channelsDir, remoteIdentity);
-			if(!newChannelDir.mkdir()) {
-				Logger.error(this, "Couldn't create the channel directory");
-				return null;
+		for(Channel c : channels) {
+			if(remoteIdentity.equals(c.getRemoteIdentity())) {
+				return c;
 			}
-
-			channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
-			channel.setRemoteIdentity(remoteIdentity);
-			channel.startTasks();
-			channels.put(remoteIdentity, channel);
 		}
+
+		//The channel didn't exist, so create a new one
+		File channelsDir = new File(accdir, "channels");
+		File newChannelDir = new File(channelsDir, remoteIdentity);
+		if(!newChannelDir.mkdir()) {
+			Logger.error(this, "Couldn't create the channel directory");
+			return null;
+		}
+
+		Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
+		channel.setRemoteIdentity(remoteIdentity);
+		channel.startTasks();
+		channels.add(channel);
 
 		return channel;
 	}
@@ -123,7 +127,14 @@ public class FreemailAccount {
 		remoteIdentity = remoteIdentity.substring(remoteIdentity.indexOf("@") + 1); //Strip USK@
 		remoteIdentity = remoteIdentity.substring(0, remoteIdentity.indexOf(","));
 
-		Channel channel = channels.get(remoteIdentity);
+		Channel channel = null;
+		for(Channel c : channels) {
+			if(remoteIdentity.equals(c.getRemoteIdentity())) {
+				channel = c;
+				break;
+			}
+		}
+
 		if(channel != null) {
 			Logger.debug(this, "Got RTS for existing channel");
 			channel.processRTS(rtsProps);
@@ -140,7 +151,7 @@ public class FreemailAccount {
 			channel.setRemoteIdentity(remoteIdentity);
 			channel.processRTS(rtsProps);
 			channel.startTasks();
-			channels.put(remoteIdentity, channel);
+			channels.add(channel);
 		}
 
 		return channel;

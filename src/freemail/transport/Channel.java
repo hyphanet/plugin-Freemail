@@ -397,6 +397,12 @@ public class Channel extends Postman {
 		return "Channel [" + channelDir + "]";
 	}
 
+	public String getRemoteIdentity() {
+		synchronized(channelProps) {
+			return channelProps.get(PropsKeys.REMOTE_ID);
+		}
+	}
+
 	private String calculateNextSlot(String slot) {
 		byte[] buf = Base32.decode(slot);
 		SHA256Digest sha256 = new SHA256Digest();
