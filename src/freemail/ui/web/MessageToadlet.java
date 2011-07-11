@@ -70,6 +70,13 @@ public class MessageToadlet extends WebPage {
 		String messageUid = req.getParam("uid", "0");
 		MailMessage msg = getMessage(messageBank, Integer.parseInt(messageUid));
 
+		if(msg == null) {
+			HTMLNode infobox = addErrorbox(container, "Message doesn't exist");
+			infobox.addChild("p", "The message you requested doesn't exist");
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
+		}
+
 		HTMLNode messageNode = container.addChild("div", "class", "message");
 
 		addMessageHeaders(messageNode, msg);
