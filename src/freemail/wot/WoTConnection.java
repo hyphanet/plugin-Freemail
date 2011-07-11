@@ -24,10 +24,59 @@ import java.util.List;
 import java.util.Set;
 
 public interface WoTConnection {
+	/**
+	 * Returns all the OwnIdentities fetched from WoT, or {@code null} if an error occurs. If there
+	 * are no OwnIdentities the returned list will be empty.
+	 * @return all the OwnIdentities fetched from WoT
+	 */
 	public List<OwnIdentity> getAllOwnIdentities();
+
+	/**
+	 * Returns all the identities that are trusted by the given identity, or {@code null} if an
+	 * error occurs. Trusted identities are those with a score of 0 or higher.
+	 * @param trusterId the identity id of the truster
+	 * @return all the identities that are trusted by the given identity
+	 * @throws NullPointerException if trusterId is {@code null}
+	 */
 	public Set<Identity> getAllTrustedIdentities(String trusterId);
+
+	/**
+	 * Returns all the identities that are not trusted by the given identity, or {@code null} if an
+	 * error occurs.
+	 * @param trusterId the identity id of the truster
+	 * @return all the identities that are not trusted by the given identity
+	 * @throws NullPointerException if trusterId is {@code null}
+	 */
 	public Set<Identity> getAllUntrustedIdentities(String trusterId);
+
+	/**
+	 * Returns the Identity with the given identity string. The truster parameter is used to fetch
+	 * the trust and score of the identity and must be a valid OwnIdentity.
+	 * @param identity the id of the Identity that should be fetched
+	 * @param truster the OwnIdentity to use for fetching the trust and score
+	 * @return the Identity with the given identity string
+	 * @throws NullPointerException if any of the parameters are {@code null}
+	 */
 	public Identity getIdentity(String identity, String truster);
+
+	/**
+	 * Sets the property {@code key} to {@code value} for the given identity, returning {@code true}
+	 * if the property was successfully set and {@code false} otherwise.
+	 * @param identity the identity whose parameter should be set
+	 * @param key the name of the parameter
+	 * @param value the new value of the parameter
+	 * @return {@code true} if the parameter was successfully set
+	 * @throws NullPointerException if any of the parameters are {@code null}
+	 */
 	public boolean setProperty(String identity, String key, String value);
+
+	/**
+	 * Returns the value of the named parameter from the given identity. {@code null} is returned if
+	 * the parameter doesn't exist, or if an error occurs.
+	 * @param identity the identity whose parameter should be fetched
+	 * @param key the name of the parameter to be fetched
+	 * @return the value of the parameter, or {@code null}
+	 * @throws NullPointerException if any of the parameters are {@code null}
+	 */
 	public String getProperty(String identity, String key);
 }
