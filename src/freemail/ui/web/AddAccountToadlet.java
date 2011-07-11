@@ -85,6 +85,22 @@ public class AddAccountToadlet extends WebPage {
 	private void makeWebPageGet(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
 		String identity = req.getParam("identity");
 
+		AccountCreationTask task = null;
+		synchronized(accountCreationTasks) {
+			for(AccountCreationTask t : accountCreationTasks) {
+				if(t.identityID.equals(identity)) {
+					task = t;
+					break;
+				}
+			}
+		}
+
+		if(task.getState() == TaskState.FINISHED) {
+			//Everything is done
+			writeTemporaryRedirect(ctx, "Redirecting to login page", "/Freemail/Login");
+			return;
+		}
+
 		PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
