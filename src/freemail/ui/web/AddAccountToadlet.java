@@ -95,7 +95,7 @@ public class AddAccountToadlet extends WebPage {
 			}
 		}
 
-		if(task.getState() == TaskState.FINISHED) {
+		if((task == null) || (task.getState() == TaskState.FINISHED)) {
 			//Everything is done
 			writeTemporaryRedirect(ctx, "Redirecting to login page", "/Freemail/Login");
 			return;
@@ -245,6 +245,12 @@ public class AddAccountToadlet extends WebPage {
 			}
 		}
 
+		if(task == null) {
+			//TODO: Write a better message
+			writeHTMLReply(ctx, 200, "OK", "A password has already been set for this account");
+			return;
+		}
+
 		String password;
 		try {
 			password = req.getPartAsStringThrowing("password", 64);
@@ -359,6 +365,9 @@ public class AddAccountToadlet extends WebPage {
 			}
 
 			setState(TaskState.FINISHED);
+			synchronized(accountCreationTasks) {
+				accountCreationTasks.remove(this);
+			}
 		}
 
 		private TaskState getState() {
