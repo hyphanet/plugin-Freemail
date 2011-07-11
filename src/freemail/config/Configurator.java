@@ -53,6 +53,15 @@ public class Configurator {
 		this.callbacks = new HashMap();
 	}
 	
+	/**
+	 * Returns the value of the specified configuration key, or null if the key has not been set
+	 * @param key the key whose value should be returned
+	 * @return the value of the specified configuration key, or null if the key has not been set
+	 */
+	public String get(String key) {
+		return props.get(key);
+	}
+
 	public void register(String key, ConfigClient cb, String defaultval) {
 		this.callbacks.put(key, cb);
 		
