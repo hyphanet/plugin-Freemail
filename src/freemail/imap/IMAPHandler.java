@@ -302,7 +302,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.sendState(numexists+" EXISTS");
 		this.sendState(numrecent+" RECENT");
 			
-		this.sendState("OK [UIDVALIDITY 1] Ok");
+		this.sendState("OK [UIDVALIDITY " + mb.getUidValidity() + "] Ok");
 			
 		this.reply(msg, "OK [READ-WRITE] Done");
 	}
