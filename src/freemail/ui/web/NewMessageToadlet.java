@@ -67,7 +67,7 @@ public class NewMessageToadlet extends WebPage {
 	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		switch(method) {
 		case GET:
-			makeWebPageGet(ctx, page);
+			makeWebPageGet(req, ctx, page);
 			break;
 		case POST:
 			makeWebPagePost(req, ctx, page);
@@ -81,16 +81,22 @@ public class NewMessageToadlet extends WebPage {
 		}
 	}
 
-	private void makeWebPageGet(ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	private void makeWebPageGet(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
+
+		String recipient = req.getParam("to");
+		if(!recipient.equals("")) {
+			Identity identity = wotConnection.getIdentity(recipient, sessionManager.useSession(ctx).getUserID());
+			recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
+		}
 
 		HTMLNode messageBox = addInfobox(contentNode, "New message");
 		HTMLNode messageForm = ctx.addFormChild(messageBox, path(), "newMessage");
 
 		HTMLNode recipientBox = addInfobox(messageForm, "To");
-		recipientBox.addChild("input", new String[] {"name", "type", "size"},
-		                               new String[] {"to",   "text", "100"});
+		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
+		                               new String[] {"to",   "text", "100",  recipient});
 
 		HTMLNode subjectBox = addInfobox(messageForm, "Subject");
 		subjectBox.addChild("input", new String[] {"name",    "type", "size"},
