@@ -322,6 +322,7 @@ public class AddAccountToadlet extends WebPage {
 		public void run() {
 			//Fetch identity from WoT
 			setState(TaskState.FETCHING);
+			Logger.debug(this, "Getting own identity from WoT");
 			OwnIdentity ownIdentity = null;
 			for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
 				if(oid.getIdentityID().equals(identityID)) {
@@ -338,6 +339,7 @@ public class AddAccountToadlet extends WebPage {
 
 			//Create account
 			setState(TaskState.WORKING);
+			Logger.debug(this, "Creating account");
 			List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
 			toAdd.add(ownIdentity);
 			accountManager.addIdentities(toAdd);
@@ -346,6 +348,7 @@ public class AddAccountToadlet extends WebPage {
 			//Set the password for the new account
 			//TODO: Should this time out in case the user doesn't set the password? The account
 			//      works fine at this point anyway
+			Logger.debug(this, "Waiting for password");
 			synchronized(passwordLock) {
 				while(password == null) {
 					try {
@@ -355,6 +358,7 @@ public class AddAccountToadlet extends WebPage {
 					}
 				}
 
+				Logger.debug(this, "Changing password");
 				try {
 					AccountManager.changePassword(account, password);
 				} catch(Exception e) {
@@ -365,6 +369,7 @@ public class AddAccountToadlet extends WebPage {
 			}
 
 			setState(TaskState.FINISHED);
+			Logger.debug(this, "Removing task");
 			synchronized(accountCreationTasks) {
 				accountCreationTasks.remove(this);
 			}
