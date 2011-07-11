@@ -105,7 +105,23 @@ public class AddAccountToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		HTMLNode infobox = addInfobox(contentNode, "Choose a password");
+		boolean setPassword;
+		synchronized(task.passwordLock) {
+			setPassword = (task.password == null);
+		}
+
+		if(setPassword) {
+			addPasswordForm(contentNode, identity);
+		} else {
+			HTMLNode infobox = addInfobox(contentNode, "Account is being created");
+			infobox.addChild("p", "Your account is being created.");
+		}
+
+		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void addPasswordForm(HTMLNode parent, String identity) {
+		HTMLNode infobox = addInfobox(parent, "Choose a password");
 		infobox.addChild("p", "While your account in being created, please select a password. This" +
 				"will be used when logging in to your account from an email client");
 
@@ -123,8 +139,6 @@ public class AddAccountToadlet extends WebPage {
 		                               new String[] {"password", "passwordVerify"});
 		passwordForm.addChild("input", new String[] {"type", "name", "value"},
 		                               new String[] {"submit", "submit", "Set password"});
-
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
 	private void makeWebPagePost(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
