@@ -64,7 +64,11 @@ class WoTConnectionImpl implements WoTConnection {
 			}
 
 			String requestURI = response.sfs.get("RequestURI" + count);
+			assert (requestURI != null);
+
 			String insertURI = response.sfs.get("InsertURI" + count);
+			assert (insertURI != null);
+
 			String nickname = response.sfs.get("Nickname" + count);
 
 			ownIdentities.add(new OwnIdentity(identityID, requestURI, insertURI, nickname));
@@ -109,6 +113,8 @@ class WoTConnectionImpl implements WoTConnection {
 			}
 
 			String requestURI = response.sfs.get("RequestURI" + count);
+			assert (requestURI != null);
+
 			String nickname = response.sfs.get("Nickname" + count);
 
 			identities.add(new Identity(identityID, requestURI, nickname));
@@ -134,6 +140,8 @@ class WoTConnectionImpl implements WoTConnection {
 		Message response = sendBlocking(new Message(sfs, null));
 
 		String requestURI = response.sfs.get("RequestURI");
+		assert(requestURI != null);
+
 		String nickname = response.sfs.get("Nickname");
 
 		return new Identity(identity, requestURI, nickname);
