@@ -115,6 +115,7 @@ public class AddAccountToadlet extends WebPage {
 		} else {
 			HTMLNode infobox = addInfobox(contentNode, "Account is being created");
 			infobox.addChild("p", "Your account is being created.");
+			Logger.debug(this, "Task state is " + task.getState());
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
