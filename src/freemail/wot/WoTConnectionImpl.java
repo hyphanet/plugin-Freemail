@@ -84,6 +84,13 @@ class WoTConnectionImpl implements WoTConnection {
 	}
 
 	private Set<Identity> getAllIdentities(String trusterId, TrustSelection selection) {
+		if(trusterId == null) {
+			throw new NullPointerException("Parameter trusterId must not be null");
+		}
+		if(selection == null) {
+			throw new NullPointerException("Parameter selection must not be null");
+		}
+
 		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
 		sfs.putOverwrite("Message", "GetIdentitiesByScore");
 		sfs.putOverwrite("Truster", trusterId);
@@ -112,6 +119,13 @@ class WoTConnectionImpl implements WoTConnection {
 
 	@Override
 	public Identity getIdentity(String identity, String trusterId) {
+		if(identity == null) {
+			throw new NullPointerException("Parameter identity must not be null");
+		}
+		if(trusterId == null) {
+			throw new NullPointerException("Parameter trusterId must not be null");
+		}
+
 		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
 		sfs.putOverwrite("Message", "GetIdentity");
 		sfs.putOverwrite("Identity", identity);
@@ -127,6 +141,16 @@ class WoTConnectionImpl implements WoTConnection {
 
 	@Override
 	public boolean setProperty(String identity, String key, String value) {
+		if(identity == null) {
+			throw new NullPointerException("Parameter identity must not be null");
+		}
+		if(key == null) {
+			throw new NullPointerException("Parameter key must not be null");
+		}
+		if(value == null) {
+			throw new NullPointerException("Parameter value must not be null");
+		}
+
 		SimpleFieldSet sfs = new SimpleFieldSet(true);
 		sfs.putOverwrite("Message", "SetProperty");
 		sfs.putOverwrite("Identity", identity);
@@ -140,6 +164,13 @@ class WoTConnectionImpl implements WoTConnection {
 
 	@Override
 	public String getProperty(String identity, String key) {
+		if(identity == null) {
+			throw new NullPointerException("Parameter identity must not be null");
+		}
+		if(key == null) {
+			throw new NullPointerException("Parameter key must not be null");
+		}
+
 		SimpleFieldSet sfs = new SimpleFieldSet(true);
 		sfs.putOverwrite("Message", "GetProperty");
 		sfs.putOverwrite("Identity", identity);
@@ -151,6 +182,8 @@ class WoTConnectionImpl implements WoTConnection {
 	}
 
 	private Message sendBlocking(final Message msg) {
+		assert (msg != null);
+
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
 		synchronized(pluginTalker) {
