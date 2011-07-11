@@ -55,6 +55,11 @@ class WoTConnectionImpl implements WoTConnection {
 						new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create(),
 						null));
 
+		if(!"OwnIdentities".equals(response.sfs.get("Message"))) {
+			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+			return null;
+		}
+
 		final List<OwnIdentity> ownIdentities = new LinkedList<OwnIdentity>();
 		for(int count = 0;; count++) {
 			String identityID = response.sfs.get("Identity" + count);
@@ -104,6 +109,11 @@ class WoTConnectionImpl implements WoTConnection {
 
 		Message response = sendBlocking(new Message(sfs, null));
 
+		if(!"Identities".equals(response.sfs.get("Message"))) {
+			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+			return null;
+		}
+
 		final Set<Identity> identities = new HashSet<Identity>();
 		for(int count = 0;; count++) {
 			String identityID = response.sfs.get("Identity" + count);
@@ -138,6 +148,11 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Truster", trusterId);
 
 		Message response = sendBlocking(new Message(sfs, null));
+
+		if(!"Identity".equals(response.sfs.get("Message"))) {
+			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+			return null;
+		}
 
 		String requestURI = response.sfs.get("RequestURI");
 		assert(requestURI != null);
@@ -185,6 +200,11 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Property", key);
 
 		Message response = sendBlocking(new Message(sfs, null));
+
+		if(!"PropertyValue".equals(response.sfs.get("Message"))) {
+			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+			return null;
+		}
 
 		return response.sfs.get("Property");
 	}
