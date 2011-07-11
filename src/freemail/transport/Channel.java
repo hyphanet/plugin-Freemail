@@ -555,12 +555,17 @@ public class Channel extends Postman {
 			}
 
 			//Reschedule
-			executor.schedule(fetcher, 5, TimeUnit.MINUTES);
+			schedule(5, TimeUnit.MINUTES);
 		}
 
 		public void execute() {
 			Logger.debug(this, "Scheduling Fetcher for execution");
 			executor.execute(fetcher);
+		}
+
+		public void schedule(long delay, TimeUnit unit) {
+			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase());
+			executor.schedule(fetcher, delay, unit);
 		}
 
 		@Override
@@ -622,7 +627,7 @@ public class Channel extends Postman {
 					if(timeToResend > 0) {
 						//Don't resent just yet
 						Logger.debug(this, "Message due to be resent in " + timeToResend + " ms");
-						executor.schedule(sender, timeToResend, TimeUnit.MILLISECONDS);
+						schedule(timeToResend, TimeUnit.MILLISECONDS);
 						continue;
 					}
 
@@ -658,7 +663,7 @@ public class Channel extends Postman {
 
 			if(insertFailed) {
 				Logger.debug(this, "Retrying failed inserts in 5 minutes");
-				executor.schedule(this, 5, TimeUnit.MINUTES);
+				schedule(5, TimeUnit.MINUTES);
 			}
 		}
 
@@ -714,6 +719,11 @@ public class Channel extends Postman {
 			executor.execute(sender);
 		}
 
+		public void schedule(long delay, TimeUnit unit) {
+			Logger.debug(this, "Scheduling Sender for execution in " + delay + " " + unit.toString().toLowerCase());
+			executor.schedule(this, delay, unit);
+		}
+
 		@Override
 		public String toString() {
 			return "Sender [" + channelDir + "]";
@@ -746,7 +756,7 @@ public class Channel extends Postman {
 			}
 			if(sendRtsIn > 0) {
 				Logger.debug(this, "Rescheduling RTSSender in " + sendRtsIn + " ms when the RTS is due to be inserted");
-				executor.schedule(this, sendRtsIn, TimeUnit.MILLISECONDS);
+				schedule(sendRtsIn, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -755,7 +765,7 @@ public class Channel extends Postman {
 			if(wotConnection == null) {
 				//WoT isn't loaded, so try again later
 				Logger.debug(this, "WoT not loaded, trying again in 5 minutes");
-				executor.schedule(this, 5, TimeUnit.MINUTES);
+				schedule(5, TimeUnit.MINUTES);
 				return;
 			}
 
@@ -773,7 +783,7 @@ public class Channel extends Postman {
 			Identity recipient = wotConnection.getIdentity(remoteId, senderId);
 			if(recipient == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
-				executor.schedule(this, 5, TimeUnit.MINUTES);
+				schedule(5, TimeUnit.MINUTES);
 				return;
 			}
 
@@ -805,7 +815,7 @@ public class Channel extends Postman {
 				return;
 			} catch(FCPFetchException e) {
 				Logger.debug(this, "Mailsite fetch failed (" + e + "), trying again in 5 minutes");
-				executor.schedule(this, 5, TimeUnit.MINUTES);
+				schedule(5, TimeUnit.MINUTES);
 				return;
 			}
 
@@ -856,7 +866,7 @@ public class Channel extends Postman {
 			Identity senderIdentity = wotConnection.getIdentity(senderId, senderId);
 			if(senderIdentity == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
-				executor.schedule(this, 5, TimeUnit.MINUTES);
+				schedule(5, TimeUnit.MINUTES);
 				return;
 			}
 
@@ -892,14 +902,14 @@ public class Channel extends Postman {
 			String keyModulus = mailsiteProps.get("asymkey.modulus");
 			if(keyModulus == null) {
 				Logger.error(this, "Mailsite is missing public key modulus");
-				executor.schedule(this, 1, TimeUnit.HOURS);
+				schedule(1, TimeUnit.HOURS);
 				return;
 			}
 
 			String keyExponent = mailsiteProps.get("asymkey.pubexponent");
 			if(keyExponent == null) {
 				Logger.error(this, "Mailsite is missing public key exponent");
-				executor.schedule(this, 1, TimeUnit.HOURS);
+				schedule(1, TimeUnit.HOURS);
 				return;
 			}
 
@@ -916,7 +926,7 @@ public class Channel extends Postman {
 			}
 			if(slot < 0) {
 				Logger.debug(this, "Slot insert failed, trying again in 5 minutes");
-				executor.schedule(this, 5, TimeUnit.MINUTES);
+				schedule(5, TimeUnit.MINUTES);
 				return;
 			}
 
@@ -934,7 +944,7 @@ public class Channel extends Postman {
 				return;
 			}
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
-			executor.schedule(this, delay, TimeUnit.MILLISECONDS);
+			schedule(delay, TimeUnit.MILLISECONDS);
 
 			//Start the fetcher and the sender now that we have keys, slots etc.
 			sender.execute();
@@ -944,6 +954,11 @@ public class Channel extends Postman {
 		public void execute() {
 			Logger.debug(this, "Scheduling RTSSender for execution");
 			executor.execute(this);
+		}
+
+		public void schedule(long delay, TimeUnit unit) {
+			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase());
+			executor.schedule(this, delay, unit);
 		}
 
 		/**
