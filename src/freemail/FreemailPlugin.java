@@ -1,22 +1,23 @@
 /*
  * FreemailPlugin.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007,2008 Alexander Lehmann
+ * Copyright (C) 2009 Matthew Toseland
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail;
@@ -70,29 +71,38 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		
 		HTMLNode table = form.addChild("table", "class", "plugintable");
 		HTMLNode tableRowName = table.addChild("tr");
-		tableRowName.addChild("td", "IMAP Name");
+		tableRowName.addChild("td", "Username");
 		tableRowName.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "name", "", "30" });
 		HTMLNode tableRowPassword = table.addChild("tr");
-		tableRowPassword.addChild("td", "IMAP Password");
+		tableRowPassword.addChild("td", "Password");
 		tableRowPassword.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "password", "password", "", "30" });
 		HTMLNode tableRowDomain = table.addChild("tr");
-		tableRowDomain.addChild("td", "Shortname (Freenet Domain)");
+		tableRowDomain.addChild("td", "Short address");
 		tableRowDomain.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "domain", "", "30" });
 		HTMLNode tableRowSubmit = table.addChild("tr");
 		tableRowSubmit.addChild("td");
 		tableRowSubmit.addChild("td").addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "add", "Add account"});
 
-		HTMLNode helpContent = addBox.addChild("div", "class", "infobox-content");
-		helpContent.addChild("#", 
-				     "The 'IMAP Name' and 'IMAP Password'"
-				     + " values will be your security"
-				     + " credentials for getting your Freenet"
-				     + " mail.");
-		helpContent.addChild("br");
-		helpContent.addChild("#", 
-				     "The 'Shortname (Freenet Domain)' will"
-				     + " become the significant part of your"
-				     + " email address.");
+		HTMLNode clientConfigHelp = contentNode.addChild("div", "class", "infobox");
+		clientConfigHelp.addChild("div", "class", "infobox-header", "Configuring your email client");
+		clientConfigHelp.addChild("div", "class", "infobox-content").addChild("p",
+				"The username and password you select will be used both for sending and receiving " +
+				"email, and the username will also be the name of the new account. For receiving email " +
+				"the server is " + getIMAPServerAddress() + " and the port is " +
+				configurator.get("imap_bind_port") + ". For sending the values are " +
+				getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
+				+ " respectively.");
+
+		HTMLNode shortnameHelp = contentNode.addChild("div", "class", "infobox");
+		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
+		HTMLNode shortnameContent = shortnameHelp.addChild("div", "class", "infobox-content");
+		shortnameContent.addChild("p",
+				"The short address is a shorter and more convenient form of your new email address." +
+				"If you select a short address domain you will get an additional email address " +
+				"that looks like this: <anything>@<short address>.freemail");
+		shortnameContent.addChild("p",
+				"Unfortunately using the short address is also less secure than using the long form " +
+				"address");
 
 		return pageNode.generate();
 	}
@@ -134,8 +144,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 					text.addChild("br");
 					text.addChild("br");
 					text.addChild("#", "You now need to configure your email client to send and receive email through "
-							+ "Freemail using IMAP and SMTP. Freemail uses ports 3143 and 3025 for these "
-							+ "respectively by default.");
+							+ "Freemail using IMAP and SMTP. For IMAP the server is "
+							+ getIMAPServerAddress() + " and the port is " +
+							configurator.get("imap_bind_port") + ". For SMTP the values are " +
+							getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
+							+ " respectively.");
 				} catch (IOException ioe) {
 					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
 					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
@@ -166,5 +179,25 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 
 	public long getRealVersion() {
 		return Version.BUILD_NO;
+	}
+
+	private String getIMAPServerAddress() {
+		String address = configurator.get("imap_bind_address");
+
+		if("0.0.0.0".equals(address)) {
+			address = "127.0.0.1";
+		}
+
+		return address;
+	}
+
+	private String getSMTPServerAddress() {
+		String address = configurator.get("smtp_bind_address");
+
+		if("0.0.0.0".equals(address)) {
+			address = "127.0.0.1";
+		}
+
+		return address;
 	}
 }

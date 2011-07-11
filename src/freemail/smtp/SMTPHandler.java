@@ -1,22 +1,22 @@
 /*
  * SMTPHandler.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007 Alexander Lehmann
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail.smtp;
@@ -170,7 +170,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			if (cmd.args.length > 1) {
 				b64creds = cmd.args[1];
 			} else {
-				this.ps.print("334 Credentials:\r\n");
+				this.ps.print("334 \r\n");
 				try {
 					b64creds = this.bufrdr.readLine();
 					if (b64creds == null) return;
@@ -211,6 +211,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
+
+		this.to.clear();
 		
 		// we don't really care.
 		this.ps.print("250 OK\r\n");

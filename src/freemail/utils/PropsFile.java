@@ -1,22 +1,22 @@
 /*
  * PropsFile.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2008 Dave Baker
+ * Copyright (C) 2008 Alexander Lehmann
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail.utils;
@@ -176,12 +176,14 @@ public class PropsFile {
 			this.data = new HashMap();
 		}
 		
-		this.data.put(key, val);
-		try {
-			this.write();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
+		Object o = this.data.put(key, val);
+		if (o == null || !o.equals(val)) {
+			try {
+				this.write();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				return false;
+			}
 		}
 		return true;
 	}
@@ -199,12 +201,14 @@ public class PropsFile {
 	}
 	
 	public boolean remove(String key) {
-		this.data.remove(key);
-		try {
-			this.write();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
+		if (this.data.containsKey(key)) {
+			this.data.remove(key);
+			try {
+				this.write();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				return false;
+			}
 		}
 		return true;
 	}

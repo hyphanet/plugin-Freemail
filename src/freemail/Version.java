@@ -24,7 +24,7 @@ package freemail;
 public class Version {
 	public static final int VER_MAJOR = 0;
 	public static final int VER_MINOR = 1;
-	public static final int BUILD_NO = 13;
+	public static final int BUILD_NO = 14;
 	public static final String VERSION_TAG = "Pet Shop";
 
 	// This will be replaced at build time by the correct value

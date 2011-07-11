@@ -1,22 +1,23 @@
 /*
  * IMAPHandler.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007,2008 Alexander Lehmann
+ * Copyright (C) 2008 Martin Nyhus
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail.imap;
@@ -148,6 +149,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_logout(IMAPMessage msg) {
+		this.sendState("BYE");
 		this.reply(msg, "OK Bye");
 		try {
 			this.client.close();
@@ -174,10 +176,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		if (msg.args != null && msg.args.length < 1) {
+		if (msg.args == null || msg.args.length < 1) {
 			refname = null;
 			mbname = null;
-		} else if (msg.args != null && msg.args.length < 2) {
+		} else if (msg.args.length < 2) {
 			refname = msg.args[0];
 			mbname = null;
 		} else {
@@ -300,7 +302,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.sendState(numexists+" EXISTS");
 		this.sendState(numrecent+" RECENT");
 			
-		this.sendState("OK [UIDVALIDITY 1] Ok");
+		this.sendState("OK [UIDVALIDITY " + mb.getUidValidity() + "] Ok");
 			
 		this.reply(msg, "OK [READ-WRITE] Done");
 	}
@@ -752,7 +754,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		for (int i = 0; i < parts.length; i++) {
 			if (parts[i].equalsIgnoreCase("header.fields")) {
 				i++;
-				this.ps.print("[HEADER.FIELDS "+parts[i]+"] ");
+				this.ps.print("[HEADER.FIELDS "+parts[i]+"]");
 				if (parts[i].charAt(0) == '(')
 					parts[i] = parts[i].substring(1);
 				if (parts[i].charAt(parts[i].length() - 1) == ')')
@@ -859,17 +861,19 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 		
-		do_store(msg.args, 1, msgs, msg, false);
+		if(!do_store(msg.args, 1, msgs, msg, false)) {
+			return;
+		}
 		
 		this.reply(msg, "OK Store completed");
 	}
 	
-	private void do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
+	private boolean do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
 		if (args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
-			return;
+			return false;
 		}
 		
 		if (args[offset + 1].startsWith("("))
@@ -921,6 +925,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.sendState(buf.toString());
 			}
 		}
+		
+		return true;
 	}
 	
 	private void handle_expunge(IMAPMessage msg) {

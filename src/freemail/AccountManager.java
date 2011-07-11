@@ -1,22 +1,22 @@
 /*
  * AccountManager.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007,2008 Alexander Lehmann
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail;
@@ -93,21 +93,29 @@ public class AccountManager {
 						+"\"), you may get problems accessing the account.");
 			}
 			
-			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], getAccountFile(files[i]));
-			if (account == null) {
+			PropsFile accFile = getAccountFile(files[i]);
+			if (accFile == null) {
 				Logger.error(this, "Couldn't initialise account from directory '"+files[i].getName()+"' - ignoring.");
+				continue;
 			}
-			
-			accounts.put(files[i].getName(), account);
+
+			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], accFile);
+			synchronized(accounts) {
+				accounts.put(files[i].getName(), account);
+			}
 		}
 	}
 	
 	public FreemailAccount getAccount(String username) {
-		return (FreemailAccount)accounts.get(username);
+		synchronized(accounts) {
+			return (FreemailAccount)accounts.get(username);
+		}
 	}
 	
 	public List/*<FreemailAccount>*/ getAllAccounts() {
-		return new LinkedList(accounts.values());
+		synchronized(accounts) {
+			return new LinkedList(accounts.values());
+		}
 	}
 
 	// avoid invalid chars in username or address
@@ -143,7 +151,9 @@ public class AccountManager {
 		PropsFile accProps = newAccountFile(accountdir);
 		
 		FreemailAccount account = new FreemailAccount(username, accountdir, accProps);
-		accounts.put(username, account);
+		synchronized(accounts) {
+			accounts.put(username, account);
+		}
 		
 		putWelcomeMessage(account, new EmailAddress(username+"@"+getFreemailDomain(accProps)));
 		
@@ -271,7 +281,7 @@ public class AccountManager {
 			
 			int i;
 			for (i = 0; i < RTS_KEY_LENGTH; i++) {
-				rtskey += (char)(rnd.nextInt(25) + (int)'a');
+				rtskey += (char)(rnd.nextInt(26) + (int)'a');
 			}
 			
 			if (!accfile.put("rtskey", rtskey)) {
@@ -350,9 +360,14 @@ public class AccountManager {
 	}
 	
 	public FreemailAccount authenticate(String username, String password) {
-		if (!validate_username(username)) return null;
+		if (!(validateUsername(username).equals(""))) {
+			return null;
+		}
 		
-		FreemailAccount account = (FreemailAccount)accounts.get(username);
+		FreemailAccount account = null;
+		synchronized(accounts) {
+			account = (FreemailAccount)accounts.get(username);
+		}
 		if (account == null) return null;
 		
 		String realmd5str = account.getProps().get("md5passwd");
@@ -369,12 +384,6 @@ public class AccountManager {
 			return account;
 		}
 		return null;
-	}
-	
-	private static boolean validate_username(String username) {
-		if (username.length() < 1) return false;
-		if (username.matches("[\\w_]*")) return true;
-		return false;
 	}
 	
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {

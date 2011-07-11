@@ -1,22 +1,23 @@
 /*
  * Freemail.java
- * This file is part of Freemail, copyright (C) 2006 Dave Baker
+ * This file is part of Freemail
+ * Copyright (C) 2006,2007,2008 Dave Baker
+ * Copyright (C) 2007,2009 Matthew Toseland
+ * Copyright (C) 2008 Alexander Lehmann
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 package freemail;
@@ -67,19 +68,19 @@ public abstract class Freemail implements ConfigClient {
 		configurator.register("loglevel", new Logger(), "normal|error");
 		
 		configurator.register("datadir", this, Freemail.DEFAULT_DATADIR);
-		if (!datadir.exists() && !datadir.mkdir()) {
+		if (!datadir.exists() && !datadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
 		configurator.register("globaldatadir", this, GLOBALDATADIR);
-		if (!globaldatadir.exists() && !globaldatadir.mkdir()) {
+		if (!globaldatadir.exists() && !globaldatadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
 		configurator.register("tempdir", this, Freemail.TEMPDIRNAME);
-		if (!tempdir.exists() && !tempdir.mkdir()) {
+		if (!tempdir.exists() && !tempdir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
@@ -157,7 +158,7 @@ public abstract class Freemail implements ConfigClient {
 	
 	protected void startWorkers(boolean daemon) {
 		System.out.println("This is Freemail version "+Version.getVersionString());
-		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
+		System.out.println("Freemail is released under the terms of the GNU General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 		
 		// start a SingleAccountWatcher for each account
