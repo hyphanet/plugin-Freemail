@@ -31,6 +31,11 @@ import freemail.utils.PropsFile;
  */
 
 public class Configurator {
+	public static final String IMAP_BIND_ADDRESS = "imap_bind_address";
+	public static final String IMAP_BIND_PORT = "imap_bind_port";
+	public static final String SMTP_BIND_ADDRESS = "smtp_bind_address";
+	public static final String SMTP_BIND_PORT = "smtp_bind_port";
+
 	private final PropsFile props;
 	private final HashMap callbacks;
 
