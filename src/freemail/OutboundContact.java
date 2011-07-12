@@ -37,9 +37,10 @@ import java.io.PrintWriter;
 import freemail.utils.EmailAddress;
 import freemail.utils.PropsFile;
 import freemail.utils.DateStringFactory;
+import freemail.fcp.FCPException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
-import freemail.fcp.FCPInsertErrorMessage;
+import freemail.fcp.FCPPutFailedException;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.SSKKeyPair;
 import freemail.fcp.ConnectionTerminatedException;
@@ -201,6 +202,9 @@ public class OutboundContact {
 					// yes, send another RTS
 					this.init();
 				}
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while checking CTS: " + e);
+				//TODO: Should we resend the RTS like above?
 			}
 		} else {
 			this.init();
@@ -485,6 +489,9 @@ public class OutboundContact {
 		} catch (FCPFetchException fe) {
 			Logger.normal(this,"Failed to retrieve mailsite redirect "+key+" ("+fe.getMessage()+")");
 			return null;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while fetching mailsite redirect: " + e);
+			return null;
 		}
 		
 		if (result.length() > 512) {
@@ -535,6 +542,9 @@ public class OutboundContact {
 			mailsite_file = cli.fetch(this.address.getMailpageKey());
 		} catch (FCPFetchException fe) {
 			Logger.normal(this,"Failed to retrieve mailsite "+this.address.getMailpageKey());
+			return false;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while fetching mailsite: " + e);
 			return false;
 		}
 		
@@ -713,11 +723,14 @@ public class OutboundContact {
 			}
 			
 			Logger.normal(this,"Inserting message to "+key);
-			FCPInsertErrorMessage err;
+			FCPPutFailedException err;
 			try {
 				err = fcpcli.put(fis, key);
 			} catch (FCPBadFileException bfe) {
 				Logger.normal(this,"Failed sending message. Will try again soon.");
+				continue;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while sending message: " + e);
 				continue;
 			}
 			if (err == null) {
@@ -726,7 +739,7 @@ public class OutboundContact {
 					msgs[i].first_send_time = System.currentTimeMillis();
 				msgs[i].last_send_time = System.currentTimeMillis();
 				msgs[i].saveProps();
-			} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
+			} else if (err.errorcode == FCPPutFailedException.COLLISION) {
 				msgs[i].slot = popNextSlot();
 				Logger.error(this, "Insert collided! Assigned new slot: "+msgs[i].slot);
 				msgs[i].saveProps();
@@ -739,7 +752,7 @@ public class OutboundContact {
 				}
 			} else {
 				Logger.normal(this,"Failed to insert "+key+" (error code "+err.errorcode+") will try again soon.");
-				if(err.errorcode==FCPInsertErrorMessage.COLLISION) {
+				if(err.errorcode==FCPPutFailedException.COLLISION) {
 					Logger.error(this,"Failed to insert "+key+" will try again soon. (Collision, this shouldn't happen)");
 				} else {
 					Logger.normal(this,"Failed to insert "+key+" will try again soon. Error: "+err.errorcode);
@@ -800,6 +813,10 @@ public class OutboundContact {
 						msgs[i].saveProps();
 					}
 				}
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while fetching ack on key " + key + ": " + e);
+				//Don't check the timeout here so we get at least one proper fetch attempt if this
+				//is a temporary problem
 			}
 		}
 	}

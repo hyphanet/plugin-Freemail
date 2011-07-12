@@ -35,6 +35,7 @@ import freemail.FreenetURI;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
+import freemail.fcp.FCPException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
@@ -111,6 +112,10 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			} catch (FCPFetchException fe) {
 				// XXX: Slot should be marked dead if this is a fatal error
 				Logger.minor(this,"No mail in slot (fetch returned "+fe.getMessage()+")");
+				continue;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while checking slot: " + e);
+				//Check the slot again the next round
 				continue;
 			}
 			Logger.normal(this,"Found a message!");
@@ -239,6 +244,9 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 				// ought to be easily retrievable, so fail.
 				// If this proves to be an issue, change it.
 				Logger.error(this,"Failed to fetch sender's mailsite ("+fe.getMessage()+"). Sender's From address therefore not valid.");
+				return false;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while checking sender's mailsite: " + e);
 				return false;
 			}
 			Logger.normal(this,"Fetched sender's mailsite");
