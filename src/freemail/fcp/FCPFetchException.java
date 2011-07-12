@@ -21,7 +21,7 @@ package freemail.fcp;
 
 import freemail.utils.Logger;
 
-public class FCPFetchException extends Exception {
+public class FCPFetchException extends FCPException {
 	static final long serialVersionUID = -1;
 	
 	// The following code shamelessly stolen from Freenet's FetchException.java (but reordered)
@@ -89,7 +89,10 @@ public class FCPFetchException extends Exception {
 	private final FCPMessage fcpMessage;
 	
 	public FCPFetchException(FCPMessage fcpmsg) {
-		fcpMessage = fcpmsg;
+		super(fcpmsg);
+		this.fcpMessage = fcpmsg;
+
+		assert (fcpmsg.getType().equalsIgnoreCase("GetFailed")) : "Message type was " + fcpmsg.getType();
 	}
 	
 	public FCPMessage getFailureMessage() {
@@ -97,25 +100,18 @@ public class FCPFetchException extends Exception {
 	}
 	
 	public int getCode() {
-		String strCode = (String)fcpMessage.headers.get("Code");
-		if (strCode == null) {
-			Logger.error(this, "FCP error message with no error code!");
-			return 0;
-		}
-		return Integer.parseInt(strCode);
+		return errorcode;
 	}
 	
 	public String getMessage() {
-		String msg = (String)fcpMessage.headers.get("ShortCodeDescription");
-		if (msg != null) return msg;
+		if(shortCodeDescription != null) return shortCodeDescription;
 		
 		// No short description? try the long one.
-		msg = (String)fcpMessage.headers.get("CodeDescription");
-		if (msg != null) return msg;
+		if(codeDescription != null) return codeDescription;
+		if(extraDescription != null) return extraDescription;
 		
 		// No? Does it have a code?
-		msg = (String)fcpMessage.headers.get("Code");
-		if (msg != null) return "Error number "+msg+" (no description given)";
+		if(errorcode > 0) return "Error number " + errorcode + " (no description given)";
 		
 		// Give up then
 		return "Unknown error (no hints given by the node)";
@@ -142,11 +138,6 @@ public class FCPFetchException extends Exception {
 	 * @return true if all future requests for this this key will fail too
 	 */
 	public boolean isFatal() {
-		String fatal = (String)fcpMessage.headers.get("Fatal");
-		if (fatal == null) {
-			Logger.error(this, "No 'fatal' field found - FCP protocol change? Assuming not fatal.");
-			return false;
-		}
-		return fatal.equalsIgnoreCase("true");
+		return isFatal;
 	}
 }

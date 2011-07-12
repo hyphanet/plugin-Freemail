@@ -21,6 +21,7 @@
 
 package freemail;
 
+import freemail.fcp.FCPException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
@@ -196,6 +197,9 @@ public class RTSFetcher implements SlotSaveCallback {
 					// We've covered most things above, so I think this should a fairly exceptional case. Let's log it at error.
 					Logger.error(this,keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
 				}
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while checking RTS: " + e);
+				success = false;
 			}
 		}
 		return success;
@@ -331,6 +335,12 @@ public class RTSFetcher implements SlotSaveCallback {
 			msfile = fcpcli.fetch(their_mailsite);
 		} catch (FCPFetchException fe) {
 			// oh well, try again in a bit
+			rtsfile.delete();
+			return false;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while checking sender's mailsite: " + e);
+
+			//Try again later
 			rtsfile.delete();
 			return false;
 		}

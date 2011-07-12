@@ -21,6 +21,7 @@
 
 package freemail;
 
+import freemail.fcp.FCPException;
 import freemail.fcp.FCPFetchException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.ConnectionTerminatedException;
@@ -93,6 +94,9 @@ public class NIMFetcher extends Postman {
 				result = fcpcli.fetch(keybase+i);
 			} catch (FCPFetchException fe) {
 				Logger.normal(this,keybase+i+": no message ("+fe.getMessage()+").");
+				continue;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while checking for message: " + e);
 				continue;
 			}
 			

@@ -29,9 +29,10 @@ import java.util.Random;
 import java.security.SecureRandom;
 
 import freemail.utils.PropsFile;
+import freemail.fcp.FCPException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.fcp.FCPBadFileException;
-import freemail.fcp.FCPInsertErrorMessage;
+import freemail.fcp.FCPPutFailedException;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
 
@@ -105,11 +106,11 @@ public class AckProcrastinator implements Runnable {
 					
 					Logger.normal(this,"Inserting ack to "+key);
 					try {
-						FCPInsertErrorMessage err = fcpcli.put(bis, key);
+						FCPPutFailedException err = fcpcli.put(bis, key);
 						if (err == null) {
 							acks[i].delete();
 							Logger.normal(this,"ACK insertion to "+key+" successful");
-						} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
+						} else if (err.errorcode == FCPPutFailedException.COLLISION) {
 							acks[i].delete();
 							Logger.normal(this,"ACK insertion to "+key+" successful");
 						} else {
@@ -119,6 +120,8 @@ public class AckProcrastinator implements Runnable {
 						// won't occur
 					} catch (ConnectionTerminatedException cte) {
 						return;
+					} catch (FCPException e) {
+						Logger.error(this, "Unknown error while inserting ack: " + e);
 					}
 				}
 			}

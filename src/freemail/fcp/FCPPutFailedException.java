@@ -19,7 +19,7 @@
 
 package freemail.fcp;
 
-public class FCPInsertErrorMessage extends FCPErrorMessage {
+public class FCPPutFailedException extends FCPException {
 	/* Caller supplied a URI we cannot use */
 	public static final int INVALID_URI = 1;
 	/* Failed to read from or write to a bucket; a kind of internal error */
@@ -40,15 +40,23 @@ public class FCPInsertErrorMessage extends FCPErrorMessage {
 	public static final int COLLISION = 9;
 	/* Cancelled by user */
 	public static final int CANCELLED = 10;
+	public static final int META_STRING_IN_KEY = 11;
+	public static final int INVALID_BINARY_BLOB_DATA = 12;
 
 	// we generate this error, not Freenet
 	public static final int TIMEOUT = 100;
 
-	FCPInsertErrorMessage(FCPMessage msg) {
+	FCPPutFailedException(FCPMessage msg) {
 		super(msg);
+
+		assert (msg.getType().equalsIgnoreCase("PutFailed")) : "Message type was " + msg.getType();
 	}
 
-	FCPInsertErrorMessage(int code, boolean fatal) {
+	FCPPutFailedException(int code, boolean fatal) {
 		super(code, fatal);
+	}
+
+	public String toString() {
+		return "FCPPutFailedException (error code " + errorcode + ", " + (isFatal ? "fatal" : "not fatal") + ")";
 	}
 }

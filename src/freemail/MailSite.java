@@ -26,8 +26,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
 import freemail.utils.PropsFile;
+import freemail.fcp.FCPException;
 import freemail.fcp.HighLevelFCPClient;
-import freemail.fcp.FCPInsertErrorMessage;
+import freemail.fcp.FCPPutFailedException;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
@@ -132,22 +133,25 @@ public class MailSite {
 		
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 			
-		FCPInsertErrorMessage err = null;
+		FCPPutFailedException err = null;
 		try {
 			err = cli.put(bis, "KSK@"+alias+ALIAS_SUFFIX);
 		} catch (FCPBadFileException bfe) {
 				// impossible
 		} catch (ConnectionTerminatedException cte) {
 			return false;
+		} catch (FCPException e) {
+			Logger.error(this, "Unknown error while inserting mailsite redirect: " + e);
+			return false;
 		}
 			
 		if (err == null) {
 			Logger.normal(this,"Mailsite redirect inserted successfully");
 			return true;
-		} else if (err.errorcode == FCPInsertErrorMessage.COLLISION) {
+		} else if (err.errorcode == FCPPutFailedException.COLLISION) {
 			Logger.error(this,"Mailsite alias collided - somebody is already using that alias! Choose another one!");
 			return false;
-		} else if (err.errorcode == FCPInsertErrorMessage.REJECTED_OVERLOAD) {
+		} else if (err.errorcode == FCPPutFailedException.REJECTED_OVERLOAD) {
 			Logger.error(this,"Mailsite alias could not be inserted (rejected overload), this is probably a temporary error");
 			return false;
 		} else {

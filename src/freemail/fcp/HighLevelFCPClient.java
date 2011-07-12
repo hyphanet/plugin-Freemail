@@ -45,7 +45,7 @@ public class HighLevelFCPClient implements FCPClient {
 	
 	// It's up to the client to delete this File once they're
 	// done with it
-	public synchronized File fetch(String key) throws ConnectionTerminatedException, FCPFetchException {
+	public synchronized File fetch(String key) throws ConnectionTerminatedException, FCPFetchException, FCPException {
 		FCPMessage msg = this.conn.getMessage("ClientGet");
 		msg.headers.put("URI", key);
 		msg.headers.put("ReturnType", "direct");
@@ -88,7 +88,7 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 			throw new FCPFetchException(donemsg);
 		} else {
-			throw new FCPFetchException(donemsg);
+			throw FCPException.create(donemsg);
 		}
 	}
 	
@@ -129,8 +129,9 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public synchronized FCPInsertErrorMessage put(InputStream data, String key) throws FCPBadFileException,
-	                                                                                   ConnectionTerminatedException {
+	public synchronized FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
+	                                                                                   ConnectionTerminatedException,
+	                                                                                   FCPException {
 		FCPMessage msg = this.conn.getMessage("ClientPut");
 		msg.headers.put("URI", key);
 		msg.headers.put("Persistence", "connection");
@@ -157,7 +158,7 @@ public class HighLevelFCPClient implements FCPClient {
 				// 'cancel' the request, otherwise we'll leak memory
 				this.conn.cancelRequest(msg);
 
-				return new FCPInsertErrorMessage(FCPInsertErrorMessage.TIMEOUT, false);
+				return new FCPPutFailedException(FCPPutFailedException.TIMEOUT, false);
 			}
 			try {
 				this.wait(30000);
@@ -167,8 +168,10 @@ public class HighLevelFCPClient implements FCPClient {
 		
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
+		} else if(this.donemsg.getType().equalsIgnoreCase("PutFailed")) {
+			return new FCPPutFailedException(this.donemsg);
 		} else {
-			return new FCPInsertErrorMessage(donemsg);
+			throw FCPException.create(donemsg);
 		}
 	}
 	
@@ -185,16 +188,19 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			
-			FCPInsertErrorMessage emsg;
+			FCPPutFailedException emsg;
 			try {
 				emsg = this.put(fis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
+				return -1;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while doing slotinsert: " + e);
 				return -1;
 			}
 			if (emsg == null) {
 				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
-			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
+			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
 				Logger.normal(this,"collision");
 			} else {
@@ -215,16 +221,19 @@ public class HighLevelFCPClient implements FCPClient {
 			
 			bis = new ByteArrayInputStream(data);
 			
-			FCPInsertErrorMessage emsg;
+			FCPPutFailedException emsg;
 			try {
 				emsg = this.put(bis, basekey+"-"+slot+suffix);
 			} catch (FCPBadFileException bfe) {
+				return -1;
+			} catch (FCPException e) {
+				Logger.error(this, "Unknown error while doing slotinsert: " + e);
 				return -1;
 			}
 			if (emsg == null) {
 				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
-			} else if (emsg.errorcode == FCPInsertErrorMessage.COLLISION) {
+			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
 				Logger.normal(this,"collision");
 			} else {
