@@ -46,6 +46,6 @@ public class FreemailL10n {
 	}
 
 	public static String getL10nOverrideFilesMask() {
-		return "Freetalk_lang_${lang}.override.l10n";
+		return "Freemail_lang_${lang}.override.l10n";
 	}
 }
