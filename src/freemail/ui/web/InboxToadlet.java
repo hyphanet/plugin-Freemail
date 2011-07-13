@@ -119,9 +119,13 @@ public class InboxToadlet extends WebPage {
 	}
 
 	private void addMoveMessageFunction(HTMLNode parent, FreemailAccount account, String currentFolder) {
-		HTMLNode folderDropdown = parent.addChild("select", "name", "destination");
 		List<String> folderList = getAllFolders(account);
+		//FIXME: It might be clearer if the button is just disabled in this case
+		if((folderList.size() == 1) && (folderList.contains(currentFolder))) {
+			return;
+		}
 
+		HTMLNode folderDropdown = parent.addChild("select", "name", "destination");
 		for(String folder : folderList) {
 			if(folder.equals(currentFolder)) {
 				//Skip the current folder, since we don't want to move messages there
