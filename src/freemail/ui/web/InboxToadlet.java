@@ -128,22 +128,6 @@ public class InboxToadlet extends WebPage {
 
 	@SuppressWarnings("deprecation")
 	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		String pass;
-		try {
-			pass = req.getPartAsStringThrowing("formPassword", 32);
-		} catch (SizeLimitExceededException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
-			return;
-		} catch (NoSuchElementException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
-			return;
-		}
-
-		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
-			return;
-		}
-
 		String identity = sessionManager.useSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 		String folderName = req.getParam("folder", "inbox");

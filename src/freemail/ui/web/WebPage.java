@@ -22,6 +22,9 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.NoSuchElementException;
+
+import javax.naming.SizeLimitExceededException;
 
 import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
@@ -67,6 +70,23 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		//Check the form password
+		String pass;
+		try {
+			pass = req.getPartAsStringThrowing("formPassword", 32);
+		} catch(SizeLimitExceededException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
+			return;
+		} catch(NoSuchElementException e) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
+			return;
+		}
+
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
+			return;
+		}
+
 		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
 			writeTemporaryRedirect(ctx, "This page requires a valid session", "/Freemail/Login");
 			return;
