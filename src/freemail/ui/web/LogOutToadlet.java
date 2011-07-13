@@ -29,11 +29,12 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.HTTPRequest;
 
 public class LogOutToadlet extends WebPage {
-	public LogOutToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker) {
-		super(client, pageMaker, sessionManager);
+	public LogOutToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, PluginRespirator pluginRespirator) {
+		super(client, pageMaker, sessionManager, pluginRespirator);
 	}
 
 	@Override

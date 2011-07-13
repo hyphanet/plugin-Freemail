@@ -48,6 +48,7 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
@@ -56,8 +57,8 @@ public class NewMessageToadlet extends WebPage {
 	private final WoTConnection wotConnection;
 	private final Freemail freemail;
 
-	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnection wotConnection, Freemail freemail) {
-		super(client, pageMaker, sessionManager);
+	NewMessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, WoTConnection wotConnection, Freemail freemail, PluginRespirator pluginRespirator) {
+		super(client, pageMaker, sessionManager, pluginRespirator);
 		this.wotConnection = wotConnection;
 		this.freemail = freemail;
 	}

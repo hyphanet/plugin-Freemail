@@ -37,14 +37,15 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class MessageToadlet extends WebPage {
 	private final AccountManager accountManager;
 
-	MessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager) {
-		super(client, pageMaker, sessionManager);
+	MessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager, PluginRespirator pluginRespirator) {
+		super(client, pageMaker, sessionManager, pluginRespirator);
 		this.accountManager = accountManager;
 	}
 

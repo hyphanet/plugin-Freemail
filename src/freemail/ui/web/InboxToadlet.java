@@ -49,12 +49,10 @@ import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
 	private final AccountManager accountManager;
-	private final PluginRespirator pluginRespirator;
 
 	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager, PluginRespirator pluginRespirator) {
-		super(client, pageMaker, sessionManager);
+		super(client, pageMaker, sessionManager, pluginRespirator);
 		this.accountManager = accountManager;
-		this.pluginRespirator = pluginRespirator;
 	}
 
 	@Override

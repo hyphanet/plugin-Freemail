@@ -30,13 +30,14 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
 public class CSSToadlet extends WebPage {
-	CSSToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager) {
-		super(client, pageMaker, sessionManager);
+	CSSToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
+		super(client, pageMaker, sessionManager, pluginRespirator);
 	}
 
 	@Override

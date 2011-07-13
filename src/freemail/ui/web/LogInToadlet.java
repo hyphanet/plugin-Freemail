@@ -42,12 +42,10 @@ import freenet.support.api.HTTPRequest;
 
 public class LogInToadlet extends WebPage {
 	private final AccountManager accountManager;
-	private final PluginRespirator pluginRespirator;
 	private final WoTConnection wotConnection;
 
 	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager, SessionManager sessionManager, WoTConnection wotConnection) {
-		super(client, pluginRespirator.getPageMaker(), sessionManager);
-		this.pluginRespirator = pluginRespirator;
+		super(client, pluginRespirator.getPageMaker(), sessionManager, pluginRespirator);
 		this.accountManager = accountManager;
 		this.wotConnection = wotConnection;
 	}

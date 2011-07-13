@@ -29,12 +29,13 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class HomeToadlet extends WebPage {
-	public HomeToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager) {
-		super(client, pageMaker, sessionManager);
+	public HomeToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
+		super(client, pageMaker, sessionManager, pluginRespirator);
 	}
 
 	@Override

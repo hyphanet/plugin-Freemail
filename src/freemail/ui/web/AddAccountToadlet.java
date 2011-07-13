@@ -47,14 +47,12 @@ import freenet.support.api.HTTPRequest;
 public class AddAccountToadlet extends WebPage {
 	private static final List<AccountCreationTask> accountCreationTasks = new LinkedList<AccountCreationTask>();
 
-	private final PluginRespirator pluginRespirator;
 	private final WoTConnection wotConnection;
 	private final AccountManager accountManager;
 
 	AddAccountToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator, WoTConnection wotConnection, AccountManager accountManager) {
-		super(client, pageMaker, sessionManager);
+		super(client, pageMaker, sessionManager, pluginRespirator);
 
-		this.pluginRespirator = pluginRespirator;
 		this.wotConnection = wotConnection;
 		this.accountManager = accountManager;
 	}

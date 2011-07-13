@@ -32,17 +32,20 @@ import freenet.clients.http.SessionManager;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
+	final PluginRespirator pluginRespirator;
 	final SessionManager sessionManager;
 
-	WebPage(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager) {
+	WebPage(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
 		super(client);
 		this.pageMaker = pageMaker;
 		this.sessionManager = sessionManager;
+		this.pluginRespirator = pluginRespirator;
 	}
 
 	abstract void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException;
