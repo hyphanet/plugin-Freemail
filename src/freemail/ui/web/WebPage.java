@@ -76,10 +76,10 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		try {
 			pass = req.getPartAsStringThrowing("formPassword", formPassword.length());
 		} catch(SizeLimitExceededException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
 			return;
 		} catch(NoSuchElementException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
 			return;
 		}
 
