@@ -31,7 +31,6 @@ import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
 import freemail.utils.Logger;
-import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -44,8 +43,8 @@ public class MessageToadlet extends WebPage {
 
 	private final AccountManager accountManager;
 
-	MessageToadlet(HighLevelSimpleClient client, AccountManager accountManager, PluginRespirator pluginRespirator) {
-		super(client, pluginRespirator);
+	MessageToadlet(AccountManager accountManager, PluginRespirator pluginRespirator) {
+		super(pluginRespirator);
 		this.accountManager = accountManager;
 	}
 

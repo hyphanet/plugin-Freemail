@@ -50,11 +50,11 @@ public class WebInterface {
 		pluginRespirator.getPageMaker().addNavigationCategory(HomeToadlet.getPath(), FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
 
 		//Register the toadlets that should be visible in the menu
-		HomeToadlet homeToadlet = new HomeToadlet(null, pluginRespirator);
-		LogInToadlet loginToadlet = new LogInToadlet(null, pluginRespirator, freemail.getAccountManager(), freemail.getWotConnection());
-		LogOutToadlet logoutToadlet = new LogOutToadlet(null, pluginRespirator);
-		InboxToadlet inboxToadlet = new InboxToadlet(null, freemail.getAccountManager(), pluginRespirator);
-		NewMessageToadlet newMessageToadlet = new NewMessageToadlet(null, freemail.getWotConnection(), freemail, pluginRespirator);
+		HomeToadlet homeToadlet = new HomeToadlet(pluginRespirator);
+		LogInToadlet loginToadlet = new LogInToadlet(pluginRespirator, freemail.getAccountManager(), freemail.getWotConnection());
+		LogOutToadlet logoutToadlet = new LogOutToadlet(pluginRespirator);
+		InboxToadlet inboxToadlet = new InboxToadlet(freemail.getAccountManager(), pluginRespirator);
+		NewMessageToadlet newMessageToadlet = new NewMessageToadlet(freemail.getWotConnection(), freemail, pluginRespirator);
 		registerToadlet(homeToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false);
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);
 		registerToadlet(logoutToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false);
@@ -62,9 +62,9 @@ public class WebInterface {
 		registerToadlet(newMessageToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.NewMessageToadlet.name", "Freemail.NewMessageToadlet.title", false);
 
 		//Toadlets that don't go in the menu
-		CSSToadlet cssToadlet = new CSSToadlet(null, pluginRespirator);
-		MessageToadlet messageToadlet = new MessageToadlet(null, freemail.getAccountManager(), pluginRespirator);
-		AddAccountToadlet addAccountToadlet = new AddAccountToadlet(null, pluginRespirator, freemail.getWotConnection(), freemail.getAccountManager());
+		CSSToadlet cssToadlet = new CSSToadlet(pluginRespirator);
+		MessageToadlet messageToadlet = new MessageToadlet(freemail.getAccountManager(), pluginRespirator);
+		AddAccountToadlet addAccountToadlet = new AddAccountToadlet(pluginRespirator, freemail.getWotConnection(), freemail.getAccountManager());
 		registerInvisibleToadlet(cssToadlet, true, false);
 		registerInvisibleToadlet(messageToadlet, true, false);
 		registerInvisibleToadlet(addAccountToadlet, true, false);

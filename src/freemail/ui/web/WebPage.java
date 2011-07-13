@@ -27,7 +27,6 @@ import java.util.NoSuchElementException;
 import javax.naming.SizeLimitExceededException;
 
 import freemail.utils.Logger;
-import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -44,8 +43,8 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	final PluginRespirator pluginRespirator;
 	final SessionManager sessionManager;
 
-	WebPage(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
-		super(client);
+	WebPage(PluginRespirator pluginRespirator) {
+		super(null);
 		this.pageMaker = pluginRespirator.getPageMaker();
 		this.sessionManager = pluginRespirator.getSessionManager(WebInterface.COOKIE_NAMESPACE);
 		this.pluginRespirator = pluginRespirator;

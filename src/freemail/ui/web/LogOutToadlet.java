@@ -23,7 +23,6 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
-import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -31,8 +30,8 @@ import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.HTTPRequest;
 
 public class LogOutToadlet extends WebPage {
-	public LogOutToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
-		super(client, pluginRespirator);
+	public LogOutToadlet(PluginRespirator pluginRespirator) {
+		super(pluginRespirator);
 	}
 
 	@Override

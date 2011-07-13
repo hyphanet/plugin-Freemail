@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -36,8 +35,8 @@ import freenet.support.io.BucketTools;
 public class CSSToadlet extends WebPage {
 	private static final String PATH = "/Freemail/static/css/";
 
-	CSSToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
-		super(client, pluginRespirator);
+	CSSToadlet(PluginRespirator pluginRespirator) {
+		super(pluginRespirator);
 	}
 
 	@Override

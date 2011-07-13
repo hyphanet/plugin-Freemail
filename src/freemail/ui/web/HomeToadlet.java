@@ -23,7 +23,6 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
-import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -34,8 +33,8 @@ import freenet.support.api.HTTPRequest;
 public class HomeToadlet extends WebPage {
 	private static final String PATH = "/Freemail/";
 
-	public HomeToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
-		super(client, pluginRespirator);
+	public HomeToadlet(PluginRespirator pluginRespirator) {
+		super(pluginRespirator);
 	}
 
 	@Override

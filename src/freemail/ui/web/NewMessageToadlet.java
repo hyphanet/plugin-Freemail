@@ -42,7 +42,6 @@ import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
-import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -55,8 +54,8 @@ public class NewMessageToadlet extends WebPage {
 	private final WoTConnection wotConnection;
 	private final Freemail freemail;
 
-	NewMessageToadlet(HighLevelSimpleClient client, WoTConnection wotConnection, Freemail freemail, PluginRespirator pluginRespirator) {
-		super(client, pluginRespirator);
+	NewMessageToadlet(WoTConnection wotConnection, Freemail freemail, PluginRespirator pluginRespirator) {
+		super(pluginRespirator);
 		this.wotConnection = wotConnection;
 		this.freemail = freemail;
 	}
