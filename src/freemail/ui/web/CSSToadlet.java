@@ -47,6 +47,13 @@ public class CSSToadlet extends WebPage {
 	@Override
 	void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		String filename = uri.getPath().substring("/Freemail/static/css/".length());
+
+		//Check that the filename has the expected format
+		if(!filename.matches("[a-zA-Z0-9]+\\.css")) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid filename format");
+			return;
+		}
+
 		InputStream is = getClass().getResourceAsStream("/freemail/ui/web/css/" + filename);
 
 		Bucket b = ctx.getBucketFactory().makeBucket(-1);
