@@ -103,17 +103,7 @@ public class InboxToadlet extends WebPage {
 		//Add buttons
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
 		                              new String[] {"submit", "delete", "Delete"});
-
-		HTMLNode folderDropdown = messageList.addChild("select", "name", "destination");
-		for(String folder : getAllFolders(account)) {
-			if(folder.equals(folderName)) {
-				//Skip the current folder, since we don't want to move messages there
-				continue;
-			}
-			folderDropdown.addChild("option", "value", folder, folder.replace(".", "/"));
-		}
-		messageList.addChild("input", new String[] {"type",   "name", "value"},
-		                              new String[] {"submit", "move", "Move"});
+		addMoveMessageFunction(messageList, account, folderName);
 
 		//Add the message list
 		HTMLNode messageTable = messageList.addChild("table");
@@ -126,6 +116,21 @@ public class InboxToadlet extends WebPage {
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void addMoveMessageFunction(HTMLNode parent, FreemailAccount account, String currentFolder) {
+		HTMLNode folderDropdown = parent.addChild("select", "name", "destination");
+		List<String> folderList = getAllFolders(account);
+
+		for(String folder : folderList) {
+			if(folder.equals(currentFolder)) {
+				//Skip the current folder, since we don't want to move messages there
+				continue;
+			}
+			folderDropdown.addChild("option", "value", folder, folder.replace(".", "/"));
+		}
+		parent.addChild("input", new String[] {"type",   "name", "value"},
+		                         new String[] {"submit", "move", "Move"});
 	}
 
 	@SuppressWarnings("deprecation")
