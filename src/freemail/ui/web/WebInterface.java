@@ -30,6 +30,8 @@ import freenet.clients.http.ToadletContainer;
 import freenet.pluginmanager.PluginRespirator;
 
 public class WebInterface {
+	static final String COOKIE_NAMESPACE = "Freemail";
+
 	private static final String FREEMAIL_CATEGORY_NAME = "Freemail.Menu.Name";
 	private static final String CATEGORY_TITLE = "Freemail.Menu.Title";
 
