@@ -71,9 +71,10 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		//Check the form password
+		String formPassword = pluginRespirator.getNode().clientCore.formPassword;
 		String pass;
 		try {
-			pass = req.getPartAsStringThrowing("formPassword", 32);
+			pass = req.getPartAsStringThrowing("formPassword", formPassword.length());
 		} catch(SizeLimitExceededException e) {
 			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
 			return;
@@ -82,7 +83,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 			return;
 		}
 
-		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+		if((pass.length() == 0) || !pass.equals(formPassword)) {
 			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
 			return;
 		}
