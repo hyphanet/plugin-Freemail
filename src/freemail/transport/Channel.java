@@ -1360,17 +1360,19 @@ public class Channel extends Postman {
 				return false;
 			}
 
-			String line;
-			while ( (line = br.readLine()) != null) {
-				int curid = Integer.parseInt(line);
-				if (curid == targetid) {
-					br.close();
-					return true;
+			try {
+				String line;
+				while ( (line = br.readLine()) != null) {
+					int curid = Integer.parseInt(line);
+					if (curid == targetid) {
+						return true;
+					}
 				}
-			}
 
-			br.close();
-			return false;
+				return false;
+			} finally {
+				br.close();
+			}
 		}
 
 		public void add(int id) throws IOException {
