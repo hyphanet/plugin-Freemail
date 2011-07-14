@@ -378,10 +378,8 @@ public class Channel extends Postman {
 				os.write(buffer, 0, count);
 			}
 		} catch(IOException e) {
-			if(queuedMessage.file.exists()) {
-				if(!queuedMessage.file.delete()) {
-					Logger.error(this, "Couldn't delete message file (" + queuedMessage.file + ") after IOException");
-				}
+			if(!queuedMessage.delete()) {
+				Logger.error(this, "Couldn't delete the new message");
 			}
 
 			return false;
