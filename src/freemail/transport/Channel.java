@@ -349,6 +349,8 @@ public class Channel extends Postman {
 			return false;
 		}
 
+		OutputStream os = null;
+		PrintWriter pw = null;
 		try {
 			queuedMessage = new QueuedMessage(messageId);
 			queuedMessage.addedTime = System.currentTimeMillis();
@@ -360,8 +362,8 @@ public class Channel extends Postman {
 				queuedMessage.saveProps();
 			}
 
-			OutputStream os = new FileOutputStream(queuedMessage.file);
-			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
+			os = new FileOutputStream(queuedMessage.file);
+			pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
 
 			//Then what will be the header of the inserted message
 			byte[] buffer = new byte[1024];
@@ -388,6 +390,18 @@ public class Channel extends Postman {
 			}
 
 			return false;
+		} finally {
+			if(pw != null) {
+				pw.close();
+			}
+
+			if(os != null) {
+				try {
+					os.close();
+				} catch(IOException e) {
+					Logger.error(this, "Caugth IOException while closing stream");
+				}
+			}
 		}
 
 		sender.execute();
