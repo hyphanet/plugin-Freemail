@@ -344,7 +344,12 @@ public class Channel extends Postman {
 				Logger.error(this, "Couldn't create message file: " + queuedMessage.file);
 				return false;
 			}
+		} catch(IOException e) {
+			Logger.error(this, "Caugth IOException when creating " + queuedMessage.file);
+			return false;
+		}
 
+		try {
 			queuedMessage = new QueuedMessage(messageId);
 			queuedMessage.addedTime = System.currentTimeMillis();
 			queuedMessage.firstSendTime = -1;
