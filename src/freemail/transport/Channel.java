@@ -300,7 +300,8 @@ public class Channel extends Postman {
 	}
 
 	/**
-	 * Places the data read from {@code message} on the send queue
+	 * Places the data read from {@code message} on the send queue. It is the responsibility of the
+	 * caller to close {@code message}.
 	 * @param message the data to be sent
 	 * @return {@code true} if the message was placed on the queue
 	 * @throws NullPointerException if {@code message} is {@code null}
