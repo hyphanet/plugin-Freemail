@@ -44,6 +44,7 @@ import freemail.FreemailAccount;
 import freemail.ServerHandler;
 import freemail.transport.Channel;
 import freemail.utils.EmailAddress;
+import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
@@ -307,7 +308,14 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			
 			for(Identity identity : to) {
 				Channel channel = account.getChannel(identity.getIdentityID());
-				channel.sendMessage(new FileInputStream(tempfile));
+				FileInputStream message = new FileInputStream(tempfile);
+				channel.sendMessage(message);
+
+				try {
+					message.close();
+				} catch(IOException e) {
+					Logger.error(this, "Couldn't close the message stream");
+				}
 			}
 			
 			tempfile.delete();

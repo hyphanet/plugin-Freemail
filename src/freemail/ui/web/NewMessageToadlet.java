@@ -176,7 +176,14 @@ public class NewMessageToadlet extends WebPage {
 			Channel channel = account.getChannel(identityList.get(0).getIdentityID());
 
 			Bucket messageText = req.getPart("message-text");
-			channel.sendMessage(new SequenceInputStream(messageHeaderStream, messageText.getInputStream()));
+			InputStream messageBody = messageText.getInputStream();
+			SequenceInputStream message = new SequenceInputStream(messageHeaderStream, messageBody);
+			channel.sendMessage(message);
+			try {
+				message.close();
+			} catch(IOException e) {
+				Logger.error(this, "Caugth IOException closing input stream: " + e);
+			}
 		}
 
 		HTMLNode pageNode = page.outer;
