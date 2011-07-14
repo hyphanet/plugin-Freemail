@@ -107,6 +107,9 @@ public class AccountManager {
 	public void startTasks() {
 		synchronized(accounts) {
 			for(FreemailAccount account : accounts.values()) {
+				//Start the tasks needed for this account
+				account.startTasks();
+
 				//Now start a SingleAccountWatcher for this account
 				SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
 				Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());

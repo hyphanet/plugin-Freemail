@@ -75,11 +75,18 @@ public class FreemailAccount {
 			}
 
 			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
-			channel.startTasks();
 			channels.add(channel);
 		}
 	}
 	
+	public void startTasks() {
+		synchronized(channels) {
+			for(Channel c : channels) {
+				c.startTasks();
+			}
+		}
+	}
+
 	public String getUsername() {
 		return identity;
 	}
