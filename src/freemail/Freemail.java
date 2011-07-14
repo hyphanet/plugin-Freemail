@@ -167,6 +167,9 @@ public abstract class Freemail implements ConfigClient {
 		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
 		ackInserterThread.setDaemon(daemon);
 		ackInserterThread.start();
+
+		//Start account watchers, channel tasks etc.
+		accountManager.startTasks();
 	}
 	
 	public void terminate() {

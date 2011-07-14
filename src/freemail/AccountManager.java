@@ -101,16 +101,22 @@ public class AccountManager {
 			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile, freemail);
 			account.setNickname(accFile.get("nickname"));
 			accounts.put(accountDir.getName(), account);
+		}
+	}
 
-			//Now start a SingleAccountWatcher for this account
-			SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
-			Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
-			t.setDaemon(true);
-			t.start();
+	public void startTasks() {
+		synchronized(accounts) {
+			for(FreemailAccount account : accounts.values()) {
+				//Now start a SingleAccountWatcher for this account
+				SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
+				Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
+				t.setDaemon(true);
+				t.start();
 
-			synchronized(singleAccountWatcherList) {
-				singleAccountWatcherList.add(saw);
-				singleAccountWatcherThreadList.add(t);
+				synchronized(singleAccountWatcherList) {
+					singleAccountWatcherList.add(saw);
+					singleAccountWatcherThreadList.add(t);
+				}
 			}
 		}
 	}
