@@ -28,6 +28,7 @@ import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
@@ -104,7 +105,7 @@ public class LogInToadlet extends WebPage {
 			}
 			ownIdSelector.addChild("option", "value", account.getUsername(), nickname);
 		}
-		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Login" });
+		loginForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", FreemailL10n.getString("Freemail.LoginToadlet.LoginButton") });
 	}
 
 	private void addNewAccountBox(HTMLNode parent) {
@@ -119,7 +120,7 @@ public class LogInToadlet extends WebPage {
 				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
 			}
 		}
-		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Add account" });
+		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", FreemailL10n.getString("Freemail.LoginToadlet.AddAccountButton") });
 	}
 
 	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
