@@ -31,6 +31,7 @@ import javax.naming.SizeLimitExceededException;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
@@ -113,8 +114,8 @@ public class AddAccountToadlet extends WebPage {
 		if(setPassword) {
 			addPasswordForm(contentNode, identity);
 		} else {
-			HTMLNode infobox = addInfobox(contentNode, "Account is being created");
-			infobox.addChild("p", "Your account is being created.");
+			HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.accountBeingCreated.title"));
+			infobox.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.accountBeingCreated.content"));
 			Logger.debug(this, "Task state is " + task.getState());
 		}
 
@@ -122,9 +123,8 @@ public class AddAccountToadlet extends WebPage {
 	}
 
 	private void addPasswordForm(HTMLNode parent, String identity) {
-		HTMLNode infobox = addInfobox(parent, "Choose a password");
-		infobox.addChild("p", "While your account in being created, please select a password. This" +
-				"will be used when logging in to your account from an email client");
+		HTMLNode infobox = addInfobox(parent, FreemailL10n.getString("Freemail.AddAccountToadlet.selectPassword.title"));
+		infobox.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.selectPassword.content"));
 
 		HTMLNode passwordForm = pluginRespirator.addFormChild(infobox, "/Freemail/AddAccount", "password");
 		passwordForm.addChild("input", new String[] {"type",   "name",   "value"},

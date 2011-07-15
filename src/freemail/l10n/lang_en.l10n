@@ -10,4 +10,8 @@ Freemail.LoginToadlet.title=Login
 Freemail.LoginToadlet.name=Login
 Freemail.NewMessageToadlet.title=New message
 Freemail.NewMessageToadlet.name=New message
+Freemail.AddAccountToadlet.accountBeingCreated.title=Account is being created
+Freemail.AddAccountToadlet.accountBeingCreated.content=Your account is being created.
+Freemail.AddAccountToadlet.selectPassword.title=Choose a password
+Freemail.AddAccountToadlet.selectPassword.content=While your account in being created, please select a password. This will be used when logging in to your account from an email client
 End
