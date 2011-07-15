@@ -32,6 +32,14 @@ public class FreemailL10n {
 		return pluginL10n.getBase().getString(key);
 	}
 
+	public static String getString(String key, String patterns, String values) {
+		return pluginL10n.getBase().getString(key, patterns, values);
+	}
+
+	public static String getString(String key, String[] patterns, String[] values) {
+		return pluginL10n.getBase().getString(key, patterns, values);
+	}
+
 	public static void setLanguage(FredPluginBaseL10n l10nBasePlugin, LANGUAGE newLanguage) {
 		pluginL10n = new PluginL10n(l10nBasePlugin, newLanguage);
 		Logger.debug(FreemailL10n.class, "Setting language to " + newLanguage);
