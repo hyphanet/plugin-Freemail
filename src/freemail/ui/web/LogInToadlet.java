@@ -93,7 +93,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	private void addLoginBox(HTMLNode contentNode) {
-		HTMLNode boxContent = addInfobox(contentNode, "Login");
+		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.LoginToadlet.LoginBox"));
 
 		HTMLNode loginForm = pluginRespirator.addFormChild(boxContent, "/Freemail/Login", "login");
 		HTMLNode ownIdSelector = loginForm.addChild("select", "name", "OwnIdentityID");
@@ -110,7 +110,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	private void addNewAccountBox(HTMLNode parent) {
-		HTMLNode boxContent = addInfobox(parent, "Add account");
+		HTMLNode boxContent = addInfobox(parent, FreemailL10n.getString("Freemail.LoginToadlet.AddAccountBox"));
 
 		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
 		HTMLNode ownIdSelector = addAccountForm.addChild("select", "name", "OwnIdentityID");
