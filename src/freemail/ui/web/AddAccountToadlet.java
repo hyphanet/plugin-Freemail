@@ -195,7 +195,7 @@ public class AddAccountToadlet extends WebPage {
 			accountCreationTasks.add(task);
 		}
 
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", path() + "?identity=" + identity);
+		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", getIdentityStatusPath(identity));
 	}
 
 	private void setPassword(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
@@ -272,7 +272,7 @@ public class AddAccountToadlet extends WebPage {
 			task.passwordLock.notify();
 		}
 
-		writeTemporaryRedirect(ctx, "Redirecting to status page", path() + "?identity=" + identity);
+		writeTemporaryRedirect(ctx, "Redirecting to status page", getIdentityStatusPath(identity));
 	}
 
 	@Override
@@ -287,6 +287,10 @@ public class AddAccountToadlet extends WebPage {
 
 	static String getPath() {
 		return PATH;
+	}
+
+	static String getIdentityStatusPath(String identityId) {
+		return getPath() + "?identity=" + identityId;
 	}
 
 	private static class AccountCreationTask implements Runnable {

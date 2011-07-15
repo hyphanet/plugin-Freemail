@@ -159,7 +159,7 @@ public class InboxToadlet extends WebPage {
 			}
 		}
 
-		writeTemporaryRedirect(ctx, "", path() + "?folder=" + req.getPartAsString("folder", 100));
+		writeTemporaryRedirect(ctx, "", getFolderPath(req.getPartAsString("folder", 100)));
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox
@@ -180,15 +180,15 @@ public class InboxToadlet extends WebPage {
 		return messageBank;
 	}
 
-	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String link) {
+	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String folderName) {
 		//First add this message bank
 		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
 		HTMLNode folderPara = folderDiv.addChild("p");
-		folderPara.addChild("a", "href", "?folder=" + link, messageBank.getName());
+		folderPara.addChild("a", "href", getFolderPath(folderName), messageBank.getName());
 
 		//Then add all the children recursively
 		for(MessageBank child : messageBank.listSubFolders()) {
-			addMessageBank(folderDiv, child, link + "." + child.getName());
+			addMessageBank(folderDiv, child, folderName + "." + child.getName());
 		}
 
 		return folderDiv;
