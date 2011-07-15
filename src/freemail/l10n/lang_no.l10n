@@ -1,0 +1,19 @@
+Freemail.Menu.Name=Freemail
+Freemail.Menu.Title=Freemail
+Freemail.HomeToadlet.name=Hjem
+Freemail.HomeToadlet.title=Hjem
+Freemail.LogoutToadlet.title=Logg ut
+Freemail.LogoutToadlet.name=Logg ut
+Freemail.InboxToadlet.title=Inboks
+Freemail.InboxToadlet.name=Inboks
+Freemail.LoginToadlet.title=Logg inn
+Freemail.LoginToadlet.name=Logg inn
+Freemail.LoginToadlet.LoginButton=Logg inn
+Freemail.LoginToadlet.AddAccountButton=Legg til bruker
+Freemail.NewMessageToadlet.title=Ny melding
+Freemail.NewMessageToadlet.name=Ny melding
+Freemail.AddAccountToadlet.accountBeingCreated.title=Brukeren blir lagt til
+Freemail.AddAccountToadlet.accountBeingCreated.content=Den nye brukeren blir lagt til.
+Freemail.AddAccountToadlet.selectPassword.title=Velg et passord
+Freemail.AddAccountToadlet.selectPassword.content=Velg et passord mens den nye brukeren blir lagt til. Du kan bruke dette passordet for å få tilgang til meldingene dine fra et vanlig epost-program.
+End
