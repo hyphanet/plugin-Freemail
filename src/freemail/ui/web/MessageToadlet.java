@@ -188,15 +188,15 @@ public class MessageToadlet extends WebPage {
 		}
 	}
 
-	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String link) {
+	private HTMLNode addMessageBank(HTMLNode parent, MessageBank messageBank, String folderName) {
 		//First add this message bank
 		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
 		HTMLNode folderPara = folderDiv.addChild("p");
-		folderPara.addChild("a", "href", InboxToadlet.getPath() + "?folder=" + link, messageBank.getName());
+		folderPara.addChild("a", "href", InboxToadlet.getFolderPath(folderName), messageBank.getName());
 
 		//Then add all the children recursively
 		for(MessageBank child : messageBank.listSubFolders()) {
-			addMessageBank(folderDiv, child, link + "." + child.getName());
+			addMessageBank(folderDiv, child, folderName + "." + child.getName());
 		}
 
 		return folderDiv;

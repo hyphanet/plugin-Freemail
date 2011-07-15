@@ -255,6 +255,10 @@ public class InboxToadlet extends WebPage {
 		return PATH;
 	}
 
+	static String getFolderPath(String folderName) {
+		return getPath() + "?folder=" + folderName;
+	}
+
 	@Override
 	boolean requiresValidSession() {
 		return true;
