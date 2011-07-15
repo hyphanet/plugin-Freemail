@@ -216,6 +216,10 @@ public class MessageToadlet extends WebPage {
 		return PATH;
 	}
 
+	static String getMessagePath(String folderName, int messageNum) {
+		return getPath() + "?folder=" + folderName + "&uid=" + messageNum;
+	}
+
 	@Override
 	boolean requiresValidSession() {
 		return true;

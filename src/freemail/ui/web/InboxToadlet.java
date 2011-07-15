@@ -195,7 +195,7 @@ public class InboxToadlet extends WebPage {
 	}
 
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
-	private void addMessage(HTMLNode parent, MailMessage msg, String folderLink, int messageNum) {
+	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
 		HTMLNode message = parent.addChild("tr", "class", "message");
 		boolean read = msg.flags.get("\\seen");
 
@@ -203,7 +203,7 @@ public class InboxToadlet extends WebPage {
 		checkBox.addChild("input", new String[] {"type",     "name"},
 		                           new String[] {"checkbox", "msg-" + messageNum});
 
-		String messageLink = MessageToadlet.getPath() + "?folder=" + folderLink + "&uid=" + messageNum;
+		String messageLink = MessageToadlet.getMessagePath(folderName, messageNum);
 		HTMLNode title = message.addChild("td", "class", "title");
 		title = title.addChild("p");
 		if(!read) {
