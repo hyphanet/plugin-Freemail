@@ -103,6 +103,14 @@ public class Channel extends Postman {
 		private static final String REMOTE_ID = "remoteID";
 	}
 
+	private static class RTSKeys {
+		private static final String MAILSITE = "mailsite";
+		private static final String TO = "to";
+		private static final String CHANNEL = "channel";
+		private static final String INITIATOR_SLOT = "initiatorSlot";
+		private static final String RESPONDER_SLOT = "responderSlot";
+	}
+
 	private final File channelDir;
 	private final PropsFile channelProps;
 	private final ScheduledExecutorService executor;
@@ -161,7 +169,7 @@ public class Channel extends Postman {
 			try {
 				final String documentName = "documentName";
 
-				FreenetURI privateURI = new FreenetURI(rtsProps.get("channel") + documentName);
+				FreenetURI privateURI = new FreenetURI(rtsProps.get(RTSKeys.CHANNEL) + documentName);
 				InsertableClientSSK insertableKey = InsertableClientSSK.create(privateURI);
 
 				privateKey = insertableKey.getInsertURI().toString();
@@ -170,7 +178,7 @@ public class Channel extends Postman {
 				publicKey = insertableKey.getURI().toString();
 				publicKey = publicKey.substring(0, publicKey.length() - documentName.length());
 			} catch(MalformedURLException e) {
-				Logger.debug(this, "RTS contained malformed private key: " + rtsProps.get("channel"));
+				Logger.debug(this, "RTS contained malformed private key: " + rtsProps.get(RTSKeys.CHANNEL));
 				return;
 			}
 
@@ -199,7 +207,7 @@ public class Channel extends Postman {
 				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
 			}
 
-			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get("initiatorSlot"));
+			channelProps.put(PropsKeys.FETCH_SLOT, rtsProps.get(RTSKeys.INITIATOR_SLOT));
 			channelProps.put(PropsKeys.FETCH_CODE, "i");
 
 			if(channelProps.get(PropsKeys.SEND_CODE) == null) {
@@ -207,7 +215,7 @@ public class Channel extends Postman {
 			}
 
 			if(channelProps.get(PropsKeys.SEND_SLOT) == null) {
-				channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get("responderSlot"));
+				channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get(RTSKeys.RESPONDER_SLOT));
 			}
 
 			if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
@@ -1035,11 +1043,11 @@ public class Channel extends Postman {
 			assert (responderSlot != null);
 
 			StringBuffer rtsMessage = new StringBuffer();
-			rtsMessage.append("mailsite=" + senderMailsiteKey + "\r\n");
-			rtsMessage.append("to=" + recipientIdentityID + "\r\n");
-			rtsMessage.append("channel=" + channelPrivateKey + "\r\n");
-			rtsMessage.append("initiatorSlot=" + initiatorSlot + "\r\n");
-			rtsMessage.append("responderSlot=" + responderSlot + "\r\n");
+			rtsMessage.append(RTSKeys.MAILSITE + "=" + senderMailsiteKey + "\r\n");
+			rtsMessage.append(RTSKeys.TO + "=" + recipientIdentityID + "\r\n");
+			rtsMessage.append(RTSKeys.CHANNEL + "=" + channelPrivateKey + "\r\n");
+			rtsMessage.append(RTSKeys.INITIATOR_SLOT + "=" + initiatorSlot + "\r\n");
+			rtsMessage.append(RTSKeys.RESPONDER_SLOT + "=" + responderSlot + "\r\n");
 			rtsMessage.append("\r\n");
 
 			byte[] rtsMessageBytes;
