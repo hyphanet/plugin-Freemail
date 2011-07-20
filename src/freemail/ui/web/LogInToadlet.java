@@ -29,8 +29,6 @@ import javax.naming.SizeLimitExceededException;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.utils.Logger;
-import freemail.wot.OwnIdentity;
-import freemail.wot.WoTConnection;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager;
@@ -43,13 +41,11 @@ import freenet.support.api.HTTPRequest;
 public class LogInToadlet extends WebPage {
 	private final AccountManager accountManager;
 	private final PluginRespirator pluginRespirator;
-	private final WoTConnection wotConnection;
 
-	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager, SessionManager sessionManager, WoTConnection wotConnection) {
+	public LogInToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, AccountManager accountManager, SessionManager sessionManager) {
 		super(client, pluginRespirator.getPageMaker(), sessionManager);
 		this.pluginRespirator = pluginRespirator;
 		this.accountManager = accountManager;
-		this.wotConnection = wotConnection;
 	}
 
 	@Override
