@@ -216,6 +216,7 @@ public class Channel extends Postman {
 				channelProps.put(PropsKeys.MESSAGE_ID, "0");
 			}
 
+			channelProps.put(PropsKeys.TIMEOUT, rtsProps.get("timeout"));
 			channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
 		}
 
