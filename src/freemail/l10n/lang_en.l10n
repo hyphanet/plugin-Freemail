@@ -20,4 +20,13 @@ Freemail.HomeToadlet.welcomeTitle=Welcome to Freemail
 Freemail.HomeToadlet.welcome=Freemail is an email-like messaging system that uses the Web of Trust plugin.
 Freemail.InboxToadlet.delete=Delete
 Freemail.InboxToadlet.move=Move
+Freemail.NewMessageToadlet.boxTitle=New message
+Freemail.NewMessageToadlet.to=To
+Freemail.NewMessageToadlet.subject=Subject
+Freemail.NewMessageToadlet.body=Text
+Freemail.NewMessageToadlet.send=Send
+Freemail.NewMessageToadlet.ambigiousIdentitiesTitle=Ambiguous identities
+Freemail.NewMessageToadlet.ambigiousIdentities=There were ${count} recipients that could not be found in the Web of Trust:
+Freemail.NewMessageToadlet.messageSentTitle=Message sent
+Freemail.NewMessageToadlet.messageSent=Your message was sent
 End

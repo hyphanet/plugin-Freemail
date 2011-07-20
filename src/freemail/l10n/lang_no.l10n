@@ -20,4 +20,13 @@ Freemail.HomeToadlet.welcomeTitle=Velkommen til Freemail
 Freemail.HomeToadlet.welcome=Freemail er et email-aktig tillegg til Freenet som lar deg sende meldinger til andre, og bygger på Web of Trust tillegget.
 Freemail.InboxToadlet.delete=Slett
 Freemail.InboxToadlet.move=Flytt
+Freemail.NewMessageToadlet.boxTitle=Ny melding
+Freemail.NewMessageToadlet.to=Til
+Freemail.NewMessageToadlet.subject=Emne
+Freemail.NewMessageToadlet.body=Tekst
+Freemail.NewMessageToadlet.send=Send
+Freemail.NewMessageToadlet.ambigiousIdentitiesTitle=Ukjente mottakere
+Freemail.NewMessageToadlet.ambigiousIdentities=${count} mottakere ble ikke funnet:
+Freemail.NewMessageToadlet.messageSentTitle=Meldingen ble sent
+Freemail.NewMessageToadlet.messageSent=Meldingen din ble sent
 End
