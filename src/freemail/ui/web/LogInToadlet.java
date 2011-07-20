@@ -109,17 +109,7 @@ public class LogInToadlet extends WebPage {
 
 	private void addNewAccountBox(HTMLNode parent) {
 		HTMLNode boxContent = addInfobox(parent, "Add account");
-
-		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
-		HTMLNode ownIdSelector = addAccountForm.addChild("select", "name", "OwnIdentityID");
-
-		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
-			if(accountManager.getAccount(oid.getIdentityID()) == null) {
-				//FIXME: Nickname might be ambiguous
-				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
-			}
-		}
-		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Add account" });
+		boxContent.addChild("a", "href", "/Freemail/AddAccount", "You can add another account here");
 	}
 
 	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
