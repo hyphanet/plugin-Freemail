@@ -87,6 +87,7 @@ public class Channel extends Postman {
 	private static final int POLL_AHEAD = 6;
 	private static final String OUTBOX_DIR_NAME = "outbox";
 	private static final String INDEX_NAME = "index";
+	private static final long CHANNEL_TIMEOUT = 7 * 24 * 60 * 60 * 1000; //1 week
 
 	//The keys used in the props file
 	private static class PropsKeys {
@@ -847,6 +848,7 @@ public class Channel extends Postman {
 			String publicKey;
 			String initiatorSlot;
 			String responderSlot;
+			long timeout;
 			synchronized(channelProps) {
 				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 				publicKey = channelProps.get(PropsKeys.PUBLIC_KEY);
@@ -872,12 +874,15 @@ public class Channel extends Postman {
 					responderSlot = generateRandomSlot();
 				}
 
+				timeout = System.currentTimeMillis() + CHANNEL_TIMEOUT;
+
 				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
 				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
 				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
 				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
 				channelProps.put(PropsKeys.SEND_CODE, "i");
 				channelProps.put(PropsKeys.FETCH_CODE, "r");
+				channelProps.put(PropsKeys.TIMEOUT, "" + timeout);
 			}
 
 			//Get the senders mailsite key
@@ -906,7 +911,7 @@ public class Channel extends Postman {
 			senderMailsiteKey = senderMailsiteKey + "/mailsite/-" + senderMailsiteEdition + "/mailpage";
 
 			//Now build the RTS
-			byte[] rtsMessageBytes = buildRTSMessage(senderMailsiteKey, recipient.getIdentityID(), privateKey, initiatorSlot, responderSlot);
+			byte[] rtsMessageBytes = buildRTSMessage(senderMailsiteKey, recipient.getIdentityID(), privateKey, initiatorSlot, responderSlot, timeout);
 			if(rtsMessageBytes == null) {
 				return;
 			}
@@ -1028,12 +1033,13 @@ public class Channel extends Postman {
 			return 0;
 		}
 
-		private byte[] buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot) {
+		private byte[] buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot, long timeout) {
 			assert (senderMailsiteKey.matches("^USK@\\S{43,44},\\S{43,44},\\S{7}/\\w+/-?[0-9]+/.*$")) : "Malformed sender mailsite: " + senderMailsiteKey;
 			assert (recipientIdentityID != null);
 			assert (channelPrivateKey.matches("^SSK@\\S{43,44},\\S{43,44},\\S{7}/$")) : "Malformed channel key: " + channelPrivateKey;
 			assert (initiatorSlot != null);
 			assert (responderSlot != null);
+			assert (timeout > System.currentTimeMillis());
 
 			StringBuffer rtsMessage = new StringBuffer();
 			rtsMessage.append("mailsite=" + senderMailsiteKey + "\r\n");
@@ -1041,6 +1047,7 @@ public class Channel extends Postman {
 			rtsMessage.append("channel=" + channelPrivateKey + "\r\n");
 			rtsMessage.append("initiatorSlot=" + initiatorSlot + "\r\n");
 			rtsMessage.append("responderSlot=" + responderSlot + "\r\n");
+			rtsMessage.append("timeout=" + timeout + "\r\n");
 			rtsMessage.append("\r\n");
 
 			byte[] rtsMessageBytes;
