@@ -18,4 +18,6 @@ Freemail.AddAccountToadlet.selectPassword.title=Choose a password
 Freemail.AddAccountToadlet.selectPassword.content=While your account in being created, please select a password. This will be used when logging in to your account from an email client
 Freemail.HomeToadlet.welcomeTitle=Welcome to Freemail
 Freemail.HomeToadlet.welcome=Freemail is an email-like messaging system that uses the Web of Trust plugin.
+Freemail.InboxToadlet.delete=Delete
+Freemail.InboxToadlet.move=Move
 End

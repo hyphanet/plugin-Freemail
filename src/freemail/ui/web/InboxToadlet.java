@@ -36,6 +36,7 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freenet.client.HighLevelSimpleClient;
 import freenet.clients.http.PageMaker;
@@ -102,7 +103,7 @@ public class InboxToadlet extends WebPage {
 
 		//Add buttons
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
-		                              new String[] {"submit", "delete", "Delete"});
+		                              new String[] {"submit", "delete", FreemailL10n.getString("Freemail.InboxToadlet.delete")});
 
 		HTMLNode folderDropdown = messageList.addChild("select", "name", "destination");
 		for(String folder : getAllFolders(account)) {
@@ -113,7 +114,7 @@ public class InboxToadlet extends WebPage {
 			folderDropdown.addChild("option", "value", folder, folder.replace(".", "/"));
 		}
 		messageList.addChild("input", new String[] {"type",   "name", "value"},
-		                              new String[] {"submit", "move", "Move"});
+		                              new String[] {"submit", "move", FreemailL10n.getString("Freemail.InboxToadlet.move")});
 
 		//Add the message list
 		HTMLNode messageTable = messageList.addChild("table");

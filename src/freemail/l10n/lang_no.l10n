@@ -18,4 +18,6 @@ Freemail.AddAccountToadlet.selectPassword.title=Velg et passord
 Freemail.AddAccountToadlet.selectPassword.content=Velg et passord mens den nye brukeren blir lagt til. Du kan bruke dette passordet for å få tilgang til meldingene dine fra et vanlig epost-program.
 Freemail.HomeToadlet.welcomeTitle=Velkommen til Freemail
 Freemail.HomeToadlet.welcome=Freemail er et email-aktig tillegg til Freenet som lar deg sende meldinger til andre, og bygger på Web of Trust tillegget.
+Freemail.InboxToadlet.delete=Slett
+Freemail.InboxToadlet.move=Flytt
 End
