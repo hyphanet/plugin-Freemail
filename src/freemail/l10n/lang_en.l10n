@@ -10,4 +10,7 @@ Freemail.LoginToadlet.title=Login
 Freemail.LoginToadlet.name=Login
 Freemail.NewMessageToadlet.title=New message
 Freemail.NewMessageToadlet.name=New message
+Freemail.AddAccountToadlet.boxTitle=Add account
+Freemail.AddAccountToadlet.submit=Add account
+Freemail.AddAccountToadlet.selectIdentity=Select identity:
 End

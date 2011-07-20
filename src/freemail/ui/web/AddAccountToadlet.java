@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
@@ -39,6 +40,7 @@ import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
@@ -78,7 +80,26 @@ public class AddAccountToadlet extends WebPage {
 	}
 
 	private void makeWebPageGet(ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		writeTemporaryRedirect(ctx, "Redirecting to login page", "/Freemail/Login");
+		PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
+
+		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.boxTitle"));
+
+		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
+
+		HTMLNode identity = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.selectIdentity") + " ");
+		HTMLNode ownIdSelector = identity.addChild("select", "name", "OwnIdentityID");
+
+		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+			if(accountManager.getAccount(oid.getIdentityID()) == null) {
+				//FIXME: Nickname might be ambiguous
+				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
+			}
+		}
+		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", FreemailL10n.getString("Freemail.AddAccountToadlet.submit") });
+
+		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
 	private void makeWebPagePost(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
