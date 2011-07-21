@@ -182,7 +182,7 @@ public class HighLevelFCPClient implements FCPClient {
 					return new FCPPutFailedException(FCPPutFailedException.TIMEOUT, false);
 				}
 				try {
-					this.wait(30000);
+					donemsgLock.wait(30000);
 				} catch (InterruptedException ie) {
 				}
 			}
