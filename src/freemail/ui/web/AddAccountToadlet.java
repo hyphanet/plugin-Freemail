@@ -35,9 +35,7 @@ import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
 import freenet.client.HighLevelSimpleClient;
-import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
-import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
@@ -52,8 +50,8 @@ public class AddAccountToadlet extends WebPage {
 	private final WoTConnection wotConnection;
 	private final AccountManager accountManager;
 
-	AddAccountToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator, WoTConnection wotConnection, AccountManager accountManager) {
-		super(client, pageMaker, sessionManager, pluginRespirator);
+	AddAccountToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator, WoTConnection wotConnection, AccountManager accountManager) {
+		super(client, pluginRespirator);
 
 		this.wotConnection = wotConnection;
 		this.accountManager = accountManager;

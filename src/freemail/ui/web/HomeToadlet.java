@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import freenet.client.HighLevelSimpleClient;
-import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
-import freenet.clients.http.SessionManager;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
@@ -36,8 +34,8 @@ import freenet.support.api.HTTPRequest;
 public class HomeToadlet extends WebPage {
 	private static final String PATH = "/Freemail/";
 
-	public HomeToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
-		super(client, pageMaker, sessionManager, pluginRespirator);
+	public HomeToadlet(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
+		super(client, pluginRespirator);
 	}
 
 	@Override

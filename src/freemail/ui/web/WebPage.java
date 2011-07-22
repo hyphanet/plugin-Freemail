@@ -44,10 +44,10 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	final PluginRespirator pluginRespirator;
 	final SessionManager sessionManager;
 
-	WebPage(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
+	WebPage(HighLevelSimpleClient client, PluginRespirator pluginRespirator) {
 		super(client);
-		this.pageMaker = pageMaker;
-		this.sessionManager = sessionManager;
+		this.pageMaker = pluginRespirator.getPageMaker();
+		this.sessionManager = pluginRespirator.getSessionManager("Freemail");
 		this.pluginRespirator = pluginRespirator;
 	}
 
