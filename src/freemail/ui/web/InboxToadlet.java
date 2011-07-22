@@ -48,6 +48,8 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
+	private static final String PATH = "/Freemail/Inbox";
+
 	private final AccountManager accountManager;
 
 	InboxToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager, PluginRespirator pluginRespirator) {
@@ -157,7 +159,7 @@ public class InboxToadlet extends WebPage {
 			}
 		}
 
-		writeTemporaryRedirect(ctx, "", "/Freemail/Inbox?folder=" + req.getPartAsString("folder", 100));
+		writeTemporaryRedirect(ctx, "", path() + "?folder=" + req.getPartAsString("folder", 100));
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox
@@ -201,7 +203,7 @@ public class InboxToadlet extends WebPage {
 		checkBox.addChild("input", new String[] {"type",     "name"},
 		                           new String[] {"checkbox", "msg-" + messageNum});
 
-		String messageLink = "/Freemail/Message?folder=" + folderLink + "&uid=" + messageNum;
+		String messageLink = MessageToadlet.getPath() + "?folder=" + folderLink + "&uid=" + messageNum;
 		HTMLNode title = message.addChild("td", "class", "title");
 		title = title.addChild("p");
 		if(!read) {
@@ -246,7 +248,11 @@ public class InboxToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/Inbox";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	@Override

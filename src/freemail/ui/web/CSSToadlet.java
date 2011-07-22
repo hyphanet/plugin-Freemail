@@ -36,6 +36,8 @@ import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
 public class CSSToadlet extends WebPage {
+	private static final String PATH = "/Freemail/static/css/";
+
 	CSSToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
 		super(client, pageMaker, sessionManager, pluginRespirator);
 	}
@@ -47,7 +49,7 @@ public class CSSToadlet extends WebPage {
 
 	@Override
 	void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
-		String filename = uri.getPath().substring("/Freemail/static/css/".length());
+		String filename = uri.getPath().substring(PATH.length());
 
 		//Check that the filename has the expected format
 		if(!filename.matches("[a-zA-Z0-9]+\\.css")) {
@@ -65,7 +67,11 @@ public class CSSToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/static/css/";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	@Override

@@ -56,12 +56,12 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
-			writeTemporaryRedirect(ctx, "This page requires a valid session", "/Freemail/Login");
+			writeTemporaryRedirect(ctx, "This page requires a valid session", LogInToadlet.getPath());
 			return;
 		}
 
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
-		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
+		page.addCustomStyleSheet(CSSToadlet.getPath() + "/freemail.css");
 
 		long start = System.nanoTime();
 		makeWebPage(uri, req, ctx, HTTPMethod.GET, page);
@@ -89,12 +89,12 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		}
 
 		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
-			writeTemporaryRedirect(ctx, "This page requires a valid session", "/Freemail/Login");
+			writeTemporaryRedirect(ctx, "This page requires a valid session", LogInToadlet.getPath());
 			return;
 		}
 
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
-		page.addCustomStyleSheet("/Freemail/static/css/freemail.css");
+		page.addCustomStyleSheet(CSSToadlet.getPath() + "/freemail.css");
 
 		long start = System.nanoTime();
 		makeWebPage(uri, req, ctx, HTTPMethod.POST, page);

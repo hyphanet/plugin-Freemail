@@ -32,7 +32,6 @@ import freenet.pluginmanager.PluginRespirator;
 
 public class WebInterface {
 	private static final String FREEMAIL_CATEGORY_NAME = "Freemail.Menu.Name";
-	private static final String CATEGORY_DEFAULT_PATH = "/Freemail/";
 	private static final String CATEGORY_TITLE = "Freemail.Menu.Title";
 
 	/**
@@ -47,7 +46,7 @@ public class WebInterface {
 		this.pluginRespirator = pluginRespirator;
 
 		//Register our menu
-		pluginRespirator.getPageMaker().addNavigationCategory(CATEGORY_DEFAULT_PATH, FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
+		pluginRespirator.getPageMaker().addNavigationCategory(HomeToadlet.getPath(), FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
 
 		SessionManager sessionManager = pluginRespirator.getSessionManager("Freemail");
 

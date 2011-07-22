@@ -50,7 +50,7 @@ public class LogOutToadlet extends WebPage {
 	@Override
 	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		sessionManager.deleteSession(ctx);
-		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", "/Freemail/Login");
+		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", LogInToadlet.getPath());
 	}
 
 	@Override

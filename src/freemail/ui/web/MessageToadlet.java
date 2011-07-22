@@ -42,6 +42,8 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class MessageToadlet extends WebPage {
+	private static final String PATH = "/Freemail/Message";
+
 	private final AccountManager accountManager;
 
 	MessageToadlet(HighLevelSimpleClient client, SessionManager sessionManager, PageMaker pageMaker, AccountManager accountManager, PluginRespirator pluginRespirator) {
@@ -190,7 +192,7 @@ public class MessageToadlet extends WebPage {
 		//First add this message bank
 		HTMLNode folderDiv = parent.addChild("div", "class", "folder");
 		HTMLNode folderPara = folderDiv.addChild("p");
-		folderPara.addChild("a", "href", "/Freemail/Inbox?folder=" + link, messageBank.getName());
+		folderPara.addChild("a", "href", InboxToadlet.getPath() + "?folder=" + link, messageBank.getName());
 
 		//Then add all the children recursively
 		for(MessageBank child : messageBank.listSubFolders()) {
@@ -207,7 +209,11 @@ public class MessageToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/Message";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	@Override

@@ -34,13 +34,19 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class HomeToadlet extends WebPage {
+	private static final String PATH = "/Freemail/";
+
 	public HomeToadlet(HighLevelSimpleClient client, PageMaker pageMaker, SessionManager sessionManager, PluginRespirator pluginRespirator) {
 		super(client, pageMaker, sessionManager, pluginRespirator);
 	}
 
 	@Override
 	public String path() {
-		return "/Freemail/";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	@Override

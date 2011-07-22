@@ -45,6 +45,8 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
+	private static final String PATH = "/Freemail/AddAccount";
+
 	private static final List<AccountCreationTask> accountCreationTasks = new LinkedList<AccountCreationTask>();
 
 	private final WoTConnection wotConnection;
@@ -95,7 +97,7 @@ public class AddAccountToadlet extends WebPage {
 
 		if((task == null) || (task.getState() == TaskState.FINISHED)) {
 			//Everything is done
-			writeTemporaryRedirect(ctx, "Redirecting to login page", "/Freemail/Login");
+			writeTemporaryRedirect(ctx, "Redirecting to login page", LogInToadlet.getPath());
 			return;
 		}
 
@@ -124,7 +126,7 @@ public class AddAccountToadlet extends WebPage {
 		infobox.addChild("p", "While your account in being created, please select a password. This" +
 				"will be used when logging in to your account from an email client");
 
-		HTMLNode passwordForm = pluginRespirator.addFormChild(infobox, "/Freemail/AddAccount", "password");
+		HTMLNode passwordForm = pluginRespirator.addFormChild(infobox, path(), "password");
 		passwordForm.addChild("input", new String[] {"type",   "name",   "value"},
 		                               new String[] {"hidden", "action", "setPassword"});
 
@@ -193,7 +195,7 @@ public class AddAccountToadlet extends WebPage {
 			accountCreationTasks.add(task);
 		}
 
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/AddAccount?identity=" + identity);
+		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", path() + "?identity=" + identity);
 	}
 
 	private void setPassword(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
@@ -270,7 +272,7 @@ public class AddAccountToadlet extends WebPage {
 			task.passwordLock.notify();
 		}
 
-		writeTemporaryRedirect(ctx, "Redirecting to status page", "/Freemail/AddAccount?identity=" + identity);
+		writeTemporaryRedirect(ctx, "Redirecting to status page", path() + "?identity=" + identity);
 	}
 
 	@Override
@@ -280,7 +282,11 @@ public class AddAccountToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/AddAccount";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	private static class AccountCreationTask implements Runnable {

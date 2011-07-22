@@ -41,6 +41,8 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class LogInToadlet extends WebPage {
+	private static final String PATH = "/Freemail/Login";
+
 	private final AccountManager accountManager;
 	private final WoTConnection wotConnection;
 
@@ -52,7 +54,11 @@ public class LogInToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/Login";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	@Override
@@ -92,7 +98,7 @@ public class LogInToadlet extends WebPage {
 	private void addLoginBox(HTMLNode contentNode) {
 		HTMLNode boxContent = addInfobox(contentNode, "Login");
 
-		HTMLNode loginForm = pluginRespirator.addFormChild(boxContent, "/Freemail/Login", "login");
+		HTMLNode loginForm = pluginRespirator.addFormChild(boxContent, LogInToadlet.getPath(), "login");
 		HTMLNode ownIdSelector = loginForm.addChild("select", "name", "OwnIdentityID");
 		for(FreemailAccount account : accountManager.getAllAccounts()) {
 			//FIXME: Nickname might be ambiguous
@@ -108,7 +114,7 @@ public class LogInToadlet extends WebPage {
 	private void addNewAccountBox(HTMLNode parent) {
 		HTMLNode boxContent = addInfobox(parent, "Add account");
 
-		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
+		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, AddAccountToadlet.getPath(), "addAccount");
 		HTMLNode ownIdSelector = addAccountForm.addChild("select", "name", "OwnIdentityID");
 
 		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
@@ -141,7 +147,7 @@ public class LogInToadlet extends WebPage {
 		}
 
 		pluginRespirator.getSessionManager("Freemail").createSession(accountManager.getAccount(identity).getUsername(), ctx);
-		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", "/Freemail/");
+		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", HomeToadlet.getPath());
 	}
 
 	@Override
