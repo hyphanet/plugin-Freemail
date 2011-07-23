@@ -157,6 +157,8 @@ class MailHeaderFilter {
 			return val;
 		} else if (name.equalsIgnoreCase("To")) {
 			return val;
+		} else if (name.equalsIgnoreCase("CC")) {
+			return val;
 		} else if (name.equalsIgnoreCase("Subject")) {
 			return val;
 		} else if (name.equalsIgnoreCase("MIME-Version")) {
