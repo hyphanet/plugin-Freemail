@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
+import freemail.FreemailAccount;
 import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
@@ -149,6 +150,15 @@ public class AddAccountToadlet extends WebPage {
 			return;
 		}
 
+		//Check that the passwords match
+		String password = req.getPartAsStringFailsafe("password", 1000);
+		String password2 = req.getPartAsStringFailsafe("passwordVerification", 1000);
+
+		if(password.equals("") || (!password.equals(password2))) {
+			//FIXME: Write a better error message
+			writeHTMLReply(ctx, 200, "OK", "The passwords were different, or you need to choose a password");
+		}
+
 		//Fetch identity from WoT
 		OwnIdentity ownIdentity = null;
 		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
@@ -169,6 +179,13 @@ public class AddAccountToadlet extends WebPage {
 		List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
 		toAdd.add(ownIdentity);
 		accountManager.addIdentities(toAdd);
+		FreemailAccount account = accountManager.getAccount(ownIdentity.getIdentityID());
+		try {
+			AccountManager.changePassword(account, password);
+		} catch(Exception e) {
+			//This is never actually thrown
+			throw new AssertionError();
+		}
 
 		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/Login");
 	}
