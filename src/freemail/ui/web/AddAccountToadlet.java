@@ -85,6 +85,20 @@ public class AddAccountToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
+		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
+		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+			if(accountManager.getAccount(oid.getIdentityID()) == null) {
+				identitiesWithoutAccount.add(oid);
+			}
+		}
+
+		if(identitiesWithoutAccount.size() == 0) {
+			HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentitiesTitle"));
+			infobox.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentities"));
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
+		}
+
 		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.boxTitle"));
 
 		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
@@ -92,11 +106,9 @@ public class AddAccountToadlet extends WebPage {
 		HTMLNode identity = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.selectIdentity") + " ");
 		HTMLNode ownIdSelector = identity.addChild("select", "name", "OwnIdentityID");
 
-		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
-			if(accountManager.getAccount(oid.getIdentityID()) == null) {
-				//FIXME: Nickname might be ambiguous
-				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
-			}
+		for(OwnIdentity oid : identitiesWithoutAccount) {
+			//FIXME: Nickname might be ambiguous
+			ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
 		}
 
 		HTMLNode password = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.password") + " ");

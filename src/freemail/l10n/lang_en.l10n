@@ -15,4 +15,6 @@ Freemail.AddAccountToadlet.submit=Add account
 Freemail.AddAccountToadlet.selectIdentity=Select identity:
 Freemail.AddAccountToadlet.password=Password:
 Freemail.AddAccountToadlet.confirmPassword=Confirm password:
+Freemail.AddAccountToadlet.noIdentitiesTitle=No identities without an account
+Freemail.AddAccountToadlet.noIdentities=All your identities already have Freemail accounts. You can create more identities using the WoT plugin
 End
