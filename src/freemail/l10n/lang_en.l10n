@@ -13,4 +13,6 @@ Freemail.NewMessageToadlet.name=New message
 Freemail.AddAccountToadlet.boxTitle=Add account
 Freemail.AddAccountToadlet.submit=Add account
 Freemail.AddAccountToadlet.selectIdentity=Select identity:
+Freemail.AddAccountToadlet.password=Password:
+Freemail.AddAccountToadlet.confirmPassword=Confirm password:
 End

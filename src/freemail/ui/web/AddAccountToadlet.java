@@ -97,6 +97,15 @@ public class AddAccountToadlet extends WebPage {
 				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
 			}
 		}
+
+		HTMLNode password = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.password") + " ");
+		password.addChild("input", new String[] {"type",     "name"},
+		                           new String[] {"password", "password"});
+
+		HTMLNode confirmPassword = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.confirmPassword") + " ");
+		confirmPassword.addChild("input", new String[] {"type",     "name"},
+		                                  new String[] {"password", "passwordVerification"});
+
 		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", FreemailL10n.getString("Freemail.AddAccountToadlet.submit") });
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
