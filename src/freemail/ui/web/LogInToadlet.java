@@ -81,7 +81,9 @@ public class LogInToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		addLoginBox(contentNode);
+		if(accountManager.getAllAccounts().size() > 0) {
+			addLoginBox(contentNode);
+		}
 		addNewAccountBox(contentNode);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
