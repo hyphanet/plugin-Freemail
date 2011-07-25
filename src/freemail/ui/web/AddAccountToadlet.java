@@ -30,7 +30,7 @@ import javax.naming.SizeLimitExceededException;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
-import freemail.FreemailPlugin;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
@@ -43,8 +43,6 @@ import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
 	private static final String PATH = "/Freemail/AddAccount";
-
-	private static final List<AccountCreationTask> accountCreationTasks = new LinkedList<AccountCreationTask>();
 
 	private final WoTConnection wotConnection;
 	private final AccountManager accountManager;
@@ -65,7 +63,7 @@ public class AddAccountToadlet extends WebPage {
 	void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
 		switch(method) {
 		case GET:
-			makeWebPageGet(ctx, req);
+			makeWebPageGet(ctx);
 			break;
 		case POST:
 			makeWebPagePost(ctx, req);
@@ -79,197 +77,109 @@ public class AddAccountToadlet extends WebPage {
 		}
 	}
 
-	private void makeWebPageGet(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
-		String identity = req.getParam("identity");
-
-		AccountCreationTask task = null;
-		synchronized(accountCreationTasks) {
-			for(AccountCreationTask t : accountCreationTasks) {
-				if(t.identityID.equals(identity)) {
-					task = t;
-					break;
-				}
-			}
-		}
-
-		if((task == null) || (task.getState() == TaskState.FINISHED)) {
-			//Everything is done
-			writeTemporaryRedirect(ctx, "Redirecting to login page", LogInToadlet.getPath());
-			return;
-		}
-
+	private void makeWebPageGet(ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		boolean setPassword;
-		synchronized(task.passwordLock) {
-			setPassword = (task.password == null);
+		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
+		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+			if(accountManager.getAccount(oid.getIdentityID()) == null) {
+				identitiesWithoutAccount.add(oid);
+			}
 		}
 
-		if(setPassword) {
-			addPasswordForm(contentNode, identity);
-		} else {
-			HTMLNode infobox = addInfobox(contentNode, "Account is being created");
-			infobox.addChild("p", "Your account is being created.");
-			Logger.debug(this, "Task state is " + task.getState());
+		if(identitiesWithoutAccount.size() == 0) {
+			HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentitiesTitle"));
+			infobox.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentities"));
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
 		}
+
+		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.boxTitle"));
+
+		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
+
+		HTMLNode identity = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.selectIdentity") + " ");
+		HTMLNode ownIdSelector = identity.addChild("select", "name", "OwnIdentityID");
+
+		for(OwnIdentity oid : identitiesWithoutAccount) {
+			//FIXME: Nickname might be ambiguous
+			ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
+		}
+
+		HTMLNode password = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.password") + " ");
+		password.addChild("input", new String[] {"type",     "name"},
+		                           new String[] {"password", "password"});
+
+		HTMLNode confirmPassword = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.confirmPassword") + " ");
+		confirmPassword.addChild("input", new String[] {"type",     "name"},
+		                                  new String[] {"password", "passwordVerification"});
+
+		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", FreemailL10n.getString("Freemail.AddAccountToadlet.submit") });
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void addPasswordForm(HTMLNode parent, String identity) {
-		HTMLNode infobox = addInfobox(parent, "Choose a password");
-		infobox.addChild("p", "While your account in being created, please select a password. This" +
-				"will be used when logging in to your account from an email client");
-
-		HTMLNode passwordForm = pluginRespirator.addFormChild(infobox, path(), "password");
-		passwordForm.addChild("input", new String[] {"type",   "name",   "value"},
-		                               new String[] {"hidden", "action", "setPassword"});
-
-		//FIXME: Doing it this way allows the password of any identity to be changed
-		passwordForm.addChild("input", new String[] {"type",   "name",     "value"},
-		                               new String[] {"hidden", "identity", identity});
-
-		passwordForm.addChild("input", new String[] {"type",     "name"},
-		                               new String[] {"password", "password"});
-		passwordForm.addChild("input", new String[] {"type",     "name"},
-		                               new String[] {"password", "passwordVerify"});
-		passwordForm.addChild("input", new String[] {"type", "name", "value"},
-		                               new String[] {"submit", "submit", "Set password"});
-	}
-
 	private void makeWebPagePost(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
-		String action;
+		//Check the form password
+		String pass;
 		try {
-			action = req.getPartAsStringThrowing("action", 64);
+			pass = req.getPartAsStringThrowing("formPassword", 32);
 		} catch(SizeLimitExceededException e) {
-			//Someone is deliberately passing bad data, or there is a bug in the PUT code
-			Logger.error(this, "Got action that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("action", 100));
-
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
+			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
 			return;
 		} catch(NoSuchElementException e) {
-			action = "addAccount";
+			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
+			return;
 		}
 
-		if("addAccount".equals(action)) {
-			addAccount(ctx, req);
-		} else if("setPassword".equals(action)) {
-			setPassword(ctx, req);
-		} else {
-			Logger.error(this, "Got unknown action: " + action);
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
+			return;
 		}
-	}
 
-	private void addAccount(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
 		//Get the identity id
-		String identity;
-		try {
-			identity = req.getPartAsStringThrowing("OwnIdentityID", 64);
-		} catch(SizeLimitExceededException e) {
-			//Someone is deliberately passing bad data, or there is a bug in the PUT code
-			Logger.error(this, "Got OwnIdentityID that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("OwnIdentityID", 100));
+		String identity = req.getPartAsStringFailsafe("OwnIdentityID", 64);
 
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
-			return;
-		} catch(NoSuchElementException e) {
-			//Someone is deliberately passing bad data, or there is a bug in the PUT code
-			Logger.error(this, "Got POST request without OwnIdentityID");
+		//Check that the passwords match
+		String password = req.getPartAsStringFailsafe("password", 1000);
+		String password2 = req.getPartAsStringFailsafe("passwordVerification", 1000);
 
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
-			return;
+		if(password.equals("") || (!password.equals(password2))) {
+			//FIXME: Write a better error message
+			writeHTMLReply(ctx, 200, "OK", "The passwords were different, or you need to choose a password");
 		}
 
-		AccountCreationTask task = new AccountCreationTask(accountManager, identity, wotConnection);
-		FreemailPlugin.getExecutor().submit(task);
-		synchronized(accountCreationTasks) {
-			accountCreationTasks.add(task);
-		}
-
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", getIdentityStatusPath(identity));
-	}
-
-	private void setPassword(ToadletContext ctx, HTTPRequest req) throws ToadletContextClosedException, IOException {
-		//Get the identity id
-		String identity;
-		try {
-			identity = req.getPartAsStringThrowing("identity", 64);
-		} catch(SizeLimitExceededException e) {
-			//Someone is deliberately passing bad data, or there is a bug in the PUT code
-			Logger.error(this, "Got identity that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("identity", 100));
-
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
-			return;
-		} catch(NoSuchElementException e) {
-			//Someone is deliberately passing bad data, or there is a bug in the PUT code
-			Logger.error(this, "Got POST request without identity");
-
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
-			return;
-		}
-
-		AccountCreationTask task = null;
-		synchronized(accountCreationTasks) {
-			for(AccountCreationTask t : accountCreationTasks) {
-				if(t.identityID.equals(identity)) {
-					task = t;
-					break;
-				}
+		//Fetch identity from WoT
+		OwnIdentity ownIdentity = null;
+		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+			if(oid.getIdentityID().equals(identity)) {
+				ownIdentity = oid;
+				break;
 			}
 		}
 
-		if(task == null) {
+		if(ownIdentity == null) {
+			Logger.error(this, "Requested identity (" + identity + ") doesn't exist");
+
 			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "A password has already been set for this account");
+			writeHTMLReply(ctx, 200, "OK", "The specified identitiy doesn't exist");
 			return;
 		}
 
-		String password;
+		List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
+		toAdd.add(ownIdentity);
+		accountManager.addIdentities(toAdd);
+		FreemailAccount account = accountManager.getAccount(ownIdentity.getIdentityID());
 		try {
-			password = req.getPartAsStringThrowing("password", 64);
-		} catch(SizeLimitExceededException e) {
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The password was too long");
-			return;
-		} catch(NoSuchElementException e) {
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "Missing password");
-			return;
+			AccountManager.changePassword(account, password);
+		} catch(Exception e) {
+			//This is never actually thrown
+			throw new AssertionError();
 		}
 
-		String passwordVerification;
-		try {
-			passwordVerification = req.getPartAsStringThrowing("passwordVerify", 64);
-		} catch(SizeLimitExceededException e) {
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The passwords were different");
-			return;
-		} catch(NoSuchElementException e) {
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The passwords were different");
-			return;
-		}
-
-		if(!password.equals(passwordVerification)) {
-			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The passwords were different");
-			return;
-		}
-
-		synchronized(task.passwordLock) {
-			task.password = password;
-			task.passwordLock.notify();
-		}
-
-		writeTemporaryRedirect(ctx, "Redirecting to status page", getIdentityStatusPath(identity));
+		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/Login");
 	}
 
 	@Override
@@ -288,100 +198,5 @@ public class AddAccountToadlet extends WebPage {
 
 	static String getIdentityStatusPath(String identityId) {
 		return getPath() + "?identity=" + identityId;
-	}
-
-	private static class AccountCreationTask implements Runnable {
-		private final AccountManager accountManager;
-		private final String identityID;
-		private final WoTConnection wotConnection;
-
-		private final Object stateLock = new Object();
-		private TaskState state = TaskState.STARTING;
-
-		private final Object passwordLock = new Object();
-		private String password = null;
-
-		private AccountCreationTask(AccountManager accountManager, String identityID, WoTConnection wotConnection) {
-			this.accountManager = accountManager;
-			this.identityID = identityID;
-			this.wotConnection = wotConnection;
-		}
-
-		@Override
-		public void run() {
-			//Fetch identity from WoT
-			setState(TaskState.FETCHING);
-			Logger.debug(this, "Getting own identity from WoT");
-			OwnIdentity ownIdentity = null;
-			for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
-				if(oid.getIdentityID().equals(identityID)) {
-					ownIdentity = oid;
-					break;
-				}
-			}
-
-			if(ownIdentity == null) {
-				Logger.error(this, "Requested identity (" + identityID + ") doesn't exist");
-				setState(TaskState.ERROR);
-				return;
-			}
-
-			//Create account
-			setState(TaskState.WORKING);
-			Logger.debug(this, "Creating account");
-			List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
-			toAdd.add(ownIdentity);
-			accountManager.addIdentities(toAdd);
-			FreemailAccount account = accountManager.getAccount(identityID);
-
-			//Set the password for the new account
-			//TODO: Should this time out in case the user doesn't set the password? The account
-			//      works fine at this point anyway
-			Logger.debug(this, "Waiting for password");
-			synchronized(passwordLock) {
-				while(password == null) {
-					try {
-						passwordLock.wait();
-					} catch(InterruptedException e) {
-						//Check again
-					}
-				}
-
-				Logger.debug(this, "Changing password");
-				try {
-					AccountManager.changePassword(account, password);
-				} catch(Exception e) {
-					Logger.error(this, "Caugth " + e + " while setting password for new account");
-					setState(TaskState.ERROR);
-					return;
-				}
-			}
-
-			setState(TaskState.FINISHED);
-			Logger.debug(this, "Removing task");
-			synchronized(accountCreationTasks) {
-				accountCreationTasks.remove(this);
-			}
-		}
-
-		private TaskState getState() {
-			synchronized(stateLock) {
-				return state;
-			}
-		}
-
-		private void setState(TaskState newState) {
-			synchronized(stateLock) {
-				state = newState;
-			}
-		}
-	}
-
-	private enum TaskState {
-		STARTING,
-		FETCHING,
-		WORKING,
-		FINISHED,
-		ERROR;
 	}
 }

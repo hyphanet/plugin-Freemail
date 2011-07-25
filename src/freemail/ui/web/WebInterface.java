@@ -51,7 +51,7 @@ public class WebInterface {
 
 		//Register the toadlets that should be visible in the menu
 		HomeToadlet homeToadlet = new HomeToadlet(pluginRespirator);
-		LogInToadlet loginToadlet = new LogInToadlet(pluginRespirator, freemail.getAccountManager(), freemail.getWotConnection());
+		LogInToadlet loginToadlet = new LogInToadlet(pluginRespirator, freemail.getAccountManager());
 		LogOutToadlet logoutToadlet = new LogOutToadlet(pluginRespirator);
 		InboxToadlet inboxToadlet = new InboxToadlet(freemail.getAccountManager(), pluginRespirator);
 		NewMessageToadlet newMessageToadlet = new NewMessageToadlet(freemail.getWotConnection(), freemail, pluginRespirator);

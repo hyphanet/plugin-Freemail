@@ -29,8 +29,6 @@ import javax.naming.SizeLimitExceededException;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.utils.Logger;
-import freemail.wot.OwnIdentity;
-import freemail.wot.WoTConnection;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -42,12 +40,11 @@ public class LogInToadlet extends WebPage {
 	private static final String PATH = "/Freemail/Login";
 
 	private final AccountManager accountManager;
-	private final WoTConnection wotConnection;
 
-	public LogInToadlet(PluginRespirator pluginRespirator, AccountManager accountManager, WoTConnection wotConnection) {
+	public LogInToadlet(PluginRespirator pluginRespirator, AccountManager accountManager) {
 		super(pluginRespirator);
+
 		this.accountManager = accountManager;
-		this.wotConnection = wotConnection;
 	}
 
 	@Override
@@ -87,7 +84,9 @@ public class LogInToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		addLoginBox(contentNode);
+		if(accountManager.getAllAccounts().size() > 0) {
+			addLoginBox(contentNode);
+		}
 		addNewAccountBox(contentNode);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -111,17 +110,7 @@ public class LogInToadlet extends WebPage {
 
 	private void addNewAccountBox(HTMLNode parent) {
 		HTMLNode boxContent = addInfobox(parent, "Add account");
-
-		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, AddAccountToadlet.getPath(), "addAccount");
-		HTMLNode ownIdSelector = addAccountForm.addChild("select", "name", "OwnIdentityID");
-
-		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
-			if(accountManager.getAccount(oid.getIdentityID()) == null) {
-				//FIXME: Nickname might be ambiguous
-				ownIdSelector.addChild("option", "value", oid.getIdentityID(), oid.getNickname());
-			}
-		}
-		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", "Add account" });
+		boxContent.addChild("a", "href", "/Freemail/AddAccount", "You can add another account here");
 	}
 
 	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {

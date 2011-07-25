@@ -22,9 +22,6 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.NoSuchElementException;
-
-import javax.naming.SizeLimitExceededException;
 
 import freemail.utils.Logger;
 import freenet.clients.http.LinkEnabledCallback;
