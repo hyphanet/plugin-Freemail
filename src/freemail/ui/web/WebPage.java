@@ -71,18 +71,9 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 		//Check the form password
 		String formPassword = pluginRespirator.getNode().clientCore.formPassword;
-		String pass;
-		try {
-			pass = req.getPartAsStringThrowing("formPassword", formPassword.length());
-		} catch(SizeLimitExceededException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
-			return;
-		} catch(NoSuchElementException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
-			return;
-		}
+		String pass = req.getPartAsStringFailsafe("formPassword", formPassword.length());
 
-		if((pass.length() == 0) || !pass.equals(formPassword)) {
+		if(!pass.equals(formPassword)) {
 			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
 			return;
 		}
