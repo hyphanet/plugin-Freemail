@@ -87,6 +87,13 @@ public class Channel extends Postman {
 	private static final int POLL_AHEAD = 6;
 	private static final String OUTBOX_DIR_NAME = "outbox";
 	private static final String INDEX_NAME = "index";
+
+	/**
+	 * The amount of time before the channel times out, in milliseconds. If the channel is created
+	 * at t=0, then messages won't be queued after t=CHANNEL_TIMEOUT, and the fetcher will stop
+	 * when t=2*CHANNEL_TIMEOUT. This should provide enough delay for the recipient to fetch all
+	 * the messages.
+	 */
 	private static final long CHANNEL_TIMEOUT = 7 * 24 * 60 * 60 * 1000; //1 week
 
 	//The keys used in the props file
@@ -480,6 +487,24 @@ public class Channel extends Postman {
 		}
 
 		private void realRun() {
+			synchronized(channelProps) {
+				String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+				long timeout;
+				try {
+					timeout = Long.parseLong(rawTimeout);
+				} catch(NumberFormatException e) {
+					//Assume we haven't timed out
+					timeout = Long.MAX_VALUE;
+				}
+
+				//Check if we've timed out. The extra time is added because we want to stop fetching
+				//later than we stop sending. See JavaDoc for CHANNEL_TIMEOUT for details
+				if(timeout < (System.currentTimeMillis() - CHANNEL_TIMEOUT)) {
+					Logger.debug(this, "Channel has timed out, won't fetch");
+					return;
+				}
+			}
+
 			String slots;
 			synchronized(channelProps) {
 				slots = channelProps.get(PropsKeys.FETCH_SLOT);
