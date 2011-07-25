@@ -37,6 +37,7 @@ import java.util.Set;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
+import freemail.l10n.FreemailL10n;
 import freemail.transport.Channel;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
@@ -88,23 +89,23 @@ public class NewMessageToadlet extends WebPage {
 			recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
 		}
 
-		HTMLNode messageBox = addInfobox(contentNode, "New message");
+		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		HTMLNode messageForm = ctx.addFormChild(messageBox, path(), "newMessage");
 
-		HTMLNode recipientBox = addInfobox(messageForm, "To");
+		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
 		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
 		                               new String[] {"to",   "text", "100",  recipient});
 
-		HTMLNode subjectBox = addInfobox(messageForm, "Subject");
+		HTMLNode subjectBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.subject"));
 		subjectBox.addChild("input", new String[] {"name",    "type", "size"},
 		                             new String[] {"subject", "text", "100"});
 
-		HTMLNode messageBodyBox = addInfobox(messageForm, "Text");
+		HTMLNode messageBodyBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.body"));
 		messageBodyBox.addChild("textarea", new String[] {"name",         "cols", "rows", "class"},
 		                                    new String[] {"message-text", "100",  "30",   "message-text"});
 
 		messageForm.addChild("input", new String[] {"type",   "value"},
-		                              new String[] {"submit", "Send"});
+		                              new String[] {"submit", FreemailL10n.getString("Freemail.NewMessageToadlet.send")});
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -150,9 +151,8 @@ public class NewMessageToadlet extends WebPage {
 			HTMLNode pageNode = page.outer;
 			HTMLNode contentNode = page.content;
 
-			HTMLNode errorBox = addErrorbox(contentNode, "Ambiguous identities");
-			HTMLNode errorPara = errorBox.addChild("p", "There were " + failedRecipients.size() +
-					" recipients that could not be found in the Web of Trust:");
+			HTMLNode errorBox = addErrorbox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentitiesTitle"));
+			HTMLNode errorPara = errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentities", "count", "" + failedRecipients.size()));
 			HTMLNode identityList = errorPara.addChild("ul");
 			for(String s : failedRecipients) {
 				identityList.addChild("li", s);
@@ -192,8 +192,8 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		HTMLNode infobox = addInfobox(contentNode, "Message sent");
-		infobox.addChild("p", "Your message was sent");
+		HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.messageSentTitle"));
+		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageSent"));
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}

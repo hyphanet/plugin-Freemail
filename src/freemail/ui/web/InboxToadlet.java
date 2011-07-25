@@ -36,6 +36,7 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -99,7 +100,7 @@ public class InboxToadlet extends WebPage {
 
 		//Add buttons
 		messageList.addChild("input", new String[] {"type",   "name",   "value"},
-		                              new String[] {"submit", "delete", "Delete"});
+		                              new String[] {"submit", "delete", FreemailL10n.getString("Freemail.InboxToadlet.delete")});
 		addMoveMessageFunction(messageList, account, folderName);
 
 		//Add the message list
@@ -131,7 +132,7 @@ public class InboxToadlet extends WebPage {
 			folderDropdown.addChild("option", "value", folder, folder.replace(".", "/"));
 		}
 		parent.addChild("input", new String[] {"type",   "name", "value"},
-		                         new String[] {"submit", "move", "Move"});
+		                         new String[] {"submit", "move", FreemailL10n.getString("Freemail.InboxToadlet.move")});
 	}
 
 	@SuppressWarnings("deprecation")

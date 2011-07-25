@@ -23,6 +23,8 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
+import freemail.l10n.FreemailL10n;
+
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -62,9 +64,8 @@ public class HomeToadlet extends WebPage {
 	}
 
 	private void addWelcomeBox(HTMLNode contentNode) {
-		HTMLNode boxContent = addInfobox(contentNode, "Welcome to Freemail");
-		boxContent.addChild("p", "Freemail is an email-like messaging system that uses the Web of " +
-				"Trust plugin.");
+		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.HomeToadlet.welcomeTitle"));
+		boxContent.addChild("p", FreemailL10n.getString("Freemail.HomeToadlet.welcome"));
 	}
 
 	@Override
