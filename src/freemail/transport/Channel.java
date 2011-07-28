@@ -36,6 +36,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -289,13 +290,11 @@ class Channel extends Postman {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintWriter pw = new PrintWriter(baos);
 		pw.print("messagetype=cts\r\n");
+		pw.print("\r\n");
 		pw.close();
-		InputStream header = new ByteArrayInputStream(baos.toByteArray());
+		InputStream message = new ByteArrayInputStream(baos.toByteArray());
 
-		//CTS doesn't have any data
-		InputStream data = new ByteArrayInputStream(new byte[0]);
-
-		queueMessage(messageId, header, data, false);
+		insertMessage(message);
 	}
 
 	void startTasks() {
@@ -387,10 +386,11 @@ class Channel extends Postman {
 		PrintWriter pw = new PrintWriter(baos);
 		pw.print("messagetype=message\r\n");
 		pw.print("id=" + messageId + "\r\n");
+		pw.print("\r\n");
 		pw.close();
 		byte[] headerBytes = baos.toByteArray();
 
-		return queueMessage(messageId, new ByteArrayInputStream(headerBytes), message, true);
+		return insertMessage(new SequenceInputStream(new ByteArrayInputStream(headerBytes), message));
 	}
 
 	/**
@@ -1358,13 +1358,11 @@ class Channel extends Postman {
 		PrintWriter pw = new PrintWriter(baos);
 		pw.print("messagetype=ack\r\n");
 		pw.print("id=" + ackId + "\r\n");
+		pw.print("\r\n");
 		pw.close();
-		InputStream header = new ByteArrayInputStream(baos.toByteArray());
+		InputStream message = new ByteArrayInputStream(baos.toByteArray());
 
-		//Acks don't have any data
-		InputStream data = new ByteArrayInputStream(new byte[0]);
-
-		queueMessage(messageId, header, data, false);
+		insertMessage(message);
 	}
 
 	private boolean handleAck(File result) {
