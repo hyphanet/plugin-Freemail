@@ -393,6 +393,76 @@ class Channel extends Postman {
 		return queueMessage(messageId, new ByteArrayInputStream(headerBytes), message, true);
 	}
 
+	/**
+	 * Inserts the given message to the next available slot, returning {@code true} if the message
+	 * was inserted, {@code false} otherwise.
+	 * @param message the message that should be inserted
+	 * @return {@code true} if the message was inserted, {@code false} otherwise
+	 */
+	private boolean insertMessage(InputStream message) {
+		String baseKey;
+		synchronized(channelProps) {
+			baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+		}
+		if(baseKey == null) {
+			Logger.debug(this, "Can't insert, missing private key");
+			return false;
+		}
+
+		String sendCode;
+		synchronized(channelProps) {
+			sendCode = channelProps.get(PropsKeys.SEND_CODE);
+		}
+		if(sendCode == null) {
+			Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
+			//TODO: Either delete the channel or resend the RTS
+			return false;
+		}
+		baseKey += sendCode + "-";
+
+		try {
+			while(true) {
+				//FIXME: This locking must be broken up, since it blocks *everything*
+				synchronized(channelProps) {
+					String slot = channelProps.get(PropsKeys.SEND_SLOT);
+
+					Logger.debug(this, "Inserting data to " + baseKey + slot);
+					FCPInsertErrorMessage fcpMessage = fcpClient.put(message, baseKey + slot);
+
+					if(fcpMessage == null) {
+						Logger.debug(this, "Insert successful");
+						slot = calculateNextSlot(slot);
+						synchronized(channelProps) {
+							channelProps.put(PropsKeys.SEND_SLOT, slot);
+						}
+
+						return true;
+					}
+
+					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+						slot = calculateNextSlot(slot);
+
+						//Write the new slot each round so we won't have
+						//to check all of them again if we fail
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+
+						Logger.debug(this, "Insert collided, trying slot " + slot);
+						continue;
+					}
+
+					Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
+					return false;
+				}
+			}
+		} catch(FCPBadFileException e) {
+			Logger.debug(this, "Caugth " + e);
+			return false;
+		} catch(ConnectionTerminatedException e) {
+			Logger.debug(this, "Caugth " + e);
+			return false;
+		}
+	}
+
 	private boolean queueMessage(long messageId, InputStream header, InputStream data, boolean waitForAck) {
 		assert (header != null);
 		assert (data != null);
