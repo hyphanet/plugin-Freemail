@@ -355,7 +355,7 @@ public class Channel extends Postman {
 	 *             messages
 	 * @throws NullPointerException if {@code message} is {@code null}
 	 */
-	public boolean sendMessage(InputStream message) throws ChannelTimedOutException {
+	boolean sendMessage(InputStream message) throws ChannelTimedOutException {
 		if(message == null) throw new NullPointerException("Parameter message was null");
 
 		synchronized(channelProps) {
