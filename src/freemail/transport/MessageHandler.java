@@ -298,7 +298,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			tasks.put(Integer.valueOf(msgNum), executor.schedule(this, RESEND_TIME, TimeUnit.MILLISECONDS));
+			tasks.put(Integer.valueOf(msgNum), executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
 
 		private boolean sendMessage() {
