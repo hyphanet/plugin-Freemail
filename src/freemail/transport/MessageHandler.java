@@ -310,13 +310,10 @@ public class MessageHandler {
 				c = getChannel(recipient);
 				Bucket message = new FileBucket(new File(outbox, "" + msgNum), false, false, false, false, false);
 				try {
-					inserted = c.sendMessage(message.getInputStream());
+					inserted = c.sendMessage(message);
 				} catch(ChannelTimedOutException e) {
 					//Try again with a new channel
 					continue;
-				} catch(IOException e) {
-					Logger.error(this, "Caugth IOException while sending: " + e);
-					inserted = false;
 				}
 
 				break;

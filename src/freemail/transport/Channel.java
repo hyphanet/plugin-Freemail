@@ -75,6 +75,8 @@ import freemail.wot.WoTConnection;
 import freemail.wot.WoTProperties;
 import freenet.keys.FreenetURI;
 import freenet.keys.InsertableClientSSK;
+import freenet.support.api.Bucket;
+import freenet.support.io.Closer;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -312,7 +314,7 @@ class Channel extends Postman {
 	 *             messages
 	 * @throws NullPointerException if {@code message} is {@code null}
 	 */
-	boolean sendMessage(InputStream message) throws ChannelTimedOutException {
+	boolean sendMessage(Bucket message) throws ChannelTimedOutException {
 		if(message == null) throw new NullPointerException("Parameter message was null");
 
 		synchronized(channelProps) {
@@ -346,7 +348,16 @@ class Channel extends Postman {
 		pw.close();
 		byte[] headerBytes = baos.toByteArray();
 
-		return insertMessage(new SequenceInputStream(new ByteArrayInputStream(headerBytes), message));
+		InputStream messageStream = null;
+		try {
+			messageStream = message.getInputStream();
+			return insertMessage(new SequenceInputStream(new ByteArrayInputStream(headerBytes), messageStream));
+		} catch(IOException e) {
+			Logger.error(this, "Caugth " + e);
+			return false;
+		} finally {
+			Closer.close(messageStream);
+		}
 	}
 
 	/**
