@@ -138,6 +138,26 @@ public class MessageHandler {
 		}
 	}
 
+	public void start() {
+		if(outbox.isDirectory()) {
+			for(File f : outbox.listFiles()) {
+				if(!f.isFile()) {
+					Logger.debug(this, "Spurious file in outbox: " + f);
+					continue;
+				}
+
+				try {
+					int num = Integer.parseInt(f.getName());
+					Logger.debug(this, "Scheduling SenderTask for " + num);
+					tasks.put(Integer.valueOf(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
+				} catch(NumberFormatException e) {
+					Logger.debug(this, "Found file with malformed name: " + f);
+					continue;
+				}
+			}
+		}
+	}
+
 	public boolean sendMessage(List<Identity> recipients, Bucket message) throws IOException {
 		if(!outbox.exists()) {
 			if(!outbox.mkdir()) {

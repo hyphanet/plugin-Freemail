@@ -46,6 +46,10 @@ public class FreemailAccount {
 		messageHandler = new MessageHandler(FreemailPlugin.getExecutor(), new File(accdir, "outbox"), freemail, channelDir, this);
 	}
 	
+	public void startTasks() {
+		messageHandler.start();
+	}
+
 	public String getUsername() {
 		return identity;
 	}
