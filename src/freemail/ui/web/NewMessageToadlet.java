@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
@@ -177,6 +178,7 @@ public class NewMessageToadlet extends WebPage {
 			"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getUsername() + ".freemail>\r\n" +
 			"To: " + getBucketAsString(b) + "\r\n" +
 			dateHeader +
+			"Message-ID: <" + UUID.randomUUID() + "@" + account.getUsername() + ">\r\n" +
 			"\r\n";
 		InputStream messageHeaderStream = new ByteArrayInputStream(messageHeader.getBytes("UTF-8"));
 
