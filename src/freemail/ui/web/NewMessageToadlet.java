@@ -29,11 +29,14 @@ import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
@@ -163,13 +166,17 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		//Build message header
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String dateHeader = "Date: " + sdf.format(new Date()) + "\r\n";
+
 		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 		//TODO: Check for newlines etc.
-		//TODO: Add date
 		String messageHeader =
 			"Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n" +
 			"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getUsername() + ".freemail>\r\n" +
 			"To: " + getBucketAsString(b) + "\r\n" +
+			dateHeader +
 			"\r\n";
 		InputStream messageHeaderStream = new ByteArrayInputStream(messageHeader.getBytes("UTF-8"));
 
