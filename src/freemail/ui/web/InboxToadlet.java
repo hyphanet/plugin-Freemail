@@ -239,21 +239,18 @@ public class InboxToadlet extends WebPage {
 
 		String messageLink = MessageToadlet.getMessagePath(folderName, messageNum);
 		HTMLNode title = message.addChild("td", "class", "title");
-		title = title.addChild("p");
 		if(!read) {
 			title = title.addChild("strong");
 		}
 		title.addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		author = author.addChild("p");
 		if(!read) {
 			author = author.addChild("strong");
 		}
 		author.addChild("#", msg.getFirstHeader("From"));
 
 		HTMLNode date = message.addChild("td", "class", "date");
-		date = date.addChild("p");
 		if(!read) {
 			date = date.addChild("strong");
 		}
