@@ -108,9 +108,9 @@ public class InboxToadlet extends WebPage {
 		//Add the message list header
 		HTMLNode header = messageTable.addChild("tr");
 		header.addChild("th");
-		header.addChild("th", FreemailL10n.getString("Freemail.InboxToadlet.subject"));
-		header.addChild("th", FreemailL10n.getString("Freemail.InboxToadlet.from"));
-		header.addChild("th", FreemailL10n.getString("Freemail.InboxToadlet.date"));
+		header.addChild("th").addChild("a", "href", getSortLink(SortField.SUBJECT, !getSortDirection(req)), FreemailL10n.getString("Freemail.InboxToadlet.subject"));
+		header.addChild("th").addChild("a", "href", getSortLink(SortField.FROM, !getSortDirection(req)), FreemailL10n.getString("Freemail.InboxToadlet.from"));
+		header.addChild("th").addChild("a", "href", getSortLink(SortField.DATE, !getSortDirection(req)), FreemailL10n.getString("Freemail.InboxToadlet.date"));
 
 		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
 		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
@@ -121,6 +121,14 @@ public class InboxToadlet extends WebPage {
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private String getSortLink(SortField field, boolean ascending) {
+		return path() + "?sort=" + field.name + "&direction=" + (ascending ? "ascending" : "descending");
+	}
+
+	private boolean getSortDirection(HTTPRequest req) {
+		return "ascending".equals(req.getParam("direction"));
 	}
 
 	private void addMoveMessageFunction(HTMLNode parent, FreemailAccount account, String currentFolder) {
@@ -276,5 +284,16 @@ public class InboxToadlet extends WebPage {
 	@Override
 	boolean requiresValidSession() {
 		return true;
+	}
+
+	private enum SortField {
+		SUBJECT("subject"),
+		FROM("from"),
+		DATE("date");
+
+		private final String name;
+		private SortField(String name) {
+			this.name = name;
+		}
 	}
 }
