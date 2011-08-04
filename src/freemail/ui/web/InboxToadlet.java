@@ -103,8 +103,15 @@ public class InboxToadlet extends WebPage {
 		                              new String[] {"submit", "delete", FreemailL10n.getString("Freemail.InboxToadlet.delete")});
 		addMoveMessageFunction(messageList, account, folderName);
 
-		//Add the message list
 		HTMLNode messageTable = messageList.addChild("table");
+
+		//Add the message list header
+		HTMLNode header = messageTable.addChild("tr");
+		header.addChild("th");
+		header.addChild("th", FreemailL10n.getString("Freemail.InboxToadlet.subject"));
+		header.addChild("th", FreemailL10n.getString("Freemail.InboxToadlet.from"));
+		header.addChild("th", FreemailL10n.getString("Freemail.InboxToadlet.date"));
+
 		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
 		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
 			//FIXME: Initialization of MailMessage should be in MailMessage
