@@ -22,6 +22,7 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.naming.SizeLimitExceededException;
 
@@ -112,12 +114,18 @@ public class InboxToadlet extends WebPage {
 		header.addChild("th").addChild("a", "href", getSortLink(SortField.FROM, !getSortDirection(req)), FreemailL10n.getString("Freemail.InboxToadlet.from"));
 		header.addChild("th").addChild("a", "href", getSortLink(SortField.DATE, !getSortDirection(req)), FreemailL10n.getString("Freemail.InboxToadlet.date"));
 
-		SortedMap<Integer, MailMessage> messages = messageBank.listMessages();
-		for(Entry<Integer, MailMessage> message : messages.entrySet()) {
+		//Sort the messages correctly
+		SortedMap<MailMessage, Integer> messages = new TreeMap<MailMessage, Integer>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
+		for(Entry<Integer, MailMessage> message : messageBank.listMessages().entrySet()) {
 			//FIXME: Initialization of MailMessage should be in MailMessage
 			message.getValue().readHeaders();
 
-			addMessage(messageTable, message.getValue(), folderName, message.getKey());
+			messages.put(message.getValue(), message.getKey());
+		}
+
+		//Add messages
+		for(Entry<MailMessage, Integer> message : messages.entrySet()) {
+			addMessage(messageTable, message.getKey(), folderName, message.getValue());
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -129,6 +137,10 @@ public class InboxToadlet extends WebPage {
 
 	private boolean getSortDirection(HTTPRequest req) {
 		return "ascending".equals(req.getParam("direction"));
+	}
+
+	private SortField getSortField(HTTPRequest req) {
+		return SortField.fromString(req.getParam("sort"));
 	}
 
 	private void addMoveMessageFunction(HTMLNode parent, FreemailAccount account, String currentFolder) {
@@ -294,6 +306,55 @@ public class InboxToadlet extends WebPage {
 		private final String name;
 		private SortField(String name) {
 			this.name = name;
+		}
+
+		public static SortField fromString(String field) {
+			if("subject".equals(field)) {
+				return SUBJECT;
+			}
+			if("from".equals(field)) {
+				return FROM;
+			}
+			if("date".equals(field)) {
+				return DATE;
+			}
+			return null;
+		}
+	}
+
+	private class MailMessageComparator implements Comparator<MailMessage> {
+		private final SortField field;
+		private final boolean ascending;
+
+		private MailMessageComparator(SortField field, boolean ascending) {
+			if(field == null) {
+				this.field = SortField.DATE;
+			} else {
+				this.field = field;
+			}
+			this.ascending = ascending;
+		}
+
+		@Override
+		public int compare(MailMessage msg0, MailMessage msg1) {
+			if(!ascending) {
+				//Swap the two so we get the opposite ordering
+				MailMessage temp = msg0;
+				msg0 = msg1;
+				msg1 = temp;
+			}
+
+			switch (field) {
+			case SUBJECT:
+				return msg0.getFirstHeader("Subject").compareTo(msg1.getFirstHeader("Subject"));
+			case DATE:
+				return msg0.getFirstHeader("Date").compareTo(msg1.getFirstHeader("Date"));
+			case FROM:
+				return msg0.getFirstHeader("From").compareTo(msg1.getFirstHeader("From"));
+			default:
+				Logger.error(this, "Missing sort case for " + field);
+				return msg0.getFirstHeader("Date").compareTo(msg1.getFirstHeader("Date"));
+			}
 		}
 	}
 }
