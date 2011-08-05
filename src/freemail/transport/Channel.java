@@ -1043,21 +1043,6 @@ class Channel extends Postman {
 			return true;
 		}
 
-		MessageLog msglog = new MessageLog(this.channelDir);
-		boolean isDupe;
-		try {
-			isDupe = msglog.isPresent(id);
-		} catch (IOException ioe) {
-			Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
-			msgprops.closeReader();
-			return false;
-		}
-		if (isDupe) {
-			Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
-			msgprops.closeReader();
-			return true;
-		}
-
 		BufferedReader br = msgprops.getReader();
 		if (br == null) {
 			Logger.error(this,"Got an invalid message. Discarding.");
@@ -1067,13 +1052,6 @@ class Channel extends Postman {
 
 		if(!channelEventCallback.handleMessage(this, br, id)) {
 			return false;
-		}
-		Logger.normal(this,"You've got mail!");
-		try {
-			msglog.add(id);
-		} catch (IOException ioe) {
-			// how should we handle this? Remove the message from the inbox again?
-			Logger.error(this,"warning: failed to write log file!");
 		}
 
 		queueAck(id);
