@@ -54,7 +54,6 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import freemail.AccountManager;
 import freemail.Freemail;
 import freemail.FreemailAccount;
-import freemail.MessageBank;
 import freemail.Postman;
 import freemail.SlotManager;
 import freemail.SlotSaveCallback;
@@ -591,14 +590,8 @@ class Channel extends Postman {
 				}
 
 				if(messageType.equals("message")) {
-					try {
-						if(handleMessage(result, account.getMessageBank())) {
-							slotManager.slotUsed();
-						}
-					} catch(ConnectionTerminatedException e) {
-						Logger.debug(this, "Connection terminated");
-						result.delete();
-						return;
+					if(handleMessage(result)) {
+						slotManager.slotUsed();
 					}
 				} else if(messageType.equals("cts")) {
 					Logger.minor(this, "Successfully received CTS");
@@ -1031,7 +1024,7 @@ class Channel extends Postman {
 		}
 	}
 
-	private boolean handleMessage(File msg, MessageBank mb) throws ConnectionTerminatedException {
+	private boolean handleMessage(File msg) {
 		// parse the Freemail header(s) out.
 		PropsFile msgprops = PropsFile.createPropsFile(msg, true);
 		String s_id = msgprops.get("id");
@@ -1072,9 +1065,7 @@ class Channel extends Postman {
 			return true;
 		}
 
-		try {
-			this.storeMessage(br, mb);
-		} catch (IOException ioe) {
+		if(!channelEventCallback.handleMessage(this, br, id)) {
 			return false;
 		}
 		Logger.normal(this,"You've got mail!");
@@ -1195,5 +1186,6 @@ class Channel extends Postman {
 
 	public interface ChannelEventCallback {
 		public void onAckReceived(long id);
+		public boolean handleMessage(Channel channel, BufferedReader message, int id);
 	}
 }

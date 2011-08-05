@@ -20,6 +20,7 @@
 
 package freemail.transport;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -369,6 +370,11 @@ public class MessageHandler {
 				//Stop the insert if possible, but don't interrupt since the FCP code ignores it
 				task.cancel(false);
 			}
+		}
+
+		@Override
+		public boolean handleMessage(Channel channel, BufferedReader message, int id) {
+			throw new UnsupportedOperationException();
 		}
 	}
 }
