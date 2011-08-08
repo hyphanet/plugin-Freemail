@@ -50,7 +50,6 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import freemail.AccountManager;
 import freemail.Freemail;
 import freemail.FreemailAccount;
-import freemail.Postman;
 import freemail.SlotManager;
 import freemail.SlotSaveCallback;
 import freemail.fcp.ConnectionTerminatedException;
@@ -74,7 +73,7 @@ import freenet.support.io.Closer;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
-class Channel extends Postman {
+class Channel {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
 
