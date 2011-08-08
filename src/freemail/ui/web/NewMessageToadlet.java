@@ -95,6 +95,8 @@ public class NewMessageToadlet extends WebPage {
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		HTMLNode messageForm = ctx.addFormChild(messageBox, path(), "newMessage");
+		messageForm.addChild("input", new String[] {"type",   "name",   "value"},
+		                              new String[] {"hidden", "action", "sendMessage"});
 
 		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
 		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
@@ -115,6 +117,22 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException, ToadletContextClosedException {
+		String action = getBucketAsString(req.getPart("action"));
+		if("sendMessage".equals(action)) {
+			sendMessage(req, ctx, page);
+		} else {
+			Logger.error(this, "Unknown action requested: " + action);
+
+			String boxTitle = FreemailL10n.getString("Freemail.NewMessageToadlet.unknownActionTitle");
+			HTMLNode errorBox = addErrorbox(page.content, boxTitle);
+			errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction"));
+			errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction", "action", action));
+
+			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+		}
+	}
+
+	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		//Read list of recipients. Whitespace seems to be the only reasonable way to separate
 		//identities, but people will probably use all sorts of characters that can also appear in
 		//nicknames, so the matching should be sufficiently fuzzy to handle that
