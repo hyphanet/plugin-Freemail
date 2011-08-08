@@ -41,7 +41,10 @@ import java.util.UUID;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
+import freemail.MailMessage;
+import freemail.MessageBank;
 import freemail.l10n.FreemailL10n;
+import freemail.support.MessageBankTools;
 import freemail.transport.Channel;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
@@ -94,7 +97,7 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, recipient, "", "");
+		addMessageForm(messageBox, ctx, recipient, "", "", "");
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -103,6 +106,8 @@ public class NewMessageToadlet extends WebPage {
 		String action = getBucketAsString(req.getPart("action"));
 		if("sendMessage".equals(action)) {
 			sendMessage(req, ctx, page);
+		} else if("reply".equals(action)) {
+			createReply(req, ctx, page);
 		} else {
 			Logger.error(this, "Unknown action requested: " + action);
 
@@ -208,7 +213,48 @@ public class NewMessageToadlet extends WebPage {
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void addMessageForm(HTMLNode parent, ToadletContext ctx, String recipient, String subject, String body) {
+	private void createReply(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
+
+		String folder = getBucketAsString(req.getPart("folder"));
+		String message = getBucketAsString(req.getPart("message"));
+
+		MessageBank mb = MessageBankTools.getMessageBank(getFreemailAccount(ctx).getMessageBank(), folder);
+		MailMessage msg = MessageBankTools.getMessage(mb, Integer.parseInt(message));
+		msg.readHeaders();
+
+		String recipient = msg.getFirstHeader("From");
+		String inReplyTo = msg.getFirstHeader("message-id");
+
+		String subject = msg.getFirstHeader("Subject");
+		if(!subject.toLowerCase().startsWith("re: ")) {
+			subject = "Re: " + subject;
+		}
+
+		StringBuilder body = new StringBuilder();
+
+		//First we have to read past the header
+		String line = msg.readLine();
+		while((line != null) && (!line.equals(""))) {
+			line = msg.readLine();
+		}
+
+		//Now add the actual message content
+		line = msg.readLine();
+		while(line != null) {
+			body.append(">" + line + "\r\n");
+			line = msg.readLine();
+		}
+		msg.closeStream();
+
+		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
+		addMessageForm(messageBox, ctx, recipient, subject, body.toString(), inReplyTo);
+
+		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void addMessageForm(HTMLNode parent, ToadletContext ctx, String recipient, String subject, String body, String inReplyTo) {
 		assert (recipient != null);
 		assert (subject != null);
 		assert (body != null);
@@ -216,6 +262,8 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode messageForm = ctx.addFormChild(parent, path(), "newMessage");
 		messageForm.addChild("input", new String[] {"type",   "name",   "value"},
 		                              new String[] {"hidden", "action", "sendMessage"});
+		messageForm.addChild("input", new String[] {"type",   "name",      "value"},
+		                              new String[] {"hidden", "inReplyTo", inReplyTo});
 
 		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
 		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
@@ -263,6 +311,10 @@ public class NewMessageToadlet extends WebPage {
 		} catch(UnsupportedEncodingException e) {
 			return null;
 		}
+	}
+
+	private FreemailAccount getFreemailAccount(ToadletContext ctx) {
+		return freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 	}
 
 	@Override
