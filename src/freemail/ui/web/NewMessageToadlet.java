@@ -94,24 +94,7 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		HTMLNode messageForm = ctx.addFormChild(messageBox, path(), "newMessage");
-		messageForm.addChild("input", new String[] {"type",   "name",   "value"},
-		                              new String[] {"hidden", "action", "sendMessage"});
-
-		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
-		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
-		                               new String[] {"to",   "text", "100",  recipient});
-
-		HTMLNode subjectBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.subject"));
-		subjectBox.addChild("input", new String[] {"name",    "type", "size"},
-		                             new String[] {"subject", "text", "100"});
-
-		HTMLNode messageBodyBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.body"));
-		messageBodyBox.addChild("textarea", new String[] {"name",         "cols", "rows", "class"},
-		                                    new String[] {"message-text", "100",  "30",   "message-text"});
-
-		messageForm.addChild("input", new String[] {"type",   "value"},
-		                              new String[] {"submit", FreemailL10n.getString("Freemail.NewMessageToadlet.send")});
+		addMessageForm(messageBox, ctx, recipient, "", "");
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -223,6 +206,32 @@ public class NewMessageToadlet extends WebPage {
 		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageSent"));
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void addMessageForm(HTMLNode parent, ToadletContext ctx, String recipient, String subject, String body) {
+		assert (recipient != null);
+		assert (subject != null);
+		assert (body != null);
+
+		HTMLNode messageForm = ctx.addFormChild(parent, path(), "newMessage");
+		messageForm.addChild("input", new String[] {"type",   "name",   "value"},
+		                              new String[] {"hidden", "action", "sendMessage"});
+
+		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
+		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
+		                               new String[] {"to",   "text", "100",  recipient});
+
+		HTMLNode subjectBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.subject"));
+		subjectBox.addChild("input", new String[] {"name",    "type", "size", "value"},
+		                             new String[] {"subject", "text", "100",  subject});
+
+		HTMLNode messageBodyBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.body"));
+		messageBodyBox.addChild("textarea", new String[] {"name",         "cols", "rows", "class"},
+		                                    new String[] {"message-text", "100",  "30",   "message-text"},
+		                                    body);
+
+		messageForm.addChild("input", new String[] {"type",   "value"},
+		                              new String[] {"submit", FreemailL10n.getString("Freemail.NewMessageToadlet.send")});
 	}
 
 	private String getBucketAsString(Bucket b) {
