@@ -298,6 +298,8 @@ public class MessageHandler {
 
 		@Override
 		public void run() {
+			Logger.debug(this, "SenderTask for message " + msgNum + " on account " + freemailAccount.getUsername() + " running");
+
 			//FIXME: This will be terribly inefficient if sendMessage takes a while since it will
 			//       block all other operations as well. Only the id that is being used should
 			//       be locked.
