@@ -134,7 +134,6 @@ public class MessageHandler {
 
 			try {
 				Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
-				channel.startTasks();
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
 				Logger.debug(this, "Deleting timed out channel");
@@ -161,6 +160,13 @@ public class MessageHandler {
 					Logger.debug(this, "Found file with malformed name: " + f);
 					continue;
 				}
+			}
+		}
+
+		//Start the channel tasks
+		synchronized(channels) {
+			for(Channel channel : channels) {
+				channel.startTasks();
 			}
 		}
 	}
