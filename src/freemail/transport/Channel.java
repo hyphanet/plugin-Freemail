@@ -26,14 +26,11 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.SequenceInputStream;
@@ -41,8 +38,6 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -86,8 +81,6 @@ import freenet.keys.InsertableClientSSK;
 class Channel extends Postman {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
-	private static final String OUTBOX_DIR_NAME = "outbox";
-	private static final String INDEX_NAME = "index";
 
 	/**
 	 * The amount of time before the channel times out, in milliseconds. If the channel is created
@@ -120,9 +113,7 @@ class Channel extends Postman {
 	private final Freemail freemail;
 	private final FreemailAccount account;
 	private final Fetcher fetcher = new Fetcher();
-	private final Sender sender = new Sender();
 	private final RTSSender rtsSender = new RTSSender();
-	private final PropsFile messageIndex;
 	private final ChannelEventCallback channelEventCallback;
 
 	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, ChannelEventCallback channelEventCallback) throws ChannelTimedOutException {
@@ -172,10 +163,6 @@ class Channel extends Postman {
 		if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
 			channelProps.put(PropsKeys.MESSAGE_ID, "0");
 		}
-
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		File indexFile = new File(outbox, INDEX_NAME);
-		messageIndex = PropsFile.createPropsFile(indexFile);
 	}
 
 	void processRTS(PropsFile rtsProps) {
@@ -262,20 +249,6 @@ class Channel extends Postman {
 		File channelPropsFile = new File(channelDir, CHANNEL_PROPS_NAME);
 		channelPropsFile.delete();
 
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		for(File f : outbox.listFiles()) {
-			try {
-				Integer.parseInt(f.getName());
-				f.delete();
-			} catch(NumberFormatException e) {
-				//Leave the file since it wasn't created by Freemail
-			}
-		}
-		outbox.delete();
-
-		File indexFile = new File(outbox, INDEX_NAME);
-		indexFile.delete();
-
 		return channelDir.delete();
 	}
 
@@ -299,7 +272,6 @@ class Channel extends Postman {
 
 	void startTasks() {
 		startFetcher();
-		startSender();
 		startRTSSender();
 	}
 
@@ -316,22 +288,6 @@ class Channel extends Postman {
 
 		if((fetchSlot != null) && (fetchCode != null) && (publicKey != null)) {
 			fetcher.execute();
-		}
-	}
-
-	private void startSender() {
-		//Start sender if possible
-		String sendSlot;
-		String sendCode;
-		String privateKey;
-		synchronized(channelProps) {
-			sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
-			sendCode = channelProps.get(PropsKeys.SEND_CODE);
-			privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-		}
-
-		if((sendSlot != null) && (sendCode != null) && (privateKey != null)) {
-			sender.execute();
 		}
 	}
 
@@ -461,73 +417,6 @@ class Channel extends Postman {
 			Logger.debug(this, "Caugth " + e);
 			return false;
 		}
-	}
-
-	private boolean queueMessage(long messageId, InputStream header, InputStream data, boolean waitForAck) {
-		assert (header != null);
-		assert (data != null);
-
-		//Write the message and attributes to the outbox
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		if(!outbox.exists()) {
-			if(!outbox.mkdir()) {
-				Logger.error(this, "Couldn't create outbox directory: " + outbox);
-				return false;
-			}
-		}
-
-		QueuedMessage queuedMessage = new QueuedMessage(messageId);
-		try {
-			if(!queuedMessage.file.createNewFile()) {
-				Logger.error(this, "Couldn't create message file: " + queuedMessage.file);
-				return false;
-			}
-
-			queuedMessage = new QueuedMessage(messageId);
-			queuedMessage.addedTime = System.currentTimeMillis();
-			queuedMessage.firstSendTime = -1;
-			queuedMessage.lastSendTime = -1;
-			queuedMessage.waitForAck = waitForAck;
-
-			synchronized(messageIndex) {
-				queuedMessage.saveProps();
-			}
-
-			OutputStream os = new FileOutputStream(queuedMessage.file);
-			PrintWriter pw = new PrintWriter(new OutputStreamWriter(os, "UTF-8"));
-
-			//Then what will be the header of the inserted message
-			byte[] buffer = new byte[1024];
-			while(true) {
-				int count = header.read(buffer, 0, buffer.length);
-				if(count == -1) break;
-
-				os.write(buffer, 0, count);
-			}
-
-			pw.write("\r\n");
-			pw.flush();
-
-			//And the message contents
-			while(true) {
-				int count = data.read(buffer, 0, buffer.length);
-				if(count == -1) break;
-
-				os.write(buffer, 0, count);
-			}
-		} catch(IOException e) {
-			if(queuedMessage.file.exists()) {
-				if(!queuedMessage.file.delete()) {
-					Logger.error(this, "Couldn't delete message file (" + queuedMessage.file + ") after IOException");
-				}
-			}
-
-			return false;
-		}
-
-		sender.execute();
-
-		return true;
 	}
 
 	@Override
@@ -741,162 +630,6 @@ class Channel extends Postman {
 		@Override
 		public String toString() {
 			return "Fetcher [" + channelDir + "]";
-		}
-	}
-
-	private class Sender implements Runnable {
-		@Override
-		public synchronized void run() {
-			Logger.debug(this, "Sender running (" + this + ")");
-
-			try {
-				realRun();
-			} catch(RuntimeException e) {
-				Logger.debug(this, "Caugth " + e);
-				e.printStackTrace();
-				throw e;
-			} catch(Error e) {
-				Logger.debug(this, "Caugth " + e);
-				e.printStackTrace();
-				throw e;
-			}
-		}
-
-		private void realRun() {
-			List<QueuedMessage> sendQueue = getSendQueue();
-			if(sendQueue.isEmpty()) {
-				Logger.debug(this, "Didn't find any messages to send");
-				return;
-			}
-
-			String baseKey;
-			synchronized(channelProps) {
-				baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-			}
-			if(baseKey == null) {
-				Logger.debug(this, "Can't insert, missing private key");
-				return;
-			}
-
-			String sendCode;
-			synchronized(channelProps) {
-				sendCode = channelProps.get(PropsKeys.SEND_CODE);
-			}
-			if(sendCode == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
-				//TODO: Either delete the channel or resend the RTS
-				return;
-			}
-			baseKey += sendCode + "-";
-
-			boolean insertFailed = false;
-			for(QueuedMessage message : sendQueue) {
-				if(message.lastSendTime != -1) {
-					long timeSinceSent = System.currentTimeMillis() - message.lastSendTime;
-					long timeToResend = (24 * 60 * 60 * 1000) - timeSinceSent;
-					if(timeToResend > 0) {
-						//Don't resent just yet
-						Logger.debug(this, "Message due to be resent in " + timeToResend + " ms");
-						schedule(timeToResend, TimeUnit.MILLISECONDS);
-						continue;
-					}
-
-					Logger.debug(this, "Resending " + message);
-				}
-
-				try {
-					if(!insertMessage(baseKey, message.file)) {
-						Logger.debug(this, "Insert of " + message + " failed");
-						insertFailed = true;
-						continue;
-					}
-				} catch(FCPBadFileException e) {
-					//IOException while reading the InputStream, so try the next message
-					Logger.debug(this, "Caugth " + e);
-					continue;
-				} catch(ConnectionTerminatedException e) {
-					//Connection is closed so the rest would also throw this
-					Logger.debug(this, "Caugth " + e);
-					return;
-				}
-
-				if(!message.waitForAck) {
-					Logger.debug(this, "Deleting message");
-					message.delete();
-				} else {
-					message.lastSendTime = System.currentTimeMillis();
-					if(message.firstSendTime == -1) {
-						message.firstSendTime = message.lastSendTime;
-					}
-				}
-			}
-
-			if(insertFailed) {
-				Logger.debug(this, "Retrying failed inserts in 5 minutes");
-				schedule(5, TimeUnit.MINUTES);
-			}
-		}
-
-		private boolean insertMessage(String baseKey, File message) throws FCPBadFileException, ConnectionTerminatedException {
-			while(true) {
-				Logger.debug(this, "Getting data stream");
-				InputStream data;
-				try {
-					data = new FileInputStream(message);
-				} catch(FileNotFoundException e) {
-					Logger.debug(this, "Message file deleted after listing files, trying again later");
-					return false;
-				}
-
-				String slot;
-				synchronized(channelProps) {
-					slot = channelProps.get(PropsKeys.SEND_SLOT);
-				}
-
-				Logger.debug(this, "Inserting data to " + baseKey + slot);
-				FCPInsertErrorMessage fcpMessage = fcpClient.put(data, baseKey + slot);
-
-				if(fcpMessage == null) {
-					Logger.debug(this, "Insert successful");
-					slot = calculateNextSlot(slot);
-					synchronized(channelProps) {
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
-					}
-
-					return true;
-				}
-
-				if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-					slot = calculateNextSlot(slot);
-
-					//Write the new slot each round so we won't have
-					//to check all of them again if we fail
-					synchronized(channelProps) {
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
-					}
-
-					Logger.debug(this, "Insert collided, trying slot " + slot);
-					continue;
-				}
-
-				Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
-				return false;
-			}
-		}
-
-		public void execute() {
-			Logger.debug(this, "Scheduling Sender for execution");
-			executor.execute(sender);
-		}
-
-		public void schedule(long delay, TimeUnit unit) {
-			Logger.debug(this, "Scheduling Sender for execution in " + delay + " " + unit.toString().toLowerCase());
-			executor.schedule(this, delay, unit);
-		}
-
-		@Override
-		public String toString() {
-			return "Sender [" + channelDir + "]";
 		}
 	}
 
@@ -1120,8 +853,7 @@ class Channel extends Postman {
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
 			schedule(delay, TimeUnit.MILLISECONDS);
 
-			//Start the fetcher and the sender now that we have keys, slots etc.
-			sender.execute();
+			//Start the fetcher now that we have keys, slots etc.
 			fetcher.execute();
 		}
 
@@ -1376,120 +1108,9 @@ class Channel extends Postman {
 		Logger.debug(this, "Got ack with id " + id);
 
 		long messageId = Long.parseLong(id);
-		QueuedMessage message = new QueuedMessage(messageId);
-		if(!message.delete()) {
-			Logger.error(this, "Couldn't delete " + message);
-			return false;
-		}
-
 		channelEventCallback.onAckReceived(messageId);
 
 		return true;
-	}
-
-	private List<QueuedMessage> getSendQueue() {
-		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-		File[] files = outbox.listFiles();
-		List<QueuedMessage> messages = new LinkedList<QueuedMessage>();
-
-		if(files == null) {
-			return messages;
-		}
-		for(File file : files) {
-			if(file.getName().equals(INDEX_NAME)) {
-				continue;
-			}
-
-			int uid;
-			try {
-				uid = Integer.parseInt(file.getName());
-			} catch (NumberFormatException nfe) {
-				// how did that get there? just delete it
-				Logger.normal(this,"Found spurious file in send queue: '"+file.getName()+"' - deleting.");
-				file.delete();
-				continue;
-			}
-
-			messages.add(new QueuedMessage(uid));
-		}
-
-		return messages;
-	}
-
-	private class QueuedMessage {
-		private final long uid;
-		private long addedTime;
-		private long firstSendTime;
-		private long lastSendTime;
-		private boolean waitForAck;
-		private final File file;
-
-		private QueuedMessage(long uid) {
-			this.uid = uid;
-
-			File outbox = new File(channelDir, OUTBOX_DIR_NAME);
-			file = new File(outbox, Long.toString(uid));
-
-			String first;
-			String last;
-			String added;
-			String wait;
-			synchronized(messageIndex) {
-				first = messageIndex.get(uid+".firstSendTime");
-				last = messageIndex.get(uid+".lastSendTime");
-				added = messageIndex.get(uid+".addedTime");
-				wait = messageIndex.get(uid+".waitForAck");
-			}
-
-			if(first == null) {
-				firstSendTime = -1;
-			} else {
-				firstSendTime = Long.parseLong(first);
-			}
-
-			if(last == null) {
-				this.lastSendTime = -1;
-			} else {
-				this.lastSendTime = Long.parseLong(last);
-			}
-
-			if(added == null) {
-				this.addedTime = System.currentTimeMillis();
-			} else {
-				this.addedTime = Long.parseLong(added);
-			}
-
-			waitForAck = Boolean.parseBoolean(wait);
-		}
-
-		public boolean saveProps() {
-			boolean suc = true;
-			synchronized(messageIndex) {
-				suc &= messageIndex.put(uid+".firstSendTime", this.firstSendTime);
-				suc &= messageIndex.put(uid+".lastSendTime", this.lastSendTime);
-				suc &= messageIndex.put(uid+".addedTime", this.addedTime);
-			}
-
-			return suc;
-		}
-
-		public boolean delete() {
-			synchronized(messageIndex) {
-				messageIndex.remove(this.uid+".slot");
-				messageIndex.remove(this.uid+".firstSendTime");
-				messageIndex.remove(this.uid+".lastSendTime");
-				messageIndex.remove(uid + ".waitForAck");
-			}
-
-			if(file.exists()) {
-				if(!file.delete()) {
-					Logger.debug(this, "Couldn't delete " + file);
-					return false;
-				}
-			}
-
-			return true;
-		}
 	}
 
 	private class HashSlotManager extends SlotManager {
