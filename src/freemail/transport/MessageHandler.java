@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
@@ -79,6 +81,7 @@ public class MessageHandler {
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
 	private final ScheduledExecutorService executor;
 	private final AckCallback ackCallback = new AckCallback();
+	private final ConcurrentHashMap<Integer, Future<?>> tasks = new ConcurrentHashMap<Integer, Future<?>>();
 
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
@@ -170,7 +173,7 @@ public class MessageHandler {
 				index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
 			}
 
-			executor.submit(new SenderTask(msgNum));
+			tasks.put(Integer.valueOf(msgNum), executor.submit(new SenderTask(msgNum)));
 		}
 
 		return true;
@@ -295,7 +298,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			executor.schedule(this, retryIn, TimeUnit.MILLISECONDS);
+			tasks.put(Integer.valueOf(msgNum), executor.schedule(this, RESEND_TIME, TimeUnit.MILLISECONDS));
 		}
 
 		private boolean sendMessage() {
