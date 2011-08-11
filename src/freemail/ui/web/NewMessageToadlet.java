@@ -21,12 +21,11 @@
 package freemail.ui.web;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.SequenceInputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.HashSet;
@@ -37,7 +36,6 @@ import java.util.Set;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
-import freemail.transport.Channel;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
@@ -51,6 +49,8 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.support.HTMLNode;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
+import freenet.support.io.ArrayBucket;
+import freenet.support.io.BucketTools;
 
 public class NewMessageToadlet extends WebPage {
 	private final WoTConnection wotConnection;
@@ -162,21 +162,28 @@ public class NewMessageToadlet extends WebPage {
 		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 		//TODO: Check for newlines etc.
 		//TODO: Add date
-		String messageHeader =
-			"Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n" +
+		Bucket messageHeader = new ArrayBucket(
+			("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n" +
 			"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getUsername() + ".freemail>\r\n" +
 			"To: " + getBucketAsString(b) + "\r\n" +
-			"\r\n";
-		InputStream messageHeaderStream = new ByteArrayInputStream(messageHeader.getBytes("UTF-8"));
+			"\r\n").getBytes("UTF-8"));
+		Bucket messageText = req.getPart("message-text");
 
+		//Now combine them in a single bucket
+		Bucket message = new ArrayBucket();
+		OutputStream messageOutputStream = message.getOutputStream();
+		BucketTools.copyTo(messageHeader, messageOutputStream, -1);
+		BucketTools.copyTo(messageText, messageOutputStream, -1);
+		messageOutputStream.close();
+
+		List<Identity> recipients = new LinkedList<Identity>();
 		for(List<Identity> identityList : matches.values()) {
 			assert (identityList.size() == 1);
-
-			Channel channel = account.getChannel(identityList.get(0).getIdentityID());
-
-			Bucket messageText = req.getPart("message-text");
-			channel.sendMessage(new SequenceInputStream(messageHeaderStream, messageText.getInputStream()));
+			recipients.add(identityList.get(0));
 		}
+
+		account.getMessageHandler().sendMessage(recipients, message);
+		message.free();
 
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
