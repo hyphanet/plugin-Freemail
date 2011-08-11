@@ -27,6 +27,7 @@ import org.archive.util.Base32;
 
 import freemail.fcp.HighLevelFCPClient;
 import freemail.transport.Channel;
+import freemail.transport.MessageHandler;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freenet.support.Base64;
@@ -40,6 +41,7 @@ public class FreemailAccount {
 	private final MessageBank mb;
 	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
+	private final MessageHandler messageHandler;
 
 	private int nextChannelNum = 0;
 	
@@ -49,6 +51,7 @@ public class FreemailAccount {
 		accprops = _accprops;
 		mb = new MessageBank(this);
 		this.freemail = freemail;
+		messageHandler = new MessageHandler(new File(accdir, "outbox"));
 
 		//Create and start all the channels
 		File channelDir = new File(accdir, "channels");
@@ -169,5 +172,9 @@ public class FreemailAccount {
 		channels.add(channel);
 
 		return channel;
+	}
+
+	public MessageHandler getMessageHandler() {
+		return messageHandler;
 	}
 }
