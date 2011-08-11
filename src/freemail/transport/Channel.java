@@ -101,6 +101,7 @@ public class Channel extends Postman {
 		private static final String SEND_CODE = "sendCode";
 		private static final String FETCH_CODE = "fetchCode";
 		private static final String REMOTE_ID = "remoteID";
+		private static final String TIMEOUT = "timeout";
 	}
 
 	private final File channelDir;
@@ -303,10 +304,28 @@ public class Channel extends Postman {
 	 * Places the data read from {@code message} on the send queue
 	 * @param message the data to be sent
 	 * @return {@code true} if the message was placed on the queue
+	 * @throws ChannelTimedOutException if the channel has timed out and can't be used for sending
+	 *             messages
 	 * @throws NullPointerException if {@code message} is {@code null}
 	 */
-	public boolean sendMessage(InputStream message) {
+	public boolean sendMessage(InputStream message) throws ChannelTimedOutException {
 		if(message == null) throw new NullPointerException("Parameter message was null");
+
+		synchronized(channelProps) {
+			String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+			if(rawTimeout != null) {
+				long timeout;
+				try {
+					timeout = Long.parseLong(rawTimeout);
+				} catch(NumberFormatException e) {
+					timeout = 0;
+				}
+
+				if(timeout < System.currentTimeMillis()) {
+					throw new ChannelTimedOutException();
+				}
+			}
+		}
 
 		long messageId;
 		synchronized(channelProps) {
