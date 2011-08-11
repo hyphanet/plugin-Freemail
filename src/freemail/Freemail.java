@@ -51,13 +51,11 @@ public abstract class Freemail implements ConfigClient {
 	protected static FCPConnection fcpconn = null;
 	
 	private Thread fcpThread;
-	private Thread messageSenderThread;
 	private Thread smtpThread;
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
-	private final MessageSender sender;
 	private final SMTPListener smtpl;
 	private final AckProcrastinator ackinserter;
 	private final IMAPListener imapl;
@@ -94,8 +92,6 @@ public abstract class Freemail implements ConfigClient {
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
 		accountManager = new AccountManager(datadir, this);
-		
-		sender = new MessageSender(accountManager);
 		
 		File ackdir = new File(globaldatadir, ACKDIR);
 		AckProcrastinator.setAckDir(ackdir);
@@ -158,11 +154,6 @@ public abstract class Freemail implements ConfigClient {
 		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 		
-		// start the sender thread
-		messageSenderThread = new Thread(sender, "Freemail Message sender");
-		messageSenderThread.setDaemon(daemon);
-		messageSenderThread.start();
-		
 		// start the delayed ACK inserter
 		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
 		ackInserterThread.setDaemon(daemon);
@@ -171,7 +162,6 @@ public abstract class Freemail implements ConfigClient {
 	
 	public void terminate() {
 		accountManager.terminate();
-		sender.kill();
 		ackinserter.kill();
 		smtpl.kill();
 		imapl.kill();
@@ -182,10 +172,6 @@ public abstract class Freemail implements ConfigClient {
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				if (messageSenderThread != null) {
-					messageSenderThread.join();
-					messageSenderThread = null;
-				}
 				if (ackInserterThread != null) {
 					ackInserterThread.join();
 					ackInserterThread = null;

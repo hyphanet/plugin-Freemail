@@ -155,7 +155,7 @@ public class AccountManager {
 		File keyfile = new File(nimdir, NIMContact.KEYFILE);
 		PrintWriter pw = new PrintWriter(new FileOutputStream(keyfile));
 		
-		pw.println(MessageSender.NIM_KEY_PREFIX + username + "-");
+		pw.println("KSK@freemail-nim-" + username + "-");
 		
 		pw.close();
 	}
