@@ -162,7 +162,7 @@ public class MessageHandler {
 		return true;
 	}
 
-	public Channel getChannel(String remoteIdentity) {
+	private Channel getChannel(String remoteIdentity) {
 		synchronized(channels) {
 			for(Channel c : channels) {
 				if(remoteIdentity.equals(c.getRemoteIdentity()) && c.canSendMessages()) {
