@@ -35,6 +35,7 @@ import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
 import freemail.fcp.HighLevelFCPClient;
+import freemail.transport.Channel.ChannelEventCallback;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
@@ -77,6 +78,7 @@ public class MessageHandler {
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
 	private final ScheduledExecutorService executor;
+	private final AckCallback ackCallback = new AckCallback();
 
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
@@ -121,7 +123,7 @@ public class MessageHandler {
 			}
 
 			try {
-				Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+				Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
 				channel.startTasks();
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
@@ -191,7 +193,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
@@ -229,7 +231,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
@@ -318,6 +320,13 @@ public class MessageHandler {
 			}
 
 			return inserted;
+		}
+	}
+
+	private class AckCallback implements ChannelEventCallback {
+		@Override
+		public void onAckReceived(long id) {
+			throw new UnsupportedOperationException();
 		}
 	}
 }

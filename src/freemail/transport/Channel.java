@@ -122,13 +122,15 @@ public class Channel extends Postman {
 	private final Sender sender = new Sender();
 	private final RTSSender rtsSender = new RTSSender();
 	private final PropsFile messageIndex;
+	private final ChannelEventCallback channelEventCallback;
 
-	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) throws ChannelTimedOutException {
+	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, ChannelEventCallback channelEventCallback) throws ChannelTimedOutException {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
 		this.fcpClient = fcpClient;
 		this.account = account;
+		this.channelEventCallback = channelEventCallback;
 
 		if(freemail == null) throw new NullPointerException();
 		this.freemail = freemail;
@@ -1312,6 +1314,8 @@ public class Channel extends Postman {
 			return false;
 		}
 
+		channelEventCallback.onAckReceived(messageId);
+
 		return true;
 	}
 
@@ -1484,5 +1488,9 @@ public class Channel extends Postman {
 				propsFile.put(keyName, slots);
 			}
 		}
+	}
+
+	public interface ChannelEventCallback {
+		public void onAckReceived(long id);
 	}
 }
