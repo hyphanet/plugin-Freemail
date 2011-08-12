@@ -372,7 +372,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		Logger.normal(this,"Original message intended for us :)");
 		
-		account.createChannelFromRTS(rtsprops);
+		account.getMessageHandler().createChannelFromRTS(rtsprops);
 
 		return true;
 	}

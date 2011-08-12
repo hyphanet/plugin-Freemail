@@ -20,15 +20,10 @@
 package freemail;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.archive.util.Base32;
 
-import freemail.fcp.HighLevelFCPClient;
-import freemail.transport.Channel;
 import freemail.transport.MessageHandler;
-import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
@@ -39,48 +34,16 @@ public class FreemailAccount {
 	private final File accdir;
 	private final PropsFile accprops;
 	private final MessageBank mb;
-	private final List<Channel> channels = new LinkedList<Channel>();
-	private final Freemail freemail;
 	private final MessageHandler messageHandler;
-
-	private int nextChannelNum = 0;
 	
 	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
 		this.identity = identity;
 		accdir = _accdir;
 		accprops = _accprops;
 		mb = new MessageBank(this);
-		this.freemail = freemail;
-		messageHandler = new MessageHandler(new File(accdir, "outbox"));
 
-		//Create and start all the channels
-		File channelDir = new File(accdir, "channels");
-		if(!channelDir.exists()) {
-			if(!channelDir.mkdir()) {
-				Logger.error(this, "Couldn't create channel directory: " + channelDir);
-			}
-		}
-
-		for(File f : channelDir.listFiles()) {
-			if(!f.isDirectory()) {
-				Logger.debug(this, "Spurious file in channel directory: " + f);
-				continue;
-			}
-
-			try {
-				int num = Integer.parseInt(f.getName());
-				if(num >= nextChannelNum) {
-					nextChannelNum = num + 1;
-				}
-			} catch(NumberFormatException e) {
-				Logger.debug(this, "Found directory with malformed name: " + f);
-				continue;
-			}
-
-			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
-			channel.startTasks();
-			channels.add(channel);
-		}
+		File channelDir = new File(accdir, "channel");
+		messageHandler = new MessageHandler(new File(accdir, "outbox"), freemail, channelDir, this);
 	}
 	
 	public String getUsername() {
@@ -117,61 +80,6 @@ public class FreemailAccount {
 			//This would mean that WoT has changed the encoding of the identity string
 			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
 		}
-	}
-
-	public Channel getChannel(String remoteIdentity) {
-		for(Channel c : channels) {
-			if(remoteIdentity.equals(c.getRemoteIdentity())) {
-				return c;
-			}
-		}
-
-		//The channel didn't exist, so create a new one
-		File channelsDir = new File(accdir, "channels");
-		File newChannelDir = new File(channelsDir, "" + nextChannelNum++);
-		if(!newChannelDir.mkdir()) {
-			Logger.error(this, "Couldn't create the channel directory");
-			return null;
-		}
-
-		Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
-		channel.setRemoteIdentity(remoteIdentity);
-		channel.startTasks();
-		channels.add(channel);
-
-		return channel;
-	}
-
-	public Channel createChannelFromRTS(PropsFile rtsProps) {
-		//First try to find a channel with the same key
-		String rtsPrivateKey = rtsProps.get("channel");
-		for(Channel c : channels) {
-			if(rtsPrivateKey.equals(c.getPrivateKey())) {
-				c.processRTS(rtsProps);
-				return c;
-			}
-		}
-
-		//Create a new channel from the RTS values
-		Logger.debug(this, "Creating new channel from RTS");
-		File channelsDir = new File(accdir, "channels");
-		File newChannelDir = new File(channelsDir, "" + nextChannelNum++);
-		if(!newChannelDir.mkdir()) {
-			Logger.error(this, "Couldn't create the channel directory");
-			return null;
-		}
-
-		String remoteIdentity = rtsProps.get("mailsite");
-		remoteIdentity = remoteIdentity.substring(remoteIdentity.indexOf("@") + 1); //Strip USK@
-		remoteIdentity = remoteIdentity.substring(0, remoteIdentity.indexOf(","));
-
-		Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, this);
-		channel.setRemoteIdentity(remoteIdentity);
-		channel.processRTS(rtsProps);
-		channel.startTasks();
-		channels.add(channel);
-
-		return channel;
 	}
 
 	public MessageHandler getMessageHandler() {

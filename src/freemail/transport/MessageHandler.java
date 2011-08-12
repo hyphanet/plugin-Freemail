@@ -25,9 +25,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import freemail.Freemail;
+import freemail.FreemailAccount;
+import freemail.FreemailPlugin;
+import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
@@ -58,10 +63,19 @@ public class MessageHandler {
 	private final File outbox;
 	private final PropsFile index;
 	private final AtomicInteger nextMessageNum = new AtomicInteger();
+	private final List<Channel> channels = new LinkedList<Channel>();
+	private final Freemail freemail;
+	private final File channelDir;
+	private final FreemailAccount freemailAccount;
 
-	public MessageHandler(File outbox) {
+	private int nextChannelNum;
+
+	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
 		index = PropsFile.createPropsFile(new File(outbox, INDEX_NAME));
+		this.freemail = freemail;
+		this.channelDir = channelDir;
+		this.freemailAccount = freemailAccount;
 
 		//Initialize nextMessageNum
 		synchronized(index) {
@@ -72,6 +86,34 @@ public class MessageHandler {
 				messageNumber = 0;
 			}
 			nextMessageNum.set(messageNumber);
+		}
+
+		//Create and start all the channels
+		if(!channelDir.exists()) {
+			if(!channelDir.mkdir()) {
+				Logger.error(this, "Couldn't create channel directory: " + channelDir);
+			}
+		}
+
+		for(File f : channelDir.listFiles()) {
+			if(!f.isDirectory()) {
+				Logger.debug(this, "Spurious file in channel directory: " + f);
+				continue;
+			}
+
+			try {
+				int num = Integer.parseInt(f.getName());
+				if(num >= nextChannelNum) {
+					nextChannelNum = num + 1;
+				}
+			} catch(NumberFormatException e) {
+				Logger.debug(this, "Found directory with malformed name: " + f);
+				continue;
+			}
+
+			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+			channel.startTasks();
+			channels.add(channel);
 		}
 	}
 
@@ -112,6 +154,59 @@ public class MessageHandler {
 		}
 
 		return true;
+	}
+
+	public Channel getChannel(String remoteIdentity) {
+		for(Channel c : channels) {
+			if(remoteIdentity.equals(c.getRemoteIdentity())) {
+				return c;
+			}
+		}
+
+		//The channel didn't exist, so create a new one
+		File newChannelDir = new File(channelDir, "" + nextChannelNum++);
+		if(!newChannelDir.mkdir()) {
+			Logger.error(this, "Couldn't create the channel directory");
+			return null;
+		}
+
+		Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+		channel.setRemoteIdentity(remoteIdentity);
+		channel.startTasks();
+		channels.add(channel);
+
+		return channel;
+	}
+
+	public Channel createChannelFromRTS(PropsFile rtsProps) {
+		//First try to find a channel with the same key
+		String rtsPrivateKey = rtsProps.get("channel");
+		for(Channel c : channels) {
+			if(rtsPrivateKey.equals(c.getPrivateKey())) {
+				c.processRTS(rtsProps);
+				return c;
+			}
+		}
+
+		//Create a new channel from the RTS values
+		Logger.debug(this, "Creating new channel from RTS");
+		File newChannelDir = new File(channelDir, "" + nextChannelNum++);
+		if(!newChannelDir.mkdir()) {
+			Logger.error(this, "Couldn't create the channel directory");
+			return null;
+		}
+
+		String remoteIdentity = rtsProps.get("mailsite");
+		remoteIdentity = remoteIdentity.substring(remoteIdentity.indexOf("@") + 1); //Strip USK@
+		remoteIdentity = remoteIdentity.substring(0, remoteIdentity.indexOf(","));
+
+		Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+		channel.setRemoteIdentity(remoteIdentity);
+		channel.processRTS(rtsProps);
+		channel.startTasks();
+		channels.add(channel);
+
+		return channel;
 	}
 
 	private int getMessageNumber() {
