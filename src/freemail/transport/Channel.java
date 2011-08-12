@@ -307,13 +307,14 @@ class Channel extends Postman {
 	/**
 	 * Places the data read from {@code message} on the send queue
 	 * @param message the data to be sent
+	 * @param messageId the message id that has been assigned to this message
 	 * @return {@code true} if the message was placed on the queue
 	 * @throws ChannelTimedOutException if the channel has timed out and can't be used for sending
 	 *             messages
 	 * @throws IOException if any operations on {@code message} throws IOException
 	 * @throws NullPointerException if {@code message} is {@code null}
 	 */
-	boolean sendMessage(Bucket message) throws ChannelTimedOutException, IOException {
+	boolean sendMessage(Bucket message, long messageId) throws ChannelTimedOutException, IOException {
 		if(message == null) throw new NullPointerException("Parameter message was null");
 
 		synchronized(channelProps) {
@@ -330,12 +331,6 @@ class Channel extends Postman {
 					throw new ChannelTimedOutException();
 				}
 			}
-		}
-
-		long messageId;
-		synchronized(channelProps) {
-			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
-			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
 		}
 
 		//Build the header of the inserted message
