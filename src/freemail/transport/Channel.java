@@ -305,10 +305,11 @@ class Channel extends Postman {
 	}
 
 	/**
-	 * Places the data read from {@code message} on the send queue
+	 * Sends the message that is read from {@code message}, returning {@code true} if the message
+	 * was inserted.
 	 * @param message the data to be sent
 	 * @param messageId the message id that has been assigned to this message
-	 * @return {@code true} if the message was placed on the queue
+	 * @return {@code true} if the message was sent, {@code false} otherwise
 	 * @throws ChannelTimedOutException if the channel has timed out and can't be used for sending
 	 *             messages
 	 * @throws IOException if any operations on {@code message} throws IOException
