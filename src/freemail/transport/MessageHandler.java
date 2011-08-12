@@ -40,6 +40,8 @@ import java.util.concurrent.TimeUnit;
 import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
+import freemail.Postman;
+import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.transport.Channel.ChannelEventCallback;
 import freemail.utils.Logger;
@@ -59,6 +61,7 @@ import freenet.support.io.FileBucket;
 public class MessageHandler {
 	private final static String INDEX_NAME = "index";
 	private final static long RESEND_TIME = 24 * 60 * 60 * 1000;
+	private final static String LOG_DIR_NAME = "logs";
 
 	/**
 	 * Holds the static portions of the keys used in the index file. The values that are stored per
@@ -359,11 +362,10 @@ public class MessageHandler {
 	}
 
 	private static class MessageLog {
-		private static final String LOGFILE = "log";
 		private final File logfile;
 
-		public MessageLog(File ibctdir) {
-			this.logfile = new File(ibctdir, LOGFILE);
+		public MessageLog(File logFile) {
+			this.logfile = logFile;
 		}
 
 		public boolean isPresent(int targetid) throws IOException {
@@ -396,7 +398,7 @@ public class MessageHandler {
 		}
 	}
 
-	private class AckCallback implements ChannelEventCallback {
+	private class AckCallback extends Postman implements ChannelEventCallback {
 		@Override
 		public void onAckReceived(long id) {
 			File message = new File(outbox, "" + id);
@@ -415,7 +417,40 @@ public class MessageHandler {
 
 		@Override
 		public boolean handleMessage(Channel channel, BufferedReader message, int id) {
-			throw new UnsupportedOperationException();
+			File logDir = new File(outbox, LOG_DIR_NAME);
+			if(!logDir.exists()) {
+				logDir.mkdir();
+			}
+			MessageLog msgLog = new MessageLog(new File(logDir, channel.getRemoteIdentity()));
+			boolean isDupe;
+			try {
+				isDupe = msgLog.isPresent(id);
+			} catch (IOException ioe) {
+				Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
+				return false;
+			}
+			if(isDupe) {
+				Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
+				return true;
+			}
+
+			try {
+				storeMessage(message, freemailAccount.getMessageBank());
+			} catch(IOException e) {
+				return false;
+			} catch(ConnectionTerminatedException e) {
+				Logger.minor(this, "Couldn't store message because Freemail is shutting down, will try later");
+				return false;
+			}
+			Logger.normal(this, "You've got mail!");
+			try {
+				msgLog.add(id);
+			} catch(IOException e) {
+				// how should we handle this? Remove the message from the inbox again?
+				Logger.error(this,"warning: failed to write log file!");
+			}
+
+			return true;
 		}
 	}
 }
