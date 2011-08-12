@@ -31,6 +31,7 @@ import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
 import freemail.support.MessageBankTools;
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -92,6 +93,7 @@ public class MessageToadlet extends WebPage {
 
 		HTMLNode messageNode = container.addChild("div", "class", "message");
 
+		addMessageButtons(ctx, messageNode, folderName, messageUid);
 		addMessageHeaders(messageNode, msg);
 		addMessageContents(messageNode, msg);
 
@@ -102,6 +104,21 @@ public class MessageToadlet extends WebPage {
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+	}
+
+	private void addMessageButtons(ToadletContext ctx, HTMLNode parent, String folderName, int uid) {
+		HTMLNode buttonBox = parent.addChild("div", "class", "message-buttons");
+
+		//Add reply button
+		HTMLNode replyForm = ctx.addFormChild(buttonBox, NewMessageToadlet.getPath(), "reply");
+		replyForm.addChild("input", new String[] {"type",   "name",   "value"},
+		                            new String[] {"hidden", "action", "reply"});
+		replyForm.addChild("input", new String[] {"type",   "name",   "value"},
+		                            new String[] {"hidden", "folder", folderName});
+		replyForm.addChild("input", new String[] {"type",   "name",    "value"},
+		                            new String[] {"hidden", "message", "" + uid});
+		replyForm.addChild("input", new String[] {"type",   "value"},
+		                            new String[] {"submit", FreemailL10n.getString("Freemail.MessageToadlet.reply")});
 	}
 
 	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {

@@ -36,4 +36,5 @@ Freemail.NewMessageToadlet.messageSentTitle=Meldingen ble sent
 Freemail.NewMessageToadlet.messageSent=Meldingen din ble sent
 Freemail.NewMessageToadlet.unknownActionTitle=Ukjent forespørsel
 Freemail.NewMessageToadlet.unknownAction=Freemail mottok en unkjent forespørsel (${action}). Dette er mest sannsynlig en feil i Freemail. Venligst rapporter dette.
+Freemail.MessageToadlet.reply=Svar
 End

@@ -59,6 +59,8 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 
 public class NewMessageToadlet extends WebPage {
+	private static final String PATH = "/Freemail/NewMessage";
+
 	private final WoTConnection wotConnection;
 	private final Freemail freemail;
 
@@ -324,7 +326,11 @@ public class NewMessageToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/NewMessage";
+		return PATH;
+	}
+
+	static String getPath() {
+		return PATH;
 	}
 
 	@Override
