@@ -326,10 +326,29 @@ public class MessageHandler {
 		}
 	}
 
+	private void deleteIndexEntries(long msgNum) {
+		synchronized(index) {
+			index.remove(msgNum + IndexKeys.FIRST_SEND_TIME);
+			index.remove(msgNum + IndexKeys.LAST_SEND_TIME);
+			index.remove(msgNum + IndexKeys.RECIPIENT);
+		}
+	}
+
 	private class AckCallback implements ChannelEventCallback {
 		@Override
 		public void onAckReceived(long id) {
-			throw new UnsupportedOperationException();
+			File message = new File(outbox, "" + id);
+			if(!message.delete()) {
+				Logger.error(this, "Couldn't delete " + message);
+			}
+
+			deleteIndexEntries(id);
+
+			Future<?> task = tasks.remove(Long.valueOf(id));
+			if(task != null) {
+				//Stop the insert if possible, but don't interrupt since the FCP code ignores it
+				task.cancel(false);
+			}
 		}
 	}
 }
