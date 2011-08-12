@@ -23,17 +23,14 @@
 package freemail.transport;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -76,6 +73,8 @@ import freemail.wot.WoTProperties;
 import freenet.keys.FreenetURI;
 import freenet.keys.InsertableClientSSK;
 import freenet.support.api.Bucket;
+import freenet.support.io.ArrayBucket;
+import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
@@ -262,14 +261,13 @@ class Channel extends Postman {
 		}
 
 		//Build the header of the inserted message
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PrintWriter pw = new PrintWriter(baos);
-		pw.print("messagetype=cts\r\n");
-		pw.print("\r\n");
-		pw.close();
-		InputStream message = new ByteArrayInputStream(baos.toByteArray());
-
-		insertMessage(message);
+		Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
+		try {
+			insertMessage(bucket);
+		} catch(IOException e) {
+			//The getInputStream() method of ArrayBucket doesn't throw
+			throw new AssertionError();
+		}
 	}
 
 	void startTasks() {
@@ -312,9 +310,10 @@ class Channel extends Postman {
 	 * @return {@code true} if the message was placed on the queue
 	 * @throws ChannelTimedOutException if the channel has timed out and can't be used for sending
 	 *             messages
+	 * @throws IOException if any operations on {@code message} throws IOException
 	 * @throws NullPointerException if {@code message} is {@code null}
 	 */
-	boolean sendMessage(Bucket message) throws ChannelTimedOutException {
+	boolean sendMessage(Bucket message) throws ChannelTimedOutException, IOException {
 		if(message == null) throw new NullPointerException("Parameter message was null");
 
 		synchronized(channelProps) {
@@ -340,24 +339,23 @@ class Channel extends Postman {
 		}
 
 		//Build the header of the inserted message
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PrintWriter pw = new PrintWriter(baos);
-		pw.print("messagetype=message\r\n");
-		pw.print("id=" + messageId + "\r\n");
-		pw.print("\r\n");
-		pw.close();
-		byte[] headerBytes = baos.toByteArray();
+		Bucket messageHeader = new ArrayBucket(
+				("messagetype=message\r\n" +
+				"id=" + messageId + "\r\n" +
+				"\r\n").getBytes());
 
-		InputStream messageStream = null;
+		//Now combine them in a single bucket
+		ArrayBucket fullMessage = new ArrayBucket();
+		OutputStream messageOutputStream = null;
 		try {
-			messageStream = message.getInputStream();
-			return insertMessage(new SequenceInputStream(new ByteArrayInputStream(headerBytes), messageStream));
-		} catch(IOException e) {
-			Logger.error(this, "Caugth " + e);
-			return false;
+			messageOutputStream = fullMessage.getOutputStream();
+			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
+			BucketTools.copyTo(message, messageOutputStream, -1);
 		} finally {
-			Closer.close(messageStream);
+			Closer.close(messageOutputStream);
 		}
+
+		return insertMessage(fullMessage);
 	}
 
 	/**
@@ -365,8 +363,9 @@ class Channel extends Postman {
 	 * was inserted, {@code false} otherwise.
 	 * @param message the message that should be inserted
 	 * @return {@code true} if the message was inserted, {@code false} otherwise
+	 * @throws IOException if the getInputStream() method of message throws IOException
 	 */
-	private boolean insertMessage(InputStream message) {
+	private boolean insertMessage(Bucket message) throws IOException {
 		String baseKey;
 		synchronized(channelProps) {
 			baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
@@ -389,36 +388,42 @@ class Channel extends Postman {
 
 		try {
 			while(true) {
-				//FIXME: This locking must be broken up, since it blocks *everything*
-				synchronized(channelProps) {
-					String slot = channelProps.get(PropsKeys.SEND_SLOT);
+				InputStream messageStream = null;
+				try {
+					messageStream = message.getInputStream();
+					//FIXME: This locking must be broken up, since it blocks *everything*
+					synchronized(channelProps) {
+						String slot = channelProps.get(PropsKeys.SEND_SLOT);
 
-					Logger.debug(this, "Inserting data to " + baseKey + slot);
-					FCPInsertErrorMessage fcpMessage = fcpClient.put(message, baseKey + slot);
+						Logger.debug(this, "Inserting data to " + baseKey + slot);
+						FCPInsertErrorMessage fcpMessage = fcpClient.put(messageStream, baseKey + slot);
 
-					if(fcpMessage == null) {
-						Logger.debug(this, "Insert successful");
-						slot = calculateNextSlot(slot);
-						synchronized(channelProps) {
-							channelProps.put(PropsKeys.SEND_SLOT, slot);
+						if(fcpMessage == null) {
+							Logger.debug(this, "Insert successful");
+							slot = calculateNextSlot(slot);
+							synchronized(channelProps) {
+								channelProps.put(PropsKeys.SEND_SLOT, slot);
+							}
+
+							return true;
 						}
 
-						return true;
+						if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+							slot = calculateNextSlot(slot);
+
+							//Write the new slot each round so we won't have
+							//to check all of them again if we fail
+							channelProps.put(PropsKeys.SEND_SLOT, slot);
+
+							Logger.debug(this, "Insert collided, trying slot " + slot);
+							continue;
+						}
+
+						Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
+						return false;
 					}
-
-					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-						slot = calculateNextSlot(slot);
-
-						//Write the new slot each round so we won't have
-						//to check all of them again if we fail
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
-
-						Logger.debug(this, "Insert collided, trying slot " + slot);
-						continue;
-					}
-
-					Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
-					return false;
+				} finally {
+					Closer.close(messageStream);
 				}
 			}
 		} catch(FCPBadFileException e) {
@@ -1097,15 +1102,17 @@ class Channel extends Postman {
 		}
 
 		//Build the header of the inserted message
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PrintWriter pw = new PrintWriter(baos);
-		pw.print("messagetype=ack\r\n");
-		pw.print("id=" + ackId + "\r\n");
-		pw.print("\r\n");
-		pw.close();
-		InputStream message = new ByteArrayInputStream(baos.toByteArray());
+		Bucket bucket = new ArrayBucket(
+				("messagetype=ack\r\n" +
+				"id=" + ackId + "\r\n" +
+				"\r\n").getBytes());
 
-		insertMessage(message);
+		try {
+			insertMessage(bucket);
+		} catch(IOException e) {
+			//The getInputStream() method of ArrayBucket doesn't throw
+			throw new AssertionError();
+		}
 	}
 
 	private boolean handleAck(File result) {

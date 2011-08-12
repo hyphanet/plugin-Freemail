@@ -314,6 +314,9 @@ public class MessageHandler {
 				} catch(ChannelTimedOutException e) {
 					//Try again with a new channel
 					continue;
+				} catch(IOException e) {
+					Logger.error(this, "Caugth IOException while sending: " + e);
+					inserted = false;
 				}
 
 				break;
