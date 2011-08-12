@@ -158,12 +158,12 @@ public class MessageHandler {
 	public Channel getChannel(String remoteIdentity) {
 		synchronized(channels) {
 			for(Channel c : channels) {
-				if(remoteIdentity.equals(c.getRemoteIdentity())) {
+				if(remoteIdentity.equals(c.getRemoteIdentity()) && c.canSendMessages()) {
 					return c;
 				}
 			}
 
-			//The channel didn't exist, so create a new one
+			//The channel didn't exist or it has timed out, so create a new one
 			File newChannelDir = new File(channelDir, "" + nextChannelNum.getAndIncrement());
 			if(!newChannelDir.mkdir()) {
 				Logger.error(this, "Couldn't create the channel directory");

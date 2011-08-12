@@ -430,6 +430,20 @@ public class Channel extends Postman {
 		}
 	}
 
+	public boolean canSendMessages() {
+		synchronized(channelProps) {
+			String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+			long timeout;
+			try {
+				timeout = Long.parseLong(rawTimeout);
+			} catch(NumberFormatException e) {
+				return false;
+			}
+
+			return timeout >= System.currentTimeMillis();
+		}
+	}
+
 	private String calculateNextSlot(String slot) {
 		byte[] buf = Base32.decode(slot);
 		SHA256Digest sha256 = new SHA256Digest();
