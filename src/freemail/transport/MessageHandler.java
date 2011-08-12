@@ -67,8 +67,7 @@ public class MessageHandler {
 	private final Freemail freemail;
 	private final File channelDir;
 	private final FreemailAccount freemailAccount;
-
-	private int nextChannelNum;
+	private final AtomicInteger nextChannelNum = new AtomicInteger();
 
 	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
@@ -103,8 +102,8 @@ public class MessageHandler {
 
 			try {
 				int num = Integer.parseInt(f.getName());
-				if(num >= nextChannelNum) {
-					nextChannelNum = num + 1;
+				if(num >= nextChannelNum.get()) {
+					nextChannelNum.set(num + 1);
 				}
 			} catch(NumberFormatException e) {
 				Logger.debug(this, "Found directory with malformed name: " + f);
@@ -165,7 +164,7 @@ public class MessageHandler {
 			}
 
 			//The channel didn't exist, so create a new one
-			File newChannelDir = new File(channelDir, "" + nextChannelNum++);
+			File newChannelDir = new File(channelDir, "" + nextChannelNum.getAndIncrement());
 			if(!newChannelDir.mkdir()) {
 				Logger.error(this, "Couldn't create the channel directory");
 				return null;
@@ -193,7 +192,7 @@ public class MessageHandler {
 
 			//Create a new channel from the RTS values
 			Logger.debug(this, "Creating new channel from RTS");
-			File newChannelDir = new File(channelDir, "" + nextChannelNum++);
+			File newChannelDir = new File(channelDir, "" + nextChannelNum.getAndIncrement());
 			if(!newChannelDir.mkdir()) {
 				Logger.error(this, "Couldn't create the channel directory");
 				return null;
