@@ -30,6 +30,7 @@ import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
+import freemail.support.MessageBankTools;
 import freemail.utils.Logger;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -65,10 +66,22 @@ public class MessageToadlet extends WebPage {
 
 		//Add the message
 		String folderName = req.getParam("folder", "inbox");
-		MessageBank messageBank = getMessageBank(account, folderName);
+		MessageBank messageBank;
+		if(folderName.equals("inbox")) {
+			messageBank = account.getMessageBank();
+		} else {
+			folderName = folderName.substring("index.".length());
+			messageBank = MessageBankTools.getMessageBank(account.getMessageBank(), folderName);
+		}
 
-		String messageUid = req.getParam("uid", "0");
-		MailMessage msg = getMessage(messageBank, Integer.parseInt(messageUid));
+		int messageUid;
+		try {
+			messageUid = Integer.parseInt(req.getParam("uid"));
+		} catch(NumberFormatException e) {
+			Logger.error(this, "Got invalid uid: " + req.getParam("uid"));
+			messageUid = 0;
+		}
+		MailMessage msg = MessageBankTools.getMessage(messageBank, messageUid);
 
 		if(msg == null) {
 			HTMLNode infobox = addErrorbox(container, "Message doesn't exist");
@@ -89,28 +102,6 @@ public class MessageToadlet extends WebPage {
 		}
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-	}
-
-	//TODO: Handle cases where folderName doesn't start with inbox
-	private MessageBank getMessageBank(FreemailAccount account, String folderName) {
-		if(folderName.equalsIgnoreCase("inbox")) {
-			return account.getMessageBank();
-		}
-
-		if(!folderName.startsWith("inbox")) {
-			return null;
-		}
-
-		//Find the correct subfolder. The account message bank is inbox, so strip it
-		MessageBank messageBank = account.getMessageBank();
-		for(String name : folderName.substring("index.".length()).split("\\.")) {
-			messageBank = messageBank.getSubFolder(name);
-		}
-		return messageBank;
-	}
-
-	private MailMessage getMessage(MessageBank messageBank, int messageUid) {
-		return messageBank.listMessages().get(Integer.valueOf(messageUid));
 	}
 
 	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {
