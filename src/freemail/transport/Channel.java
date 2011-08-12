@@ -82,7 +82,7 @@ import freenet.keys.InsertableClientSSK;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
-public class Channel extends Postman {
+class Channel extends Postman {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
 	private static final String OUTBOX_DIR_NAME = "outbox";
@@ -124,7 +124,7 @@ public class Channel extends Postman {
 	private final PropsFile messageIndex;
 	private final ChannelEventCallback channelEventCallback;
 
-	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, ChannelEventCallback channelEventCallback) throws ChannelTimedOutException {
+	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, ChannelEventCallback channelEventCallback) throws ChannelTimedOutException {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
@@ -177,7 +177,7 @@ public class Channel extends Postman {
 		messageIndex = PropsFile.createPropsFile(indexFile);
 	}
 
-	public void processRTS(PropsFile rtsProps) {
+	void processRTS(PropsFile rtsProps) {
 		Logger.debug(this, "Processing RTS");
 
 		synchronized(channelProps) {
@@ -251,7 +251,7 @@ public class Channel extends Postman {
 		startTasks();
 	}
 
-	public void setRemoteIdentity(String remoteID) {
+	void setRemoteIdentity(String remoteID) {
 		synchronized(channelProps) {
 			channelProps.put(PropsKeys.REMOTE_ID, remoteID);
 		}
@@ -298,7 +298,7 @@ public class Channel extends Postman {
 		queueMessage(messageId, header, data, false);
 	}
 
-	public void startTasks() {
+	void startTasks() {
 		startFetcher();
 		startSender();
 		startRTSSender();
@@ -465,19 +465,19 @@ public class Channel extends Postman {
 		return "Channel [" + channelDir + "]";
 	}
 
-	public String getRemoteIdentity() {
+	String getRemoteIdentity() {
 		synchronized(channelProps) {
 			return channelProps.get(PropsKeys.REMOTE_ID);
 		}
 	}
 
-	public String getPrivateKey() {
+	String getPrivateKey() {
 		synchronized(channelProps) {
 			return channelProps.get(PropsKeys.PRIVATE_KEY);
 		}
 	}
 
-	public boolean canSendMessages() {
+	boolean canSendMessages() {
 		synchronized(channelProps) {
 			String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
 			long timeout;
