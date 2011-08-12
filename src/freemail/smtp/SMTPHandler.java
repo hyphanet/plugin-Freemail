@@ -22,7 +22,6 @@
 package freemail.smtp;
 
 import java.net.Socket;
-import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.BufferedReader;
@@ -42,13 +41,14 @@ import freemail.Freemail;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.ServerHandler;
-import freemail.transport.Channel;
+import freemail.transport.MessageHandler;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
 import freenet.support.api.Bucket;
+import freenet.support.io.FileBucket;
 
 import org.bouncycastle.util.encoders.Base64;
 
@@ -306,17 +306,10 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 			
-			for(Identity identity : to) {
-				Channel channel = account.getChannel(identity.getIdentityID());
-				FileInputStream message = new FileInputStream(tempfile);
-				channel.sendMessage(message);
-
-				try {
-					message.close();
-				} catch(IOException e) {
-					Logger.error(this, "Couldn't close the message stream");
-				}
-			}
+			MessageHandler messageSender = account.getMessageHandler();
+			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
+			messageSender.sendMessage(to, data);
+			data.free();
 			
 			tempfile.delete();
 			
