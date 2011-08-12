@@ -110,9 +110,14 @@ public class MessageHandler {
 				continue;
 			}
 
-			Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
-			channel.startTasks();
-			channels.add(channel);
+			try {
+				Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+				channel.startTasks();
+				channels.add(channel);
+			} catch(ChannelTimedOutException e) {
+				//TODO: Delete the channel directory
+				Logger.debug(this, "Ignoring timed out channel");
+			}
 		}
 	}
 
@@ -170,7 +175,13 @@ public class MessageHandler {
 				return null;
 			}
 
-			Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+			Channel channel;
+			try {
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+			} catch(ChannelTimedOutException e) {
+				//Can't happen since we're creating a new channel
+				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
+			}
 			channel.setRemoteIdentity(remoteIdentity);
 			channel.startTasks();
 			channels.add(channel);
@@ -202,7 +213,13 @@ public class MessageHandler {
 			remoteIdentity = remoteIdentity.substring(remoteIdentity.indexOf("@") + 1); //Strip USK@
 			remoteIdentity = remoteIdentity.substring(0, remoteIdentity.indexOf(","));
 
-			Channel channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+			Channel channel;
+			try {
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount);
+			} catch(ChannelTimedOutException e) {
+				//Can't happen since we're creating a new channel
+				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
+			}
 			channel.setRemoteIdentity(remoteIdentity);
 			channel.processRTS(rtsProps);
 			channel.startTasks();

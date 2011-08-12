@@ -123,7 +123,7 @@ public class Channel extends Postman {
 	private final RTSSender rtsSender = new RTSSender();
 	private final PropsFile messageIndex;
 
-	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) {
+	public Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) throws ChannelTimedOutException {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
@@ -147,6 +147,23 @@ public class Channel extends Postman {
 			}
 		}
 		channelProps = PropsFile.createPropsFile(channelPropsFile);
+
+		//Check if the channel has timed out
+		synchronized(channelProps) {
+			String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+			if(rawTimeout != null) {
+				try {
+					long timeout = Long.parseLong(rawTimeout);
+					if(timeout < (System.currentTimeMillis() - CHANNEL_TIMEOUT)) {
+						Logger.debug(this, "Channel has timed out");
+						throw new ChannelTimedOutException();
+					}
+				} catch(NumberFormatException e) {
+					Logger.error(this, "Illegal value in " + PropsKeys.TIMEOUT + " field, assuming timed out: " + rawTimeout);
+					throw new ChannelTimedOutException();
+				}
+			}
+		}
 
 		//Message id is needed for queuing messages so it must be present
 		if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
