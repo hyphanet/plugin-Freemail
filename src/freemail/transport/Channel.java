@@ -255,6 +255,27 @@ public class Channel extends Postman {
 		}
 	}
 
+	public static boolean deleteChannel(File channelDir) {
+		File channelPropsFile = new File(channelDir, CHANNEL_PROPS_NAME);
+		channelPropsFile.delete();
+
+		File outbox = new File(channelDir, OUTBOX_DIR_NAME);
+		for(File f : outbox.listFiles()) {
+			try {
+				Integer.parseInt(f.getName());
+				f.delete();
+			} catch(NumberFormatException e) {
+				//Leave the file since it wasn't created by Freemail
+			}
+		}
+		outbox.delete();
+
+		File indexFile = new File(outbox, INDEX_NAME);
+		indexFile.delete();
+
+		return channelDir.delete();
+	}
+
 	private void queueCTS() {
 		long messageId;
 		synchronized(channelProps) {

@@ -115,8 +115,10 @@ public class MessageHandler {
 				channel.startTasks();
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
-				//TODO: Delete the channel directory
-				Logger.debug(this, "Ignoring timed out channel");
+				Logger.debug(this, "Deleting timed out channel");
+				if(!Channel.deleteChannel(f)) {
+					Logger.error(this, "Failed to delete channel because there are files left in " + f);
+				}
 			}
 		}
 	}
