@@ -24,13 +24,9 @@ package freemail.transport;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -1104,44 +1100,6 @@ class Channel extends Postman {
 		@Override
 		protected String incSlot(String slot) {
 			return calculateNextSlot(slot);
-		}
-	}
-
-	private static class MessageLog {
-		private static final String LOGFILE = "log";
-		private final File logfile;
-
-		public MessageLog(File ibctdir) {
-			this.logfile = new File(ibctdir, LOGFILE);
-		}
-
-		public boolean isPresent(int targetid) throws IOException {
-			BufferedReader br;
-			try {
-				br = new BufferedReader(new FileReader(this.logfile));
-			} catch (FileNotFoundException fnfe) {
-				return false;
-			}
-
-			String line;
-			while ( (line = br.readLine()) != null) {
-				int curid = Integer.parseInt(line);
-				if (curid == targetid) {
-					br.close();
-					return true;
-				}
-			}
-
-			br.close();
-			return false;
-		}
-
-		public void add(int id) throws IOException {
-			FileOutputStream fos = new FileOutputStream(this.logfile, true);
-
-			PrintStream ps = new PrintStream(fos);
-			ps.println(id);
-			ps.close();
 		}
 	}
 
