@@ -27,7 +27,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 
 import freemail.Freemail;
 import freemail.FreemailAccount;
@@ -38,6 +40,7 @@ import freemail.utils.PropsFile;
 import freemail.wot.Identity;
 import freenet.support.api.Bucket;
 import freenet.support.io.Closer;
+import freenet.support.io.FileBucket;
 
 /**
  * MessageHandler is the high level interface to the part of Freemail that sends messages over
@@ -48,6 +51,7 @@ import freenet.support.io.Closer;
  */
 public class MessageHandler {
 	private final static String INDEX_NAME = "index";
+	private final static long RESEND_TIME = 24 * 60 * 60 * 1000;
 
 	/**
 	 * Holds the static portions of the keys used in the index file. The values that are stored per
@@ -58,6 +62,10 @@ public class MessageHandler {
 		private static final String RECIPIENT = ".recipient";
 		/** The message number that should be used for the next message that is submitted */
 		private static final String NEXT_MESSAGE_NUMBER = "nextMessageNumber";
+		/** The time when the message was first sent */
+		private static final String FIRST_SEND_TIME = ".firstSendTime";
+		/** The time when the message was last sent */
+		private static final String LAST_SEND_TIME = ".lastSendTime";
 	}
 
 	private final File outbox;
@@ -68,13 +76,15 @@ public class MessageHandler {
 	private final File channelDir;
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
+	private final ScheduledExecutorService executor;
 
-	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
+	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
 		index = PropsFile.createPropsFile(new File(outbox, INDEX_NAME));
 		this.freemail = freemail;
 		this.channelDir = channelDir;
 		this.freemailAccount = freemailAccount;
+		this.executor = executor;
 
 		//Initialize nextMessageNum
 		synchronized(index) {
@@ -157,6 +167,8 @@ public class MessageHandler {
 			synchronized(index) {
 				index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
 			}
+
+			executor.submit(new SenderTask(msgNum));
 		}
 
 		return true;
@@ -237,5 +249,75 @@ public class MessageHandler {
 			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + (number + 1));
 		}
 		return number;
+	}
+
+	private class SenderTask implements Runnable {
+		private final int msgNum;
+
+		private SenderTask(int msgNum) {
+			this.msgNum = msgNum;
+		}
+
+		@Override
+		public void run() {
+			//FIXME: This will be terribly inefficient if sendMessage takes a while since it will
+			//       block all other operations as well. Only the id that is being used should
+			//       be locked.
+			long retryIn;
+			synchronized(index) {
+				long lastSendTime;
+				try {
+					String time = index.get(msgNum + IndexKeys.LAST_SEND_TIME);
+					lastSendTime = Long.parseLong(time);
+				} catch(NumberFormatException e) {
+					lastSendTime = 0;
+				}
+
+				retryIn = (lastSendTime + RESEND_TIME) - System.currentTimeMillis();
+				if(retryIn <= 0) {
+					boolean inserted = sendMessage();
+					if(!inserted) {
+						//In most cases this is because the RTS hasn't been sent yet (so keys etc.
+						//haven't been generated yet), or because the insert failed
+						retryIn = 5 * 60 * 1000; //5 minutes
+					} else {
+						String firstSentTime = index.get(msgNum + IndexKeys.FIRST_SEND_TIME);
+						if(firstSentTime == null) {
+							index.put(msgNum + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
+						}
+						index.put(msgNum + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
+
+						retryIn = RESEND_TIME;
+					}
+				}
+			}
+
+			//Schedule again when the resend is due
+			executor.schedule(this, retryIn, TimeUnit.MILLISECONDS);
+		}
+
+		private boolean sendMessage() {
+			String recipient = index.get(msgNum + IndexKeys.RECIPIENT);
+
+			Channel c;
+			boolean inserted;
+			while(true) {
+				c = getChannel(recipient);
+				Bucket message = new FileBucket(new File(outbox, "" + msgNum), false, false, false, false, false);
+				try {
+					inserted = c.sendMessage(message.getInputStream());
+				} catch(ChannelTimedOutException e) {
+					//Try again with a new channel
+					continue;
+				} catch(IOException e) {
+					Logger.error(this, "Caugth IOException while sending: " + e);
+					inserted = false;
+				}
+
+				break;
+			}
+
+			return inserted;
+		}
 	}
 }

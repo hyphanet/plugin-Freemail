@@ -43,7 +43,7 @@ public class FreemailAccount {
 		mb = new MessageBank(this);
 
 		File channelDir = new File(accdir, "channel");
-		messageHandler = new MessageHandler(new File(accdir, "outbox"), freemail, channelDir, this);
+		messageHandler = new MessageHandler(FreemailPlugin.getExecutor(), new File(accdir, "outbox"), freemail, channelDir, this);
 	}
 	
 	public String getUsername() {
