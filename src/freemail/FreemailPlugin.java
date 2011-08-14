@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import freemail.l10n.FreemailL10n;
 import freemail.ui.web.WebInterface;
@@ -50,7 +52,7 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private final static ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
+	private final static ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1, new FreemailThreadFactory());
 
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
@@ -170,5 +172,14 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	@Override
 	public ClassLoader getPluginClassLoader() {
 		return FreemailPlugin.class.getClassLoader();
+	}
+
+	private static class FreemailThreadFactory implements ThreadFactory {
+		AtomicInteger threadCount = new AtomicInteger();
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			return new Thread(runnable, "Freemail executor thread " + threadCount.getAndIncrement());
+		}
 	}
 }
