@@ -20,11 +20,10 @@
 
 package freemail.wot;
 
-import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 
 public class WoTConnections {
-	public static WoTConnection wotConnection(PluginRespirator pr) throws PluginNotFoundException {
-		return new WoTConnectionImpl(pr);
+	public static WoTConnection wotConnection(PluginRespirator pr) {
+		return new ConcurrentWoTConnection(pr);
 	}
 }

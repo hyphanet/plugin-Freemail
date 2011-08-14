@@ -129,11 +129,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 				return null;
 			}
 
-			try {
-				wotConnection = WoTConnections.wotConnection(pluginRespirator);
-			} catch(PluginNotFoundException e) {
-				return null;
-			}
+			wotConnection = WoTConnections.wotConnection(pluginRespirator);
 		}
 		return wotConnection;
 	}
