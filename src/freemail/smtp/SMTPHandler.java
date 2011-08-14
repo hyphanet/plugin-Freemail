@@ -47,6 +47,7 @@ import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
 import freemail.wot.WoTConnection;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.FileBucket;
 
@@ -260,7 +261,13 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		IdentityMatcher matcher = new IdentityMatcher(wotConnection);
 		Set<String> recipient = new HashSet<String>();
 		recipient.add(address);
-		Map<String, List<Identity>> matches = matcher.matchIdentities(recipient, account.getUsername());
+		Map<String, List<Identity>> matches;
+		try {
+			matches = matcher.matchIdentities(recipient, account.getUsername());
+		} catch(PluginNotFoundException e) {
+			this.ps.print("554 WoT plugin not loaded\r\n");
+			return;
+		}
 		if(matches.get(address).size() != 1) {
 			this.ps.print("550 No such user\r\n");
 			return;

@@ -37,6 +37,7 @@ import freemail.wot.WoTConnection;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -82,8 +83,17 @@ public class AddAccountToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
+		List<OwnIdentity> ownIdentities;
+		try {
+			ownIdentities = wotConnection.getAllOwnIdentities();
+		} catch(PluginNotFoundException e) {
+			addWoTNotLoadedMessage(contentNode);
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
+		}
+
 		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
-		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+		for(OwnIdentity oid : ownIdentities) {
 			if(accountManager.getAccount(oid.getIdentityID()) == null) {
 				identitiesWithoutAccount.add(oid);
 			}
@@ -152,8 +162,19 @@ public class AddAccountToadlet extends WebPage {
 		}
 
 		//Fetch identity from WoT
+		List<OwnIdentity> ownIdentities;
+		try {
+			ownIdentities = wotConnection.getAllOwnIdentities();
+		} catch(PluginNotFoundException e) {
+			PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
+			HTMLNode pageNode = page.outer;
+			addWoTNotLoadedMessage(page.content);
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
+		}
+
 		OwnIdentity ownIdentity = null;
-		for(OwnIdentity oid : wotConnection.getAllOwnIdentities()) {
+		for(OwnIdentity oid : ownIdentities) {
 			if(oid.getIdentityID().equals(identity)) {
 				ownIdentity = oid;
 				break;

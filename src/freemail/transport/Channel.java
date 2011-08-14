@@ -66,6 +66,7 @@ import freemail.wot.WoTConnection;
 import freemail.wot.WoTProperties;
 import freenet.keys.FreenetURI;
 import freenet.keys.InsertableClientSSK;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
@@ -692,7 +693,13 @@ class Channel {
 
 			String senderId = account.getUsername();
 			Logger.debug(this, "Getting identity from WoT");
-			Identity recipient = wotConnection.getIdentity(remoteId, senderId);
+			Identity recipient;
+			try {
+				recipient = wotConnection.getIdentity(remoteId, senderId);
+			} catch(PluginNotFoundException e) {
+				Logger.error(this, "WoT plugin isn't loaded, can't send RTS");
+				recipient = null;
+			}
 			if(recipient == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
 				schedule(5, TimeUnit.MINUTES);
@@ -701,7 +708,12 @@ class Channel {
 
 			//Get the mailsite edition
 			int mailisteEdition;
-			String edition = wotConnection.getProperty(remoteId, WoTProperties.MAILSITE_EDITION);
+			String edition;
+			try {
+				edition = wotConnection.getProperty(remoteId, WoTProperties.MAILSITE_EDITION);
+			} catch(PluginNotFoundException e1) {
+				edition = null;
+			}
 			if(edition == null) {
 				mailisteEdition = 1;
 			} else {
@@ -779,7 +791,13 @@ class Channel {
 
 			//Get the senders mailsite key
 			Logger.debug(this, "Getting sender identity from WoT");
-			Identity senderIdentity = wotConnection.getIdentity(senderId, senderId);
+			Identity senderIdentity;
+			try {
+				senderIdentity = wotConnection.getIdentity(senderId, senderId);
+			} catch(PluginNotFoundException e) {
+				Logger.error(this, "WoT plugin not loaded, can't send RTS");
+				senderIdentity = null;
+			}
 			if(senderIdentity == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
 				schedule(5, TimeUnit.MINUTES);
@@ -787,7 +805,12 @@ class Channel {
 			}
 
 			int senderMailsiteEdition;
-			String senderEdition = wotConnection.getProperty(account.getUsername(), WoTProperties.MAILSITE_EDITION);
+			String senderEdition;
+			try {
+				senderEdition = wotConnection.getProperty(account.getUsername(), WoTProperties.MAILSITE_EDITION);
+			} catch(PluginNotFoundException e1) {
+				senderEdition = null;
+			}
 			if(edition == null) {
 				senderMailsiteEdition = 1;
 			} else {

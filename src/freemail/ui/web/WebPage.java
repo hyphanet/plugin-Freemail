@@ -23,6 +23,7 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
+import freemail.l10n.FreemailL10n;
 import freemail.utils.Logger;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
@@ -99,6 +100,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		HTMLNode infobox = parent.addChild("div", "class", "infobox infobox-alert");
 		infobox.addChild("div", "class", "infobox-header", title);
 		return infobox.addChild("div", "class", "infobox-content");
+	}
+
+	protected void addWoTNotLoadedMessage(HTMLNode parent) {
+		HTMLNode errorbox = addErrorbox(parent, FreemailL10n.getString("Freemail.Global.WoTNotLoadedTitle"));
+		errorbox.addChild("p", FreemailL10n.getString("Freemail.Global.WoTNotLoaded"));
 	}
 
 	enum HTTPMethod {

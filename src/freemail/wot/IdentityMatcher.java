@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import freemail.utils.Logger;
+import freenet.pluginmanager.PluginNotFoundException;
 
 public class IdentityMatcher {
 	private final WoTConnection wotConnection;
@@ -35,7 +36,7 @@ public class IdentityMatcher {
 		this.wotConnection = wotConnection;
 	}
 
-	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity) {
+	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity) throws PluginNotFoundException {
 		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
 		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(wotOwnIdentity));
 		wotIdentities.addAll(wotConnection.getAllOwnIdentities());

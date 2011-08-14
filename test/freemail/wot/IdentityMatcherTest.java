@@ -29,13 +29,14 @@ import java.util.Set;
 import freemail.wot.Identity;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
+import freenet.pluginmanager.PluginNotFoundException;
 
 import junit.framework.TestCase;
 
 public class IdentityMatcherTest extends TestCase {
 	private static final Identity identity = new Identity("D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc", "SSK@D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc,xgddjFHx2S~5U6PeFkwqO5V~1gZngFLoM-xaoMKSBI8,AQACAAE", "zidel");
 
-	public void testFullIdentityMatch() {
+	public void testFullIdentityMatch() throws PluginNotFoundException {
 		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
 
 		String recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";

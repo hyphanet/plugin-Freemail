@@ -23,13 +23,16 @@ package freemail.wot;
 import java.util.List;
 import java.util.Set;
 
+import freenet.pluginmanager.PluginNotFoundException;
+
 public interface WoTConnection {
 	/**
 	 * Returns all the OwnIdentities fetched from WoT, or {@code null} if an error occurs. If there
 	 * are no OwnIdentities the returned list will be empty.
 	 * @return all the OwnIdentities fetched from WoT
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public List<OwnIdentity> getAllOwnIdentities();
+	public List<OwnIdentity> getAllOwnIdentities() throws PluginNotFoundException;
 
 	/**
 	 * Returns all the identities that are trusted by the given identity, or {@code null} if an
@@ -37,8 +40,9 @@ public interface WoTConnection {
 	 * @param trusterId the identity id of the truster
 	 * @return all the identities that are trusted by the given identity
 	 * @throws NullPointerException if trusterId is {@code null}
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public Set<Identity> getAllTrustedIdentities(String trusterId);
+	public Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException;
 
 	/**
 	 * Returns all the identities that are not trusted by the given identity, or {@code null} if an
@@ -46,8 +50,9 @@ public interface WoTConnection {
 	 * @param trusterId the identity id of the truster
 	 * @return all the identities that are not trusted by the given identity
 	 * @throws NullPointerException if trusterId is {@code null}
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public Set<Identity> getAllUntrustedIdentities(String trusterId);
+	public Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException;
 
 	/**
 	 * Returns the Identity with the given identity string. The truster parameter is used to fetch
@@ -56,8 +61,9 @@ public interface WoTConnection {
 	 * @param truster the OwnIdentity to use for fetching the trust and score
 	 * @return the Identity with the given identity string
 	 * @throws NullPointerException if any of the parameters are {@code null}
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public Identity getIdentity(String identity, String truster);
+	public Identity getIdentity(String identity, String truster) throws PluginNotFoundException;
 
 	/**
 	 * Sets the property {@code key} to {@code value} for the given identity, returning {@code true}
@@ -67,8 +73,9 @@ public interface WoTConnection {
 	 * @param value the new value of the parameter
 	 * @return {@code true} if the parameter was successfully set
 	 * @throws NullPointerException if any of the parameters are {@code null}
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public boolean setProperty(String identity, String key, String value);
+	public boolean setProperty(String identity, String key, String value) throws PluginNotFoundException;
 
 	/**
 	 * Returns the value of the named parameter from the given identity. {@code null} is returned if
@@ -77,6 +84,7 @@ public interface WoTConnection {
 	 * @param key the name of the parameter to be fetched
 	 * @return the value of the parameter, or {@code null}
 	 * @throws NullPointerException if any of the parameters are {@code null}
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public String getProperty(String identity, String key);
+	public String getProperty(String identity, String key) throws PluginNotFoundException;
 }

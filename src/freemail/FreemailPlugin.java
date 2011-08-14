@@ -85,18 +85,27 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		pr.getNode().executor.execute(new Runnable() {
 			@Override
 			public void run() {
-				WoTConnection wot = getWotConnection();
-				while(wot == null) {
-					try {
-						Thread.sleep(60 * 1000);
-					} catch (InterruptedException ie) {
-						//Just try again
+				List<OwnIdentity> oids = null;
+				while(oids == null) {
+					WoTConnection wot = getWotConnection();
+					if(wot != null) {
+						try {
+							oids = wot.getAllOwnIdentities();
+						} catch(PluginNotFoundException e) {
+							//Try again later
+							oids = null;
+						}
 					}
 
-					wot = getWotConnection();
+					if(oids == null) {
+						try {
+							Thread.sleep(60 * 1000);
+						} catch(InterruptedException e) {
+							//Just try again
+						}
+					}
 				}
 
-				List<OwnIdentity> oids = wot.getAllOwnIdentities();
 				for(OwnIdentity oid : oids) {
 					for(FreemailAccount account : accountManager.getAllAccounts()) {
 						if(account.getUsername().equals(oid.getIdentityID())) {

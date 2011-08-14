@@ -51,6 +51,7 @@ import freemail.wot.WoTConnection;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.Bucket;
@@ -94,7 +95,14 @@ public class NewMessageToadlet extends WebPage {
 
 		String recipient = req.getParam("to");
 		if(!recipient.equals("")) {
-			Identity identity = wotConnection.getIdentity(recipient, sessionManager.useSession(ctx).getUserID());
+			Identity identity;
+			try {
+				identity = wotConnection.getIdentity(recipient, sessionManager.useSession(ctx).getUserID());
+			} catch(PluginNotFoundException e) {
+				addWoTNotLoadedMessage(contentNode);
+				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+				return;
+			}
 			recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
 		}
 
@@ -148,7 +156,14 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
-		Map<String, List<Identity>> matches = messageSender.matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
+		Map<String, List<Identity>> matches;
+		try {
+			matches = messageSender.matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
+		} catch(PluginNotFoundException e) {
+			addWoTNotLoadedMessage(page.content);
+			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+			return;
+		}
 
 		//Check if there were any unknown or ambiguous identities
 		List<String> failedRecipients = new LinkedList<String>();
