@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
+import freemail.MailMessage;
 import freemail.Postman;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
@@ -278,6 +280,82 @@ public class MessageHandler {
 			channels.add(channel);
 
 			return channel;
+		}
+	}
+
+	public List<OutboxMessage> listOutboxMessages() throws IOException {
+		List<OutboxMessage> messages = new LinkedList<OutboxMessage>();
+
+		File[] outboxFiles = outbox.listFiles();
+		if(outboxFiles == null) {
+			return messages;
+		}
+
+		for(File message : outboxFiles) {
+			int messageNum;
+			try {
+				messageNum = Integer.parseInt(message.getName());
+			} catch(NumberFormatException e) {
+				//Not a message
+				continue;
+			}
+
+			String recipient;
+			String firstSendTime;
+			String lastSendTime;
+			synchronized(index) {
+				recipient = index.get(messageNum + IndexKeys.RECIPIENT);
+				firstSendTime = index.get(messageNum + IndexKeys.FIRST_SEND_TIME);
+				lastSendTime = index.get(messageNum + IndexKeys.LAST_SEND_TIME);
+			}
+
+			OutboxMessage msg = new OutboxMessage(recipient, firstSendTime, lastSendTime, message);
+			messages.add(msg);
+		}
+
+		return messages;
+	}
+
+	public class OutboxMessage {
+		public final String recipient;
+		public final String subject;
+
+		private final Date firstSendTime;
+		private final Date lastSendTime;
+
+		private OutboxMessage(String recipient, String firstSendTime, String lastSendTime, File message) throws IOException {
+			this.recipient = recipient;
+
+			Date first;
+			try {
+				first = new Date(Long.parseLong(firstSendTime));
+			} catch(NumberFormatException e) {
+				first = null;
+			}
+			this.firstSendTime = first;
+
+			Date last;
+			try {
+				last = new Date(Long.parseLong(lastSendTime));
+			} catch(NumberFormatException e) {
+				last = null;
+			}
+			this.lastSendTime = last;
+
+			MailMessage msg = new MailMessage(message, 0);
+			msg.readHeaders();
+			subject = msg.getFirstHeader("Subject");
+			Logger.debug(this, "Read subject: " + subject);
+		}
+
+		public Date getFirstSendTime() {
+			if(firstSendTime == null) return null;
+			return new Date(firstSendTime.getTime());
+		}
+
+		public Date getLastSendTime() {
+			if(lastSendTime == null) return null;
+			return new Date(lastSendTime.getTime());
 		}
 	}
 

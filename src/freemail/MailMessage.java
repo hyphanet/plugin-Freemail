@@ -47,7 +47,7 @@ public class MailMessage {
 	public IMAPMessageFlags flags;
 	private static final Random messageIdRandom = new Random();
 	
-	MailMessage(File f, int msg_seqnum) {
+	public MailMessage(File f, int msg_seqnum) {
 		this.file = f;
 		this.headers = new Vector();
 		this.msg_seqnum=msg_seqnum;
