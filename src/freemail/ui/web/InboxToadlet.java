@@ -58,24 +58,7 @@ public class InboxToadlet extends WebPage {
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
-		switch(method) {
-		case GET:
-			makeWebPageGet(req, ctx, page);
-			break;
-		case POST:
-			makeWebPagePost(req, ctx);
-			break;
-		default:
-			//This will only happen if a new value is added to HTTPMethod, so log it and send an
-			//error message
-			assert false : "HTTPMethod has unknown value: " + method;
-			Logger.error(this, "HTTPMethod has unknown value: " + method);
-			writeHTMLReply(ctx, 200, "OK", "Unknown HTTP method " + method + ". This is a bug in Freemail");
-		}
-	}
-
-	private void makeWebPageGet(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -162,8 +145,9 @@ public class InboxToadlet extends WebPage {
 		                         new String[] {"submit", "move", FreemailL10n.getString("Freemail.InboxToadlet.move")});
 	}
 
+	@Override
 	@SuppressWarnings("deprecation")
-	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		String identity = sessionManager.useSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 		String folderName = req.getParam("folder", "inbox");

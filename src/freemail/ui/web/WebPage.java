@@ -48,7 +48,8 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		this.pluginRespirator = pluginRespirator;
 	}
 
-	abstract void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException;
+	abstract void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException;
+	abstract void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException;
 	abstract boolean requiresValidSession();
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -61,7 +62,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		page.addCustomStyleSheet(CSSToadlet.getPath() + "/freemail.css");
 
 		long start = System.nanoTime();
-		makeWebPage(uri, req, ctx, HTTPMethod.GET, page);
+		makeWebPageGet(uri, req, ctx, page);
 		long time = ((System.nanoTime() - start) / 1000) / 1000;
 		Logger.debug(this, "Page generation (get) took " + time  + " ms");
 	}
@@ -85,7 +86,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		page.addCustomStyleSheet(CSSToadlet.getPath() + "/freemail.css");
 
 		long start = System.nanoTime();
-		makeWebPage(uri, req, ctx, HTTPMethod.POST, page);
+		makeWebPagePost(uri, req, ctx, page);
 		long time = ((System.nanoTime() - start) / 1000) / 1000;
 		Logger.debug(this, "Page generation (post) took " + time  + " ms");
 	}
@@ -108,10 +109,5 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
 				new String[] {"link"},
 				new HTMLNode[] {HTMLNode.link("/plugins")});
-	}
-
-	enum HTTPMethod {
-		GET,
-		POST;
 	}
 }

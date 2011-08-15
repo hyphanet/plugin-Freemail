@@ -72,24 +72,7 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
-		switch(method) {
-		case GET:
-			makeWebPageGet(req, ctx, page);
-			break;
-		case POST:
-			makeWebPagePost(req, ctx, page);
-			break;
-		default:
-			//This will only happen if a new value is added to HTTPMethod, so log it and send an
-			//error message
-			assert false : "HTTPMethod has unknown value: " + method;
-			Logger.error(this, "HTTPMethod has unknown value: " + method);
-			writeHTMLReply(ctx, 200, "OK", "Unknown HTTP method " + method + ". This is a bug in Freemail");
-		}
-	}
-
-	private void makeWebPageGet(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -112,7 +95,8 @@ public class NewMessageToadlet extends WebPage {
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException, ToadletContextClosedException {
+	@Override
+	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		String action = getBucketAsString(req.getPart("action"));
 		if("sendMessage".equals(action)) {
 			sendMessage(req, ctx, page);

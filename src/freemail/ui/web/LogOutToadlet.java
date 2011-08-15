@@ -45,9 +45,14 @@ public class LogOutToadlet extends WebPage {
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
+	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		sessionManager.deleteSession(ctx);
 		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", LogInToadlet.getPath());
+	}
+
+	@Override
+	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+		makeWebPageGet(uri, req, ctx, page);
 	}
 
 	@Override

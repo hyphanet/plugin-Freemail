@@ -45,7 +45,7 @@ public class CSSToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
+	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		String filename = uri.getPath().substring(PATH.length());
 
 		//Check that the filename has the expected format
@@ -60,6 +60,11 @@ public class CSSToadlet extends WebPage {
 		BucketTools.copyFrom(b, is, -1);
 
 		writeReply(ctx, 200, "text/css", "OK", null, b);
+	}
+
+	@Override
+	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+		makeWebPageGet(uri, req, ctx, page);
 	}
 
 	@Override

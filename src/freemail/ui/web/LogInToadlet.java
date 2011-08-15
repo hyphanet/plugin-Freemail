@@ -63,25 +63,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	@Override
-	public void makeWebPage(URI uri, HTTPRequest req, ToadletContext ctx, HTTPMethod method, PageNode page) throws ToadletContextClosedException, IOException {
-		switch(method) {
-		case GET:
-			makeWebPageGet(ctx);
-			break;
-		case POST:
-			makeWebPagePost(req, ctx);
-			break;
-		default:
-			//This will only happen if a new value is added to HTTPMethod, so log it and send an
-			//error message
-			assert false : "HTTPMethod has unknown value: " + method;
-			Logger.error(this, "HTTPMethod has unknown value: " + method);
-			writeHTMLReply(ctx, 200, "OK", "Unknown HTTP method " + method + ". This is a bug in Freemail");
-		}
-	}
-
-	private void makeWebPageGet(ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginRespirator.getPageMaker().getPageNode("Freemail", ctx);
+	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -115,7 +97,8 @@ public class LogInToadlet extends WebPage {
 		boxContent.addChild("a", "href", "/Freemail/AddAccount", "You can add another account here");
 	}
 
-	private void makeWebPagePost(HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+	@Override
+	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		String identity;
 		try {
 			identity = req.getPartAsStringThrowing("OwnIdentityID", 64);
