@@ -39,4 +39,11 @@ Freemail.NewMessageToadlet.unknownAction=Freemail mottok en unkjent forespørsel
 Freemail.MessageToadlet.reply=Svar
 Freemail.Global.WoTNotLoaded=Freemail trenger en 'Web Of Trust'-plugin innlastet i din Freenet node. Vennligst gå til ${link}din Freenet-nodes plugin-side${/link} og aktiver 'Web Of Trust'-pluginen.
 Freemail.Global.WoTNotLoadedTitle=Web Of Trust plugin mangler
+Freemail.OutboxToadlet.recipient=Mottaker
+Freemail.OutboxToadlet.subject=Emne
+Freemail.OutboxToadlet.firstSendTime=Først sent
+Freemail.OutboxToadlet.lastSendTime=Sist sent
+Freemail.OutboxToadlet.name=Utboks
+Freemail.OutboxToadlet.title=Utboks
+Freemail.OutboxToadlet.neverSent=Aldri
 End

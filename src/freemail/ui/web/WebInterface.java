@@ -54,7 +54,7 @@ public class WebInterface {
 		LogInToadlet loginToadlet = new LogInToadlet(pluginRespirator, freemail.getAccountManager());
 		LogOutToadlet logoutToadlet = new LogOutToadlet(pluginRespirator);
 		InboxToadlet inboxToadlet = new InboxToadlet(freemail.getAccountManager(), pluginRespirator);
-		OutboxToadlet outboxToadlet = new OutboxToadlet(pluginRespirator);
+		OutboxToadlet outboxToadlet = new OutboxToadlet(pluginRespirator, freemail.getAccountManager(), freemail);
 		NewMessageToadlet newMessageToadlet = new NewMessageToadlet(freemail.getWotConnection(), freemail, pluginRespirator);
 		registerToadlet(homeToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.HomeToadlet.name", "Freemail.HomeToadlet.title", false);
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);

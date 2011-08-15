@@ -42,4 +42,11 @@ Freemail.NewMessageToadlet.unknownAction=An unknown action (${action}) was reque
 Freemail.MessageToadlet.reply=Reply
 Freemail.Global.WoTNotLoadedTitle=Web Of Trust plugin is missing
 Freemail.Global.WoTNotLoaded=Freemail needs the 'Web Of Trust' plugin to be loaded in your Freenet node. Please go to ${link}your Freenet node's plugin page${/link} and load the Web Of Trust plugin.
+Freemail.OutboxToadlet.recipient=Recipient
+Freemail.OutboxToadlet.subject=Subject
+Freemail.OutboxToadlet.firstSendTime=First sent
+Freemail.OutboxToadlet.lastSendTime=Last sent
+Freemail.OutboxToadlet.name=Outbox
+Freemail.OutboxToadlet.title=Outbox
+Freemail.OutboxToadlet.neverSent=Never
 End
