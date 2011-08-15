@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.TimeUnit;
 
 import freemail.Freemail;
@@ -82,7 +83,7 @@ public class MessageHandler {
 
 	private final File outbox;
 	private final PropsFile index;
-	private final AtomicInteger nextMessageNum = new AtomicInteger();
+	private final AtomicLong nextMessageNum = new AtomicLong();
 	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
 	private final File channelDir;
@@ -90,7 +91,7 @@ public class MessageHandler {
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
 	private final ScheduledExecutorService executor;
 	private final AckCallback ackCallback = new AckCallback();
-	private final ConcurrentHashMap<Integer, Future<?>> tasks = new ConcurrentHashMap<Integer, Future<?>>();
+	private final ConcurrentHashMap<Long, Future<?>> tasks = new ConcurrentHashMap<Long, Future<?>>();
 
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
@@ -102,9 +103,9 @@ public class MessageHandler {
 
 		//Initialize nextMessageNum
 		synchronized(index) {
-			int messageNumber;
+			long messageNumber;
 			try {
-				messageNumber = Integer.parseInt(index.get(IndexKeys.NEXT_MESSAGE_NUMBER));
+				messageNumber = Long.parseLong(index.get(IndexKeys.NEXT_MESSAGE_NUMBER));
 			} catch(NumberFormatException e) {
 				messageNumber = 0;
 			}
@@ -155,9 +156,9 @@ public class MessageHandler {
 				}
 
 				try {
-					int num = Integer.parseInt(f.getName());
+					long num = Long.parseLong(f.getName());
 					Logger.debug(this, "Scheduling SenderTask for " + num);
-					tasks.put(Integer.valueOf(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
+					tasks.put(Long.valueOf(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
 				} catch(NumberFormatException e) {
 					Logger.debug(this, "Found file with malformed name: " + f);
 					continue;
@@ -182,7 +183,7 @@ public class MessageHandler {
 		}
 
 		for(Identity recipient : recipients) {
-			int msgNum = getMessageNumber();
+			long msgNum = getMessageNumber();
 			File messageFile = new File(outbox, "" + msgNum);
 
 			if(!messageFile.createNewFile()) {
@@ -208,7 +209,7 @@ public class MessageHandler {
 				index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
 			}
 
-			tasks.put(Integer.valueOf(msgNum), executor.submit(new SenderTask(msgNum)));
+			tasks.put(Long.valueOf(msgNum), executor.submit(new SenderTask(msgNum)));
 		}
 
 		return true;
@@ -292,9 +293,9 @@ public class MessageHandler {
 		}
 
 		for(File message : outboxFiles) {
-			int messageNum;
+			long messageNum;
 			try {
-				messageNum = Integer.parseInt(message.getName());
+				messageNum = Long.parseLong(message.getName());
 			} catch(NumberFormatException e) {
 				//Not a message
 				continue;
@@ -359,8 +360,8 @@ public class MessageHandler {
 		}
 	}
 
-	private int getMessageNumber() {
-		int number = nextMessageNum.getAndIncrement();
+	private long getMessageNumber() {
+		long number = nextMessageNum.getAndIncrement();
 		synchronized(index) {
 			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + (number + 1));
 		}
@@ -368,9 +369,9 @@ public class MessageHandler {
 	}
 
 	private class SenderTask implements Runnable {
-		private final int msgNum;
+		private final long msgNum;
 
-		private SenderTask(int msgNum) {
+		private SenderTask(long msgNum) {
 			this.msgNum = msgNum;
 		}
 
@@ -411,7 +412,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			tasks.put(Integer.valueOf(msgNum), executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
+			tasks.put(Long.valueOf(msgNum), executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
 
 		private boolean sendMessage() {
@@ -454,7 +455,7 @@ public class MessageHandler {
 			this.logfile = logFile;
 		}
 
-		public boolean isPresent(int targetid) throws IOException {
+		public boolean isPresent(long targetid) throws IOException {
 			BufferedReader br;
 			try {
 				br = new BufferedReader(new FileReader(this.logfile));
@@ -464,7 +465,7 @@ public class MessageHandler {
 
 			String line;
 			while ( (line = br.readLine()) != null) {
-				int curid = Integer.parseInt(line);
+				long curid = Long.parseLong(line);
 				if (curid == targetid) {
 					br.close();
 					return true;
@@ -475,7 +476,7 @@ public class MessageHandler {
 			return false;
 		}
 
-		public void add(int id) throws IOException {
+		public void add(long id) throws IOException {
 			FileOutputStream fos = new FileOutputStream(this.logfile, true);
 
 			PrintStream ps = new PrintStream(fos);
@@ -502,7 +503,7 @@ public class MessageHandler {
 		}
 
 		@Override
-		public boolean handleMessage(Channel channel, BufferedReader message, int id) {
+		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
 			File logDir = new File(outbox, LOG_DIR_NAME);
 			if(!logDir.exists()) {
 				logDir.mkdir();

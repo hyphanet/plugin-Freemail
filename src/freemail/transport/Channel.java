@@ -1061,9 +1061,9 @@ class Channel {
 			return true;
 		}
 
-		int id;
+		long id;
 		try {
-			id = Integer.parseInt(s_id);
+			id = Long.parseLong(s_id);
 		} catch (NumberFormatException nfe) {
 			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
 			msgprops.closeReader();
@@ -1086,7 +1086,7 @@ class Channel {
 		return true;
 	}
 
-	private void queueAck(int ackId) {
+	private void queueAck(long ackId) {
 		long messageId;
 		synchronized(channelProps) {
 			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
@@ -1153,6 +1153,6 @@ class Channel {
 
 	public interface ChannelEventCallback {
 		public void onAckReceived(long id);
-		public boolean handleMessage(Channel channel, BufferedReader message, int id);
+		public boolean handleMessage(Channel channel, BufferedReader message, long id);
 	}
 }
