@@ -90,7 +90,7 @@ public class AddAccountToadlet extends WebPage {
 
 		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.boxTitle"));
 
-		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, "/Freemail/AddAccount", "addAccount");
+		HTMLNode addAccountForm = pluginRespirator.addFormChild(boxContent, AddAccountToadlet.getPath(), "addAccount");
 
 		HTMLNode identity = addAccountForm.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.selectIdentity") + " ");
 		HTMLNode ownIdSelector = identity.addChild("select", "name", "OwnIdentityID");
@@ -182,7 +182,7 @@ public class AddAccountToadlet extends WebPage {
 			throw new AssertionError();
 		}
 
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", "/Freemail/Login");
+		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", LogInToadlet.getPath());
 	}
 
 	@Override
