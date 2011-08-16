@@ -25,5 +25,6 @@ public final class WoTProperties {
 
 	private WoTProperties() {
 		//This class is not for instantiation
+		throw new UnsupportedOperationException();
 	}
 }
