@@ -105,6 +105,34 @@ public class MailMessage {
 		return buf.toString();
 	}
 	
+	@Override
+	public int hashCode() {
+		if(file == null) {
+			return 0;
+		}
+
+		return file.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj == null) {
+			return false;
+		}
+		if(!(obj instanceof MailMessage)) {
+			return false;
+		}
+		MailMessage other = (MailMessage) obj;
+		if(file == null) {
+			if(other.file != null) {
+				return false;
+			}
+		} else if(!file.equals(other.file)) {
+			return false;
+		}
+		return true;
+	}
+
 	public String[] getHeadersAsArray(String name) {
 		Vector hdrs = new Vector();
 		
