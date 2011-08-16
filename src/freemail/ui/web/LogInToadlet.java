@@ -38,7 +38,7 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class LogInToadlet extends WebPage {
-	private static final String PATH = "/Freemail/Login";
+	private static final String PATH = WebInterface.PATH + "/Login";
 
 	private final AccountManager accountManager;
 
@@ -94,7 +94,7 @@ public class LogInToadlet extends WebPage {
 
 	private void addNewAccountBox(HTMLNode parent) {
 		HTMLNode boxContent = addInfobox(parent, "Add account");
-		boxContent.addChild("a", "href", "/Freemail/AddAccount", "You can add another account here");
+		boxContent.addChild("a", "href", AddAccountToadlet.getPath(), "You can add another account here");
 	}
 
 	@Override

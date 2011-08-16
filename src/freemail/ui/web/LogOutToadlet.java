@@ -36,7 +36,7 @@ public class LogOutToadlet extends WebPage {
 
 	@Override
 	public String path() {
-		return "/Freemail/Logout";
+		return WebInterface.PATH + "/Logout";
 	}
 
 	@Override

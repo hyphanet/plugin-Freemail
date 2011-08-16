@@ -60,7 +60,7 @@ import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
 
 public class NewMessageToadlet extends WebPage {
-	private static final String PATH = "/Freemail/NewMessage";
+	private static final String PATH = WebInterface.PATH + "/NewMessage";
 
 	private final WoTConnection wotConnection;
 	private final Freemail freemail;

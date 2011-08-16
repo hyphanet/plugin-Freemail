@@ -41,7 +41,7 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class MessageToadlet extends WebPage {
-	private static final String PATH = "/Freemail/Message";
+	private static final String PATH = WebInterface.PATH + "/Message";
 
 	private final AccountManager accountManager;
 

@@ -39,7 +39,7 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class OutboxToadlet extends WebPage {
-	private static final String PATH = "/Freemail/Outbox";
+	private static final String PATH = WebInterface.PATH + "/Outbox";
 
 	private final AccountManager accountManager;
 	private final FreemailPlugin freemailPlugin;

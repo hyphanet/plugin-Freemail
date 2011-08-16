@@ -33,7 +33,7 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class HomeToadlet extends WebPage {
-	private static final String PATH = "/Freemail/";
+	private static final String PATH = WebInterface.PATH + "/";
 
 	public HomeToadlet(PluginRespirator pluginRespirator) {
 		super(pluginRespirator);

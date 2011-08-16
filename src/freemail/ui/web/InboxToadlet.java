@@ -48,7 +48,7 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
-	private static final String PATH = "/Freemail/Inbox";
+	private static final String PATH = WebInterface.PATH + "/Inbox";
 
 	private final AccountManager accountManager;
 

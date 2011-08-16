@@ -43,7 +43,7 @@ import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
 public class AddAccountToadlet extends WebPage {
-	private static final String PATH = "/Freemail/AddAccount";
+	private static final String PATH = WebInterface.PATH + "/AddAccount";
 
 	private final WoTConnection wotConnection;
 	private final AccountManager accountManager;
