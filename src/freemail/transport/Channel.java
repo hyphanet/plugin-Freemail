@@ -182,14 +182,13 @@ class Channel {
 			try {
 				final String documentName = "documentName";
 
-				FreenetURI privateURI = new FreenetURI(rtsProps.get(RTSKeys.CHANNEL) + documentName);
+				FreenetURI privateURI = new FreenetURI(rtsProps.get(RTSKeys.CHANNEL));
+				privateURI = privateURI.setDocName(documentName);
+
 				InsertableClientSSK insertableKey = InsertableClientSSK.create(privateURI);
 
-				privateKey = insertableKey.getInsertURI().toString();
-				privateKey = privateKey.substring(0, privateKey.length() - documentName.length());
-
-				publicKey = insertableKey.getURI().toString();
-				publicKey = publicKey.substring(0, publicKey.length() - documentName.length());
+				privateKey = insertableKey.getInsertURI().setDocName("").toString();
+				publicKey = insertableKey.getURI().setDocName("").toString();
 			} catch(MalformedURLException e) {
 				Logger.debug(this, "RTS contained malformed private key: " + rtsProps.get(RTSKeys.CHANNEL));
 				return;
