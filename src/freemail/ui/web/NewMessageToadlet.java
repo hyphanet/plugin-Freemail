@@ -208,8 +208,8 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.messageSentTitle"));
-		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageSent"));
+		HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueuedTitle"));
+		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueued"));
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
