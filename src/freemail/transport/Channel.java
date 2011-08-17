@@ -86,6 +86,9 @@ class Channel {
 	 */
 	private static final long CHANNEL_TIMEOUT = 7 * 24 * 60 * 60 * 1000; //1 week
 
+	/** The amount of time to wait before retrying after a transient failure. */
+	private static final long TASK_RETRY_DELAY = 5 * 60 * 60 * 1000; //5 minutes
+
 	//The keys used in the props file
 	private static class PropsKeys {
 		private static final String PRIVATE_KEY = "privateKey";
@@ -623,7 +626,7 @@ class Channel {
 			}
 
 			//Reschedule
-			schedule(5, TimeUnit.MINUTES);
+			schedule(TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 		}
 
 		public void execute() {
@@ -677,7 +680,7 @@ class Channel {
 			if(wotConnection == null) {
 				//WoT isn't loaded, so try again later
 				Logger.debug(this, "WoT not loaded, trying again in 5 minutes");
-				schedule(5, TimeUnit.MINUTES);
+				schedule(TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -701,7 +704,7 @@ class Channel {
 			}
 			if(recipient == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
-				schedule(5, TimeUnit.MINUTES);
+				schedule(TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -738,7 +741,7 @@ class Channel {
 				return;
 			} catch(FCPFetchException e) {
 				Logger.debug(this, "Mailsite fetch failed (" + e + "), trying again in 5 minutes");
-				schedule(5, TimeUnit.MINUTES);
+				schedule(TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -799,7 +802,7 @@ class Channel {
 			}
 			if(senderIdentity == null) {
 				Logger.debug(this, "Didn't get identity from WoT, trying again in 5 minutes");
-				schedule(5, TimeUnit.MINUTES);
+				schedule(TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -864,7 +867,7 @@ class Channel {
 			}
 			if(slot < 0) {
 				Logger.debug(this, "Slot insert failed, trying again in 5 minutes");
-				schedule(5, TimeUnit.MINUTES);
+				schedule(TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				return;
 			}
 
