@@ -289,8 +289,9 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
+		File tempfile = null;
 		try {
-			File tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
+			tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
 			PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile));
 			
 			this.ps.print("354 Go crazy\r\n");
@@ -315,14 +316,19 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			
 			MessageHandler messageSender = account.getMessageHandler();
 			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
-			messageSender.sendMessage(to, data);
-			data.free();
-			
-			tempfile.delete();
+			try {
+				messageSender.sendMessage(to, data);
+			} finally {
+				data.free();
+			}
 			
 			this.ps.print("250 So be it\r\n");
 		} catch (IOException ioe) {
 			this.ps.print("452 Can't store message\r\n");
+		} finally {
+			if(tempfile != null) {
+				tempfile.delete();
+			}
 		}
 	}
 	
