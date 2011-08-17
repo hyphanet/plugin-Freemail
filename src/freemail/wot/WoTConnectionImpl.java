@@ -53,10 +53,9 @@ class WoTConnectionImpl implements WoTConnection {
 		Message response = sendBlocking(
 				new Message(
 						new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create(),
-						null));
-
-		if(!"OwnIdentities".equals(response.sfs.get("Message"))) {
-			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+						null),
+				"OwnIdentities");
+		if(response == null) {
 			return null;
 		}
 
@@ -107,10 +106,8 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Context", "");
 		sfs.put("WantTrustValues", false);
 
-		Message response = sendBlocking(new Message(sfs, null));
-
-		if(!"Identities".equals(response.sfs.get("Message"))) {
-			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+		Message response = sendBlocking(new Message(sfs, null), "Identities");
+		if(response == null) {
 			return null;
 		}
 
@@ -147,10 +144,8 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Identity", identity);
 		sfs.putOverwrite("Truster", trusterId);
 
-		Message response = sendBlocking(new Message(sfs, null));
-
-		if(!"Identity".equals(response.sfs.get("Message"))) {
-			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+		Message response = sendBlocking(new Message(sfs, null), "Identity");
+		if(response == null) {
 			return null;
 		}
 
@@ -180,9 +175,8 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Property", key);
 		sfs.putOverwrite("Value", value);
 
-		Message response = sendBlocking(new Message(sfs, null));
-
-		return "PropertyAdded".equals(response.sfs.get("Message"));
+		Message response = sendBlocking(new Message(sfs, null), "PropertyAdded");
+		return response != null;
 	}
 
 	@Override
@@ -199,17 +193,15 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Identity", identity);
 		sfs.putOverwrite("Property", key);
 
-		Message response = sendBlocking(new Message(sfs, null));
-
-		if(!"PropertyValue".equals(response.sfs.get("Message"))) {
-			Logger.debug(this, "Response contained unexpected message type: " + response.sfs.get("Message"));
+		Message response = sendBlocking(new Message(sfs, null), "PropertyValue");
+		if(response == null) {
 			return null;
 		}
 
 		return response.sfs.get("Property");
 	}
 
-	private Message sendBlocking(final Message msg) {
+	private Message sendBlocking(final Message msg, String expectedMessageType) {
 		assert (msg != null);
 
 		//Synchronize on pluginTalker so only one message can be sent at a time
@@ -234,14 +226,19 @@ class WoTConnectionImpl implements WoTConnection {
 			}
 		}
 
-		if("Error".equals(retValue.sfs.get("Message"))) {
-			String original = retValue.sfs.get("OriginalMessage");
-			Logger.error(this, "Got error message from WoT. Original message was " + original);
-			Iterator<String> keyIterator = retValue.sfs.keyIterator();
-			while(keyIterator.hasNext()) {
-				String key = keyIterator.next();
-				Logger.debug(this, key + "=" + retValue.sfs.get(key));
-			}
+		if(expectedMessageType.equals(retValue.sfs.get("Message"))) {
+			return retValue;
+		}
+
+		Logger.error(this, "Got the wrong message from WoT. Original message was " +
+				retValue.sfs.get("OriginalMessage") + ", response was " +
+				retValue.sfs.get("Message"));
+
+		//Log the contents of the message, but at debug since it might contain private keys etc.
+		Iterator<String> keyIterator = retValue.sfs.keyIterator();
+		while(keyIterator.hasNext()) {
+			String key = keyIterator.next();
+			Logger.debug(this, key + "=" + retValue.sfs.get(key));
 		}
 
 		return retValue;
