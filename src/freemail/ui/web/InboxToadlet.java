@@ -177,7 +177,7 @@ public class InboxToadlet extends WebPage {
 			}
 		}
 
-		writeTemporaryRedirect(ctx, "", getFolderPath(req.getPartAsString("folder", 100)));
+		writeTemporaryRedirect(ctx, "", getFolderPath(folderName));
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox
