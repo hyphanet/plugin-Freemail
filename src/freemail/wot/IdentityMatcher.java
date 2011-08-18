@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import freemail.utils.Logger;
 import freenet.pluginmanager.PluginNotFoundException;
 
 public class IdentityMatcher {
@@ -44,17 +43,14 @@ public class IdentityMatcher {
 		Map<String, List<Identity>> allMatches = new HashMap<String, List<Identity>>(recipients.size());
 
 		for(String recipient : recipients) {
-			List<Identity> matches = new LinkedList<Identity>();
-			allMatches.put(recipient, matches);
+			allMatches.put(recipient, new LinkedList<Identity>());
+		}
 
-			for(Identity wotIdentity : wotIdentities) {
+		for(Identity wotIdentity : wotIdentities) {
+			for(String recipient : recipients) {
 				if(matchFullBase64Address(recipient, wotIdentity)) {
-					matches.add(wotIdentity);
+					allMatches.get(recipient).add(wotIdentity);
 				}
-			}
-
-			if(matches.isEmpty()) {
-				Logger.debug(this, "No matches found for: " + recipient);
 			}
 		}
 
