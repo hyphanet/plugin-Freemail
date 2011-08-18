@@ -47,14 +47,9 @@ public class IdentityMatcher {
 			List<Identity> matches = new LinkedList<Identity>();
 			allMatches.put(recipient, matches);
 
-			//Matches <anything>@<identity id>.freemail
-			if(recipient.matches(".*@[A-Za-z0-9~\\-]{43,44}\\.freemail")) {
-				String recipientID = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
-				for(Identity wotIdentity : wotIdentities) {
-					if(wotIdentity.getIdentityID().equals(recipientID)) {
-						Logger.debug(this, "Matched identity " + recipientID);
-						matches.add(wotIdentity);
-					}
+			for(Identity wotIdentity : wotIdentities) {
+				if(matchFullBase64Address(recipient, wotIdentity)) {
+					matches.add(wotIdentity);
 				}
 			}
 
@@ -64,5 +59,15 @@ public class IdentityMatcher {
 		}
 
 		return allMatches;
+	}
+
+	private boolean matchFullBase64Address(String recipient, Identity identity) {
+		//Matches <anything>@<identity id>.freemail
+		if(!recipient.matches(".*@[A-Za-z0-9~\\-]{43,44}\\.freemail")) {
+			return false;
+		}
+
+		String recipientID = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
+		return identity.getIdentityID().equals(recipientID);
 	}
 }
