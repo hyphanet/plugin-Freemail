@@ -26,7 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.archive.util.Base32;
+
 import freenet.pluginmanager.PluginNotFoundException;
+import freenet.support.Base64;
 
 public class IdentityMatcher {
 	private final WoTConnection wotConnection;
@@ -51,6 +54,9 @@ public class IdentityMatcher {
 				if(matchFullBase64Address(recipient, wotIdentity)) {
 					allMatches.get(recipient).add(wotIdentity);
 				}
+				if(matchFullBase32Address(recipient, wotIdentity)) {
+					allMatches.get(recipient).add(wotIdentity);
+				}
 			}
 		}
 
@@ -65,5 +71,20 @@ public class IdentityMatcher {
 
 		String recipientID = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
 		return identity.getIdentityID().equals(recipientID);
+	}
+
+	private boolean matchFullBase32Address(String recipient, Identity identity) {
+		//Matches <anything>@<base32(identity id)>.freemail
+		//See org.archive.util.Base32 (or http://www.faqs.org/rfcs/rfc3548.html) for the alphabet
+		//that is used
+		if(!recipient.matches(".*@[A-Z2-7~\\-]?\\.freemail")) {
+			return false;
+		}
+
+		String base32Id = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
+		byte[] identityBytes = Base32.decode(base32Id);
+		String base64Id = Base64.encode(identityBytes);
+
+		return identity.getIdentityID().equals(base64Id);
 	}
 }
