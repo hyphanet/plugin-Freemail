@@ -30,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -142,7 +143,8 @@ public class NewMessageToadlet extends WebPage {
 		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
 		Map<String, List<Identity>> matches;
 		try {
-			matches = messageSender.matchIdentities(identities, sessionManager.useSession(ctx).getUserID());
+			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
+			matches = messageSender.matchIdentities(identities, sessionManager.useSession(ctx).getUserID(), methods);
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
 			writeHTMLReply(ctx, 200, "OK", page.outer.generate());

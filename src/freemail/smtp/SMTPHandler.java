@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.SequenceInputStream;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -263,7 +264,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		recipient.add(address);
 		Map<String, List<Identity>> matches;
 		try {
-			matches = matcher.matchIdentities(recipient, account.getUsername());
+			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.of(IdentityMatcher.MatchMethod.PARTIAL_BASE32);
+			matches = matcher.matchIdentities(recipient, account.getUsername(), methods);
 		} catch(PluginNotFoundException e) {
 			this.ps.print("554 WoT plugin not loaded\r\n");
 			return;

@@ -20,6 +20,7 @@
 
 package freemail.wot;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class IdentityMatcher {
 		this.wotConnection = wotConnection;
 	}
 
-	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity) throws PluginNotFoundException {
+	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
 		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
 		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(wotOwnIdentity));
 		wotIdentities.addAll(wotConnection.getAllOwnIdentities());
@@ -52,15 +53,32 @@ public class IdentityMatcher {
 
 		for(Identity wotIdentity : wotIdentities) {
 			for(String recipient : recipients) {
-				if(matchBase64Address(recipient, wotIdentity)) {
-					allMatches.get(recipient).add(wotIdentity);
-				} else if(matchBase32Address(recipient, wotIdentity)) {
+				if(matchIdentity(recipient, wotIdentity, methods)) {
 					allMatches.get(recipient).add(wotIdentity);
 				}
 			}
 		}
 
 		return allMatches;
+	}
+
+	private boolean matchIdentity(String recipient, Identity wotIdentity, EnumSet<MatchMethod> methods) {
+		for(MatchMethod method : methods) {
+			switch(method) {
+			case PARTIAL_BASE32:
+				if(matchBase32Address(recipient, wotIdentity)) {
+					return true;
+				}
+				break;
+			case PARTIAL_BASE64:
+				if(matchBase64Address(recipient, wotIdentity)) {
+					return true;
+				}
+				break;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean matchBase64Address(String recipient, Identity identity) {
@@ -79,5 +97,10 @@ public class IdentityMatcher {
 
 		String identityAddress = identity.getNickname() + "@" + base32Id + ".freemail";
 		return identityAddress.startsWith(recipient);
+	}
+
+	public enum MatchMethod {
+		PARTIAL_BASE32,
+		PARTIAL_BASE64;
 	}
 }

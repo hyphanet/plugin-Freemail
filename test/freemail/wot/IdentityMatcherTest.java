@@ -20,6 +20,7 @@
 
 package freemail.wot;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +44,8 @@ public class IdentityMatcherTest extends TestCase {
 		Set<String> recipients = new HashSet<String>();
 		recipients.add(recipient);
 
-		Map<String, List<Identity>> matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID());
+		EnumSet<IdentityMatcher.MatchMethod> set = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
+		Map<String, List<Identity>> matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), set);
 
 		assert (matches.size() == 1);
 		assert (matches.get(recipient).equals(identity));
