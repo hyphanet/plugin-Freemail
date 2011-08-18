@@ -54,8 +54,7 @@ public class IdentityMatcher {
 			for(String recipient : recipients) {
 				if(matchBase64Address(recipient, wotIdentity)) {
 					allMatches.get(recipient).add(wotIdentity);
-				}
-				if(matchBase32Address(recipient, wotIdentity)) {
+				} else if(matchBase32Address(recipient, wotIdentity)) {
 					allMatches.get(recipient).add(wotIdentity);
 				}
 			}
