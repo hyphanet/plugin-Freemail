@@ -403,9 +403,7 @@ class Channel {
 						if(fcpMessage == null) {
 							Logger.debug(this, "Insert successful");
 							slot = calculateNextSlot(slot);
-							synchronized(channelProps) {
-								channelProps.put(PropsKeys.SEND_SLOT, slot);
-							}
+							channelProps.put(PropsKeys.SEND_SLOT, slot);
 
 							return true;
 						}
