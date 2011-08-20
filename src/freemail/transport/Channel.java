@@ -368,17 +368,15 @@ class Channel {
 	 * @throws IOException if the getInputStream() method of message throws IOException
 	 */
 	private boolean insertMessage(Bucket message) throws IOException {
-		String baseKey;
 		//FIXME: This locking must be broken up, since it blocks *everything*
 		synchronized(channelProps) {
-			baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+			String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 			if(baseKey == null) {
 				Logger.debug(this, "Can't insert, missing private key");
 				return false;
 			}
 
-			String sendCode;
-			sendCode = channelProps.get(PropsKeys.SEND_CODE);
+			String sendCode = channelProps.get(PropsKeys.SEND_CODE);
 			if(sendCode == null) {
 				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
 				//TODO: Either delete the channel or resend the RTS
