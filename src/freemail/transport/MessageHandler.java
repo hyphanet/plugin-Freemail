@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.TimeUnit;
 
 import freemail.Freemail;
@@ -84,7 +83,6 @@ public class MessageHandler {
 
 	private final File outbox;
 	private final PropsFile index;
-	private final AtomicLong nextMessageNum = new AtomicLong();
 	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
 	private final File channelDir;
@@ -97,6 +95,9 @@ public class MessageHandler {
 	/** Used to lock individual message ids. This lock must always be taken before
 	 *  the index lock if both are used */
 	private final NumberedLock messageIdLock = new NumberedLock();
+
+	/** Holds the number that should be used for the next message. Guarded by the index lock */
+	private long nextMessageNum = 0;
 
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
@@ -114,7 +115,7 @@ public class MessageHandler {
 			} catch(NumberFormatException e) {
 				messageNumber = 0;
 			}
-			nextMessageNum.set(messageNumber);
+			nextMessageNum = messageNumber;
 		}
 
 		//Create and start all the channels
@@ -377,11 +378,11 @@ public class MessageHandler {
 	}
 
 	private long getMessageNumber() {
-		long number = nextMessageNum.getAndIncrement();
 		synchronized(index) {
-			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + (number + 1));
+			long number = nextMessageNum++;
+			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + nextMessageNum);
+			return number;
 		}
-		return number;
 	}
 
 	private class SenderTask implements Runnable {
