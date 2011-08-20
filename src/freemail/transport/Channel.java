@@ -369,32 +369,28 @@ class Channel {
 	 */
 	private boolean insertMessage(Bucket message) throws IOException {
 		String baseKey;
+		//FIXME: This locking must be broken up, since it blocks *everything*
 		synchronized(channelProps) {
 			baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-		}
-		if(baseKey == null) {
-			Logger.debug(this, "Can't insert, missing private key");
-			return false;
-		}
+			if(baseKey == null) {
+				Logger.debug(this, "Can't insert, missing private key");
+				return false;
+			}
 
-		String sendCode;
-		synchronized(channelProps) {
+			String sendCode;
 			sendCode = channelProps.get(PropsKeys.SEND_CODE);
-		}
-		if(sendCode == null) {
-			Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
-			//TODO: Either delete the channel or resend the RTS
-			return false;
-		}
-		baseKey += sendCode + "-";
+			if(sendCode == null) {
+				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
+				//TODO: Either delete the channel or resend the RTS
+				return false;
+			}
+			baseKey += sendCode + "-";
 
-		try {
-			while(true) {
-				InputStream messageStream = null;
-				try {
-					messageStream = message.getInputStream();
-					//FIXME: This locking must be broken up, since it blocks *everything*
-					synchronized(channelProps) {
+			try {
+				while(true) {
+					InputStream messageStream = null;
+					try {
+						messageStream = message.getInputStream();
 						String slot = channelProps.get(PropsKeys.SEND_SLOT);
 
 						Logger.debug(this, "Inserting data to " + baseKey + slot);
@@ -421,17 +417,17 @@ class Channel {
 
 						Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
 						return false;
+					} finally {
+						Closer.close(messageStream);
 					}
-				} finally {
-					Closer.close(messageStream);
 				}
+			} catch(FCPBadFileException e) {
+				Logger.debug(this, "Caugth " + e);
+				return false;
+			} catch(ConnectionTerminatedException e) {
+				Logger.debug(this, "Caugth " + e);
+				return false;
 			}
-		} catch(FCPBadFileException e) {
-			Logger.debug(this, "Caugth " + e);
-			return false;
-		} catch(ConnectionTerminatedException e) {
-			Logger.debug(this, "Caugth " + e);
-			return false;
 		}
 	}
 
