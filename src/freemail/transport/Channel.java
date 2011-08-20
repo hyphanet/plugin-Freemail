@@ -383,48 +383,48 @@ class Channel {
 				return false;
 			}
 			baseKey += sendCode + "-";
+			while(true) {
+				InputStream messageStream = null;
+				try {
+					messageStream = message.getInputStream();
+					String slot = channelProps.get(PropsKeys.SEND_SLOT);
 
-			try {
-				while(true) {
-					InputStream messageStream = null;
+					Logger.debug(this, "Inserting data to " + baseKey + slot);
+					FCPInsertErrorMessage fcpMessage;
 					try {
-						messageStream = message.getInputStream();
-						String slot = channelProps.get(PropsKeys.SEND_SLOT);
-
-						Logger.debug(this, "Inserting data to " + baseKey + slot);
-						FCPInsertErrorMessage fcpMessage = fcpClient.put(messageStream, baseKey + slot);
-
-						if(fcpMessage == null) {
-							Logger.debug(this, "Insert successful");
-							slot = calculateNextSlot(slot);
-							channelProps.put(PropsKeys.SEND_SLOT, slot);
-
-							return true;
-						}
-
-						if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-							slot = calculateNextSlot(slot);
-
-							//Write the new slot each round so we won't have
-							//to check all of them again if we fail
-							channelProps.put(PropsKeys.SEND_SLOT, slot);
-
-							Logger.debug(this, "Insert collided, trying slot " + slot);
-							continue;
-						}
-
-						Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
+						fcpMessage = fcpClient.put(messageStream, baseKey + slot);
+					} catch(FCPBadFileException e) {
+						Logger.debug(this, "Caugth " + e);
 						return false;
-					} finally {
-						Closer.close(messageStream);
+					} catch(ConnectionTerminatedException e) {
+						Logger.debug(this, "Caugth " + e);
+						return false;
 					}
+
+					if(fcpMessage == null) {
+						Logger.debug(this, "Insert successful");
+						slot = calculateNextSlot(slot);
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+
+						return true;
+					}
+
+					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+						slot = calculateNextSlot(slot);
+
+						//Write the new slot each round so we won't have
+						//to check all of them again if we fail
+						channelProps.put(PropsKeys.SEND_SLOT, slot);
+
+						Logger.debug(this, "Insert collided, trying slot " + slot);
+						continue;
+					}
+
+					Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
+					return false;
+				} finally {
+					Closer.close(messageStream);
 				}
-			} catch(FCPBadFileException e) {
-				Logger.debug(this, "Caugth " + e);
-				return false;
-			} catch(ConnectionTerminatedException e) {
-				Logger.debug(this, "Caugth " + e);
-				return false;
 			}
 		}
 	}
