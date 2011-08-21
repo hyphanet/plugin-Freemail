@@ -22,13 +22,10 @@ package freemail.transport;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -470,43 +467,6 @@ public class MessageHandler {
 			index.remove(msgNum + IndexKeys.FIRST_SEND_TIME);
 			index.remove(msgNum + IndexKeys.LAST_SEND_TIME);
 			index.remove(msgNum + IndexKeys.RECIPIENT);
-		}
-	}
-
-	private static class MessageLog {
-		private final File logfile;
-
-		public MessageLog(File logFile) {
-			this.logfile = logFile;
-		}
-
-		public boolean isPresent(long targetid) throws IOException {
-			BufferedReader br;
-			try {
-				br = new BufferedReader(new FileReader(this.logfile));
-			} catch (FileNotFoundException fnfe) {
-				return false;
-			}
-
-			String line;
-			while ( (line = br.readLine()) != null) {
-				long curid = Long.parseLong(line);
-				if (curid == targetid) {
-					br.close();
-					return true;
-				}
-			}
-
-			br.close();
-			return false;
-		}
-
-		public void add(long id) throws IOException {
-			FileOutputStream fos = new FileOutputStream(this.logfile, true);
-
-			PrintStream ps = new PrintStream(fos);
-			ps.println(id);
-			ps.close();
 		}
 	}
 
