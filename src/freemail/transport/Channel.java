@@ -1075,29 +1075,38 @@ class Channel {
 			return false;
 		}
 
-		queueAck(id);
+		executor.execute(new AckInserter(id));
 
 		return true;
 	}
 
-	private void queueAck(long ackId) {
-		long messageId;
-		synchronized(channelProps) {
-			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
-			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+	private class AckInserter implements Runnable {
+		private final long ackId;
+
+		private AckInserter(long ackId) {
+			this.ackId = ackId;
 		}
 
-		//Build the header of the inserted message
-		Bucket bucket = new ArrayBucket(
-				("messagetype=ack\r\n" +
-				"id=" + ackId + "\r\n" +
-				"\r\n").getBytes());
+		@Override
+		public void run() {
+			long messageId;
+			synchronized(channelProps) {
+				messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
+				channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
+			}
 
-		try {
-			insertMessage(bucket);
-		} catch(IOException e) {
-			//The getInputStream() method of ArrayBucket doesn't throw
-			throw new AssertionError();
+			//Build the header of the inserted message
+			Bucket bucket = new ArrayBucket(
+					("messagetype=ack\r\n" +
+							"id=" + ackId + "\r\n" +
+					"\r\n").getBytes());
+
+			try {
+				insertMessage(bucket);
+			} catch(IOException e) {
+				//The getInputStream() method of ArrayBucket doesn't throw
+				throw new AssertionError();
+			}
 		}
 	}
 
