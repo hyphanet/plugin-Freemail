@@ -264,12 +264,6 @@ class Channel {
 	}
 
 	private void queueCTS() {
-		long messageId;
-		synchronized(channelProps) {
-			messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
-			channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
-		}
-
 		//Build the header of the inserted message
 		Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
 		try {
