@@ -30,6 +30,7 @@ import org.archive.util.Base32;
 
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.Base64;
+import freenet.support.IllegalBase64Exception;
 
 public class IdentityMatcher {
 	private final WoTConnection wotConnection;
@@ -51,10 +52,10 @@ public class IdentityMatcher {
 
 		for(Identity wotIdentity : wotIdentities) {
 			for(String recipient : recipients) {
-				if(matchFullBase64Address(recipient, wotIdentity)) {
+				if(matchBase64Address(recipient, wotIdentity)) {
 					allMatches.get(recipient).add(wotIdentity);
 				}
-				if(matchFullBase32Address(recipient, wotIdentity)) {
+				if(matchBase32Address(recipient, wotIdentity)) {
 					allMatches.get(recipient).add(wotIdentity);
 				}
 			}
@@ -63,28 +64,21 @@ public class IdentityMatcher {
 		return allMatches;
 	}
 
-	private boolean matchFullBase64Address(String recipient, Identity identity) {
-		//Matches <anything>@<identity id>.freemail
-		if(!recipient.matches(".*@[A-Za-z0-9~\\-]{43,44}\\.freemail")) {
-			return false;
-		}
-
-		String recipientID = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
-		return identity.getIdentityID().equals(recipientID);
+	private boolean matchBase64Address(String recipient, Identity identity) {
+		String identityAddress = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
+		return identityAddress.startsWith(recipient);
 	}
 
-	private boolean matchFullBase32Address(String recipient, Identity identity) {
-		//Matches <anything>@<base32(identity id)>.freemail
-		//See org.archive.util.Base32 (or http://www.faqs.org/rfcs/rfc3548.html) for the alphabet
-		//that is used
-		if(!recipient.matches(".*@[A-Z2-7~\\-]?\\.freemail")) {
-			return false;
+	private boolean matchBase32Address(String recipient, Identity identity) {
+		String base32Id;
+		try {
+			base32Id = Base32.encode(Base64.decode(identity.getIdentityID()));
+		} catch(IllegalBase64Exception e) {
+			//This would mean that WoT has changed the encoding of the identity string
+			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity.getIdentityID());
 		}
 
-		String base32Id = recipient.substring(recipient.lastIndexOf("@") + 1, recipient.length() - ".freemail".length());
-		byte[] identityBytes = Base32.decode(base32Id);
-		String base64Id = Base64.encode(identityBytes);
-
-		return identity.getIdentityID().equals(base64Id);
+		String identityAddress = identity.getNickname() + "@" + base32Id + ".freemail";
+		return identityAddress.startsWith(recipient);
 	}
 }
