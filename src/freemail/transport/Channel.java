@@ -295,6 +295,14 @@ class Channel {
 		for(Long id : ackLog) {
 			executor.execute(new AckInserter(id));
 		}
+
+		//Start the CTS sender if needed
+		synchronized(channelProps) {
+			String recipientState = channelProps.get(PropsKeys.RECIPIENT_STATE);
+			if("rts-received".equals(recipientState)) {
+				executor.execute(new CTSInserter());
+			}
+		}
 	}
 
 	private void startFetcher() {
