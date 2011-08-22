@@ -22,45 +22,66 @@ package freemail.transport;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Set;
 
 class MessageLog {
 	private final File logfile;
+
+	private Set<Long> presentIds = null;
 
 	public MessageLog(File logFile) {
 		this.logfile = logFile;
 	}
 
 	public boolean isPresent(long targetid) throws IOException {
-		BufferedReader br;
-		try {
-			br = new BufferedReader(new FileReader(this.logfile));
-		} catch (FileNotFoundException fnfe) {
-			return false;
+		if(presentIds == null) {
+			readIds();
 		}
+
+		return presentIds.contains(Long.valueOf(targetid));
+	}
+
+	public void add(long id) throws IOException {
+		if(presentIds == null) {
+			readIds();
+		}
+
+		presentIds.add(Long.valueOf(id));
+		writeIds();
+	}
+
+	private void readIds() throws IOException {
+		presentIds = new HashSet<Long>();
+
+		if(!logfile.exists()) {
+			logfile.createNewFile();
+		}
+		BufferedReader br = new BufferedReader(new FileReader(this.logfile));
 
 		String line;
 		while ( (line = br.readLine()) != null) {
 			long curid = Long.parseLong(line);
-			if (curid == targetid) {
-				br.close();
-				return true;
-			}
+			presentIds.add(Long.valueOf(curid));
 		}
 
 		br.close();
-		return false;
 	}
 
-	public void add(long id) throws IOException {
-		FileOutputStream fos = new FileOutputStream(this.logfile, true);
+	private void writeIds() throws IOException {
+		if(!logfile.exists()) {
+			logfile.createNewFile();
+		}
+		FileOutputStream fos = new FileOutputStream(this.logfile, false);
 
 		PrintStream ps = new PrintStream(fos);
-		ps.println(id);
+		for(Long id : presentIds) {
+			ps.println(id);
+		}
 		ps.close();
 	}
 }
