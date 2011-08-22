@@ -281,6 +281,8 @@ class Channel {
 				synchronized(channelProps) {
 					channelProps.put(PropsKeys.RECIPIENT_STATE, "cts-sent");
 				}
+			} else {
+				executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 			}
 		}
 	}
