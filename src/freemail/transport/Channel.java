@@ -246,7 +246,7 @@ class Channel {
 		}
 
 		//Queue the CTS insert
-		queueCTS();
+		executor.execute(new CTSInserter());
 		startFetcher();
 	}
 
@@ -263,21 +263,24 @@ class Channel {
 		return channelDir.delete();
 	}
 
-	private void queueCTS() {
-		//Build the header of the inserted message
-		Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
+	private class CTSInserter implements Runnable {
+		@Override
+		public void run() {
+			//Build the header of the inserted message
+			Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
 
-		boolean inserted;
-		try {
-			inserted = insertMessage(bucket);
-		} catch(IOException e) {
-			//The getInputStream() method of ArrayBucket doesn't throw
-			throw new AssertionError();
-		}
+			boolean inserted;
+			try {
+				inserted = insertMessage(bucket);
+			} catch(IOException e) {
+				//The getInputStream() method of ArrayBucket doesn't throw
+				throw new AssertionError();
+			}
 
-		if(inserted) {
-			synchronized(channelProps) {
-				channelProps.put(PropsKeys.RECIPIENT_STATE, "cts-sent");
+			if(inserted) {
+				synchronized(channelProps) {
+					channelProps.put(PropsKeys.RECIPIENT_STATE, "cts-sent");
+				}
 			}
 		}
 	}
