@@ -1107,6 +1107,8 @@ class Channel {
 
 		@Override
 		public void run() {
+			Logger.debug(this, "AckInserter(" + ackId + ") for " + Channel.this.toString() + " running");
+
 			long messageId;
 			synchronized(channelProps) {
 				messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
