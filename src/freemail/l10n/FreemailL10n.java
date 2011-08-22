@@ -24,6 +24,7 @@ import freemail.utils.Logger;
 import freenet.l10n.PluginL10n;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPluginBaseL10n;
+import freenet.support.HTMLNode;
 
 public class FreemailL10n {
 	private static PluginL10n pluginL10n;
@@ -38,6 +39,10 @@ public class FreemailL10n {
 
 	public static String getString(String key, String[] patterns, String[] values) {
 		return pluginL10n.getBase().getString(key, patterns, values);
+	}
+
+	public static void addL10nSubstitution(HTMLNode parent, String key, String[] patterns, HTMLNode[] values) {
+		pluginL10n.getBase().addL10nSubstitution(parent, key, patterns, values);
 	}
 
 	public static void setLanguage(FredPluginBaseL10n l10nBasePlugin, LANGUAGE newLanguage) {

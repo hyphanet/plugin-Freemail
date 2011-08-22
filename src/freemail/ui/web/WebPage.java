@@ -104,7 +104,10 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 	protected void addWoTNotLoadedMessage(HTMLNode parent) {
 		HTMLNode errorbox = addErrorbox(parent, FreemailL10n.getString("Freemail.Global.WoTNotLoadedTitle"));
-		errorbox.addChild("p", FreemailL10n.getString("Freemail.Global.WoTNotLoaded"));
+		HTMLNode text = errorbox.addChild("p");
+		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
+				new String[] {"link"},
+				new HTMLNode[] {HTMLNode.link("/plugins")});
 	}
 
 	enum HTTPMethod {
