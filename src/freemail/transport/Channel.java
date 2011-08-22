@@ -1119,18 +1119,21 @@ class Channel {
 							"id=" + ackId + "\r\n" +
 					"\r\n").getBytes());
 
+			boolean inserted;
 			try {
-				insertMessage(bucket);
+				inserted = insertMessage(bucket);
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
 				throw new AssertionError();
 			}
 
-			synchronized(ackLog) {
-				try {
-					ackLog.remove(ackId);
-				} catch(IOException e) {
-					Logger.error(this, "Caugth IOException while writing to ack log: " + e);
+			if(inserted) {
+				synchronized(ackLog) {
+					try {
+						ackLog.remove(ackId);
+					} catch(IOException e) {
+						Logger.error(this, "Caugth IOException while writing to ack log: " + e);
+					}
 				}
 			}
 		}
