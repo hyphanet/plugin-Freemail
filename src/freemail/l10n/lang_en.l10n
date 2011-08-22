@@ -40,4 +40,6 @@ Freemail.NewMessageToadlet.messageSent=Your message was sent
 Freemail.NewMessageToadlet.unknownActionTitle=Unknown action requested
 Freemail.NewMessageToadlet.unknownAction=An unknown action (${action}) was requested. This is probably a bug in Freemail, please report this.
 Freemail.MessageToadlet.reply=Reply
+Freemail.Global.WoTNotLoadedTitle=Web Of Trust plugin is missing
+Freemail.Global.WoTNotLoaded=Freemail needs the 'Web Of Trust' plugin to be loaded in your Freenet node. Please go to ${link}your Freenet node's plugin page${/link} and load the Web Of Trust plugin.
 End
