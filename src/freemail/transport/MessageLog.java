@@ -55,6 +55,15 @@ class MessageLog {
 		writeIds();
 	}
 
+	public void remove(long id) throws IOException {
+		if(presentIds == null) {
+			readIds();
+		}
+
+		presentIds.remove(Long.valueOf(id));
+		writeIds();
+	}
+
 	private void readIds() throws IOException {
 		presentIds = new HashSet<Long>();
 
