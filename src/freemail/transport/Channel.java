@@ -266,11 +266,19 @@ class Channel {
 	private void queueCTS() {
 		//Build the header of the inserted message
 		Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
+
+		boolean inserted;
 		try {
-			insertMessage(bucket);
+			inserted = insertMessage(bucket);
 		} catch(IOException e) {
 			//The getInputStream() method of ArrayBucket doesn't throw
 			throw new AssertionError();
+		}
+
+		if(inserted) {
+			synchronized(channelProps) {
+				channelProps.put(PropsKeys.RECIPIENT_STATE, "cts-sent");
+			}
 		}
 	}
 
