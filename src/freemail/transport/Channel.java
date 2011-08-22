@@ -77,6 +77,7 @@ import freenet.support.io.Closer;
 class Channel {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
+	private static final String ACK_LOG = "acklog";
 
 	/**
 	 * The amount of time before the channel times out, in milliseconds. If the channel is created
@@ -123,6 +124,7 @@ class Channel {
 	private final Fetcher fetcher = new Fetcher();
 	private final RTSSender rtsSender = new RTSSender();
 	private final ChannelEventCallback channelEventCallback;
+	private final MessageLog ackLog;
 
 	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, ChannelEventCallback channelEventCallback) throws ChannelTimedOutException {
 		if(executor == null) throw new NullPointerException();
@@ -137,6 +139,8 @@ class Channel {
 
 		assert channelDir.isDirectory();
 		this.channelDir = channelDir;
+
+		ackLog = new MessageLog(new File(channelDir, ACK_LOG));
 
 		File channelPropsFile = new File(channelDir, CHANNEL_PROPS_NAME);
 		if(!channelPropsFile.exists()) {
@@ -1064,6 +1068,15 @@ class Channel {
 			return true;
 		}
 
+		synchronized(ackLog) {
+			try {
+				ackLog.add(id);
+			} catch(IOException e) {
+				Logger.error(this, "Caugth IOException while writing to ack log: " + e);
+				return false;
+			}
+		}
+
 		BufferedReader br = msgprops.getReader();
 		if (br == null) {
 			Logger.error(this,"Got an invalid message. Discarding.");
@@ -1106,6 +1119,14 @@ class Channel {
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
 				throw new AssertionError();
+			}
+
+			synchronized(ackLog) {
+				try {
+					ackLog.remove(ackId);
+				} catch(IOException e) {
+					Logger.error(this, "Caugth IOException while writing to ack log: " + e);
+				}
 			}
 		}
 	}
