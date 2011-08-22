@@ -247,7 +247,7 @@ class Channel {
 
 		//Queue the CTS insert
 		queueCTS();
-		startTasks();
+		startFetcher();
 	}
 
 	void setRemoteIdentity(String remoteID) {
