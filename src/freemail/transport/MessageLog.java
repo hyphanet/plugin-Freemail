@@ -27,9 +27,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
-class MessageLog {
+class MessageLog implements Iterable<Long> {
 	private final File logfile;
 
 	private Set<Long> presentIds = null;
@@ -62,6 +63,11 @@ class MessageLog {
 
 		presentIds.remove(Long.valueOf(id));
 		writeIds();
+	}
+
+	@Override
+	public Iterator<Long> iterator() {
+		return presentIds.iterator();
 	}
 
 	private void readIds() throws IOException {

@@ -283,6 +283,11 @@ class Channel {
 	void startTasks() {
 		startFetcher();
 		startRTSSender();
+
+		//Start insert of acks that were written to disk but not inserted
+		for(Long id : ackLog) {
+			executor.execute(new AckInserter(id));
+		}
 	}
 
 	private void startFetcher() {
