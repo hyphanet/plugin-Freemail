@@ -1135,6 +1135,8 @@ class Channel {
 						Logger.error(this, "Caugth IOException while writing to ack log: " + e);
 					}
 				}
+			} else {
+				executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 			}
 		}
 	}
