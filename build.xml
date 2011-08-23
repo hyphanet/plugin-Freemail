@@ -96,7 +96,7 @@
 
 	       <!-- Copy l10n and css -->
 		<copy todir="${build}">
-			<fileset dir="src/">
+			<fileset dir="${src}">
 				<include name="freemail/l10n/*.l10n" />
 				<include name="freemail/ui/web/css/*.css" />
 			</fileset>
