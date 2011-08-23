@@ -65,7 +65,11 @@ class MessageLog {
 		writeIds();
 	}
 
-	public Iterator<Long> iterator() {
+	public Iterator<Long> iterator() throws IOException {
+		if(presentIds == null) {
+			readIds();
+		}
+
 		return presentIds.iterator();
 	}
 

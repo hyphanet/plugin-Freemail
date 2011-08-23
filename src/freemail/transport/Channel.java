@@ -293,12 +293,16 @@ class Channel {
 		startRTSSender();
 
 		//Start insert of acks that were written to disk but not inserted
-		synchronized(ackLog) {
-			Iterator<Long> it = ackLog.iterator();
-			while(it.hasNext()) {
-				Long id = it.next();
-				executor.execute(new AckInserter(id));
+		try {
+			synchronized(ackLog) {
+				Iterator<Long> it = ackLog.iterator();
+				while(it.hasNext()) {
+					Long id = it.next();
+					executor.execute(new AckInserter(id));
+				}
 			}
+		} catch(IOException e) {
+			Logger.error(this, "Caugth IOException while checking acklog: " + e);
 		}
 
 		//Start the CTS sender if needed
