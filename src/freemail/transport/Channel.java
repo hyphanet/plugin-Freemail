@@ -292,8 +292,10 @@ class Channel {
 		startRTSSender();
 
 		//Start insert of acks that were written to disk but not inserted
-		for(Long id : ackLog) {
-			executor.execute(new AckInserter(id));
+		synchronized(ackLog) {
+			for(Long id : ackLog) {
+				executor.execute(new AckInserter(id));
+			}
 		}
 
 		//Start the CTS sender if needed
