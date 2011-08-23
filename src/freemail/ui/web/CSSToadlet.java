@@ -33,7 +33,7 @@ import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
 public class CSSToadlet extends WebPage {
-	private static final String PATH = WebInterface.PATH + "/static/css/";
+	private static final String PATH = WebInterface.PATH + "/static/css";
 
 	CSSToadlet(PluginRespirator pluginRespirator) {
 		super(pluginRespirator);
