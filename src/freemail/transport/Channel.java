@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
+import java.util.Iterator;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -293,7 +294,9 @@ class Channel {
 
 		//Start insert of acks that were written to disk but not inserted
 		synchronized(ackLog) {
-			for(Long id : ackLog) {
+			Iterator<Long> it = ackLog.iterator();
+			while(it.hasNext()) {
+				Long id = it.next();
 				executor.execute(new AckInserter(id));
 			}
 		}

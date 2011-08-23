@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-class MessageLog implements Iterable<Long> {
+class MessageLog {
 	private final File logfile;
 
 	private Set<Long> presentIds = null;
@@ -65,7 +65,6 @@ class MessageLog implements Iterable<Long> {
 		writeIds();
 	}
 
-	@Override
 	public Iterator<Long> iterator() {
 		return presentIds.iterator();
 	}
