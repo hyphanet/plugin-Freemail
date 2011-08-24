@@ -95,7 +95,15 @@ public class IdentityMatcher {
 			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity.getIdentityID());
 		}
 
-		String identityAddress = identity.getNickname() + "@" + base32Id + ".freemail";
+		String identityAddress = identity.getNickname() + "@" + base32Id.toLowerCase() + ".freemail";
+
+		//Change the recipient address to lower case, but leave the nickname in the original case
+		if(recipient.contains("@")) {
+			String recipientNickname = recipient.substring(0, recipient.indexOf("@"));
+			String recipientDomain = recipient.substring(recipient.indexOf("@") + 1);
+			recipient = recipientNickname + "@" + recipientDomain.toLowerCase();
+		}
+
 		return identityAddress.startsWith(recipient);
 	}
 
