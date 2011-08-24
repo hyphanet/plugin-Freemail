@@ -46,7 +46,7 @@ public class CSSToadlet extends WebPage {
 
 	@Override
 	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		String filename = uri.getPath().substring(PATH.length());
+		String filename = uri.getPath().substring(PATH.length() + "/".length());
 
 		//Check that the filename has the expected format
 		if(!filename.matches("[a-zA-Z0-9]+\\.css")) {
