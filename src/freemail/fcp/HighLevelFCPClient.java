@@ -144,6 +144,7 @@ public class HighLevelFCPClient implements FCPClient {
 				startedAt = System.currentTimeMillis();
 				break;
 			} catch (NoNodeConnectionException nnce) {
+				Logger.error(this,"Warning - no connection to node. Waiting...");
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException ie) {
