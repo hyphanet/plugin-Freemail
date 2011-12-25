@@ -19,8 +19,6 @@
 
 package freemail.fcp;
 
-import freemail.utils.Logger;
-
 public class FCPFetchException extends FCPException {
 	static final long serialVersionUID = -1;
 	
