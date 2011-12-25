@@ -752,15 +752,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		StringBuffer buf = new StringBuffer("");
 		
 		String[] parts = IMAPMessage.doSplit(attr, '(', ')');
-		int i = 0;
-		if (i < parts.length) {
-			if (parts[i].equalsIgnoreCase("header.fields")) {
-				i++;
-				this.ps.print("[HEADER.FIELDS "+parts[i]+"]");
-				if (parts[i].charAt(0) == '(')
-					parts[i] = parts[i].substring(1);
-				if (parts[i].charAt(parts[i].length() - 1) == ')')
-					parts[i] = parts[i].substring(0, parts[i].length() - 1);
+		if (parts.length > 0) {
+			if (parts[0].equalsIgnoreCase("header.fields")) {
+				this.ps.print("[HEADER.FIELDS "+parts[1]+"]");
+				if (parts[1].charAt(0) == '(')
+					parts[1] = parts[1].substring(1);
+				if (parts[1].charAt(parts[1].length() - 1) == ')')
+					parts[1] = parts[1].substring(0, parts[1].length() - 1);
 				
 				try {
 					mmsg.readHeaders();
@@ -768,12 +766,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					
 				}
 				
-				String[] fields = parts[i].split(" ");
+				String[] fields = parts[1].split(" ");
 				for (int j = 0; j < fields.length; j++) {
 					buf.append(mmsg.getHeaders(fields[j]));
 				}
 				buf.append("\r\n");
-			} else if (parts[i].equalsIgnoreCase("header")) {
+			} else if (parts[0].equalsIgnoreCase("header")) {
 				// send all the header fields
 				try {
 					mmsg.readHeaders();
@@ -782,7 +780,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				
 				buf.append(mmsg.getAllHeadersAsString());
 				buf.append("\r\n");
-			} else if (parts[i].equalsIgnoreCase("text")) {
+			} else if (parts[0].equalsIgnoreCase("text")) {
 				// just send the text of the message without headers
 				mmsg.closeStream();
 				String line;
