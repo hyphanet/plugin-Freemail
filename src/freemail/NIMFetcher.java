@@ -48,7 +48,7 @@ public class NIMFetcher extends Postman {
 		this.contact_dir = ctdir;
 	}
 	
-	public void fetch() throws ConnectionTerminatedException {
+	public void fetch() throws ConnectionTerminatedException, InterruptedException {
 		NIMContact contact = new NIMContact(this.contact_dir);
 		
 		int i;
@@ -72,7 +72,8 @@ public class NIMFetcher extends Postman {
 		contact.pruneLogs(cal.getTime());
 	}
 	
-	private void fetch_day(NIMContact contact, MailLog log, String date) throws ConnectionTerminatedException {
+	private void fetch_day(NIMContact contact, MailLog log, String date) throws ConnectionTerminatedException,
+	                                                                            InterruptedException {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		

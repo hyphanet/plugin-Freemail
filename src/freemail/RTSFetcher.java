@@ -77,12 +77,13 @@ public class RTSFetcher implements SlotSaveCallback {
 		this.account = acc;
 	}
 	
-	public void poll() throws ConnectionTerminatedException {
+	public void poll() throws ConnectionTerminatedException, InterruptedException {
 		this.fetch();
 		this.handle_unprocessed();
 	}
 	
-	private void handle_unprocessed() throws ConnectionTerminatedException {
+	private void handle_unprocessed() throws ConnectionTerminatedException, NumberFormatException,
+	                                         InterruptedException {
 		File[] files = this.contact_dir.listFiles();
 		
 		int i;
@@ -112,7 +113,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 	}
 	
-	private void fetch() throws ConnectionTerminatedException {
+	private void fetch() throws ConnectionTerminatedException, InterruptedException {
 		int i;
 		RTSLog log = new RTSLog(new File(this.contact_dir, LOGFILE));
 		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
@@ -144,7 +145,8 @@ public class RTSFetcher implements SlotSaveCallback {
 	 * @return true if the day was sucessfully polled, false if there were network-type errors and the polling shouldn't count
 	 *              as a valid check of that day's slots.
 	 */
-	private boolean fetch_day(RTSLog log, String date) throws ConnectionTerminatedException {
+	private boolean fetch_day(RTSLog log, String date) throws ConnectionTerminatedException,
+	                                                          InterruptedException {
 		HighLevelFCPClient fcpcli;
 		fcpcli = new HighLevelFCPClient();
 		
@@ -211,7 +213,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		cbdata.log.putSlots(cbdata.date, slots);
 	}
 	
-	private boolean handle_rts(File rtsmessage) throws ConnectionTerminatedException {
+	private boolean handle_rts(File rtsmessage) throws ConnectionTerminatedException, InterruptedException {
 		// sanity check!
 		if (!rtsmessage.exists()) return false;
 		

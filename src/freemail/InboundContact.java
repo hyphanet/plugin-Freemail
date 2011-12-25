@@ -71,7 +71,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		return this.ibct_props.get(key);
 	}
 	
-	public void fetch(MessageBank mb) {
+	public void fetch(MessageBank mb) throws InterruptedException {
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 		
 		String slots = this.ibct_props.get("slots");
@@ -202,7 +202,8 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		this.ibct_props.put("slots", s);
 	}
 	
-	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
+	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException,
+	                                                      InterruptedException {
 		String sd = from.getSubDomain();
 		if (sd == null) {
 			// well that's definitely not valid. Piffle!

@@ -159,13 +159,14 @@ public class SingleAccountWatcher implements Runnable {
 				long runtime = System.currentTimeMillis() - start;
 				
 				if (MIN_POLL_DURATION - runtime > 0) {
-					try {
-						Thread.sleep(MIN_POLL_DURATION - runtime);
-					} catch (InterruptedException ie) {
-					}
+					Thread.sleep(MIN_POLL_DURATION - runtime);
 				}
 			} catch (ConnectionTerminatedException cte) {
 
+			} catch (InterruptedException ie) {
+				Logger.debug(this, "SingleAccountWatcher interrupted, stopping");
+				kill();
+				break;
 			}
 		}
 	}
