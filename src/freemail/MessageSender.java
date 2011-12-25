@@ -53,12 +53,12 @@ public class MessageSender implements Runnable {
 		accountManager = accMgr;
 	}
 	
-	public void sendMessage(FreemailAccount fromAccount, Vector to, File msg) throws IOException {
+	public void sendMessage(FreemailAccount fromAccount, Vector<EmailAddress> to, File msg) throws IOException {
 		File outbox = new File(fromAccount.getAccountDir(), OUTBOX_DIR);
 		
-		Enumeration e = to.elements();
+		Enumeration<EmailAddress> e = to.elements();
 		while (e.hasMoreElements()) {
-			EmailAddress email = (EmailAddress) e.nextElement();
+			EmailAddress email = e.nextElement();
 			
 			this.copyToOutbox(msg, outbox, email.user + "@" + email.domain);
 		}
@@ -103,10 +103,10 @@ public class MessageSender implements Runnable {
 			long start = System.currentTimeMillis();
 			
 			// iterate through users
-			Iterator i = accountManager.getAllAccounts().iterator();
+			Iterator<FreemailAccount> i = accountManager.getAllAccounts().iterator();
 			while (i.hasNext()) {
 				if(stopping) break;
-				FreemailAccount acc = (FreemailAccount)i.next();
+				FreemailAccount acc = i.next();
 				
 				File outbox = new File(acc.getAccountDir(), OUTBOX_DIR);
 				if (!outbox.exists()) outbox.mkdir();

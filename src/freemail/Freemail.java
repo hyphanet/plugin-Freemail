@@ -47,14 +47,14 @@ public abstract class Freemail implements ConfigClient {
 	protected static FCPConnection fcpconn = null;
 	
 	private Thread fcpThread;
-	private ArrayList /* of Thread */ singleAccountWatcherThreadList = new ArrayList();
+	private ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
 	private Thread messageSenderThread;
 	private Thread smtpThread;
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
-	private final ArrayList singleAccountWatcherList = new ArrayList();
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
 	private final MessageSender sender;
 	private final SMTPListener smtpl;
 	private final AckProcrastinator ackinserter;
@@ -162,9 +162,9 @@ public abstract class Freemail implements ConfigClient {
 		System.out.println("");
 		
 		// start a SingleAccountWatcher for each account
-		Iterator i = accountManager.getAllAccounts().iterator();
+		Iterator<FreemailAccount> i = accountManager.getAllAccounts().iterator();
 		while (i.hasNext()) {
-			FreemailAccount acc = (FreemailAccount)i.next();
+			FreemailAccount acc = i.next();
 			
 			startWorker(acc, daemon);
 		}
@@ -181,10 +181,10 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	public void terminate() {
-		Iterator it = singleAccountWatcherList.iterator();
-		while(it.hasNext()) {
-			((SingleAccountWatcher)it.next()).kill();
-			it.remove();
+		Iterator<SingleAccountWatcher> sawIterator = singleAccountWatcherList.iterator();
+		while(sawIterator.hasNext()) {
+			sawIterator.next().kill();
+			sawIterator.remove();
 		}
 
 		sender.kill();
@@ -198,10 +198,10 @@ public abstract class Freemail implements ConfigClient {
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				it = singleAccountWatcherThreadList.iterator();
-				while(it.hasNext()) {
-					((Thread)it.next()).join();
-					it.remove();
+				Iterator<Thread> threadIterator = singleAccountWatcherThreadList.iterator();
+				while(threadIterator.hasNext()) {
+					threadIterator.next().join();
+					threadIterator.remove();
 				}
 				
 				if (messageSenderThread != null) {

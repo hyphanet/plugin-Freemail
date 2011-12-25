@@ -32,7 +32,7 @@ import java.util.Iterator;
 
 class MailLog {
 	private final File logfile;
-	private HashMap messages;
+	private HashMap<Integer, String> messages;
 	private int lastMessageId;
 	private int passes;
 	
@@ -40,7 +40,7 @@ class MailLog {
 		this.lastMessageId = 0;
 		this.passes = 0;
 		
-		this.messages = new HashMap();
+		this.messages = new HashMap<Integer, String>();
 		this.logfile = logfile;
 		
 		FileReader frdr;
@@ -107,12 +107,12 @@ class MailLog {
 		
 		pw.println("passes="+this.passes);
 		
-		Iterator i = this.messages.entrySet().iterator();
+		Iterator<Map.Entry<Integer, String>> i = this.messages.entrySet().iterator();
 		while (i.hasNext()) {
-			Map.Entry e = (Map.Entry)i.next();
+			Map.Entry<Integer, String> e = i.next();
 			
-			Integer num = (Integer)e.getKey();
-			String checksum = (String)e.getValue();
+			Integer num = e.getKey();
+			String checksum = e.getValue();
 			pw.println(num.toString()+"="+checksum);
 		}
 		
