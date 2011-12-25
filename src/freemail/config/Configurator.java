@@ -32,7 +32,7 @@ import freemail.utils.PropsFile;
 
 public class Configurator {
 	private final PropsFile props;
-	private final HashMap callbacks;
+	private final HashMap<String, ConfigClient> callbacks;
 
 	public Configurator(File f) {
 		this.props = PropsFile.createPropsFile(f);
@@ -50,7 +50,7 @@ public class Configurator {
 		head.append("# of editing this file.");
 		
 		this.props.setHeader(head.toString());
-		this.callbacks = new HashMap();
+		this.callbacks = new HashMap<String, ConfigClient>();
 	}
 	
 	/**
@@ -76,7 +76,7 @@ public class Configurator {
 	public void set(String key, String val) {
 		this.props.put(key, val);
 		
-		ConfigClient cb = (ConfigClient)this.callbacks.get(key);
+		ConfigClient cb = this.callbacks.get(key);
 		if (cb == null) return;
 		cb.setConfigProp(key, val);
 	}
