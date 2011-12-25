@@ -39,6 +39,14 @@ public class SingleAccountWatcher implements Runnable {
 	public static final String INBOUND_DIR = "inbound";
 	public static final String OUTBOUND_DIR = "outbound";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
+
+	//The timeouts for fetch and send. To avoid wasting time sleeping in the
+	//run() loop, these should be >= MIN_POLL_DURATION. The main function of
+	//these timeouts is to prevent sending/receiving large amounts of messages
+	//from blocking other contacts and tasks.
+	private static final long FETCH_TIMEOUT = 10 * MIN_POLL_DURATION;
+	private static final long SEND_TIMEOUT = 10 * MIN_POLL_DURATION;
+
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
@@ -124,7 +132,7 @@ public class SingleAccountWatcher implements Runnable {
 					for (i = 0; i < obcontacts.length; i++) {
 						try {
 							OutboundContact obct = new OutboundContact(account, obcontacts[i]);
-							obct.doComm(MIN_POLL_DURATION);
+							obct.doComm(SEND_TIMEOUT);
 						} catch (IOException ioe) {
 							Logger.error(this, "Failed to create outbound contact - not sending mail");
 						}
@@ -149,7 +157,7 @@ public class SingleAccountWatcher implements Runnable {
 						
 						InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
 						
-						ibct.fetch(account.getMessageBank(), MIN_POLL_DURATION);
+						ibct.fetch(account.getMessageBank(), FETCH_TIMEOUT);
 					}
 				}
 				if(stopping) {
