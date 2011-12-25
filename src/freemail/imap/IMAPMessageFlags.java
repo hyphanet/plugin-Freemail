@@ -83,14 +83,14 @@ public class IMAPMessageFlags {
 		return buf.toString();
 	}
 
-	private Vector flags;
+	private Vector<String> flags;
 	
 	public IMAPMessageFlags() {
-		this.flags = new Vector();
+		this.flags = new Vector<String>();
 	}
 	
 	public IMAPMessageFlags(String shortflags) {
-		this.flags = new Vector();
+		this.flags = new Vector<String>();
 		for (int i = 0; i < allShortFlags.length; i++) {
 			if (shortflags.indexOf(allShortFlags[i]) >= 0) {
 				this.flags.add(allFlags[i]);

@@ -281,13 +281,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.sendState("FLAGS ("+IMAPMessageFlags.getAllFlagsAsString()+")");
 		this.sendState("OK [PERMANENTFLAGS (\\* "+IMAPMessageFlags.getPermanentFlagsAsString()+")] Limited");
 			
-		SortedMap msgs = this.mb.listMessages();
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 			
 		int numrecent = 0;
 		int numexists = msgs.size();
 		while (msgs.size() > 0) {
-			Integer current = (Integer)(msgs.firstKey());
-			MailMessage m =(MailMessage)msgs.get(msgs.firstKey());
+			Integer current = msgs.firstKey();
+			MailMessage m =msgs.get(msgs.firstKey());
 				
 			// if it's recent, add to the tally
 			if (m.flags.get("\\Recent")) numrecent++;
@@ -328,7 +328,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		SortedMap msgs = this.mb.listMessages();
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 		
 		if (msgs.size() == 0) {
 			this.reply(msg, "OK Fetch completed");
@@ -366,14 +366,14 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 		
 		for (int i = 1; msgs.size() > 0; i++) {
-			Integer current = (Integer)(msgs.firstKey());
+			Integer current = msgs.firstKey();
 			if (i < from) {
 				msgs = msgs.tailMap(new Integer(current.intValue()+1));
 				continue;
 			}
 			if (i > to) break;
 			
-			if (!this.fetch_single((MailMessage)msgs.get(msgs.firstKey()), msg.args, 1, false)) {
+			if (!this.fetch_single(msgs.get(msgs.firstKey()), msg.args, 1, false)) {
 				this.reply(msg, "BAD Unknown attribute in list or unterminated list");
 				return;
 			}
@@ -402,7 +402,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		SortedMap msgs = this.mb.listMessages();
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 		
 		if (msgs.size() == 0) {
 			if (msg.args[0].toLowerCase().equals("fetch")) {
@@ -426,7 +426,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		// build a set from the uid ranges, first separated by , then by :
 		// if that fails, its probably an unsupported command
 
-		TreeSet ts=new TreeSet();
+		TreeSet<Integer> ts=new TreeSet<Integer>();
 		try {
 			String[] rangeparts = msg.args[1].split(",");
 		
@@ -437,7 +437,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				} else {
 					from=Integer.parseInt(vals[0]);
 					if(vals[1].equals("*")) {
-						to=((Integer)msgs.lastKey()).intValue();
+						to=msgs.lastKey().intValue();
 					} else {
 						to=Integer.parseInt(vals[1]);
 					}
@@ -454,15 +454,15 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		if (msg.args[0].equalsIgnoreCase("fetch")) {
 
-			Iterator it=ts.iterator();
+			Iterator<Integer> it=ts.iterator();
 			
 			while(it.hasNext()) {
-				Integer curuid = (Integer)it.next();
+				Integer curuid = it.next();
 
-				MailMessage mm=(MailMessage)msgs.get(curuid);
+				MailMessage mm=msgs.get(curuid);
 				
 				if(mm!=null) {
-					if (!this.fetch_single((MailMessage)msgs.get(curuid), msg.args, 2, true)) {
+					if (!this.fetch_single(msgs.get(curuid), msg.args, 2, true)) {
 						this.reply(msg, "BAD Unknown attribute in list or unterminated list");
 						return;
 					}
@@ -473,12 +473,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} else if (msg.args[0].equalsIgnoreCase("store")) {
 			MailMessage[] targetmsgs = new MailMessage[ts.size()];
 
-			Iterator it=ts.iterator();
+			Iterator<Integer> it=ts.iterator();
 
 			int count=0;
 			while(it.hasNext()) {
-				Integer curuid = (Integer)it.next();
-				MailMessage m=(MailMessage)msgs.get(curuid);
+				Integer curuid = it.next();
+				MailMessage m=msgs.get(curuid);
 				if(m!=null) {
 					targetmsgs[count] = m;
 					count++;
@@ -511,12 +511,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			
 			int copied = 0;
 
-			Iterator it=ts.iterator();
+			Iterator<Integer> it=ts.iterator();
 
 			while(it.hasNext()) {
-				Integer curuid = (Integer)it.next();
+				Integer curuid = it.next();
 								
-				MailMessage srcmsg = (MailMessage)msgs.get(curuid);
+				MailMessage srcmsg = msgs.get(curuid);
 				
 				if(srcmsg!=null) {
 					MailMessage copymsg = target.createMessage();
@@ -536,7 +536,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private boolean fetch_single(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
-		String[] imap_args = (String[]) args.clone();
+		String[] imap_args = args.clone();
 		this.ps.print("* "+msg.getSeqNum()+" FETCH (");
 		
 		// do the first attribute, if it's a loner.
@@ -988,7 +988,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		SortedMap msgs = statmb.listMessages();
+		SortedMap<Integer, MailMessage> msgs = statmb.listMessages();
 		
 		// gather statistics
 		int numrecent = 0;
@@ -996,8 +996,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		int nummessages = msgs.size();
 		int lastuid = 0;
 		while (msgs.size() > 0) {
-			Integer current = (Integer)(msgs.firstKey());
-			MailMessage m =(MailMessage)msgs.get(msgs.firstKey());
+			Integer current = msgs.firstKey();
+			MailMessage m =msgs.get(msgs.firstKey());
 				
 			// if it's recent, add to the tally
 			if (m.flags.get("\\Recent")) numrecent++;

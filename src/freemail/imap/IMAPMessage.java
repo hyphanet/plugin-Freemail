@@ -55,9 +55,9 @@ public class IMAPMessage {
 	
 	// split on spaces that aren't between two given characters
 	public static String[] doSplit(String in, char[] c1, char[] c2) {
-		Vector parts = new Vector();
+		Vector<String> parts = new Vector<String>();
 		StringBuffer buf = new StringBuffer("");
-		Stack context = new Stack();
+		Stack<Character> context = new Stack<Character>();
 		
 		for (int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
@@ -70,7 +70,7 @@ public class IMAPMessage {
 				}
 			}
 			
-			if (!context.empty() && c == ((Character)context.peek()).charValue()) {
+			if (!context.empty() && c == context.peek().charValue()) {
 				context.pop();
 				buf.append(c);
 			} else if (pos >= 0) {
@@ -89,7 +89,7 @@ public class IMAPMessage {
 		String[] retval = new String[parts.size()];
 		
 		for (int i = 0; i < parts.size(); i++) {
-			retval[i] = (String)parts.get(i);
+			retval[i] = parts.get(i);
 		}
 		
 		return retval;
