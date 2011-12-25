@@ -112,7 +112,13 @@ public class HighLevelFCPClient implements FCPClient {
 		
 		this.donemsg = null;
 		while (this.donemsg == null) {
-			this.wait();
+			try {
+				this.wait();
+			} catch (InterruptedException ie) {
+				Logger.debug(this, "HighLevelFCPClient interrupted in makeSSK, stopping");
+				conn.cancelRequest(msg);
+				throw ie;
+			}
 		}
 		
 		if (this.donemsg.getType().equalsIgnoreCase("SSKKeypair")) {
@@ -155,7 +161,13 @@ public class HighLevelFCPClient implements FCPClient {
 
 				return new FCPPutFailedException(FCPPutFailedException.TIMEOUT, false);
 			}
-			this.wait(30000);
+			try {
+				this.wait(30000);
+			} catch (InterruptedException ie) {
+				Logger.debug(this, "HighLevelFCPClient interrupted in put, stopping");
+				conn.cancelRequest(msg);
+				throw ie;
+			}
 		}
 		
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
