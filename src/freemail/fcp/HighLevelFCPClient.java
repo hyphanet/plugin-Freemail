@@ -128,7 +128,8 @@ public class HighLevelFCPClient implements FCPClient {
 	
 	public synchronized FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
 	                                                                                   ConnectionTerminatedException,
-	                                                                                   FCPException {
+	                                                                                   FCPException,
+	                                                                                   InterruptedException {
 		FCPMessage msg = this.conn.getMessage("ClientPut");
 		msg.headers.put("URI", key);
 		msg.headers.put("Persistence", "connection");
@@ -141,10 +142,7 @@ public class HighLevelFCPClient implements FCPClient {
 				startedAt = System.currentTimeMillis();
 				break;
 			} catch (NoNodeConnectionException nnce) {
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException ie) {
-				}
+				Thread.sleep(5000);
 			}
 		}
 		
@@ -157,10 +155,7 @@ public class HighLevelFCPClient implements FCPClient {
 
 				return new FCPPutFailedException(FCPPutFailedException.TIMEOUT, false);
 			}
-			try {
-				this.wait(30000);
-			} catch (InterruptedException ie) {
-			}
+			this.wait(30000);
 		}
 		
 		if (this.donemsg.getType().equalsIgnoreCase("PutSuccessful")) {
@@ -172,7 +167,8 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public int SlotInsert(File data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException {
+	public int SlotInsert(File data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException,
+	                                                                                    InterruptedException {
 		int slot = minslot;
 		boolean carryon = true;
 		FileInputStream fis;
@@ -209,7 +205,8 @@ public class HighLevelFCPClient implements FCPClient {
 		return -1;
 	}
 	
-	public int slotInsert(byte[] data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException {
+	public int slotInsert(byte[] data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException,
+	                                                                                      InterruptedException {
 		int slot = minslot;
 		boolean carryon = true;
 		ByteArrayInputStream bis;
