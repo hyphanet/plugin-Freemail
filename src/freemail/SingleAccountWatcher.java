@@ -149,7 +149,7 @@ public class SingleAccountWatcher implements Runnable {
 						
 						InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
 						
-						ibct.fetch(account.getMessageBank());
+						ibct.fetch(account.getMessageBank(), MIN_POLL_DURATION);
 					}
 				}
 				if(stopping) {
