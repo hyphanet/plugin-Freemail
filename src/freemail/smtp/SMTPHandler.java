@@ -51,7 +51,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	
 	private final AccountManager accountmanager;
 	
-	private Vector to;
+	private Vector<EmailAddress> to;
 	
 	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender) throws IOException {
 		super(client);
@@ -62,7 +62,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		
-		this.to = new Vector();
+		this.to = new Vector<EmailAddress>();
 	}
 	
 	public void run() {
