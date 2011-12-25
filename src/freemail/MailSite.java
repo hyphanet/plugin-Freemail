@@ -138,6 +138,7 @@ public class MailSite {
 			err = cli.put(bis, "KSK@"+alias+ALIAS_SUFFIX);
 		} catch (FCPBadFileException bfe) {
 				// impossible
+			throw new AssertionError();
 		} catch (ConnectionTerminatedException cte) {
 			return false;
 		} catch (FCPException e) {

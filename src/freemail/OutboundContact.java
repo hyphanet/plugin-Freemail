@@ -505,6 +505,7 @@ public class OutboundContact {
 			br = new BufferedReader(new FileReader(result));
 		} catch (FileNotFoundException fnfe) {
 			// impossible
+			throw new AssertionError();
 		}
 		
 		String addr;

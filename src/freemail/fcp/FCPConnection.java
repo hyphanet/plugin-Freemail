@@ -79,6 +79,7 @@ public class FCPConnection implements Runnable {
 		} catch (FCPBadFileException bfe) {
 			// won't be thrown from a hello, so should really
 			// never get here!
+			throw new AssertionError();
 		}
 	}
 	
