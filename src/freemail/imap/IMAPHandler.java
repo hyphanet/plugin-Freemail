@@ -752,7 +752,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		StringBuffer buf = new StringBuffer("");
 		
 		String[] parts = IMAPMessage.doSplit(attr, '(', ')');
-		for (int i = 0; i < parts.length; i++) {
+		int i = 0;
+		if (i < parts.length) {
 			if (parts[i].equalsIgnoreCase("header.fields")) {
 				i++;
 				this.ps.print("[HEADER.FIELDS "+parts[i]+"]");
