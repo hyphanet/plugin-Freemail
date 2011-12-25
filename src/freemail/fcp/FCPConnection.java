@@ -107,6 +107,9 @@ public class FCPConnection implements Runnable {
 					try {
 						Thread.sleep(10000);
 					} catch (InterruptedException ie) {
+						Logger.debug(this, "FCPConnection interrupted, stopping");
+						kill();
+						break;
 					}
 				}
 			}
