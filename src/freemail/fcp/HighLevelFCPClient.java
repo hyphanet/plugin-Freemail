@@ -94,7 +94,8 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 	
-	public synchronized SSKKeyPair makeSSK() throws ConnectionTerminatedException {
+	public synchronized SSKKeyPair makeSSK() throws ConnectionTerminatedException,
+	                                                InterruptedException {
 		FCPMessage msg = this.conn.getMessage("GenerateSSK");
 		
 		while (true) {
@@ -102,11 +103,8 @@ public class HighLevelFCPClient implements FCPClient {
 				this.conn.doRequest(this, msg);
 				break;
 			} catch (NoNodeConnectionException nnce) {
-				try {
-					Logger.error(this,"Warning - no connection to node. Waiting...");
-					Thread.sleep(5000);
-				} catch (InterruptedException ie) {
-				}
+				Logger.error(this,"Warning - no connection to node. Waiting...");
+				Thread.sleep(5000);
 			} catch (FCPBadFileException bfe) {
 				// won't be thrown since no data
 			}
@@ -114,10 +112,7 @@ public class HighLevelFCPClient implements FCPClient {
 		
 		this.donemsg = null;
 		while (this.donemsg == null) {
-			try {
-				this.wait();
-			} catch (InterruptedException ie) {
-			}
+			this.wait();
 		}
 		
 		if (this.donemsg.getType().equalsIgnoreCase("SSKKeypair")) {

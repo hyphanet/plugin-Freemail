@@ -213,7 +213,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException {
+	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException, InterruptedException {
 		SSKKeyPair ssk = new SSKKeyPair();
 		
 		ssk.pubkey = this.contactfile.get("commssk.pubkey");
@@ -233,7 +233,7 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException {
+	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException, InterruptedException {
 		SSKKeyPair ssk = new SSKKeyPair();
 		
 		ssk.pubkey = this.contactfile.get("ackssk.pubkey");

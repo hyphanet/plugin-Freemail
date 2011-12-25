@@ -111,6 +111,8 @@ public class FreemailCli extends Freemail {
 				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
 			} catch (IllegalArgumentException iae) {
 				System.out.println("Couldn't create account. Error: "+iae.getMessage());
+			} catch (InterruptedException e) {
+				System.out.println("Freemail was interrupted while the account was being created");
 			}
 			return;
 		} else if (action.equals("--passwd")) {
