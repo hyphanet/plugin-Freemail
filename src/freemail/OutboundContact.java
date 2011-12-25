@@ -654,9 +654,9 @@ public class OutboundContact {
 		return false;
 	}
 	
-	public void doComm() {
+	public void doComm(long timeout) {
 		try {
-			this.sendQueued();
+			this.sendQueued(timeout);
 			this.pollAcks();
 			this.checkCTS();
 		} catch (OutboundContactFatalException fe) {
@@ -667,7 +667,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void sendQueued(long timeout) throws ConnectionTerminatedException, OutboundContactFatalException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
@@ -681,6 +681,7 @@ public class OutboundContact {
 		
 		QueuedMessage[] msgs = this.getSendQueue();
 		
+		long start = System.nanoTime();
 		int i;
 		for (i = 0; i < msgs.length; i++) {
 			if (msgs[i] == null) continue;
@@ -757,6 +758,10 @@ public class OutboundContact {
 				} else {
 					Logger.normal(this,"Failed to insert "+key+" will try again soon. Error: "+err.errorcode);
 				}
+			}
+
+			if (System.nanoTime() > (start + (timeout * 1000 * 1000))) {
+				break;
 			}
 		}
 	}

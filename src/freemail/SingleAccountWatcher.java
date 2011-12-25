@@ -124,7 +124,7 @@ public class SingleAccountWatcher implements Runnable {
 					for (i = 0; i < obcontacts.length; i++) {
 						try {
 							OutboundContact obct = new OutboundContact(account, obcontacts[i]);
-							obct.doComm();
+							obct.doComm(MIN_POLL_DURATION);
 						} catch (IOException ioe) {
 							Logger.error(this, "Failed to create outbound contact - not sending mail");
 						}
