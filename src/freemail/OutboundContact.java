@@ -807,10 +807,17 @@ public class OutboundContact {
 					} else if (System.currentTimeMillis() > msgs[i].last_send_time + RTS_RETRANSMIT_DELAY) {
 						Logger.normal(this, "Resending RTS for contact");
 						init();
-						// bit of a fudge - this won't actually be the last send time, since we won't re-send messages at all now,
-						// it will be the last time the RTS was sent.
-						msgs[i].last_send_time = System.currentTimeMillis();
-						msgs[i].saveProps();
+
+						// bit of a fudge - this won't actually be the last send time, since we won't
+						// re-send messages at all now, it will be the last time the RTS was sent.
+						// Hack: We update the time for all the messages that have been sent since
+						// we only want to resend the RTS once, not once per message
+						for(int j = 0; j < msgs.length; j++) {
+							if(msgs[j] == null) continue;
+
+							msgs[j].last_send_time = System.currentTimeMillis();
+							msgs[j].saveProps();
+						}
 					}
 				}
 			} catch (FCPException e) {
