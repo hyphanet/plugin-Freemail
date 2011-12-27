@@ -778,6 +778,7 @@ public class OutboundContact {
 		HighLevelFCPClient fcpcli = null;
 		QueuedMessage[] msgs = this.getSendQueue();
 		
+		Logger.debug(this, "Starting from ack index " + nextAckIndex);
 		long start = System.nanoTime();
 		int i;
 		for (i = nextAckIndex; i < msgs.length; i++) {
