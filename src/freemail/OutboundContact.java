@@ -768,6 +768,7 @@ public class OutboundContact {
 			}
 
 			if (System.nanoTime() > (start + (timeout * 1000 * 1000))) {
+				Logger.debug(this, "Stopping message sending due to timeout");
 				break;
 			}
 		}
