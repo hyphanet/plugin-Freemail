@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.InterruptedException;
+import java.util.HashMap;
+import java.util.Map;
 
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
@@ -54,6 +56,7 @@ public class SingleAccountWatcher implements Runnable {
 	private final File obctdir;
 	private final File ibctdir;
 	private final FreemailAccount account;
+	private final Map<File, OutboundContact> obContacts = new HashMap<File, OutboundContact>();
 
 	SingleAccountWatcher(FreemailAccount acc) {
 		this.account = acc;
@@ -131,7 +134,11 @@ public class SingleAccountWatcher implements Runnable {
 					int i;
 					for (i = 0; i < obcontacts.length; i++) {
 						try {
-							OutboundContact obct = new OutboundContact(account, obcontacts[i]);
+							OutboundContact obct = obContacts.get(obcontacts[i]);
+							if(obct == null) {
+								obct = new OutboundContact(account, obcontacts[i]);
+								obContacts.put(obcontacts[i], obct);
+							}
 							obct.doComm(SEND_TIMEOUT);
 						} catch (IOException ioe) {
 							Logger.error(this, "Failed to create outbound contact - not sending mail");
