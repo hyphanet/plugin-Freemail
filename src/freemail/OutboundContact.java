@@ -32,8 +32,10 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.io.PrintWriter;
 
 import freemail.utils.EmailAddress;
@@ -289,7 +291,7 @@ public class OutboundContact {
 	 * for message 3. If there are no messages in transit, returns the next slot on which a message will be inserted.
 	 */
 	private String getCurrentLowestSlot() {
-		Set<QueuedMessage> queue = getSendQueue();
+		Set<QueuedMessage> queue = getSendQueue(null);
 		int lowestUid = Integer.MAX_VALUE;
 		String lowestSlot = null;
 
@@ -678,7 +680,10 @@ public class OutboundContact {
 		
 		HighLevelFCPClient fcpcli = null;
 		
-		Set<QueuedMessage> msgs = this.getSendQueue();
+		/* We sort the messages by uid since this is the order the other side will
+		 * attempt to fetch the messages. Using the same order improves performance
+		 * when sending a lot of messages. */
+		Set<QueuedMessage> msgs = this.getSendQueue(new MessageUidComparator());
 		
 		for (QueuedMessage msg : msgs) {
 			if (msg.last_send_time > 0) continue;
@@ -760,7 +765,7 @@ public class OutboundContact {
 	
 	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException {
 		HighLevelFCPClient fcpcli = null;
-		Set<QueuedMessage> msgs = this.getSendQueue();
+		Set<QueuedMessage> msgs = this.getSendQueue(null);
 		
 		for (QueuedMessage msg : msgs) {
 			if (msg.first_send_time < 0) continue;
@@ -816,9 +821,19 @@ public class OutboundContact {
 		}
 	}
 	
-	private Set<QueuedMessage> getSendQueue() {
+	/**
+	 * Returns the send queue for this contact.
+	 * @param comparator the Comparator used to sort the queue. If null, the queue will be unsorted.
+	 * @return the send queue for this contact
+	 */
+	private Set<QueuedMessage> getSendQueue(Comparator<? super QueuedMessage> comparator) {
 		File[] files = ctoutbox.listFiles();
-		Set<QueuedMessage> msgs = new HashSet<QueuedMessage>();
+		Set<QueuedMessage> msgs;
+		if(comparator == null) {
+			msgs = new HashSet<QueuedMessage>();
+		} else {
+			msgs = new TreeSet<QueuedMessage>(comparator);
+		}
 		
 		int i;
 		for (i = 0; i < files.length; i++) {
@@ -906,6 +921,13 @@ public class OutboundContact {
 			this.index.remove(this.uid+".last_send_time");
 			
 			return this.file.delete();
+		}
+	}
+
+	private class MessageUidComparator implements Comparator<QueuedMessage> {
+		@Override
+		public int compare(QueuedMessage msg1, QueuedMessage msg2) {
+			return msg1.uid - msg2.uid;
 		}
 	}
 }
