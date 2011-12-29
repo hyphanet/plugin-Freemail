@@ -131,7 +131,20 @@ public class IMAPHandlerTest extends TestCase {
 		public FreemailAccount authenticate(String username, String password) {
 			if(failAuth) return null;
 
-			return new FreemailAccount(username, accountDir, null);
+			//FreemailAccount constructor is package-protected and
+			//there is no reason to change that, so use reflection
+			//to construct a new account
+			try {
+				Class<FreemailAccount> freemailAccount = FreemailAccount.class;
+				Constructor<FreemailAccount> constructor = freemailAccount.getDeclaredConstructor(String.class, File.class, PropsFile.class);
+				constructor.setAccessible(true);
+				return constructor.newInstance(username, accountDir, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+				fail(e.toString());
+			}
+
+			return null;
 		}
 	}
 }
