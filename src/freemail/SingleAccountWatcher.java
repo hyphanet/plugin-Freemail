@@ -45,7 +45,7 @@ public class SingleAccountWatcher implements Runnable {
 	//these timeouts is to prevent sending/receiving large amounts of messages
 	//from blocking other contacts and tasks.
 	private static final long FETCH_TIMEOUT = 10 * MIN_POLL_DURATION;
-	private static final long SEND_TIMEOUT = 10 * MIN_POLL_DURATION;
+	private static final long SEND_TIMEOUT = 2 * 10 * MIN_POLL_DURATION;
 
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final NIMFetcher nf;

@@ -94,6 +94,13 @@ public class OutboundContact {
 	// If we last fetched the mailsite longer than this number of milliseconds
     // ago, re-fetch it.
 	private static final long MAILSITE_CACHE_TIME = 60 * 60 * 1000;
+
+	/**
+	 * Used to store the index of the next ack we should check. This is done so we won't start from
+	 * the beginning if we stopped due to a timeout, but instead start where we left of.
+	 */
+	//FIXME: This behaves badly when the outbox changes
+	private int nextAckIndex = 0;
 	
 	public OutboundContact(FreemailAccount acc, EmailAddress a) throws BadFreemailAddressException, IOException,
 	                                                           OutboundContactFatalException, ConnectionTerminatedException {
@@ -656,8 +663,8 @@ public class OutboundContact {
 	
 	public void doComm(long timeout) {
 		try {
-			this.sendQueued(timeout);
-			this.pollAcks();
+			this.sendQueued(timeout / 2);
+			this.pollAcks(timeout / 2);
 			this.checkCTS();
 		} catch (OutboundContactFatalException fe) {
 			Logger.error(this, "Fatal exception on outbound contact: "+fe.getMessage()+". This contact in invalid.");
@@ -766,12 +773,13 @@ public class OutboundContact {
 		}
 	}
 	
-	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void pollAcks(long timeout) throws ConnectionTerminatedException, OutboundContactFatalException {
 		HighLevelFCPClient fcpcli = null;
 		QueuedMessage[] msgs = this.getSendQueue();
 		
+		long start = System.nanoTime();
 		int i;
-		for (i = 0; i < msgs.length; i++) {
+		for (i = nextAckIndex; i < msgs.length; i++) {
 			if (msgs[i] == null) continue;
 			if (msgs[i].first_send_time < 0) continue;
 			
@@ -823,6 +831,16 @@ public class OutboundContact {
 				//Don't check the timeout here so we get at least one proper fetch attempt if this
 				//is a temporary problem
 			}
+
+			if(System.nanoTime() > start + (timeout * 1000 * 1000)) {
+				Logger.debug(this, "Stopping ack fetching due to timeout");
+				break;
+			}
+		}
+
+		nextAckIndex = i;
+		if(nextAckIndex >= msgs.length) {
+			nextAckIndex = 0;
 		}
 	}
 	
