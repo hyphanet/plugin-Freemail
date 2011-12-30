@@ -100,7 +100,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
 		HTMLNode shortnameContent = shortnameHelp.addChild("div", "class", "infobox-content");
 		shortnameContent.addChild("p",
-				"The short address is a shorter and more convenient form of your new email address." +
+				"The short address is a shorter and more convenient form of your new email address. " +
 				"If you select a short address domain you will get an additional email address " +
 				"that looks like this: <anything>@<short address>.freemail");
 		shortnameContent.addChild("p",
