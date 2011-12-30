@@ -149,6 +149,20 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 							configurator.get("imap_bind_port") + ". For SMTP the values are " +
 							getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
 							+ " respectively.");
+					text.addChild("br");
+					text.addChild("br");
+
+					String longAddress = newAccount.getUsername() + "@" +
+							AccountManager.getFreemailDomain(newAccount.getProps()).toLowerCase();
+					if (shortAddressWorked) {
+						text.addChild("#", "Your new addresses are:");
+						text.addChild("br");
+						text.addChild("#", longAddress);
+						text.addChild("br");
+						text.addChild("#", newAccount.getUsername() + "@" + domain + ".freemail");
+					} else {
+						text.addChild("#", "Your new address is " + longAddress);
+					}
 				} catch (IOException ioe) {
 					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
 					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
