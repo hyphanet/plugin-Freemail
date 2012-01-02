@@ -52,6 +52,7 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.FileBucket;
 
+import org.archive.util.Base32;
 import org.bouncycastle.util.encoders.Base64;
 
 public class SMTPHandler extends ServerHandler implements Runnable {
@@ -211,6 +212,18 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
+		if(uname.contains("@") && uname.endsWith(".freemail")) {
+			//Extract the base32 identity string and convert it to base64
+			uname = uname.substring(uname.indexOf("@") + 1,
+					uname.length() - ".freemail".length());
+
+			//We need to use the Freenet Base64 encoder here since it uses a slightly different set
+			//of characters
+			uname = freenet.support.Base64.encode(Base32.decode(uname));
+
+			Logger.debug(this, "Extracted Identity string: " + uname);
+		}
+
 		account = accountmanager.authenticate(uname, password);
 		if (account != null) {
 			this.ps.print("235 Authenticated\r\n");
