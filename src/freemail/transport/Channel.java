@@ -490,6 +490,7 @@ class Channel {
 			try {
 				timeout = Long.parseLong(rawTimeout);
 			} catch(NumberFormatException e) {
+				Logger.debug(this, "Returning false from canSendMessages(), parse error: " + rawTimeout);
 				return false;
 			}
 
