@@ -406,6 +406,12 @@ class Channel {
 	 */
 	private boolean insertMessage(Bucket message) throws IOException {
 		//FIXME: This locking must be broken up, since it blocks *everything*
+		/*
+		 * The problem here is the send slot. We don't want 2 or more inserts to
+		 * the same slot, especially at the same time so we need to reserve a slot
+		 * for the duration of the insert and then either release it (on failure)
+		 * or mark it as used later (on success).
+		 */
 		synchronized(channelProps) {
 			String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 			if(baseKey == null) {
