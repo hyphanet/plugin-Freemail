@@ -162,6 +162,14 @@ public class MessageHandler {
 					long num = Long.parseLong(f.getName());
 					Logger.debug(this, "Scheduling SenderTask for " + num);
 					tasks.put(Long.valueOf(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
+
+					synchronized (index) {
+						if(nextMessageNum <= num) {
+							Logger.error(this, "nextMessageNum (" + nextMessageNum + ") <= num (" + num + ") in start()");
+							nextMessageNum = num + 1;
+							index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + nextMessageNum);
+						}
+					}
 				} catch(NumberFormatException e) {
 					Logger.debug(this, "Found file with malformed name: " + f);
 					continue;
