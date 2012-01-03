@@ -97,7 +97,6 @@ class Channel {
 		private static final String PUBLIC_KEY = "publicKey";
 		private static final String FETCH_SLOT = "fetchSlot";
 		private static final String SEND_SLOT = "sendSlot";
-		private static final String MESSAGE_ID = "messageId";
 		private static final String SENDER_STATE = "sender-state";
 		private static final String RECIPIENT_STATE = "recipient-state";
 		private static final String RTS_SENT_AT = "rts-sent-at";
@@ -175,11 +174,6 @@ class Channel {
 				channelProps.put(PropsKeys.TIMEOUT, Long.MAX_VALUE);
 			}
 		}
-
-		//Message id is needed for queuing messages so it must be present
-		if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
-			channelProps.put(PropsKeys.MESSAGE_ID, "0");
-		}
 	}
 
 	void processRTS(PropsFile rtsProps) {
@@ -209,8 +203,7 @@ class Channel {
 			if(!privateKey.equals(channelProps.get(PropsKeys.PRIVATE_KEY))) {
 				/* The keys in the RTS are not the same as the ones we already have (if we have
 				 * any). This will happen when the other side deletes the channel and then sends us
-				 * another message. Delete the old values so we start using the new ones, except
-				 * message id since we might still have messages in the outbox.
+				 * another message. Delete the old values so we start using the new ones.
 				 */
 				channelProps.remove(PropsKeys.PRIVATE_KEY);
 				channelProps.remove(PropsKeys.PUBLIC_KEY);
@@ -240,10 +233,6 @@ class Channel {
 
 			if(channelProps.get(PropsKeys.SEND_SLOT) == null) {
 				channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get(RTSKeys.RESPONDER_SLOT));
-			}
-
-			if(channelProps.get(PropsKeys.MESSAGE_ID) == null) {
-				channelProps.put(PropsKeys.MESSAGE_ID, "0");
 			}
 
 			channelProps.put(PropsKeys.TIMEOUT, rtsProps.get("timeout"));
@@ -1143,12 +1132,6 @@ class Channel {
 		@Override
 		public void run() {
 			Logger.debug(this, "AckInserter(" + ackId + ") for " + Channel.this.toString() + " running");
-
-			long messageId;
-			synchronized(channelProps) {
-				messageId = Long.parseLong(channelProps.get(PropsKeys.MESSAGE_ID));
-				channelProps.put(PropsKeys.MESSAGE_ID, messageId + 1);
-			}
 
 			//Build the header of the inserted message
 			Bucket bucket = new ArrayBucket(
