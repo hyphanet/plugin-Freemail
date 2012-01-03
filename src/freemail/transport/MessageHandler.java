@@ -42,7 +42,6 @@ import freemail.MailMessage;
 import freemail.Postman;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
-import freemail.support.NumberedLock;
 import freemail.transport.Channel.ChannelEventCallback;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
@@ -88,10 +87,6 @@ public class MessageHandler {
 	private final ScheduledExecutorService executor;
 	private final AckCallback ackCallback = new AckCallback();
 	private final ConcurrentHashMap<Long, Future<?>> tasks = new ConcurrentHashMap<Long, Future<?>>();
-
-	/** Used to lock individual message ids. This lock must always be taken before
-	 *  the index lock if both are used */
-	private final NumberedLock messageIdLock = new NumberedLock();
 
 	/** Holds the number that should be used for the next message. Guarded by the index lock */
 	private long nextMessageNum = 0;
@@ -216,13 +211,8 @@ public class MessageHandler {
 				Closer.close(messageStream);
 			}
 
-			messageIdLock.lock(msgNum);
-			try {
-				synchronized(index) {
-					index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
-				}
-			} finally {
-				messageIdLock.unlock(msgNum);
+			synchronized(index) {
+				index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
 			}
 
 			tasks.put(Long.valueOf(msgNum), executor.submit(new SenderTask(msgNum)));
@@ -321,15 +311,10 @@ public class MessageHandler {
 			String firstSendTime;
 			String lastSendTime;
 
-			messageIdLock.lock(messageNum);
-			try {
-				synchronized(index) {
-					recipient = index.get(messageNum + IndexKeys.RECIPIENT);
-					firstSendTime = index.get(messageNum + IndexKeys.FIRST_SEND_TIME);
-					lastSendTime = index.get(messageNum + IndexKeys.LAST_SEND_TIME);
-				}
-			} finally {
-				messageIdLock.unlock(messageNum);
+			synchronized(index) {
+				recipient = index.get(messageNum + IndexKeys.RECIPIENT);
+				firstSendTime = index.get(messageNum + IndexKeys.FIRST_SEND_TIME);
+				lastSendTime = index.get(messageNum + IndexKeys.LAST_SEND_TIME);
 			}
 
 			OutboxMessage msg = new OutboxMessage(recipient, firstSendTime, lastSendTime, message);
@@ -402,40 +387,35 @@ public class MessageHandler {
 			Logger.debug(this, "SenderTask for message " + msgNum + " on account " + freemailAccount.getUsername() + " running");
 
 			long retryIn;
-			messageIdLock.lock(msgNum);
+			long lastSendTime;
 			try {
-				long lastSendTime;
-				try {
-					String time;
+				String time;
+				synchronized(index) {
+					time = index.get(msgNum + IndexKeys.LAST_SEND_TIME);
+				}
+				lastSendTime = Long.parseLong(time);
+			} catch(NumberFormatException e) {
+				lastSendTime = 0;
+			}
+
+			retryIn = (lastSendTime + RESEND_TIME) - System.currentTimeMillis();
+			if(retryIn <= 0) {
+				boolean inserted = sendMessage();
+				if(!inserted) {
+					//In most cases this is because the RTS hasn't been sent yet (so keys etc.
+					//haven't been generated yet), or because the insert failed
+					retryIn = 5 * 60 * 1000; //5 minutes
+				} else {
 					synchronized(index) {
-						time = index.get(msgNum + IndexKeys.LAST_SEND_TIME);
-					}
-					lastSendTime = Long.parseLong(time);
-				} catch(NumberFormatException e) {
-					lastSendTime = 0;
-				}
-
-				retryIn = (lastSendTime + RESEND_TIME) - System.currentTimeMillis();
-				if(retryIn <= 0) {
-					boolean inserted = sendMessage();
-					if(!inserted) {
-						//In most cases this is because the RTS hasn't been sent yet (so keys etc.
-						//haven't been generated yet), or because the insert failed
-						retryIn = 5 * 60 * 1000; //5 minutes
-					} else {
-						synchronized(index) {
-							String firstSentTime = index.get(msgNum + IndexKeys.FIRST_SEND_TIME);
-							if(firstSentTime == null) {
-								index.put(msgNum + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
-							}
-							index.put(msgNum + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
+						String firstSentTime = index.get(msgNum + IndexKeys.FIRST_SEND_TIME);
+						if(firstSentTime == null) {
+							index.put(msgNum + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
 						}
-
-						retryIn = RESEND_TIME;
+						index.put(msgNum + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
 					}
+
+					retryIn = RESEND_TIME;
 				}
-			} finally {
-				messageIdLock.unlock(msgNum);
 			}
 
 			//Schedule again when the resend is due
@@ -486,12 +466,7 @@ public class MessageHandler {
 				Logger.error(this, "Couldn't delete " + message);
 			}
 
-			messageIdLock.lock(id);
-			try {
-				deleteIndexEntries(id);
-			} finally {
-				messageIdLock.unlock(id);
-			}
+			deleteIndexEntries(id);
 
 			Future<?> task = tasks.remove(Long.valueOf(id));
 			if(task != null) {
