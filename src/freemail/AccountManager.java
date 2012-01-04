@@ -423,6 +423,11 @@ public class AccountManager {
 
 			Iterator<Thread> threadIt = singleAccountWatcherThreadList.iterator();
 			while(threadIt.hasNext()) {
+				threadIt.next().interrupt();
+			}
+
+			threadIt = singleAccountWatcherThreadList.iterator();
+			while(threadIt.hasNext()) {
 				try {
 					threadIt.next().join();
 				} catch (InterruptedException e) {
