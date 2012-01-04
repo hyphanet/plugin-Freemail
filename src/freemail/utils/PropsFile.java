@@ -36,7 +36,7 @@ import java.util.Hashtable;
 public class PropsFile {
 	// substitute static methods for constructor
 	
-	private static final Hashtable propsList=new Hashtable();
+	private static final Hashtable<String, PropsFile> propsList=new Hashtable<String, PropsFile>();
 	
 	private static int reapCounter = 0;
 	/// We go through the list and remove stale entries once in this many times a PropsFile is created
@@ -52,7 +52,7 @@ public class PropsFile {
 		
 		String fn=f.getPath();
 
-		PropsFile pf=(PropsFile)propsList.get(fn);
+		PropsFile pf=propsList.get(fn);
 		
 		if(pf!=null) {
 			return pf;
@@ -70,11 +70,11 @@ public class PropsFile {
 	public static void reapOld() {
 		Logger.debug(PropsFile.class, "Cleaning up stale PropsFiles");
 		
-		Iterator i = propsList.entrySet().iterator();
+		Iterator<Map.Entry<String, PropsFile>> i = propsList.entrySet().iterator();
 		
 		while (i.hasNext()) {
-			Map.Entry entry = (Map.Entry)i.next();
-			File f = new File((String)entry.getKey());
+			Map.Entry<String, PropsFile> entry = i.next();
+			File f = new File(entry.getKey());
 			if (!f.exists()) {
 				Logger.debug(PropsFile.class, "Removing "+f.getPath());
 				i.remove();
@@ -83,7 +83,7 @@ public class PropsFile {
 	}
 
 	private final File file;
-	private HashMap data;
+	private HashMap<String, String> data;
 	private BufferedReader bufrdr;
 	private String commentPrefix;
 	private String header;
@@ -115,7 +115,7 @@ public class PropsFile {
 	}
 	
 	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
-		this.data = new HashMap();
+		this.data = new HashMap<String, String>();
 		
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
 		
@@ -153,11 +153,11 @@ public class PropsFile {
 		
 		if (this.header != null) pw.println(this.header);
 		
-		Iterator i = this.data.entrySet().iterator();
+		Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
 		while (i.hasNext()) {
-			Map.Entry e = (Map.Entry) i.next();
-			String key = (String)e.getKey();
-			String val = (String)e.getValue();
+			Map.Entry<String, String> e = i.next();
+			String key = e.getKey();
+			String val = e.getValue();
 			
 			pw.println(key+"="+val);
 		}
@@ -168,12 +168,12 @@ public class PropsFile {
 	public String get(String key) {
 		if (this.data == null) return null;
 		
-		return (String)this.data.get(key);
+		return this.data.get(key);
 	}
 	
 	public boolean put(String key, String val) {
 		if (this.data == null) {
-			this.data = new HashMap();
+			this.data = new HashMap<String, String>();
 		}
 		
 		Object o = this.data.put(key, val);
@@ -196,7 +196,7 @@ public class PropsFile {
 		return this.file.exists();
 	}
 	
-	public Set listProps() {
+	public Set<String> listProps() {
 		return this.data.keySet();
 	}
 	
