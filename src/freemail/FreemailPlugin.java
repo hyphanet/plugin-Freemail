@@ -46,10 +46,12 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		super(CFGFILE);
 	}
 	
+	@Override
 	public String getVersion() {
 		return Version.getVersionString();
 	}
 	
+	@Override
 	public void runPlugin(PluginRespirator pr) {
 		pluginResp = pr;
 		
@@ -58,6 +60,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		startServers(true);
 	}
 
+	@Override
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
@@ -107,6 +110,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return pageNode.generate();
 	}
 
+	@Override
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
@@ -177,6 +181,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return null;
 	}
 
+	@Override
 	public long getRealVersion() {
 		return Version.BUILD_NO;
 	}

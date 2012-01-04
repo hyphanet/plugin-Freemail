@@ -96,6 +96,7 @@ public class IMAPMessage {
 	}
 	
 	// for debugging
+	@Override
 	public String toString() {
 		String retval = new String("");
 		

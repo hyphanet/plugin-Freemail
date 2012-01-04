@@ -61,6 +61,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.mb = null;
 	}
 	
+	@Override
 	public void run() {
 		this.sendWelcome();
 		

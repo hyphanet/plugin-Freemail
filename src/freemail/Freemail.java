@@ -116,6 +116,7 @@ public abstract class Freemail implements ConfigClient {
 		return accountManager;
 	}
 
+	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase("datadir")) {
 			datadir = new File(val);

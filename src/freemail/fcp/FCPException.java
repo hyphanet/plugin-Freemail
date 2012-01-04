@@ -81,6 +81,7 @@ public class FCPException extends Exception {
 		return new FCPException(msg);
 	}
 
+	@Override
 	public String toString() {
 		return "Message type " + fcpMessageType + " with error code " + errorcode;
 	}

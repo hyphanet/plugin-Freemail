@@ -48,6 +48,7 @@ public class SetupWizard implements ActionListener {
 
 	public static void main(String args[]) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				new SetupWizard().show();
 			}
@@ -144,6 +145,7 @@ public class SetupWizard implements ActionListener {
 		this.frame.validate();
 	}
 	
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == this.cancelbutton) {
 			System.exit(0);

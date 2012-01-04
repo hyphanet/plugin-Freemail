@@ -32,6 +32,7 @@ public class FCPContext implements ConfigClient {
 		return new Socket(this.hostname, this.port);
 	}
 	
+	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase("fcp_host")) {
 			hostname = val;

@@ -82,6 +82,7 @@ public class FCPConnection implements Runnable {
 		}
 	}
 	
+	@Override
 	public void run() {
 		while (!stopping) {
 			try {
@@ -126,6 +127,7 @@ public class FCPConnection implements Runnable {
 		}
 	}
 	
+	@Override
 	protected void finalize() throws Throwable {
 		try {
 			this.conn.close();

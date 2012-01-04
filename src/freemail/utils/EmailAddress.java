@@ -137,6 +137,7 @@ public class EmailAddress {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return this.user+"@"+this.domain;
 	}

@@ -56,6 +56,7 @@ public class FCPPutFailedException extends FCPException {
 		super(code, fatal);
 	}
 
+	@Override
 	public String toString() {
 		return "FCPPutFailedException (error code " + errorcode + ", " + (isFatal ? "fatal" : "not fatal") + ")";
 	}

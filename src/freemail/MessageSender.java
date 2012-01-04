@@ -97,6 +97,7 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
+	@Override
 	public void run() {
 		this.senderthread = Thread.currentThread();
 		while (!stopping) {

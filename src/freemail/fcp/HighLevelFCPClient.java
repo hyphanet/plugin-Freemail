@@ -245,10 +245,12 @@ public class HighLevelFCPClient implements FCPClient {
 		return -1;
 	}
 	
+	@Override
 	public void requestStatus(FCPMessage msg) {
 		
 	}
 	
+	@Override
 	public void requestFinished(FCPMessage msg) {
 		synchronized (this) {
 			this.donemsg = msg;

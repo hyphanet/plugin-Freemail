@@ -65,6 +65,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.to = new Vector<EmailAddress>();
 	}
 	
+	@Override
 	public void run() {
 		this.sendWelcome();
 		

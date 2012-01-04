@@ -101,6 +101,7 @@ public class SingleAccountWatcher implements Runnable {
 		}
 	}
 	
+	@Override
 	public void run() {
 		while (!stopping) {
 			try {
@@ -179,6 +180,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private static class outboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a base32 encoded filename
+		@Override
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z2-7]+");
 		}
@@ -186,6 +188,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private static class inboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a freenet key
+		@Override
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z0-9~-]+,[A-Za-z0-9~-]+,[A-Za-z0-9~-]+");
 		}

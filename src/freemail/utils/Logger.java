@@ -53,6 +53,7 @@ public class Logger implements ConfigClient {
 	
 	static private SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
 	
+	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equals("loglevel")) {
 			String[] levels = val.split("\\s*\\|\\s*");

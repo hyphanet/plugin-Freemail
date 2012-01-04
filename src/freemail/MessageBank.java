@@ -333,6 +333,7 @@ public class MessageBank {
 	}
 
 	private static class MessageFileNameFilter implements FilenameFilter {
+		@Override
 		public boolean accept(File dir, String name) {
 			if (name.startsWith(".")) return false;
 			if (!name.matches("[0-9]+(,.*)?")) return false;
@@ -342,6 +343,7 @@ public class MessageBank {
 	
 	// compare to filenames by number leading up to ","
 	private static class UIDComparator implements Comparator<File> {
+		@Override
 		public final int compare ( File a, File b ) {
 			int ia=Integer.parseInt(a.getName().split(",",2)[0]);
 			int ib=Integer.parseInt(b.getName().split(",",2)[0]);

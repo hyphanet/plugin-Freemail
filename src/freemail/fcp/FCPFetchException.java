@@ -103,6 +103,7 @@ public class FCPFetchException extends FCPException {
 		return errorcode;
 	}
 	
+	@Override
 	public String getMessage() {
 		if(shortCodeDescription != null) return shortCodeDescription;
 		

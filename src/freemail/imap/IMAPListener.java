@@ -44,6 +44,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 		cfg.register("imap_bind_port", this, Integer.toString(LISTENPORT));
 	}
 	
+	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase("imap_bind_address")) {
 			this.bindaddress = val;
@@ -52,6 +53,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 		}
 	}
 	
+	@Override
 	public void run() {
 		try {
 			this.realrun();
