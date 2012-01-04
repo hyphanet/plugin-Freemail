@@ -34,10 +34,12 @@ public class NullAccountManager extends AccountManager {
 		super(datadir);
 	}
 
+	@Override
 	public FreemailAccount getAccount(String username) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public List<FreemailAccount> getAllAccounts() {
 		throw new UnsupportedOperationException();
 	}
@@ -50,10 +52,12 @@ public class NullAccountManager extends AccountManager {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public FreemailAccount createAccount(String username) throws IOException, IllegalArgumentException {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public void setupNIM(String username) throws IOException {
 		throw new UnsupportedOperationException();
 	}
@@ -78,6 +82,7 @@ public class NullAccountManager extends AccountManager {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public FreemailAccount authenticate(String username, String password) {
 		throw new UnsupportedOperationException();
 	}

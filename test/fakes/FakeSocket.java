@@ -45,10 +45,12 @@ public class FakeSocket extends Socket {
 	}
 
 	// These are the two methods used by the class being tested
+	@Override
 	public OutputStream getOutputStream() {
 		return toTested;
 	}
 
+	@Override
 	public InputStream getInputStream() {
 		return fromTested;
 	}

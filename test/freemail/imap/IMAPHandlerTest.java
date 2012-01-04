@@ -43,6 +43,7 @@ public class IMAPHandlerTest extends TestCase {
 	private File accountManagerDir;
 	private File accountDir;
 
+	@Override
 	public void setUp() {
 		// Set up account manager directory
 		accountManagerDir = new File(ACCOUNT_MANAGER_DIR);
@@ -67,6 +68,7 @@ public class IMAPHandlerTest extends TestCase {
 		}
 	}
 
+	@Override
 	public void tearDown() {
 		Utils.delete(accountManagerDir);
 		Utils.delete(accountDir);
@@ -188,6 +190,7 @@ public class IMAPHandlerTest extends TestCase {
 			this.failAuth = failAuth;
 		}
 
+		@Override
 		public FreemailAccount authenticate(String username, String password) {
 			if(failAuth) return null;
 
