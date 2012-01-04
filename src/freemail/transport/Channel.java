@@ -104,6 +104,8 @@ class Channel {
 		private static final String FETCH_CODE = "fetchCode";
 		private static final String REMOTE_ID = "remoteID";
 		private static final String TIMEOUT = "timeout";
+		private static final String MSG_PRIVATE_KEY = ".privateKey";
+		private static final String MSG_SLOT = ".slot";
 	}
 
 	private static class RTSKeys {
@@ -265,7 +267,7 @@ class Channel {
 
 			boolean inserted;
 			try {
-				inserted = insertMessage(bucket);
+				inserted = insertMessage(bucket, "cts");
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
 				throw new AssertionError();
@@ -383,7 +385,7 @@ class Channel {
 			Closer.close(messageOutputStream);
 		}
 
-		return insertMessage(fullMessage);
+		return insertMessage(fullMessage, "msg" + messageId);
 	}
 
 	/**
@@ -393,7 +395,7 @@ class Channel {
 	 * @return {@code true} if the message was inserted, {@code false} otherwise
 	 * @throws IOException if the getInputStream() method of message throws IOException
 	 */
-	private boolean insertMessage(Bucket message) throws IOException {
+	private boolean insertMessage(Bucket message, String prefix) throws IOException {
 		//FIXME: This locking must be broken up, since it blocks *everything*
 		/*
 		 * The problem here is the send slot. We don't want 2 or more inserts to
@@ -402,29 +404,50 @@ class Channel {
 		 * or mark it as used later (on success).
 		 */
 		synchronized(channelProps) {
-			String baseKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-			if(baseKey == null) {
-				Logger.debug(this, "Can't insert, missing private key");
-				return false;
-			}
-
-			String sendCode = channelProps.get(PropsKeys.SEND_CODE);
-			if(sendCode == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.SEND_CODE + "' entry!");
-				//TODO: Either delete the channel or resend the RTS
-				return false;
-			}
-			baseKey += sendCode + "-";
 			while(true) {
+				/* First we get the slot for this message if one has been assigned */
+				String privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+				String msgPrivateKey = channelProps.get(prefix + PropsKeys.MSG_PRIVATE_KEY);
+				String sendCode = channelProps.get(PropsKeys.SEND_CODE);
+
+				if(privateKey == null) {
+					Logger.debug(this, "Can't insert, missing private key");
+					return false;
+				}
+				if(sendCode == null) {
+					Logger.debug(this, "Can't insert, missing send code");
+					return false;
+				}
+
+				String sendSlot = null;
+				if(privateKey.equals(msgPrivateKey)) {
+					/* A slot has been assigned and the private key hasn't changed */
+					sendSlot = channelProps.get(prefix + PropsKeys.MSG_SLOT);
+
+					if(sendSlot == null) {
+						Logger.error(this, "Private keys matched, but the slot was null when sending message " + prefix);
+					}
+				}
+				if(sendSlot == null) {
+					/* Keys didn't match, or the slot didn't exist so assign one */
+					sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
+					String nextSlot = calculateNextSlot(sendSlot);
+					channelProps.put(PropsKeys.SEND_SLOT, nextSlot);
+					channelProps.put(prefix + PropsKeys.MSG_PRIVATE_KEY, privateKey);
+					channelProps.put(prefix + PropsKeys.MSG_SLOT, sendSlot);
+
+					Logger.debug(this, "Assigned slot " + sendSlot + " to message " + prefix);
+				}
+
+				String insertKey = privateKey + sendCode + "-" + sendSlot;
+
 				InputStream messageStream = null;
 				try {
 					messageStream = message.getInputStream();
-					String slot = channelProps.get(PropsKeys.SEND_SLOT);
-
-					Logger.debug(this, "Inserting data to " + baseKey + slot);
+					Logger.debug(this, "Inserting data to " + insertKey);
 					FCPInsertErrorMessage fcpMessage;
 					try {
-						fcpMessage = fcpClient.put(messageStream, baseKey + slot);
+						fcpMessage = fcpClient.put(messageStream, insertKey);
 					} catch(FCPBadFileException e) {
 						Logger.debug(this, "Caugth " + e);
 						return false;
@@ -435,21 +458,16 @@ class Channel {
 
 					if(fcpMessage == null) {
 						Logger.debug(this, "Insert successful");
-						slot = calculateNextSlot(slot);
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
-
 						return true;
 					}
 
 					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
-						slot = calculateNextSlot(slot);
+						sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
+						String nextSlot = calculateNextSlot(sendSlot);
+						channelProps.put(PropsKeys.SEND_SLOT, nextSlot);
+						channelProps.put(prefix + PropsKeys.MSG_SLOT, sendSlot);
 
-						//Write the new slot each round so we won't have
-						//to check all of them again if we fail
-						channelProps.put(PropsKeys.SEND_SLOT, slot);
-
-						Logger.debug(this, "Insert collided, trying slot " + slot);
-						continue;
+						Logger.debug(this, "Insert collided, assigned slot " + sendSlot + " to message " + prefix);
 					}
 
 					Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
@@ -1141,7 +1159,7 @@ class Channel {
 
 			boolean inserted;
 			try {
-				inserted = insertMessage(bucket);
+				inserted = insertMessage(bucket, "ack" + ackId);
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
 				throw new AssertionError();
