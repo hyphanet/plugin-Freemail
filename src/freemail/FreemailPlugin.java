@@ -138,15 +138,25 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	public void terminate() {
 		Logger.debug(this, "terminate() called");
 		executor.shutdownNow();
+		
+		long start = System.nanoTime();
 		webInterface.terminate();
-		Logger.debug(this, "Web interface terminated, proceeding with normal termination");
-		super.terminate();
+		long end = System.nanoTime();
+		Logger.debug(this, "Web interface terminated (in " + (end - start) + "ns), proceeding with normal termination");
 
+		start = System.nanoTime();
+		super.terminate();
+		end = System.nanoTime();
+		Logger.debug(this, "Normal termination took " + (end - start) + "ns");
+
+		start = System.nanoTime();
 		try {
 			executor.awaitTermination(1, TimeUnit.HOURS);
 		} catch(InterruptedException e) {
 			Logger.debug(this, "Thread was interrupted while waiting for excutor to terminate.");
 		}
+		end = System.nanoTime();
+		Logger.debug(this, "Spent " + (end - start) + "ns waiting for executor to terminate");
 	}
 
 	@Override
