@@ -461,7 +461,10 @@ class Channel {
 				Logger.debug(this, "Inserting data to " + insertKey);
 				FCPInsertErrorMessage fcpMessage;
 				try {
+					long start = System.nanoTime();
 					fcpMessage = fcpClient.put(messageStream, insertKey);
+					long end = System.nanoTime();
+					Logger.debug(this, "Message insert took " + (end - start) + "ns");
 				} catch(FCPBadFileException e) {
 					Logger.debug(this, "Caugth " + e);
 					return false;
