@@ -23,11 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.bouncycastle.crypto.params.RSAKeyParameters;
-
 import freemail.AccountManager;
 import freemail.FreemailAccount;
-import freemail.utils.PropsFile;
 
 public class NullAccountManager extends AccountManager {
 	public NullAccountManager(File datadir) {
@@ -44,14 +41,6 @@ public class NullAccountManager extends AccountManager {
 		throw new UnsupportedOperationException();
 	}
 
-	public static String validateUsername(String username) {
-		throw new UnsupportedOperationException();
-	}
-
-	public static String validateShortAddress(String username) {
-		throw new UnsupportedOperationException();
-	}
-
 	@Override
 	public FreemailAccount createAccount(String username) throws IOException, IllegalArgumentException {
 		throw new UnsupportedOperationException();
@@ -59,26 +48,6 @@ public class NullAccountManager extends AccountManager {
 
 	@Override
 	public void setupNIM(String username) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-
-	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
-		throw new UnsupportedOperationException();
-	}
-
-	public static String getFreemailDomain(PropsFile accfile) {
-		throw new UnsupportedOperationException();
-	}
-
-	public static String getKSKFreemailDomain(PropsFile accfile) {
-		throw new UnsupportedOperationException();
-	}
-
-	public static RSAKeyParameters getPrivateKey(PropsFile props) {
-		throw new UnsupportedOperationException();
-	}
-
-	public static boolean addShortAddress(FreemailAccount account, String alias) throws Exception {
 		throw new UnsupportedOperationException();
 	}
 
