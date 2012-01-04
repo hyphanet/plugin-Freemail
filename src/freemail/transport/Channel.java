@@ -32,6 +32,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
 import java.util.Iterator;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -242,7 +243,11 @@ class Channel {
 		}
 
 		//Queue the CTS insert
-		executor.execute(new CTSInserter());
+		try {
+			executor.execute(new CTSInserter());
+		} catch(RejectedExecutionException e) {
+			Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
+		}
 		startFetcher();
 	}
 
@@ -278,7 +283,11 @@ class Channel {
 					channelProps.put(PropsKeys.RECIPIENT_STATE, "cts-sent");
 				}
 			} else {
-				executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
+				try {
+					executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
+				} catch(RejectedExecutionException e) {
+					Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
+				}
 			}
 		}
 	}
@@ -298,13 +307,21 @@ class Channel {
 			}
 		} catch(IOException e) {
 			Logger.error(this, "Caugth IOException while checking acklog: " + e);
+		} catch(RejectedExecutionException e) {
+			// Catch it here instead of inside the loop since there is no point
+			// in trying to schedule the rest
+			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
 		}
 
 		//Start the CTS sender if needed
 		synchronized(channelProps) {
 			String recipientState = channelProps.get(PropsKeys.RECIPIENT_STATE);
 			if("rts-received".equals(recipientState)) {
-				executor.execute(new CTSInserter());
+				try {
+					executor.execute(new CTSInserter());
+				} catch(RejectedExecutionException e) {
+					Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
+				}
 			}
 		}
 	}
@@ -672,12 +689,20 @@ class Channel {
 
 		public void execute() {
 			Logger.debug(this, "Scheduling Fetcher for execution");
-			executor.execute(fetcher);
+			try {
+				executor.execute(fetcher);
+			} catch(RejectedExecutionException e) {
+				Logger.debug(this, "Caugth RejectedExecutionException while scheduling Fetcher");
+			}
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
 			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase());
-			executor.schedule(fetcher, delay, unit);
+			try {
+				executor.schedule(fetcher, delay, unit);
+			} catch(RejectedExecutionException e) {
+				Logger.debug(this, "Caugth RejectedExecutionException while scheduling Fetcher");
+			}
 		}
 
 		@Override
@@ -926,7 +951,11 @@ class Channel {
 				return;
 			}
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
-			schedule(delay, TimeUnit.MILLISECONDS);
+			try {
+				schedule(delay, TimeUnit.MILLISECONDS);
+			} catch(RejectedExecutionException e) {
+				Logger.debug(this, "Caugth RejectedExecutionException while scheduling RTSSender");
+			}
 
 			//Start the fetcher now that we have keys, slots etc.
 			fetcher.execute();
@@ -934,12 +963,20 @@ class Channel {
 
 		public void execute() {
 			Logger.debug(this, "Scheduling RTSSender for execution");
-			executor.execute(this);
+			try {
+				executor.execute(this);
+			} catch(RejectedExecutionException e) {
+				Logger.debug(this, "Caugth RejectedExecutionException while scheduling RTSSender");
+			}
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
 			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase());
-			executor.schedule(this, delay, unit);
+			try {
+				executor.schedule(this, delay, unit);
+			} catch(RejectedExecutionException e) {
+				Logger.debug(this, "Caugth RejectedExecutionException while scheduling RTSSender");
+			}
 		}
 
 		/**
@@ -1133,7 +1170,11 @@ class Channel {
 			return false;
 		}
 
-		executor.execute(new AckInserter(id));
+		try {
+			executor.execute(new AckInserter(id));
+		} catch(RejectedExecutionException e) {
+			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
+		}
 
 		return true;
 	}
@@ -1172,7 +1213,11 @@ class Channel {
 					}
 				}
 			} else {
-				executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
+				try {
+					executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
+				} catch(RejectedExecutionException e) {
+					Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
+				}
 			}
 		}
 	}
