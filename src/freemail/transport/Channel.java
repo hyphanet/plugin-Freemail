@@ -396,19 +396,15 @@ class Channel {
 	 * @throws IOException if the getInputStream() method of message throws IOException
 	 */
 	private boolean insertMessage(Bucket message, String prefix) throws IOException {
-		//FIXME: This locking must be broken up, since it blocks *everything*
-		/*
-		 * The problem here is the send slot. We don't want 2 or more inserts to
-		 * the same slot, especially at the same time so we need to reserve a slot
-		 * for the duration of the insert and then either release it (on failure)
-		 * or mark it as used later (on success).
-		 */
-		synchronized(channelProps) {
-			while(true) {
-				/* First we get the slot for this message if one has been assigned */
-				String privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+		while(true) {
+			/* First we get the slot for this message if one has been assigned */
+			String privateKey;
+			String sendCode;
+			String sendSlot;
+			synchronized(channelProps) {
+				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
 				String msgPrivateKey = channelProps.get(prefix + PropsKeys.MSG_PRIVATE_KEY);
-				String sendCode = channelProps.get(PropsKeys.SEND_CODE);
+				sendCode = channelProps.get(PropsKeys.SEND_CODE);
 
 				if(privateKey == null) {
 					Logger.debug(this, "Can't insert, missing private key");
@@ -419,7 +415,7 @@ class Channel {
 					return false;
 				}
 
-				String sendSlot = null;
+				sendSlot = null;
 				if(privateKey.equals(msgPrivateKey)) {
 					/* A slot has been assigned and the private key hasn't changed */
 					sendSlot = channelProps.get(prefix + PropsKeys.MSG_SLOT);
@@ -438,43 +434,45 @@ class Channel {
 
 					Logger.debug(this, "Assigned slot " + sendSlot + " to message " + prefix);
 				}
+			}
 
-				String insertKey = privateKey + sendCode + "-" + sendSlot;
+			String insertKey = privateKey + sendCode + "-" + sendSlot;
 
-				InputStream messageStream = null;
+			InputStream messageStream = null;
+			try {
+				messageStream = message.getInputStream();
+				Logger.debug(this, "Inserting data to " + insertKey);
+				FCPInsertErrorMessage fcpMessage;
 				try {
-					messageStream = message.getInputStream();
-					Logger.debug(this, "Inserting data to " + insertKey);
-					FCPInsertErrorMessage fcpMessage;
-					try {
-						fcpMessage = fcpClient.put(messageStream, insertKey);
-					} catch(FCPBadFileException e) {
-						Logger.debug(this, "Caugth " + e);
-						return false;
-					} catch(ConnectionTerminatedException e) {
-						Logger.debug(this, "Caugth " + e);
-						return false;
-					}
+					fcpMessage = fcpClient.put(messageStream, insertKey);
+				} catch(FCPBadFileException e) {
+					Logger.debug(this, "Caugth " + e);
+					return false;
+				} catch(ConnectionTerminatedException e) {
+					Logger.debug(this, "Caugth " + e);
+					return false;
+				}
 
-					if(fcpMessage == null) {
-						Logger.debug(this, "Insert successful");
-						return true;
-					}
+				if(fcpMessage == null) {
+					Logger.debug(this, "Insert successful");
+					return true;
+				}
 
-					if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+				if(fcpMessage.errorcode == FCPInsertErrorMessage.COLLISION) {
+					synchronized(channelProps) {
 						sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
 						String nextSlot = calculateNextSlot(sendSlot);
 						channelProps.put(PropsKeys.SEND_SLOT, nextSlot);
 						channelProps.put(prefix + PropsKeys.MSG_SLOT, sendSlot);
-
-						Logger.debug(this, "Insert collided, assigned slot " + sendSlot + " to message " + prefix);
 					}
 
-					Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
-					return false;
-				} finally {
-					Closer.close(messageStream);
+					Logger.debug(this, "Insert collided, assigned slot " + sendSlot + " to message " + prefix);
 				}
+
+				Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
+				return false;
+			} finally {
+				Closer.close(messageStream);
 			}
 		}
 	}
