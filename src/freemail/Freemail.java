@@ -181,29 +181,39 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	public void terminate() {
+		long start = System.nanoTime();
 		Iterator it = singleAccountWatcherList.iterator();
 		while(it.hasNext()) {
 			((SingleAccountWatcher)it.next()).kill();
 			it.remove();
 		}
+		long end = System.nanoTime();
+		Logger.debug(this, "Spent " + (end - start) + "ns killing SingleAccountWatchers");
 
+		start = System.nanoTime();
 		sender.kill();
 		ackinserter.kill();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
 		fcpconn.kill();
+		end = System.nanoTime();
+		Logger.debug(this, "Spent " + (end - start) + "ns killing other threads");
 		
 		// now clean up all the threads
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
+				start = System.nanoTime();
 				it = singleAccountWatcherThreadList.iterator();
 				while(it.hasNext()) {
 					((Thread)it.next()).join();
 					it.remove();
 				}
+				end = System.nanoTime();
+				Logger.debug(this, "Spent " + (end - start) + "ns joining SingleAccountWatchers");
 				
+				start = System.nanoTime();
 				if (messageSenderThread != null) {
 					messageSenderThread.join();
 					messageSenderThread = null;
@@ -226,6 +236,8 @@ public abstract class Freemail implements ConfigClient {
 					fcpThread.join();
 					fcpThread = null;
 				}
+				end = System.nanoTime();
+				Logger.debug(this, "Spent " + (end - start) + "ns joining other threads");
 			} catch (InterruptedException ie) {
 				
 			}
