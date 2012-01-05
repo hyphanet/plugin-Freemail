@@ -86,7 +86,7 @@ public class MessageHandler {
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
 	private final ScheduledExecutorService executor;
 	private final AckCallback ackCallback = new AckCallback();
-	private final ConcurrentHashMap<Long, Future<?>> tasks = new ConcurrentHashMap<Long, Future<?>>();
+	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
 
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
@@ -142,7 +142,7 @@ public class MessageHandler {
 				try {
 					long num = Long.parseLong(f.getName());
 					Logger.debug(this, "Scheduling SenderTask for " + num);
-					tasks.put(Long.valueOf(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
+					tasks.put(Long.toString(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
 				} catch(NumberFormatException e) {
 					Logger.debug(this, "Found file with malformed name: " + f);
 					continue;
@@ -193,7 +193,7 @@ public class MessageHandler {
 				index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
 			}
 
-			tasks.put(Long.valueOf(msgNum), executor.submit(new SenderTask(msgNum)));
+			tasks.put(Long.toString(msgNum), executor.submit(new SenderTask(msgNum)));
 		}
 
 		return true;
@@ -408,7 +408,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			tasks.put(Long.valueOf(msgNum), executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
+			tasks.put(Long.toString(msgNum), executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
 
 		private boolean sendMessage() {
@@ -457,7 +457,7 @@ public class MessageHandler {
 
 			deleteIndexEntries(id);
 
-			Future<?> task = tasks.remove(Long.valueOf(id));
+			Future<?> task = tasks.remove(Long.toString(id));
 			if(task != null) {
 				//Stop the insert if possible, but don't interrupt since the FCP code ignores it
 				task.cancel(false);
