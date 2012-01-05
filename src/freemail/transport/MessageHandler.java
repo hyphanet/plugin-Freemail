@@ -88,9 +88,6 @@ public class MessageHandler {
 	private final AckCallback ackCallback = new AckCallback();
 	private final ConcurrentHashMap<Long, Future<?>> tasks = new ConcurrentHashMap<Long, Future<?>>();
 
-	/** Holds the number that should be used for the next message. Guarded by the index lock */
-	private long nextMessageNum = 0;
-
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
 		index = PropsFile.createPropsFile(new File(outbox, INDEX_NAME));
@@ -98,17 +95,6 @@ public class MessageHandler {
 		this.channelDir = channelDir;
 		this.freemailAccount = freemailAccount;
 		this.executor = executor;
-
-		//Initialize nextMessageNum
-		synchronized(index) {
-			long messageNumber;
-			try {
-				messageNumber = Long.parseLong(index.get(IndexKeys.NEXT_MESSAGE_NUMBER));
-			} catch(NumberFormatException e) {
-				messageNumber = 0;
-			}
-			nextMessageNum = messageNumber;
-		}
 
 		//Create and start all the channels
 		if(!channelDir.exists()) {
@@ -157,14 +143,6 @@ public class MessageHandler {
 					long num = Long.parseLong(f.getName());
 					Logger.debug(this, "Scheduling SenderTask for " + num);
 					tasks.put(Long.valueOf(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
-
-					synchronized (index) {
-						if(nextMessageNum <= num) {
-							Logger.error(this, "nextMessageNum (" + nextMessageNum + ") <= num (" + num + ") in start()");
-							nextMessageNum = num + 1;
-							index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + nextMessageNum);
-						}
-					}
 				} catch(NumberFormatException e) {
 					Logger.debug(this, "Found file with malformed name: " + f);
 					continue;
@@ -369,8 +347,19 @@ public class MessageHandler {
 
 	private long getMessageNumber() {
 		synchronized(index) {
-			long number = nextMessageNum++;
-			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + nextMessageNum);
+			String rawNumber = index.get(IndexKeys.NEXT_MESSAGE_NUMBER);
+			long number;
+			try {
+				number = Long.parseLong(rawNumber);
+			} catch(NumberFormatException e) {
+				number = 0;
+
+				/* Ignore null since it will always be missing the first time */
+				if(rawNumber != null) {
+					Logger.error(this, "Parsing of next message number failed, was " + rawNumber);
+				}
+			}
+			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + (number + 1));
 			return number;
 		}
 	}
