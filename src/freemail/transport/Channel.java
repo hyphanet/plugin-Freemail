@@ -399,24 +399,26 @@ class Channel {
 	 * @throws IOException if the getInputStream() method of message throws IOException
 	 */
 	private boolean insertMessage(Bucket message, String prefix) throws IOException {
+		String privateKey;
+		String sendCode;
+		synchronized (channelProps) {
+			privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+			sendCode = channelProps.get(PropsKeys.SEND_CODE);
+
+			if(privateKey == null) {
+				Logger.debug(this, "Can't insert, missing private key");
+				return false;
+			}
+			if(sendCode == null) {
+				Logger.debug(this, "Can't insert, missing send code");
+				return false;
+			}
+		}
+
 		while(true) {
 			/* First we get the slot for this message if one has been assigned */
-			String privateKey;
-			String sendCode;
 			String sendSlot;
 			synchronized(channelProps) {
-				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-				sendCode = channelProps.get(PropsKeys.SEND_CODE);
-
-				if(privateKey == null) {
-					Logger.debug(this, "Can't insert, missing private key");
-					return false;
-				}
-				if(sendCode == null) {
-					Logger.debug(this, "Can't insert, missing send code");
-					return false;
-				}
-
 				/* If a slot has been assigned, use it */
 				sendSlot = channelProps.get(prefix + PropsKeys.MSG_SLOT);
 				if(sendSlot == null) {
