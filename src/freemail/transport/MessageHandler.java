@@ -168,7 +168,8 @@ public class MessageHandler {
 
 		for(Identity recipient : recipients) {
 			long msgNum = getMessageNumber();
-			File messageFile = new File(outbox, "" + msgNum);
+			String identifier = Long.toString(msgNum);
+			File messageFile = new File(outbox, "" + identifier);
 
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Message file " + messageFile + " already exists");
@@ -190,10 +191,10 @@ public class MessageHandler {
 			}
 
 			synchronized(index) {
-				index.put(msgNum + IndexKeys.RECIPIENT, recipient.getIdentityID());
+				index.put(identifier + IndexKeys.RECIPIENT, recipient.getIdentityID());
 			}
 
-			tasks.put(Long.toString(msgNum), executor.submit(new SenderTask(msgNum)));
+			tasks.put(identifier, executor.submit(new SenderTask(msgNum)));
 		}
 
 		return true;
@@ -277,22 +278,20 @@ public class MessageHandler {
 		}
 
 		for(File message : outboxFiles) {
-			long messageNum;
-			try {
-				messageNum = Long.parseLong(message.getName());
-			} catch(NumberFormatException e) {
-				//Not a message
-				continue;
-			}
+			String identifier = message.getName();
 
 			String recipient;
 			String firstSendTime;
 			String lastSendTime;
-
 			synchronized(index) {
-				recipient = index.get(messageNum + IndexKeys.RECIPIENT);
-				firstSendTime = index.get(messageNum + IndexKeys.FIRST_SEND_TIME);
-				lastSendTime = index.get(messageNum + IndexKeys.LAST_SEND_TIME);
+				recipient = index.get(identifier + IndexKeys.RECIPIENT);
+				if(recipient == null) {
+					//Not a message
+					continue;
+				}
+
+				firstSendTime = index.get(identifier + IndexKeys.FIRST_SEND_TIME);
+				lastSendTime = index.get(identifier + IndexKeys.LAST_SEND_TIME);
 			}
 
 			OutboxMessage msg = new OutboxMessage(recipient, firstSendTime, lastSendTime, message);
@@ -366,21 +365,23 @@ public class MessageHandler {
 
 	private class SenderTask implements Runnable {
 		private final long msgNum;
+		private final String identifier;
 
 		private SenderTask(long msgNum) {
 			this.msgNum = msgNum;
+			this.identifier = Long.toString(msgNum);
 		}
 
 		@Override
 		public void run() {
-			Logger.debug(this, "SenderTask for message " + msgNum + " on account " + freemailAccount.getUsername() + " running");
+			Logger.debug(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getUsername() + " running");
 
 			long retryIn;
 			long lastSendTime;
 			try {
 				String time;
 				synchronized(index) {
-					time = index.get(msgNum + IndexKeys.LAST_SEND_TIME);
+					time = index.get(identifier + IndexKeys.LAST_SEND_TIME);
 				}
 				lastSendTime = Long.parseLong(time);
 			} catch(NumberFormatException e) {
@@ -396,11 +397,11 @@ public class MessageHandler {
 					retryIn = 5 * 60 * 1000; //5 minutes
 				} else {
 					synchronized(index) {
-						String firstSentTime = index.get(msgNum + IndexKeys.FIRST_SEND_TIME);
+						String firstSentTime = index.get(identifier + IndexKeys.FIRST_SEND_TIME);
 						if(firstSentTime == null) {
-							index.put(msgNum + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
+							index.put(identifier + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
 						}
-						index.put(msgNum + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
+						index.put(identifier + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
 					}
 
 					retryIn = RESEND_TIME;
@@ -408,20 +409,20 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			tasks.put(Long.toString(msgNum), executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
+			tasks.put(identifier, executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
 
 		private boolean sendMessage() {
 			String recipient;
 			synchronized(index) {
-				recipient = index.get(msgNum + IndexKeys.RECIPIENT);
+				recipient = index.get(identifier + IndexKeys.RECIPIENT);
 			}
 
 			Channel c;
 			boolean inserted;
 			while(true) {
 				c = getChannel(recipient);
-				Bucket message = new FileBucket(new File(outbox, "" + msgNum), false, false, false, false, false);
+				Bucket message = new FileBucket(new File(outbox, identifier), false, false, false, false, false);
 				try {
 					inserted = c.sendMessage(message, msgNum);
 				} catch(ChannelTimedOutException e) {
@@ -439,11 +440,11 @@ public class MessageHandler {
 		}
 	}
 
-	private void deleteIndexEntries(long msgNum) {
+	private void deleteIndexEntries(String identifier) {
 		synchronized(index) {
-			index.remove(msgNum + IndexKeys.FIRST_SEND_TIME);
-			index.remove(msgNum + IndexKeys.LAST_SEND_TIME);
-			index.remove(msgNum + IndexKeys.RECIPIENT);
+			index.remove(identifier + IndexKeys.FIRST_SEND_TIME);
+			index.remove(identifier + IndexKeys.LAST_SEND_TIME);
+			index.remove(identifier + IndexKeys.RECIPIENT);
 		}
 	}
 
@@ -455,7 +456,7 @@ public class MessageHandler {
 				Logger.error(this, "Couldn't delete " + message);
 			}
 
-			deleteIndexEntries(id);
+			deleteIndexEntries(Long.toString(id));
 
 			Future<?> task = tasks.remove(Long.toString(id));
 			if(task != null) {
