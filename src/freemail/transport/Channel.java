@@ -203,20 +203,6 @@ class Channel {
 				return;
 			}
 
-			if(!privateKey.equals(channelProps.get(PropsKeys.PRIVATE_KEY))) {
-				/* The keys in the RTS are not the same as the ones we already have (if we have
-				 * any). This will happen when the other side deletes the channel and then sends us
-				 * another message. Delete the old values so we start using the new ones.
-				 */
-				channelProps.remove(PropsKeys.PRIVATE_KEY);
-				channelProps.remove(PropsKeys.PUBLIC_KEY);
-				channelProps.remove(PropsKeys.SEND_CODE);
-				channelProps.remove(PropsKeys.SEND_SLOT);
-				channelProps.remove(PropsKeys.FETCH_CODE);
-				channelProps.remove(PropsKeys.FETCH_SLOT);
-				channelProps.remove(PropsKeys.RECIPIENT_STATE);
-			}
-
 			if(channelProps.get(PropsKeys.RECIPIENT_STATE) != null) {
 				Logger.debug(this, "Skipping RTS processing because recipient state isn't null");
 				return;
@@ -420,7 +406,6 @@ class Channel {
 			String sendSlot;
 			synchronized(channelProps) {
 				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-				String msgPrivateKey = channelProps.get(prefix + PropsKeys.MSG_PRIVATE_KEY);
 				sendCode = channelProps.get(PropsKeys.SEND_CODE);
 
 				if(privateKey == null) {
@@ -432,21 +417,13 @@ class Channel {
 					return false;
 				}
 
-				sendSlot = null;
-				if(privateKey.equals(msgPrivateKey)) {
-					/* A slot has been assigned and the private key hasn't changed */
-					sendSlot = channelProps.get(prefix + PropsKeys.MSG_SLOT);
-
-					if(sendSlot == null) {
-						Logger.error(this, "Private keys matched, but the slot was null when sending message " + prefix);
-					}
-				}
+				/* If a slot has been assigned, use it */
+				sendSlot = channelProps.get(prefix + PropsKeys.MSG_SLOT);
 				if(sendSlot == null) {
-					/* Keys didn't match, or the slot didn't exist so assign one */
+					/* If not, assign the next free slot */
 					sendSlot = channelProps.get(PropsKeys.SEND_SLOT);
 					String nextSlot = calculateNextSlot(sendSlot);
 					channelProps.put(PropsKeys.SEND_SLOT, nextSlot);
-					channelProps.put(prefix + PropsKeys.MSG_PRIVATE_KEY, privateKey);
 					channelProps.put(prefix + PropsKeys.MSG_SLOT, sendSlot);
 
 					Logger.debug(this, "Assigned slot " + sendSlot + " to message " + prefix);
