@@ -226,7 +226,11 @@ public class InboxToadlet extends WebPage {
 		if(!read) {
 			title = title.addChild("strong");
 		}
-		title.addChild("a", "href", messageLink, msg.getFirstHeader("Subject"));
+		String subject = msg.getFirstHeader("Subject");
+		if((subject == null) || (subject.equals(""))) {
+			subject = FreemailL10n.getString("Freemail.InboxToadlet.defaultSubject");
+		}
+		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
 		if(!read) {

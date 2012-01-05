@@ -28,6 +28,7 @@ Freemail.InboxToadlet.move=Move
 Freemail.InboxToadlet.subject=Subject
 Freemail.InboxToadlet.from=From
 Freemail.InboxToadlet.date=Date
+Freemail.InboxToadlet.defaultSubject=(No subject)
 Freemail.NewMessageToadlet.boxTitle=New message
 Freemail.NewMessageToadlet.to=To
 Freemail.NewMessageToadlet.subject=Subject
