@@ -75,6 +75,8 @@ public class MessageHandler {
 		private static final String FIRST_SEND_TIME = ".firstSendTime";
 		/** The time when the message was last sent */
 		private static final String LAST_SEND_TIME = ".lastSendTime";
+		/** The message number used by the Channel for this message */
+		private static final String MSG_NUM = ".msgNum";
 	}
 
 	private final File outbox;
@@ -139,12 +141,19 @@ public class MessageHandler {
 					continue;
 				}
 
+				String identifier = f.getName();
+
+				String rawMsgNum;
+				synchronized (index) {
+					rawMsgNum = index.get(identifier + IndexKeys.MSG_NUM);
+				}
+
 				try {
-					long num = Long.parseLong(f.getName());
+					long num = Long.parseLong(rawMsgNum);
 					Logger.debug(this, "Scheduling SenderTask for " + num);
 					tasks.put(Long.toString(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
 				} catch(NumberFormatException e) {
-					Logger.debug(this, "Found file with malformed name: " + f);
+					Logger.debug(this, "Found file without valid message number: " + f);
 					continue;
 				}
 			}
@@ -192,6 +201,7 @@ public class MessageHandler {
 
 			synchronized(index) {
 				index.put(identifier + IndexKeys.RECIPIENT, recipient.getIdentityID());
+				index.put(identifier + IndexKeys.MSG_NUM, Long.toString(msgNum));
 			}
 
 			tasks.put(identifier, executor.submit(new SenderTask(msgNum)));
