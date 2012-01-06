@@ -266,7 +266,7 @@ public class AccountManager {
 			account.getProps().put("domain_alias", alias);
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
-			EmailAddress to = new EmailAddress(account.getUsername()+"@"+getKSKFreemailDomain(account.getProps()));
+			EmailAddress to = new EmailAddress(account.getNickname()+"@"+getKSKFreemailDomain(account.getProps()));
 		
 			MailMessage m = account.getMessageBank().createMessage();
 			Date currentDate = new Date();
