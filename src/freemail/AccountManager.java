@@ -100,7 +100,7 @@ public class AccountManager {
 			}
 			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile, freemail);
 			account.setNickname(accFile.get("nickname"));
-			accounts.put(accountDir.getName(), account);
+			accounts.put(account.getUsername(), account);
 		}
 	}
 
@@ -399,7 +399,7 @@ public class AccountManager {
 			account.setNickname(oid.getNickname());
 		}
 
-		accounts.put(oid.getIdentityID(), account);
+		accounts.put(account.getUsername(), account);
 
 		//Now start a SingleAccountWatcher for this account
 		SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
