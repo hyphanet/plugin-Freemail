@@ -744,6 +744,48 @@ class Channel {
 				return;
 			}
 
+			//Get or generate RTS values
+			String privateKey;
+			String publicKey;
+			String initiatorSlot;
+			String responderSlot;
+			long timeout;
+			synchronized(channelProps) {
+				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
+				publicKey = channelProps.get(PropsKeys.PUBLIC_KEY);
+				initiatorSlot = channelProps.get(PropsKeys.SEND_SLOT);
+				responderSlot = channelProps.get(PropsKeys.FETCH_SLOT);
+
+				if((privateKey == null) || (publicKey == null)) {
+					SSKKeyPair keyPair;
+					try {
+						Logger.debug(this, "Making new key pair");
+						keyPair = fcpClient.makeSSK();
+					} catch(ConnectionTerminatedException e) {
+						Logger.debug(this, "FCP connection has been terminated");
+						return;
+					}
+					privateKey = keyPair.privkey;
+					publicKey = keyPair.pubkey;
+				}
+				if(initiatorSlot == null) {
+					initiatorSlot = generateRandomSlot();
+				}
+				if(responderSlot == null) {
+					responderSlot = generateRandomSlot();
+				}
+
+				timeout = System.currentTimeMillis() + CHANNEL_TIMEOUT;
+
+				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
+				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
+				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
+				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
+				channelProps.put(PropsKeys.SEND_CODE, "i");
+				channelProps.put(PropsKeys.FETCH_CODE, "r");
+				channelProps.put(PropsKeys.TIMEOUT, "" + timeout);
+			}
+
 			//Get mailsite key from WoT
 			WoTConnection wotConnection = freemail.getWotConnection();
 			if(wotConnection == null) {
@@ -817,48 +859,6 @@ class Channel {
 			//Get RTS KSK
 			PropsFile mailsiteProps = PropsFile.createPropsFile(mailsite, false);
 			String rtsKey = mailsiteProps.get("rtsksk");
-
-			//Get or generate RTS values
-			String privateKey;
-			String publicKey;
-			String initiatorSlot;
-			String responderSlot;
-			long timeout;
-			synchronized(channelProps) {
-				privateKey = channelProps.get(PropsKeys.PRIVATE_KEY);
-				publicKey = channelProps.get(PropsKeys.PUBLIC_KEY);
-				initiatorSlot = channelProps.get(PropsKeys.SEND_SLOT);
-				responderSlot = channelProps.get(PropsKeys.FETCH_SLOT);
-
-				if((privateKey == null) || (publicKey == null)) {
-					SSKKeyPair keyPair;
-					try {
-						Logger.debug(this, "Making new key pair");
-						keyPair = fcpClient.makeSSK();
-					} catch(ConnectionTerminatedException e) {
-						Logger.debug(this, "FCP connection has been terminated");
-						return;
-					}
-					privateKey = keyPair.privkey;
-					publicKey = keyPair.pubkey;
-				}
-				if(initiatorSlot == null) {
-					initiatorSlot = generateRandomSlot();
-				}
-				if(responderSlot == null) {
-					responderSlot = generateRandomSlot();
-				}
-
-				timeout = System.currentTimeMillis() + CHANNEL_TIMEOUT;
-
-				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
-				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
-				channelProps.put(PropsKeys.SEND_SLOT, initiatorSlot);
-				channelProps.put(PropsKeys.FETCH_SLOT, responderSlot);
-				channelProps.put(PropsKeys.SEND_CODE, "i");
-				channelProps.put(PropsKeys.FETCH_CODE, "r");
-				channelProps.put(PropsKeys.TIMEOUT, "" + timeout);
-			}
 
 			//Get the senders mailsite key
 			Logger.debug(this, "Getting sender identity from WoT");
