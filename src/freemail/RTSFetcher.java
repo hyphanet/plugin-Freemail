@@ -363,7 +363,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		Logger.normal(this,"Signature valid :)");
 		// the signature is valid! Hooray!
 		// Now verify the message is for us
-		if(!account.getUsername().equals(rtsprops.get("to"))) {
+		if(!account.getIdentity().equals(rtsprops.get("to"))) {
 			Logger.normal(this,"Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();

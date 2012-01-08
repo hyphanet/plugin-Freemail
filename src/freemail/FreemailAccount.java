@@ -50,7 +50,7 @@ public class FreemailAccount {
 		messageHandler.start();
 	}
 
-	public String getUsername() {
+	public String getIdentity() {
 		return identity;
 	}
 

@@ -108,7 +108,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 				for(OwnIdentity oid : oids) {
 					for(FreemailAccount account : accountManager.getAllAccounts()) {
-						if(account.getUsername().equals(oid.getIdentityID())) {
+						if(account.getIdentity().equals(oid.getIdentityID())) {
 							account.setNickname(oid.getNickname());
 						}
 					}

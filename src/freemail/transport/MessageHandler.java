@@ -384,7 +384,7 @@ public class MessageHandler {
 
 		@Override
 		public void run() {
-			Logger.debug(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getUsername() + " running");
+			Logger.debug(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getIdentity() + " running");
 
 			long retryIn;
 			long lastSendTime;

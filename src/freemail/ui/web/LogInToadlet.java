@@ -84,9 +84,9 @@ public class LogInToadlet extends WebPage {
 			//FIXME: Nickname might be ambiguous
 			String nickname = account.getNickname();
 			if(nickname == null) {
-				nickname = account.getUsername();
+				nickname = account.getIdentity();
 			}
-			ownIdSelector.addChild("option", "value", account.getUsername(), nickname);
+			ownIdSelector.addChild("option", "value", account.getIdentity(), nickname);
 		}
 		loginForm.addChild("input", new String[] { "type",   "name",   "value" },
 		                            new String[] { "submit", "submit", FreemailL10n.getString("Freemail.LoginToadlet.LoginButton") });
@@ -118,7 +118,7 @@ public class LogInToadlet extends WebPage {
 			return;
 		}
 
-		pluginRespirator.getSessionManager("Freemail").createSession(accountManager.getAccount(identity).getUsername(), ctx);
+		pluginRespirator.getSessionManager("Freemail").createSession(accountManager.getAccount(identity).getIdentity(), ctx);
 		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", HomeToadlet.getPath());
 	}
 

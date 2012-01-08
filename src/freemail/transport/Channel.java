@@ -783,7 +783,7 @@ class Channel {
 				return;
 			}
 
-			String senderId = account.getUsername();
+			String senderId = account.getIdentity();
 			Logger.debug(this, "Getting identity from WoT");
 			Identity recipient;
 			try {
@@ -857,7 +857,7 @@ class Channel {
 			int senderMailsiteEdition;
 			String senderEdition;
 			try {
-				senderEdition = wotConnection.getProperty(account.getUsername(), WoTProperties.MAILSITE_EDITION);
+				senderEdition = wotConnection.getProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION);
 			} catch(PluginNotFoundException e1) {
 				senderEdition = null;
 			}

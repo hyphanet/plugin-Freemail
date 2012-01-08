@@ -278,7 +278,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		Map<String, List<Identity>> matches;
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.of(IdentityMatcher.MatchMethod.PARTIAL_BASE32);
-			matches = matcher.matchIdentities(recipient, account.getUsername(), methods);
+			matches = matcher.matchIdentities(recipient, account.getIdentity(), methods);
 		} catch(PluginNotFoundException e) {
 			this.ps.print("554 WoT plugin not loaded\r\n");
 			return;

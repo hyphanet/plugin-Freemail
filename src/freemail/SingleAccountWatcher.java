@@ -121,7 +121,7 @@ public class SingleAccountWatcher implements Runnable {
 						WoTConnection wotConnection = freemail.getWotConnection();
 						if(wotConnection != null) {
 							try {
-								wotConnection.setProperty(account.getUsername(), WoTProperties.MAILSITE_EDITION, "" + edition);
+								wotConnection.setProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION, "" + edition);
 							} catch(PluginNotFoundException e) {
 								//In most cases this doesn't matter since the edition doesn't
 								//change very often anyway

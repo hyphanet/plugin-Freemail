@@ -100,7 +100,7 @@ public class AccountManager {
 			}
 			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile, freemail);
 			account.setNickname(accFile.get("nickname"));
-			accounts.put(account.getUsername(), account);
+			accounts.put(account.getIdentity(), account);
 		}
 	}
 
@@ -112,7 +112,7 @@ public class AccountManager {
 
 				//Now start a SingleAccountWatcher for this account
 				SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
-				Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
+				Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getIdentity());
 				t.setDaemon(true);
 				t.start();
 
@@ -399,11 +399,11 @@ public class AccountManager {
 			account.setNickname(oid.getNickname());
 		}
 
-		accounts.put(account.getUsername(), account);
+		accounts.put(account.getIdentity(), account);
 
 		//Now start a SingleAccountWatcher for this account
 		SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
-		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
+		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getIdentity());
 		t.setDaemon(true);
 		t.start();
 

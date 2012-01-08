@@ -70,7 +70,7 @@ public class OutboxToadlet extends WebPage {
 
 			String recipient;
 			try {
-				Identity i = wotConnection.getIdentity(message.recipient, account.getUsername());
+				Identity i = wotConnection.getIdentity(message.recipient, account.getIdentity());
 				recipient = i.getNickname() + "@" + i.getIdentityID() + ".freemail";
 			} catch(PluginNotFoundException e) {
 				//Fall back to only showing the identity id
