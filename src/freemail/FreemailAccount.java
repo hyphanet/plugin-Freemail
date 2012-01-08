@@ -53,6 +53,15 @@ public class FreemailAccount {
 	public String getUsername() {
 		return identity;
 	}
+
+	public String getDomain() {
+		try {
+			return Base32.encode(Base64.decode(identity));
+		} catch (IllegalBase64Exception e) {
+			//This should be impossible since we get the value from WoT
+			throw new AssertionError();
+		}
+	}
 	
 	public File getAccountDir() {
 		return accdir;
