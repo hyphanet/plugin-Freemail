@@ -206,8 +206,11 @@ class WoTConnectionImpl implements WoTConnection {
 
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
+		long start;
 		synchronized(pluginTalker) {
 			synchronized(replyLock) {
+				start = System.nanoTime();
+
 				assert (reply == null) : "Reply was " + reply;
 				reply = null;
 
@@ -223,8 +226,11 @@ class WoTConnectionImpl implements WoTConnection {
 
 				retValue = reply;
 				reply = null;
+
 			}
 		}
+		long end = System.nanoTime();
+		Logger.debug(this, "WoT request (" + msg.sfs.get("Message") + ") took " + (end - start) + "ns");
 
 		if(expectedMessageType.equals(retValue.sfs.get("Message"))) {
 			return retValue;
