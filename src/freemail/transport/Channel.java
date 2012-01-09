@@ -90,7 +90,7 @@ class Channel {
 	private static final long CHANNEL_TIMEOUT = 7 * 24 * 60 * 60 * 1000; //1 week
 
 	/** The amount of time to wait before retrying after a transient failure. */
-	private static final long TASK_RETRY_DELAY = 5 * 60 * 60 * 1000; //5 minutes
+	private static final long TASK_RETRY_DELAY = 5 * 60 * 1000; //5 minutes
 
 	//The keys used in the props file
 	private static class PropsKeys {
