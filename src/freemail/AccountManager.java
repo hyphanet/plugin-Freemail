@@ -388,7 +388,7 @@ public class AccountManager {
 			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps, freemail);
 			account.setNickname(oid.getNickname());
 			try {
-				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getAddressDomain()));
+				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getDomain()));
 			} catch (IOException e) {
 				//FIXME: Handle this properly
 				Logger.error(this, "Failed while sending welcome message to " + oid);

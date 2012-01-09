@@ -56,10 +56,10 @@ public class FreemailAccount {
 
 	public String getDomain() {
 		try {
-			return Base32.encode(Base64.decode(identity));
-		} catch (IllegalBase64Exception e) {
-			//This should be impossible since we get the value from WoT
-			throw new AssertionError();
+			return Base32.encode(Base64.decode(identity)) + ".freemail";
+		} catch(IllegalBase64Exception e) {
+			//This would mean that WoT has changed the encoding of the identity string
+			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
 		}
 	}
 	
@@ -83,15 +83,6 @@ public class FreemailAccount {
 		this.nickname = nickname;
 		synchronized(accprops) {
 			accprops.put("nickname", nickname);
-		}
-	}
-
-	public String getAddressDomain() {
-		try {
-			return Base32.encode(Base64.decode(identity)) + ".freemail";
-		} catch(IllegalBase64Exception e) {
-			//This would mean that WoT has changed the encoding of the identity string
-			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
 		}
 	}
 

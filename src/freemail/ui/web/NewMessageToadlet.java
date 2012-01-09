@@ -184,10 +184,10 @@ public class NewMessageToadlet extends WebPage {
 		//TODO: Check for newlines etc.
 		Bucket messageHeader = new ArrayBucket(
 				("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n" +
-				"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ".freemail>\r\n" +
+				"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ">\r\n" +
 				"To: " + getBucketAsString(b) + "\r\n" +
 				dateHeader +
-				"Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ".freemail>\r\n" +
+				"Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n" +
 				"\r\n").getBytes("UTF-8"));
 		Bucket messageText = req.getPart("message-text");
 

@@ -87,7 +87,7 @@ public class SingleAccountWatcher implements Runnable {
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 		
 		// temporary info message until there's a nicer UI :)
-		String freemailDomain=account.getAddressDomain();
+		String freemailDomain=account.getDomain();
 		if(freemailDomain!=null) {
 			Logger.normal(this,"Secure Freemail address: <anything>@"+freemailDomain);
 		} else {
