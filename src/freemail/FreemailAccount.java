@@ -56,7 +56,7 @@ public class FreemailAccount {
 
 	public String getDomain() {
 		try {
-			return Base32.encode(Base64.decode(identity)) + ".freemail";
+			return Base32.encode(Base64.decode(identity)).toLowerCase() + ".freemail";
 		} catch(IllegalBase64Exception e) {
 			//This would mean that WoT has changed the encoding of the identity string
 			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
