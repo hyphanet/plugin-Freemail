@@ -187,7 +187,7 @@ public class NewMessageToadlet extends WebPage {
 				"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ".freemail>\r\n" +
 				"To: " + getBucketAsString(b) + "\r\n" +
 				dateHeader +
-				"Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n" +
+				"Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ".freemail>\r\n" +
 				"\r\n").getBytes("UTF-8"));
 		Bucket messageText = req.getPart("message-text");
 
