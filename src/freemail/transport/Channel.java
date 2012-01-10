@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.archive.util.Base32;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
@@ -525,9 +526,17 @@ class Channel {
 	}
 
 	private class Fetcher implements Runnable {
+		private final AtomicLong lastRun = new AtomicLong();
+
 		@Override
 		public synchronized void run() {
-			Logger.debug(this, "Fetcher running (" + this + ")");
+			long curTime = System.currentTimeMillis();
+			long last = lastRun.getAndSet(curTime);
+			if(last != 0) {
+				Logger.debug(this, "Fetcher running (" + this + "), last ran " + (curTime - last) + "ms ago");
+			} else {
+				Logger.debug(this, "Fetcher running (" + this + ")");
+			}
 
 			try {
 				realRun();
