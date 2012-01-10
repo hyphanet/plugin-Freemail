@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.security.SecureRandom;
 import java.math.BigInteger;
 
+import org.archive.util.Base32;
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
@@ -52,6 +53,8 @@ import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
+import freenet.support.Base64;
+import freenet.support.IllegalBase64Exception;
 
 public class AccountManager {
 	// this really doesn't matter a great deal
@@ -98,7 +101,8 @@ public class AccountManager {
 				Logger.error(this, "Couldn't initialise account from directory '"+accountDir.getName()+"' - ignoring.");
 				continue;
 			}
-			FreemailAccount account = new FreemailAccount(accountDir.getName(), accountDir, accFile, freemail);
+			String identityId = Base64.encode(Base32.decode(accountDir.getName()));
+			FreemailAccount account = new FreemailAccount(identityId, accountDir, accFile, freemail);
 			account.setNickname(accFile.get("nickname"));
 			accounts.put(account.getIdentity(), account);
 		}
@@ -370,7 +374,14 @@ public class AccountManager {
 	}
 
 	private void addIdentity(OwnIdentity oid) {
-		File accountDir = new File(datadir, oid.getIdentityID());
+		File accountDir;
+		try {
+			accountDir = new File(datadir, Base32.encode(Base64.decode(oid.getIdentityID())));
+		} catch (IllegalBase64Exception e1) {
+			//Can't happen since we get the identity id from WoT
+			throw new AssertionError();
+		}
+
 		FreemailAccount account = null;
 		PropsFile accProps = null;
 
