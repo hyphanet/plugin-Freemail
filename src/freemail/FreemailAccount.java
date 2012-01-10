@@ -37,6 +37,12 @@ public class FreemailAccount {
 	private final MessageHandler messageHandler;
 	
 	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
+		try {
+			Base64.decode(identity);
+		} catch (IllegalBase64Exception e) {
+			throw new IllegalArgumentException("Couldn't decode identity string: " + identity, e);
+		}
+
 		this.identity = identity;
 		accdir = _accdir;
 		accprops = _accprops;
