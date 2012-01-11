@@ -23,8 +23,6 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.net.URI;
 
-import org.archive.util.Base32;
-
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
@@ -37,9 +35,7 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
-import freenet.support.Base64;
 import freenet.support.HTMLNode;
-import freenet.support.IllegalBase64Exception;
 import freenet.support.api.HTTPRequest;
 
 public class OutboxToadlet extends WebPage {
@@ -75,14 +71,11 @@ public class OutboxToadlet extends WebPage {
 			String recipient;
 			try {
 				Identity i = wotConnection.getIdentity(message.recipient, account.getIdentity());
-				String domain = Base32.encode(Base64.decode(i.getIdentityID())).toLowerCase();
+				String domain = i.getBase32IdentityID();
 				recipient = i.getNickname() + "@" + domain + ".freemail";
 			} catch(PluginNotFoundException e) {
 				//Fall back to only showing the identity id
 				recipient = "unknown@" + message.recipient + ".freemail";
-			} catch (IllegalBase64Exception e) {
-				//Should be impossible since we get the ID from WoT
-				throw new AssertionError();
 			}
 
 			String firstSendTime;

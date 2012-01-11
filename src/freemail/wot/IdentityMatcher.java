@@ -27,11 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.archive.util.Base32;
-
 import freenet.pluginmanager.PluginNotFoundException;
-import freenet.support.Base64;
-import freenet.support.IllegalBase64Exception;
 
 public class IdentityMatcher {
 	private final WoTConnection wotConnection;
@@ -87,15 +83,8 @@ public class IdentityMatcher {
 	}
 
 	private boolean matchBase32Address(String recipient, Identity identity) {
-		String base32Id;
-		try {
-			base32Id = Base32.encode(Base64.decode(identity.getIdentityID()));
-		} catch(IllegalBase64Exception e) {
-			//This would mean that WoT has changed the encoding of the identity string
-			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity.getIdentityID());
-		}
-
-		String identityAddress = identity.getNickname() + "@" + base32Id.toLowerCase() + ".freemail";
+		String base32Id = identity.getBase32IdentityID();
+		String identityAddress = identity.getNickname() + "@" + base32Id + ".freemail";
 
 		//Change the recipient address to lower case, but leave the nickname in the original case
 		if(recipient.contains("@")) {

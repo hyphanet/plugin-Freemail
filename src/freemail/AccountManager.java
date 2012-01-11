@@ -54,7 +54,6 @@ import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 import freemail.wot.OwnIdentity;
 import freenet.support.Base64;
-import freenet.support.IllegalBase64Exception;
 
 public class AccountManager {
 	// this really doesn't matter a great deal
@@ -374,14 +373,7 @@ public class AccountManager {
 	}
 
 	private void addIdentity(OwnIdentity oid) {
-		File accountDir;
-		try {
-			accountDir = new File(datadir, Base32.encode(Base64.decode(oid.getIdentityID())));
-		} catch (IllegalBase64Exception e1) {
-			//Can't happen since we get the identity id from WoT
-			throw new AssertionError();
-		}
-
+		File accountDir = new File(datadir, oid.getBase32IdentityID());
 		FreemailAccount account = null;
 		PropsFile accProps = null;
 

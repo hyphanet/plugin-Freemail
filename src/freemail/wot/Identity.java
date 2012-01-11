@@ -20,6 +20,11 @@
 
 package freemail.wot;
 
+import org.archive.util.Base32;
+
+import freenet.support.Base64;
+import freenet.support.IllegalBase64Exception;
+
 public class Identity {
 	private final String identityID;
 	private final String requestURI;
@@ -33,6 +38,15 @@ public class Identity {
 
 	public String getIdentityID() {
 		return identityID;
+	}
+
+	public String getBase32IdentityID() {
+		try {
+			return Base32.encode(Base64.decode(identityID)).toLowerCase();
+		} catch (IllegalBase64Exception e) {
+			//Can't happen since we always get the id from WoT
+			throw new AssertionError();
+		}
 	}
 
 	public String getRequestURI() {
