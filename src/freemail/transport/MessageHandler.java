@@ -84,7 +84,6 @@ public class MessageHandler {
 	}
 
 	private final File outbox;
-	private final PropsFile index;
 	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
 	private final File channelDir;
@@ -96,7 +95,6 @@ public class MessageHandler {
 
 	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
-		index = PropsFile.createPropsFile(new File(outbox, INDEX_NAME));
 		this.freemail = freemail;
 		this.channelDir = channelDir;
 		this.freemailAccount = freemailAccount;
@@ -154,8 +152,9 @@ public class MessageHandler {
 					String identifier = f.getName();
 
 					String rawMsgNum;
-					synchronized (index) {
-						rawMsgNum = index.get(identifier + IndexKeys.MSG_NUM);
+					PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
+					synchronized (props) {
+						rawMsgNum = props.get(identifier + IndexKeys.MSG_NUM);
 					}
 
 					try {
@@ -218,9 +217,10 @@ public class MessageHandler {
 				Closer.close(messageStream);
 			}
 
-			synchronized(index) {
-				index.put(identifier + IndexKeys.RECIPIENT, recipient.getIdentityID());
-				index.put(identifier + IndexKeys.MSG_NUM, Long.toString(msgNum));
+			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
+			synchronized(props) {
+				props.put(identifier + IndexKeys.RECIPIENT, recipient.getIdentityID());
+				props.put(identifier + IndexKeys.MSG_NUM, Long.toString(msgNum));
 			}
 
 			tasks.put(identifier, executor.submit(new SenderTask(rcptOutbox, msgNum)));
@@ -311,21 +311,22 @@ public class MessageHandler {
 				continue;
 			}
 
+			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
 			for(File message : rcptOutbox.listFiles()) {
 				String identifier = message.getName();
 
 				String recipient;
 				String firstSendTime;
 				String lastSendTime;
-				synchronized(index) {
-					recipient = index.get(identifier + IndexKeys.RECIPIENT);
+				synchronized(props) {
+					recipient = props.get(identifier + IndexKeys.RECIPIENT);
 					if(recipient == null) {
 						//Not a message
 						continue;
 					}
 
-					firstSendTime = index.get(identifier + IndexKeys.FIRST_SEND_TIME);
-					lastSendTime = index.get(identifier + IndexKeys.LAST_SEND_TIME);
+					firstSendTime = props.get(identifier + IndexKeys.FIRST_SEND_TIME);
+					lastSendTime = props.get(identifier + IndexKeys.LAST_SEND_TIME);
 				}
 
 				OutboxMessage msg = new OutboxMessage(recipient, firstSendTime, lastSendTime, message);
@@ -416,10 +417,11 @@ public class MessageHandler {
 
 			long retryIn;
 			long lastSendTime;
+			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
 			try {
 				String time;
-				synchronized(index) {
-					time = index.get(identifier + IndexKeys.LAST_SEND_TIME);
+				synchronized(props) {
+					time = props.get(identifier + IndexKeys.LAST_SEND_TIME);
 				}
 				lastSendTime = Long.parseLong(time);
 			} catch(NumberFormatException e) {
@@ -434,12 +436,12 @@ public class MessageHandler {
 					//haven't been generated yet), or because the insert failed
 					retryIn = 5 * 60 * 1000; //5 minutes
 				} else {
-					synchronized(index) {
-						String firstSentTime = index.get(identifier + IndexKeys.FIRST_SEND_TIME);
+					synchronized(props) {
+						String firstSentTime = props.get(identifier + IndexKeys.FIRST_SEND_TIME);
 						if(firstSentTime == null) {
-							index.put(identifier + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
+							props.put(identifier + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
 						}
-						index.put(identifier + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
+						props.put(identifier + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
 					}
 
 					retryIn = RESEND_TIME;
@@ -452,8 +454,9 @@ public class MessageHandler {
 
 		private boolean sendMessage() {
 			String recipient;
-			synchronized(index) {
-				recipient = index.get(identifier + IndexKeys.RECIPIENT);
+			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
+			synchronized(props) {
+				recipient = props.get(identifier + IndexKeys.RECIPIENT);
 			}
 
 			Channel c;
@@ -478,11 +481,12 @@ public class MessageHandler {
 		}
 	}
 
-	private void deleteIndexEntries(String identifier) {
-		synchronized(index) {
-			index.remove(identifier + IndexKeys.FIRST_SEND_TIME);
-			index.remove(identifier + IndexKeys.LAST_SEND_TIME);
-			index.remove(identifier + IndexKeys.RECIPIENT);
+	private void deleteIndexEntries(File rcptOutbox, String identifier) {
+		PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
+		synchronized(props) {
+			props.remove(identifier + IndexKeys.FIRST_SEND_TIME);
+			props.remove(identifier + IndexKeys.LAST_SEND_TIME);
+			props.remove(identifier + IndexKeys.RECIPIENT);
 		}
 	}
 
@@ -501,7 +505,7 @@ public class MessageHandler {
 				Logger.error(this, "Couldn't delete " + message);
 			}
 
-			deleteIndexEntries(Long.toString(id));
+			deleteIndexEntries(rcptOutbox, Long.toString(id));
 
 			Future<?> task = tasks.remove(Long.toString(id));
 			if(task != null) {
