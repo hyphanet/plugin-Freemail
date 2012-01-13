@@ -195,7 +195,7 @@ public class MessageHandler {
 				}
 			}
 
-			long msgNum = getMessageNumber();
+			long msgNum = getMessageNumber(rcptOutbox);
 			String identifier = Long.toString(msgNum);
 			File messageFile = new File(rcptOutbox, "" + identifier);
 
@@ -379,9 +379,10 @@ public class MessageHandler {
 		}
 	}
 
-	private long getMessageNumber() {
-		synchronized(index) {
-			String rawNumber = index.get(IndexKeys.NEXT_MESSAGE_NUMBER);
+	private long getMessageNumber(File rcptOutbox) {
+		PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
+		synchronized(props) {
+			String rawNumber = props.get(IndexKeys.NEXT_MESSAGE_NUMBER);
 			long number;
 			try {
 				number = Long.parseLong(rawNumber);
@@ -393,7 +394,7 @@ public class MessageHandler {
 					Logger.error(this, "Parsing of next message number failed, was " + rawNumber);
 				}
 			}
-			index.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + (number + 1));
+			props.put(IndexKeys.NEXT_MESSAGE_NUMBER, "" + (number + 1));
 			return number;
 		}
 	}
