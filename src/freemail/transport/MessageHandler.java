@@ -437,11 +437,12 @@ public class MessageHandler {
 					retryIn = 5 * 60 * 1000; //5 minutes
 				} else {
 					synchronized(props) {
+						long curTime = System.currentTimeMillis();
 						String firstSentTime = props.get(identifier + IndexKeys.FIRST_SEND_TIME);
 						if(firstSentTime == null) {
-							props.put(identifier + IndexKeys.FIRST_SEND_TIME, "" + System.currentTimeMillis());
+							props.put(identifier + IndexKeys.FIRST_SEND_TIME, "" + curTime);
 						}
-						props.put(identifier + IndexKeys.LAST_SEND_TIME, "" + System.currentTimeMillis());
+						props.put(identifier + IndexKeys.LAST_SEND_TIME, "" + curTime);
 					}
 
 					retryIn = RESEND_TIME;
