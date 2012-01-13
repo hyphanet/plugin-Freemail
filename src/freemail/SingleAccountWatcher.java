@@ -22,7 +22,6 @@
 package freemail;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.InterruptedException;
 
 import freemail.fcp.ConnectionTerminatedException;
@@ -137,23 +136,6 @@ public class SingleAccountWatcher implements Runnable {
 				if(stopping) {
 					break;
 				}
-				
-				// poll for incoming message from all inbound contacts
-				Logger.debug(this, "polling for incoming message from all inbound contacts");
-				File[] ibcontacts = this.ibctdir.listFiles(new inboundContactFilenameFilter());
-				if (ibcontacts != null) {
-					int i;
-					for (i = 0; i < ibcontacts.length; i++) {
-						if (ibcontacts[i].getName().equals(RTSFetcher.LOGFILE)) continue;
-						
-						InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
-						
-						ibct.fetch(account.getMessageBank());
-					}
-				}
-				if(stopping) {
-					break;
-				}
 			
 				long runtime = System.currentTimeMillis() - start;
 				
@@ -175,12 +157,4 @@ public class SingleAccountWatcher implements Runnable {
 	public void kill() {
 		stopping = true;
 	}
-
-	private static class inboundContactFilenameFilter implements FilenameFilter {
-		// check that each dir is a freenet key
-		public boolean accept(File dir, String name ) {
-			return name.matches("[A-Za-z0-9~-]+,[A-Za-z0-9~-]+,[A-Za-z0-9~-]+");
-		}
-	}
-
 }
