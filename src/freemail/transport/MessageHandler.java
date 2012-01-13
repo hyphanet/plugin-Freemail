@@ -64,7 +64,7 @@ import freenet.support.io.FileBucket;
 public class MessageHandler {
 	private final static String INDEX_NAME = "index";
 	private final static long RESEND_TIME = 24 * 60 * 60 * 1000;
-	private final static String LOG_DIR_NAME = "logs";
+	private final static String MSG_LOG_NAME = "log";
 
 	/**
 	 * Holds the static portions of the keys used in the index file. The values that are stored per
@@ -516,11 +516,16 @@ public class MessageHandler {
 
 		@Override
 		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
-			File logDir = new File(outbox, LOG_DIR_NAME);
-			if(!logDir.exists()) {
-				logDir.mkdir();
+			File rcptOutbox;
+			try {
+				rcptOutbox = new File(outbox, Base32.encode(Base64.decode(channel.getRemoteIdentity())));
+			} catch (IllegalBase64Exception e1) {
+				throw new AssertionError();
 			}
-			MessageLog msgLog = new MessageLog(new File(logDir, channel.getRemoteIdentity()));
+			if(!rcptOutbox.exists()) {
+				rcptOutbox.mkdir();
+			}
+			MessageLog msgLog = new MessageLog(new File(rcptOutbox, MSG_LOG_NAME));
 			boolean isDupe;
 			try {
 				isDupe = msgLog.isPresent(id);
