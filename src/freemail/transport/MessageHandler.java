@@ -495,7 +495,8 @@ public class MessageHandler {
 		public void onAckReceived(String remote, long id) {
 			File rcptOutbox;
 			try {
-				rcptOutbox = new File(outbox, Base32.encode(Base64.decode(remote)));
+				String base32Id = Base32.encode(Base64.decode(remote));
+				rcptOutbox = new File(outbox, base32Id);
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}
@@ -518,7 +519,8 @@ public class MessageHandler {
 		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
 			File rcptOutbox;
 			try {
-				rcptOutbox = new File(outbox, Base32.encode(Base64.decode(channel.getRemoteIdentity())));
+				String base32Id = Base32.encode(Base64.decode(channel.getRemoteIdentity())).toLowerCase();
+				rcptOutbox = new File(outbox, base32Id);
 			} catch (IllegalBase64Exception e1) {
 				throw new AssertionError();
 			}
