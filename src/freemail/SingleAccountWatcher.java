@@ -23,7 +23,6 @@ package freemail;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.lang.InterruptedException;
 
 import freemail.fcp.ConnectionTerminatedException;
@@ -40,13 +39,11 @@ public class SingleAccountWatcher implements Runnable {
 
 	public static final String CONTACTS_DIR = "contacts";
 	public static final String INBOUND_DIR = "inbound";
-	public static final String OUTBOUND_DIR = "outbound";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
-	private final File obctdir;
 	private final File ibctdir;
 	private final FreemailAccount account;
 	private final Freemail freemail;
@@ -62,7 +59,6 @@ public class SingleAccountWatcher implements Runnable {
 		}
 		
 		this.ibctdir = new File(contacts_dir, INBOUND_DIR);
-		this.obctdir = new File(contacts_dir, OUTBOUND_DIR);
 		this.mailsite_last_upload = 0;
 		
 		if (!this.ibctdir.exists()) {
@@ -133,20 +129,6 @@ public class SingleAccountWatcher implements Runnable {
 				if(stopping) {
 					break;
 				}
-				// send any messages queued in contact outboxes
-				Logger.debug(this, "sending any message in contact outboxes");
-				File[] obcontacts = this.obctdir.listFiles(new outboundContactFilenameFilter());
-				if (obcontacts != null) {
-					int i;
-					for (i = 0; i < obcontacts.length; i++) {
-						try {
-							OutboundContact obct = new OutboundContact(account, obcontacts[i]);
-							obct.doComm();
-						} catch (IOException ioe) {
-							Logger.error(this, "Failed to create outbound contact - not sending mail");
-						}
-					}
-				}
 				Logger.debug(this, "polling rts");
 				if (this.nf != null) {
 					nf.fetch();
@@ -192,13 +174,6 @@ public class SingleAccountWatcher implements Runnable {
 	 */
 	public void kill() {
 		stopping = true;
-	}
-
-	private static class outboundContactFilenameFilter implements FilenameFilter {
-		// check that each dir is a base32 encoded filename
-		public boolean accept(File dir, String name ) {
-			return name.matches("[A-Za-z2-7]+");
-		}
 	}
 
 	private static class inboundContactFilenameFilter implements FilenameFilter {
