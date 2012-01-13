@@ -35,6 +35,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
 
+import org.archive.util.Base32;
+
 import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
@@ -46,6 +48,8 @@ import freemail.transport.Channel.ChannelEventCallback;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
+import freenet.support.Base64;
+import freenet.support.IllegalBase64Exception;
 import freenet.support.api.Bucket;
 import freenet.support.io.Closer;
 import freenet.support.io.FileBucket;
@@ -135,26 +139,33 @@ public class MessageHandler {
 
 	public void start() {
 		if(outbox.isDirectory()) {
-			for(File f : outbox.listFiles()) {
-				if(!f.isFile()) {
-					Logger.debug(this, "Spurious file in outbox: " + f);
+			for(File rcptOutbox : outbox.listFiles()) {
+				if(!rcptOutbox.isDirectory()) {
+					Logger.debug(this, "Spurious file in outbox: " + rcptOutbox);
 					continue;
 				}
 
-				String identifier = f.getName();
+				for(File f : rcptOutbox.listFiles()) {
+					if(!f.isFile()) {
+						Logger.debug(this, "Spurious file in contact outbox: " + f);
+						continue;
+					}
 
-				String rawMsgNum;
-				synchronized (index) {
-					rawMsgNum = index.get(identifier + IndexKeys.MSG_NUM);
-				}
+					String identifier = f.getName();
 
-				try {
-					long num = Long.parseLong(rawMsgNum);
-					Logger.debug(this, "Scheduling SenderTask for " + num);
-					tasks.put(Long.toString(num), executor.schedule(new SenderTask(num), 0, TimeUnit.NANOSECONDS));
-				} catch(NumberFormatException e) {
-					Logger.debug(this, "Found file without valid message number: " + f);
-					continue;
+					String rawMsgNum;
+					synchronized (index) {
+						rawMsgNum = index.get(identifier + IndexKeys.MSG_NUM);
+					}
+
+					try {
+						long num = Long.parseLong(rawMsgNum);
+						Logger.debug(this, "Scheduling SenderTask for " + num);
+						tasks.put(Long.toString(num), executor.schedule(new SenderTask(rcptOutbox, num), 0, TimeUnit.NANOSECONDS));
+					} catch(NumberFormatException e) {
+						Logger.debug(this, "Found file without valid message number: " + f);
+						continue;
+					}
 				}
 			}
 		}
@@ -176,9 +187,17 @@ public class MessageHandler {
 		}
 
 		for(Identity recipient : recipients) {
+			File rcptOutbox = new File(outbox, recipient.getBase32IdentityID());
+			if(!rcptOutbox.exists()) {
+				if(!rcptOutbox.mkdir()) {
+					Logger.error(this, "Couldn't create recipient outbox directory: " + rcptOutbox);
+					return false;
+				}
+			}
+
 			long msgNum = getMessageNumber();
 			String identifier = Long.toString(msgNum);
-			File messageFile = new File(outbox, "" + identifier);
+			File messageFile = new File(rcptOutbox, "" + identifier);
 
 			if(!messageFile.createNewFile()) {
 				Logger.error(this, "Message file " + messageFile + " already exists");
@@ -204,7 +223,7 @@ public class MessageHandler {
 				index.put(identifier + IndexKeys.MSG_NUM, Long.toString(msgNum));
 			}
 
-			tasks.put(identifier, executor.submit(new SenderTask(msgNum)));
+			tasks.put(identifier, executor.submit(new SenderTask(rcptOutbox, msgNum)));
 		}
 
 		return true;
@@ -287,25 +306,31 @@ public class MessageHandler {
 			return messages;
 		}
 
-		for(File message : outboxFiles) {
-			String identifier = message.getName();
-
-			String recipient;
-			String firstSendTime;
-			String lastSendTime;
-			synchronized(index) {
-				recipient = index.get(identifier + IndexKeys.RECIPIENT);
-				if(recipient == null) {
-					//Not a message
-					continue;
-				}
-
-				firstSendTime = index.get(identifier + IndexKeys.FIRST_SEND_TIME);
-				lastSendTime = index.get(identifier + IndexKeys.LAST_SEND_TIME);
+		for(File rcptOutbox : outboxFiles) {
+			if(!rcptOutbox.isDirectory()) {
+				continue;
 			}
 
-			OutboxMessage msg = new OutboxMessage(recipient, firstSendTime, lastSendTime, message);
-			messages.add(msg);
+			for(File message : rcptOutbox.listFiles()) {
+				String identifier = message.getName();
+
+				String recipient;
+				String firstSendTime;
+				String lastSendTime;
+				synchronized(index) {
+					recipient = index.get(identifier + IndexKeys.RECIPIENT);
+					if(recipient == null) {
+						//Not a message
+						continue;
+					}
+
+					firstSendTime = index.get(identifier + IndexKeys.FIRST_SEND_TIME);
+					lastSendTime = index.get(identifier + IndexKeys.LAST_SEND_TIME);
+				}
+
+				OutboxMessage msg = new OutboxMessage(recipient, firstSendTime, lastSendTime, message);
+				messages.add(msg);
+			}
 		}
 
 		return messages;
@@ -376,10 +401,12 @@ public class MessageHandler {
 	private class SenderTask implements Runnable {
 		private final long msgNum;
 		private final String identifier;
+		private final File rcptOutbox;
 
-		private SenderTask(long msgNum) {
+		private SenderTask(File rcptOutbox, long msgNum) {
 			this.msgNum = msgNum;
 			this.identifier = Long.toString(msgNum);
+			this.rcptOutbox = rcptOutbox;
 		}
 
 		@Override
@@ -432,7 +459,7 @@ public class MessageHandler {
 			boolean inserted;
 			while(true) {
 				c = getChannel(recipient);
-				Bucket message = new FileBucket(new File(outbox, identifier), false, false, false, false, false);
+				Bucket message = new FileBucket(new File(rcptOutbox, identifier), false, false, false, false, false);
 				try {
 					inserted = c.sendMessage(message, msgNum);
 				} catch(ChannelTimedOutException e) {
@@ -460,8 +487,15 @@ public class MessageHandler {
 
 	private class AckCallback extends Postman implements ChannelEventCallback {
 		@Override
-		public void onAckReceived(long id) {
-			File message = new File(outbox, "" + id);
+		public void onAckReceived(String remote, long id) {
+			File rcptOutbox;
+			try {
+				rcptOutbox = new File(outbox, Base32.encode(Base64.decode(remote)));
+			} catch (IllegalBase64Exception e) {
+				throw new AssertionError();
+			}
+
+			File message = new File(rcptOutbox, "" + id);
 			if(!message.delete()) {
 				Logger.error(this, "Couldn't delete " + message);
 			}

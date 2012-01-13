@@ -1222,8 +1222,13 @@ class Channel {
 
 		Logger.debug(this, "Got ack with id " + id);
 
+		String remoteId;
+		synchronized(channelProps) {
+			remoteId = channelProps.get(PropsKeys.REMOTE_ID);
+		}
+
 		long messageId = Long.parseLong(id);
-		channelEventCallback.onAckReceived(messageId);
+		channelEventCallback.onAckReceived(remoteId, messageId);
 
 		return true;
 	}
@@ -1257,7 +1262,7 @@ class Channel {
 	}
 
 	public interface ChannelEventCallback {
-		public void onAckReceived(long id);
+		public void onAckReceived(String remote, long id);
 		public boolean handleMessage(Channel channel, BufferedReader message, long id);
 	}
 }
