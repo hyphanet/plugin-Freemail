@@ -488,6 +488,7 @@ public class MessageHandler {
 			props.remove(identifier + IndexKeys.FIRST_SEND_TIME);
 			props.remove(identifier + IndexKeys.LAST_SEND_TIME);
 			props.remove(identifier + IndexKeys.RECIPIENT);
+			props.remove(identifier + IndexKeys.MSG_NUM);
 		}
 	}
 
