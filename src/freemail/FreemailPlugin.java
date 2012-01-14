@@ -70,7 +70,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		pluginRespirator = pr;
 
 		startFcp(true);
-		startWorkers(true);
+		startWorkers();
 		startServers(true);
 		startIdentityFetch(pr, getAccountManager());
 

@@ -135,7 +135,7 @@ public class FreemailCli extends Freemail {
 			return;
 		}
 
-		freemail.startWorkers(false);
+		freemail.startWorkers();
 		freemail.startServers(false);
 	}
 }

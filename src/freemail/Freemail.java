@@ -43,7 +43,6 @@ public abstract class Freemail implements ConfigClient {
 	private static final String TEMPDIRNAME = BASEDIR + "/temp";
 	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
 	private static final String GLOBALDATADIR = BASEDIR + "/globaldata";
-	private static final String ACKDIR = "delayedacks";
 	protected static final String CFGFILE = BASEDIR + "/globalconfig";
 	private File datadir;
 	private static File globaldatadir;
@@ -52,12 +51,10 @@ public abstract class Freemail implements ConfigClient {
 	
 	private Thread fcpThread;
 	private Thread smtpThread;
-	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
 	private final SMTPListener smtpl;
-	private final AckProcrastinator ackinserter;
 	private final IMAPListener imapl;
 	
 	protected final Configurator configurator;
@@ -92,11 +89,6 @@ public abstract class Freemail implements ConfigClient {
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
 		accountManager = new AccountManager(datadir, this);
-		
-		File ackdir = new File(globaldatadir, ACKDIR);
-		AckProcrastinator.setAckDir(ackdir);
-		ackinserter = new AckProcrastinator();
-		
 		
 		imapl = new IMAPListener(accountManager, configurator);
 		smtpl = new SMTPListener(accountManager, configurator, this);
@@ -149,23 +141,17 @@ public abstract class Freemail implements ConfigClient {
 		imapThread.start();
 	}
 	
-	protected void startWorkers(boolean daemon) {
+	protected void startWorkers() {
 		System.out.println("This is Freemail version "+Version.getVersionString());
 		System.out.println("Freemail is released under the terms of the GNU Lesser General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 		
-		// start the delayed ACK inserter
-		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
-		ackInserterThread.setDaemon(daemon);
-		ackInserterThread.start();
-
 		//Start account watchers, channel tasks etc.
 		accountManager.startTasks();
 	}
 	
 	public void terminate() {
 		accountManager.terminate();
-		ackinserter.kill();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
@@ -175,10 +161,6 @@ public abstract class Freemail implements ConfigClient {
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				if (ackInserterThread != null) {
-					ackInserterThread.join();
-					ackInserterThread = null;
-				}
 				if (smtpThread != null) {
 					smtpThread.join();
 					smtpl.joinClientThreads();
