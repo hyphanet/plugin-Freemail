@@ -37,7 +37,7 @@ public class SingleAccountWatcher implements Runnable {
 	protected volatile boolean stopping = false;
 
 	public static final String RTS_DIR = "rts";
-	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
+	private static final int MIN_POLL_DURATION = 5 * 60 * 1000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
