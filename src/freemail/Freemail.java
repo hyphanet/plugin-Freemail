@@ -42,10 +42,8 @@ public abstract class Freemail implements ConfigClient {
 	private static final String BASEDIR = "Freemail";
 	private static final String TEMPDIRNAME = BASEDIR + "/temp";
 	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
-	private static final String GLOBALDATADIR = BASEDIR + "/globaldata";
 	protected static final String CFGFILE = BASEDIR + "/globalconfig";
 	private File datadir;
-	private static File globaldatadir;
 	private static File tempdir;
 	protected static FCPConnection fcpconn = null;
 	
@@ -67,12 +65,6 @@ public abstract class Freemail implements ConfigClient {
 		configurator.register("datadir", this, Freemail.DEFAULT_DATADIR);
 		if (!datadir.exists() && !datadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-			throw new IOException("Couldn't create data dir");
-		}
-		
-		configurator.register("globaldatadir", this, GLOBALDATADIR);
-		if (!globaldatadir.exists() && !globaldatadir.mkdirs()) {
-			Logger.error(this,"Freemail: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
@@ -115,8 +107,6 @@ public abstract class Freemail implements ConfigClient {
 			datadir = new File(val);
 		} else if (key.equalsIgnoreCase("tempdir")) {
 			tempdir = new File(val);
-		} else if (key.equalsIgnoreCase("globaldatadir")) {
-			globaldatadir = new File(val);
 		}
 	}
 	
