@@ -454,6 +454,21 @@ class Channel {
 
 				if(fcpMessage == null) {
 					Logger.debug(this, "Insert successful");
+
+					synchronized (channelProps) {
+						if(!channelProps.remove(prefix + PropsKeys.MSG_SLOT)) {
+							Logger.error(this, "Couldn't remove slot, will try again later");
+
+							/*
+							 * The insert succeeded, but we can't leave the slot in the props file
+							 * since that would break the forward secrecy of the slot system. By
+							 * returning false we will try again later (using the same slot) and
+							 * hopefully we can delete it then.
+							 */
+							return false;
+						}
+					}
+
 					return true;
 				}
 
