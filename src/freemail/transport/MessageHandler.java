@@ -496,7 +496,7 @@ public class MessageHandler {
 		public void onAckReceived(String remote, long id) {
 			File rcptOutbox;
 			try {
-				String base32Id = Base32.encode(Base64.decode(remote));
+				String base32Id = Base32.encode(Base64.decode(remote)).toLowerCase();
 				rcptOutbox = new File(outbox, base32Id);
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
