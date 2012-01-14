@@ -38,6 +38,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	public static final String CONTACTS_DIR = "contacts";
 	public static final String INBOUND_DIR = "inbound";
+	public static final String RTS_DIR = "rts";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final NIMFetcher nf;
@@ -46,6 +47,7 @@ public class SingleAccountWatcher implements Runnable {
 	private final File ibctdir;
 	private final FreemailAccount account;
 	private final Freemail freemail;
+	private final File rtsdir;
 
 	SingleAccountWatcher(FreemailAccount acc, Freemail freemail) {
 		this.account = acc;
@@ -64,6 +66,8 @@ public class SingleAccountWatcher implements Runnable {
 			this.ibctdir.mkdir();
 		}
 		
+		rtsdir = new File(account.getAccountDir(), RTS_DIR);
+
 		File nimdir = new File(contacts_dir, AccountManager.NIMDIR);
 		if (nimdir.exists()) {
 			this.nf = new NIMFetcher(account.getMessageBank(), nimdir);
@@ -77,7 +81,7 @@ public class SingleAccountWatcher implements Runnable {
 			Logger.error(this,"Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
 		}
 
-		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", this.ibctdir, account);
+		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", rtsdir, account);
 		
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
 		
