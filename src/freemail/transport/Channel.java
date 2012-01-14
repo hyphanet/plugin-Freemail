@@ -927,6 +927,12 @@ class Channel {
 
 			byte[] rtsMessage = encryptMessage(signedMessage, keyModulus, keyExponent);
 
+			//Clean up the fetched mailsite
+			mailsiteProps = null;
+			if(!mailsite.delete()) {
+				Logger.error(this, "Couldn't delete " + mailsite);
+			}
+
 			//Insert
 			int slot;
 			try {
