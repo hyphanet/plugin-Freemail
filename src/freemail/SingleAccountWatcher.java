@@ -41,7 +41,6 @@ public class SingleAccountWatcher implements Runnable {
 	public static final String RTS_DIR = "rts";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
-	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
 	private final File ibctdir;
@@ -67,13 +66,6 @@ public class SingleAccountWatcher implements Runnable {
 		}
 		
 		rtsdir = new File(account.getAccountDir(), RTS_DIR);
-
-		File nimdir = new File(contacts_dir, AccountManager.NIMDIR);
-		if (nimdir.exists()) {
-			this.nf = new NIMFetcher(account.getMessageBank(), nimdir);
-		} else {
-			this.nf = null;
-		}
 		
 		String rtskey=account.getProps().get("rtskey");
 
@@ -133,9 +125,6 @@ public class SingleAccountWatcher implements Runnable {
 					break;
 				}
 				Logger.debug(this, "polling rts");
-				if (this.nf != null) {
-					nf.fetch();
-				}
 				this.rtsf.poll();
 				if(stopping) {
 					break;
