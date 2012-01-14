@@ -36,34 +36,19 @@ public class SingleAccountWatcher implements Runnable {
 	 */
 	protected volatile boolean stopping = false;
 
-	public static final String CONTACTS_DIR = "contacts";
-	public static final String INBOUND_DIR = "inbound";
 	public static final String RTS_DIR = "rts";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
-	private final File ibctdir;
 	private final FreemailAccount account;
 	private final Freemail freemail;
 	private final File rtsdir;
 
 	SingleAccountWatcher(FreemailAccount acc, Freemail freemail) {
 		this.account = acc;
-		File contacts_dir = new File(account.getAccountDir(), CONTACTS_DIR);
-		
 		this.freemail = freemail;
-
-		if (!contacts_dir.exists()) {
-			contacts_dir.mkdir();
-		}
-		
-		this.ibctdir = new File(contacts_dir, INBOUND_DIR);
 		this.mailsite_last_upload = 0;
-		
-		if (!this.ibctdir.exists()) {
-			this.ibctdir.mkdir();
-		}
 		
 		rtsdir = new File(account.getAccountDir(), RTS_DIR);
 		
