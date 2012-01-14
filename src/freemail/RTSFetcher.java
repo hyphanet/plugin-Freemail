@@ -372,6 +372,14 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		Logger.normal(this,"Original message intended for us :)");
 		
+		//Clean up temp files
+		if(!msfile.delete()) {
+			Logger.error(this, "Couldn't delete fetched mailsite: " + msfile);
+		}
+		if(!rtsfile.delete()) {
+			Logger.error(this, "Couldn't delete rts file: " + rtsfile);
+		}
+
 		account.getMessageHandler().createChannelFromRTS(rtsprops);
 
 		return true;
