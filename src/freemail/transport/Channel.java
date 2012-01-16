@@ -105,7 +105,6 @@ class Channel {
 		private static final String FETCH_CODE = "fetchCode";
 		private static final String REMOTE_ID = "remoteID";
 		private static final String TIMEOUT = "timeout";
-		private static final String MSG_PRIVATE_KEY = ".privateKey";
 		private static final String MSG_SLOT = ".slot";
 	}
 
