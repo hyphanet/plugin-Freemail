@@ -285,7 +285,7 @@ class Channel {
 		//Start insert of acks that were written to disk but not inserted
 		try {
 			synchronized(ackLog) {
-				Iterator<Long> it = ackLog.iterator();
+				Iterator<Long> it = ackLog.keyIterator();
 				while(it.hasNext()) {
 					Long id = it.next();
 					executor.execute(new AckInserter(id));
@@ -1163,7 +1163,7 @@ class Channel {
 
 		synchronized(ackLog) {
 			try {
-				ackLog.add(id);
+				ackLog.add(id, null);
 			} catch(IOException e) {
 				Logger.error(this, "Caugth IOException while writing to ack log: " + e);
 				return false;

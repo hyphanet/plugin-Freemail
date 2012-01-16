@@ -552,7 +552,7 @@ public class MessageHandler {
 			}
 			Logger.normal(this, "You've got mail!");
 			try {
-				msgLog.add(id);
+				msgLog.add(id, null);
 			} catch(IOException e) {
 				// how should we handle this? Remove the message from the inbox again?
 				Logger.error(this,"warning: failed to write log file!");

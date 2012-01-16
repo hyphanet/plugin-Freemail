@@ -26,14 +26,17 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 
 class MessageLog {
+	private static final String SEPARATOR = ", ";
+
 	private final File logfile;
 
-	private Set<Long> presentIds = null;
+	private Map<Long, String> presentIds = null;
 
 	public MessageLog(File logFile) {
 		this.logfile = logFile;
@@ -44,15 +47,18 @@ class MessageLog {
 			readIds();
 		}
 
-		return presentIds.contains(Long.valueOf(targetid));
+		return presentIds.containsKey(Long.valueOf(targetid));
 	}
 
-	public void add(long id) throws IOException {
+	public void add(long id, String data) throws IOException {
 		if(presentIds == null) {
 			readIds();
 		}
+		if((data != null) && (data.contains("\n"))) {
+			throw new IllegalArgumentException("Argument data contained newline");
+		}
 
-		presentIds.add(Long.valueOf(id));
+		presentIds.put(Long.valueOf(id), data);
 		writeIds();
 	}
 
@@ -65,16 +71,24 @@ class MessageLog {
 		writeIds();
 	}
 
-	public Iterator<Long> iterator() throws IOException {
+	public Iterator<Entry<Long, String>> iterator() throws IOException {
 		if(presentIds == null) {
 			readIds();
 		}
 
-		return presentIds.iterator();
+		return presentIds.entrySet().iterator();
+	}
+
+	public Iterator<Long> keyIterator() throws IOException {
+		if(presentIds == null) {
+			readIds();
+		}
+
+		return presentIds.keySet().iterator();
 	}
 
 	private void readIds() throws IOException {
-		presentIds = new HashSet<Long>();
+		presentIds = new HashMap<Long, String>();
 
 		if(!logfile.exists()) {
 			logfile.createNewFile();
@@ -83,8 +97,17 @@ class MessageLog {
 
 		String line;
 		while ( (line = br.readLine()) != null) {
-			long curid = Long.parseLong(line);
-			presentIds.add(Long.valueOf(curid));
+			int sepIndex = line.indexOf(SEPARATOR);
+			long curid = Long.parseLong(line.substring(0, sepIndex));
+
+			String data;
+			if(sepIndex + SEPARATOR.length() > line.length()) {
+				data = null;
+			} else {
+				data = line.substring(sepIndex + SEPARATOR.length());
+			}
+
+			presentIds.put(Long.valueOf(curid), data);
 		}
 
 		br.close();
@@ -97,8 +120,12 @@ class MessageLog {
 		FileOutputStream fos = new FileOutputStream(this.logfile, false);
 
 		PrintStream ps = new PrintStream(fos);
-		for(Long id : presentIds) {
-			ps.println(id);
+		for(Entry<Long, String> entry : presentIds.entrySet()) {
+			String line = entry.getKey() + SEPARATOR;
+			if(entry.getValue() != null) {
+				line += entry.getValue();
+			}
+			ps.println(line);
 		}
 		ps.close();
 	}
