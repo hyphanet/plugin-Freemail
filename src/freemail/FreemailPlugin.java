@@ -177,10 +177,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return pageNode.generate();
 	}
 
-	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
-		return null;
-	}
-
 	@Override
 	public long getRealVersion() {
 		return Version.BUILD_NO;
