@@ -52,8 +52,8 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private final static ScheduledExecutorService defaultExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
-	private final static ScheduledExecutorService senderExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
+	private final static ScheduledThreadPoolExecutor defaultExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
+	private final static ScheduledThreadPoolExecutor senderExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
 
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
@@ -61,6 +61,18 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
+
+		/*
+		 * We want the executor to vary the pool size even if the queue isn't
+		 * full since the queue is unbounded. We do this by setting
+		 * corePoolSize == maximumPoolSize and allowing core threads to time
+		 * out. Allowing all the threads to time out is fine since none of the
+		 * tasks are sensitive to the additional thread creation delay.
+		 */
+		defaultExecutor.setKeepAliveTime(1, TimeUnit.MINUTES);
+		defaultExecutor.allowCoreThreadTimeOut(true);
+		senderExecutor.setKeepAliveTime(1, TimeUnit.MINUTES);
+		senderExecutor.allowCoreThreadTimeOut(true);
 	}
 	
 	public String getVersion() {
