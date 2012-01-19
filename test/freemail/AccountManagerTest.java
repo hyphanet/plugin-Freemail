@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 public class AccountManagerTest extends TestCase {
 	private File dataDir;
 
+	@Override
 	public void setUp() {
 		dataDir = new File("data");
 		if(dataDir.exists()) {
@@ -40,6 +41,7 @@ public class AccountManagerTest extends TestCase {
 		}
 	}
 
+	@Override
 	public void tearDown() {
 		Utils.delete(dataDir);
 	}

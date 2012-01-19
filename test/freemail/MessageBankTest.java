@@ -31,6 +31,7 @@ public class MessageBankTest extends TestCase {
 	private File accountDir;
 	private MessageBank rootMessageBank;
 
+	@Override
 	public void setUp() {
 		// Set up account directory
 		accountDir = new File(ACCOUNT_DIR);
@@ -47,6 +48,7 @@ public class MessageBankTest extends TestCase {
 		rootMessageBank = new MessageBank(new FreemailAccount(null, accountDir, null));
 	}
 
+	@Override
 	public void tearDown() {
 		Utils.delete(accountDir);
 	}

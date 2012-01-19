@@ -31,6 +31,7 @@ public class MailMessageTest extends TestCase {
 
 	private File msgDir = null;
 
+	@Override
 	public void setUp() {
 		// Create a directory for messages so it is easier to list files, clean up etc.
 		msgDir = new File(MESSAGE_DIR);
@@ -44,6 +45,7 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
+	@Override
 	public void tearDown() {
 		Utils.delete(msgDir);
 	}
