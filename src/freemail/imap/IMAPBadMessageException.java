@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package freemail.imap;;
+package freemail.imap;
 
 public class IMAPBadMessageException extends Exception {
 	static final long serialVersionUID = -1;
