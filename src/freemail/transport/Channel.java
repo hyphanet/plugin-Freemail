@@ -32,6 +32,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -285,10 +286,20 @@ class Channel {
 		//Start insert of acks that were written to disk but not inserted
 		try {
 			synchronized(ackLog) {
-				Iterator<Long> it = ackLog.keyIterator();
+				Iterator<Entry<Long, String>> it = ackLog.iterator();
 				while(it.hasNext()) {
-					Long id = it.next();
-					executor.execute(new AckInserter(id));
+					Entry<Long, String> entry = it.next();
+					long insertAfter = 0;
+					if(entry.getValue() != null) {
+						try {
+							insertAfter = Long.parseLong(entry.getValue());
+						} catch(NumberFormatException e) {
+							//Assume no delay
+							insertAfter = 0;
+						}
+					}
+
+					executor.execute(new AckInserter(entry.getKey(), insertAfter));
 				}
 			}
 		} catch(IOException e) {
@@ -1182,7 +1193,8 @@ class Channel {
 		}
 
 		try {
-			executor.execute(new AckInserter(id));
+			//Insert ack with no delay
+			executor.execute(new AckInserter(id, 0));
 		} catch(RejectedExecutionException e) {
 			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
 		}
@@ -1192,14 +1204,23 @@ class Channel {
 
 	private class AckInserter implements Runnable {
 		private final long ackId;
+		private final long insertAfter;
 
-		private AckInserter(long ackId) {
+		private AckInserter(long ackId, long insertAfter) {
 			this.ackId = ackId;
+			this.insertAfter = insertAfter;
 		}
 
 		@Override
 		public void run() {
 			Logger.debug(this, "AckInserter(" + ackId + ") for " + Channel.this.toString() + " running");
+
+			if(System.currentTimeMillis() < insertAfter) {
+				long remaining = System.currentTimeMillis() - insertAfter;
+				Logger.debug(this, "Rescheduling in " + remaining + "ms when inserting is allowed");
+				executor.schedule(this, remaining, TimeUnit.MILLISECONDS);
+				return;
+			}
 
 			//Build the header of the inserted message
 			Bucket bucket = new ArrayBucket(
