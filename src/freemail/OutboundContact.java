@@ -163,7 +163,7 @@ public class OutboundContact {
 		}
 	}
 	
-	public void checkCTS() throws OutboundContactFatalException, ConnectionTerminatedException {
+	public void checkCTS() throws ConnectionTerminatedException {
 		String status = this.contactfile.get("status");
 		if (status == null) {
 			this.init();
@@ -249,7 +249,7 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private RSAKeyParameters getPubKey() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private RSAKeyParameters getPubKey() throws ConnectionTerminatedException {
 		String mod_str = this.contactfile.get("asymkey.modulus");
 		String exp_str = this.contactfile.get("asymkey.pubexponent");
 		
@@ -268,7 +268,7 @@ public class OutboundContact {
 		return new RSAKeyParameters(false, new BigInteger(mod_str, 32), new BigInteger(exp_str, 32));
 	}
 	
-	private String getRtsKsk() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private String getRtsKsk() throws ConnectionTerminatedException {
 		String rtsksk = this.contactfile.get("rtsksk");
 		
 		if (rtsksk == null) {
@@ -351,7 +351,7 @@ public class OutboundContact {
 	 *
 	 * @return true for success
 	 */
-	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private boolean init() throws ConnectionTerminatedException {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
@@ -521,7 +521,7 @@ public class OutboundContact {
 		return addr;
 	}
 	
-	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private boolean fetchMailSite() throws ConnectionTerminatedException {
 		String lastFetchedStr = this.contactfile.get("lastfetched");
 		long lastFetched = 0;
 		if (lastFetchedStr != null) {
@@ -660,15 +660,12 @@ public class OutboundContact {
 			this.sendQueued();
 			this.pollAcks();
 			this.checkCTS();
-		} catch (OutboundContactFatalException fe) {
-			Logger.error(this, "Fatal exception on outbound contact: "+fe.getMessage()+". This contact in invalid.");
-			// TODO: probably bounce all the messages and delete the contact.
 		} catch (ConnectionTerminatedException cte) {
 			// just exit
 		}
 	}
 	
-	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void sendQueued() throws ConnectionTerminatedException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
@@ -762,7 +759,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void pollAcks() throws ConnectionTerminatedException {
 		HighLevelFCPClient fcpcli = null;
 		QueuedMessage[] msgs = this.getSendQueue();
 		
