@@ -78,7 +78,7 @@ public class IMAPHandlerTest extends TestCase {
 	 * This checks for the bug fixed in commit ad0b9aedf34f19ba7ed06757cdb53ca9d5614add.
 	 * The IMAP thread would crash with a NullPointerException when receiving list with no arguments
 	 */
-	public void testIMAPListWithNoArguments() throws IOException {
+	public void testIMAPListWithNoArguments() throws IOException, InterruptedException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
 
@@ -99,11 +99,7 @@ public class IMAPHandlerTest extends TestCase {
 		//This would crash the IMAP thread
 		send(toHandler, "0003 LIST\r\n");
 
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-
-		}
+		Thread.sleep(100);
 
 		//Check the state of the imap thread. Hopefully it will have had time to deal with the
 		//command by now.
