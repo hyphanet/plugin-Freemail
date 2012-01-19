@@ -257,6 +257,8 @@ class Channel {
 	private class CTSInserter implements Runnable {
 		@Override
 		public void run() {
+			Logger.debug(this, "CTSInserter running (" + this + ")");
+
 			//Build the header of the inserted message
 			Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
 
