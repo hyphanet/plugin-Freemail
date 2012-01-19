@@ -22,9 +22,7 @@
 package freemail;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.io.PrintStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -158,27 +156,6 @@ public class AccountManager {
 		putWelcomeMessage(account, new EmailAddress(username+"@"+getFreemailDomain(accProps)));
 		
 		return account;
-	}
-	
-	public void setupNIM(String username) throws IOException {
-		File accountdir = new File(datadir, username);
-		
-		File contacts_dir = new File(accountdir, SingleAccountWatcher.CONTACTS_DIR);
-		if (!contacts_dir.exists()) {
-			if (!contacts_dir.mkdir()) throw new IOException("Failed to create contacts directory");
-		}
-		
-		File nimdir = new File(contacts_dir, NIMDIR);
-		if (!nimdir.exists()) {
-			if (!nimdir.mkdir()) throw new IOException("Failed to create nim directory");
-		}
-		
-		File keyfile = new File(nimdir, NIMContact.KEYFILE);
-		PrintWriter pw = new PrintWriter(new FileOutputStream(keyfile));
-		
-		pw.println(MessageSender.NIM_KEY_PREFIX + username + "-");
-		
-		pw.close();
 	}
 	
 	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
