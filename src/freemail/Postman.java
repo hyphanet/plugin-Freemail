@@ -37,7 +37,7 @@ import freemail.utils.EmailAddress;
 /** A postman is any class that delivers mail to an inbox. Simple,
  *  if not politically correct.
  */
-public class Postman {
+public abstract class Postman {
 	private static final int BOUNDARY_LENGTH = 32;
 
 	/**
