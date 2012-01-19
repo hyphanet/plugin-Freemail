@@ -82,6 +82,7 @@ class Channel {
 	private static final String CHANNEL_PROPS_NAME = "props";
 	private static final int POLL_AHEAD = 6;
 	private static final String ACK_LOG = "acklog";
+	private static final long MAX_ACK_DELAY = 12 * 60 * 60 * 1000; //12 hours
 
 	/**
 	 * The amount of time before the channel times out, in milliseconds. If the channel is created
@@ -1172,9 +1173,10 @@ class Channel {
 			return true;
 		}
 
+		long ackDelay = (long)(System.currentTimeMillis() + (Math.random() * MAX_ACK_DELAY));
 		synchronized(ackLog) {
 			try {
-				ackLog.add(id, null);
+				ackLog.add(id, Long.toString(ackDelay));
 			} catch(IOException e) {
 				Logger.error(this, "Caugth IOException while writing to ack log: " + e);
 				return false;
@@ -1193,8 +1195,7 @@ class Channel {
 		}
 
 		try {
-			//Insert ack with no delay
-			executor.execute(new AckInserter(id, 0));
+			executor.execute(new AckInserter(id, ackDelay));
 		} catch(RejectedExecutionException e) {
 			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
 		}
