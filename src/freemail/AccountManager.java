@@ -70,7 +70,7 @@ public class AccountManager {
 	// We keep FreemailAccount objects for all the accounts in this instance of Freemail - they need to be in memory
 	// anyway since there's SingleAccountWatcher thread running for each of them anyway - and we return the same object
 	// each time a request is made for a given account.
-	private Map<String, FreemailAccount> accounts = new HashMap();
+	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
 	
 	//singleAccountWatcherList locks both these lists
 	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
