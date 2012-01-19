@@ -161,7 +161,8 @@ public class MessageHandler {
 					try {
 						long num = Long.parseLong(rawMsgNum);
 						Logger.debug(this, "Scheduling SenderTask for " + num);
-						tasks.put(Long.toString(num), executor.schedule(new SenderTask(rcptOutbox, num), 0, TimeUnit.NANOSECONDS));
+						ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+						tasks.put(Long.toString(num), senderExecutor.schedule(new SenderTask(rcptOutbox, num), 0, TimeUnit.NANOSECONDS));
 					} catch(NumberFormatException e) {
 						Logger.debug(this, "Found file without valid message number: " + f);
 						continue;
@@ -224,7 +225,8 @@ public class MessageHandler {
 				props.put(identifier + IndexKeys.MSG_NUM, Long.toString(msgNum));
 			}
 
-			tasks.put(identifier, executor.submit(new SenderTask(rcptOutbox, msgNum)));
+			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+			tasks.put(identifier, senderExecutor.submit(new SenderTask(rcptOutbox, msgNum)));
 		}
 
 		return true;

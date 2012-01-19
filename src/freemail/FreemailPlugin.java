@@ -52,7 +52,8 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private final static ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
+	private final static ScheduledExecutorService defaultExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
+	private final static ScheduledExecutorService senderExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
 
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
@@ -80,7 +81,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	public static ScheduledExecutorService getExecutor(TaskType type) {
 		switch (type) {
 		case UNSPECIFIED:
-			return executor;
+			return defaultExecutor;
+		case SENDER:
+			return senderExecutor;
 		default:
 			throw new AssertionError("Missing case " + type);
 		}
@@ -142,7 +145,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	@Override
 	public void terminate() {
 		Logger.debug(this, "terminate() called");
-		executor.shutdownNow();
+		defaultExecutor.shutdownNow();
+		senderExecutor.shutdownNow();
 		
 		long start = System.nanoTime();
 		webInterface.terminate();
@@ -156,12 +160,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		start = System.nanoTime();
 		try {
-			executor.awaitTermination(1, TimeUnit.HOURS);
+			defaultExecutor.awaitTermination(1, TimeUnit.HOURS);
+			senderExecutor.awaitTermination(1, TimeUnit.HOURS);
 		} catch(InterruptedException e) {
-			Logger.debug(this, "Thread was interrupted while waiting for excutor to terminate.");
+			Logger.debug(this, "Thread was interrupted while waiting for excutors to terminate.");
 		}
 		end = System.nanoTime();
-		Logger.debug(this, "Spent " + (end - start) + "ns waiting for executor to terminate");
+		Logger.debug(this, "Spent " + (end - start) + "ns waiting for executors to terminate");
 	}
 
 	@Override
@@ -204,6 +209,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	public static enum TaskType {
-		UNSPECIFIED
+		UNSPECIFIED,
+		SENDER
 	}
 }
