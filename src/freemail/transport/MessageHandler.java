@@ -40,6 +40,7 @@ import org.archive.util.Base32;
 import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
+import freemail.FreemailPlugin.TaskType;
 import freemail.MailMessage;
 import freemail.Postman;
 import freemail.fcp.ConnectionTerminatedException;
@@ -124,7 +125,7 @@ public class MessageHandler {
 			}
 
 			try {
-				Channel channel = new Channel(f, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
+				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
 				Logger.debug(this, "Deleting timed out channel");
@@ -246,7 +247,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
@@ -284,7 +285,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, ackCallback);
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");

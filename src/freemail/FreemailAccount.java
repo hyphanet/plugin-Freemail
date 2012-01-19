@@ -23,6 +23,7 @@ import java.io.File;
 
 import org.archive.util.Base32;
 
+import freemail.FreemailPlugin.TaskType;
 import freemail.transport.MessageHandler;
 import freemail.utils.PropsFile;
 import freenet.support.Base64;
@@ -52,7 +53,7 @@ public class FreemailAccount {
 		mb = new MessageBank(this);
 
 		File channelDir = new File(accdir, "channel");
-		messageHandler = new MessageHandler(FreemailPlugin.getExecutor(), new File(accdir, "outbox"), freemail, channelDir, this);
+		messageHandler = new MessageHandler(FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new File(accdir, "outbox"), freemail, channelDir, this);
 	}
 	
 	public void startTasks() {

@@ -77,8 +77,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
 	}
 
-	public static ScheduledExecutorService getExecutor() {
-		return executor;
+	public static ScheduledExecutorService getExecutor(TaskType type) {
+		switch (type) {
+		case UNSPECIFIED:
+			return executor;
+		default:
+			throw new AssertionError("Missing case " + type);
+		}
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
@@ -196,5 +201,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		public Thread newThread(Runnable runnable) {
 			return new Thread(runnable, "Freemail executor thread " + threadCount.getAndIncrement());
 		}
+	}
+
+	public static enum TaskType {
+		UNSPECIFIED
 	}
 }
