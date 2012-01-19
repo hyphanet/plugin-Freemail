@@ -1,5 +1,6 @@
 package freemail.fcp;
 
+@SuppressWarnings("serial")
 public class FCPProtocolException extends FCPException {
 	FCPProtocolException(FCPMessage msg) {
 		super(msg);

@@ -19,6 +19,7 @@
 
 package freemail.fcp;
 
+@SuppressWarnings("serial")
 public class FCPPutFailedException extends FCPException {
 	/* Caller supplied a URI we cannot use */
 	public static final int INVALID_URI = 1;

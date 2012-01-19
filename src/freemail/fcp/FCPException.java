@@ -19,6 +19,7 @@
 
 package freemail.fcp;
 
+@SuppressWarnings("serial")
 public class FCPException extends Exception {
 	public final int errorcode;
 	public final boolean isFatal;
