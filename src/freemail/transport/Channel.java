@@ -54,8 +54,10 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import freemail.AccountManager;
 import freemail.Freemail;
 import freemail.FreemailAccount;
+import freemail.FreemailPlugin;
 import freemail.SlotManager;
 import freemail.SlotSaveCallback;
+import freemail.FreemailPlugin.TaskType;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.FCPBadFileException;
 import freemail.fcp.FCPFetchException;
@@ -300,7 +302,8 @@ class Channel {
 						}
 					}
 
-					executor.execute(new AckInserter(entry.getKey(), insertAfter));
+					ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+					senderExecutor.execute(new AckInserter(entry.getKey(), insertAfter));
 				}
 			}
 		} catch(IOException e) {
@@ -1195,7 +1198,8 @@ class Channel {
 		}
 
 		try {
-			executor.execute(new AckInserter(id, ackDelay));
+			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+			senderExecutor.execute(new AckInserter(id, ackDelay));
 		} catch(RejectedExecutionException e) {
 			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
 		}
@@ -1219,7 +1223,8 @@ class Channel {
 			if(System.currentTimeMillis() < insertAfter) {
 				long remaining = System.currentTimeMillis() - insertAfter;
 				Logger.debug(this, "Rescheduling in " + remaining + "ms when inserting is allowed");
-				executor.schedule(this, remaining, TimeUnit.MILLISECONDS);
+				ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+				senderExecutor.schedule(this, remaining, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -1247,7 +1252,8 @@ class Channel {
 				}
 			} else {
 				try {
-					executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
+					ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+					senderExecutor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				} catch(RejectedExecutionException e) {
 					Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
 				}
