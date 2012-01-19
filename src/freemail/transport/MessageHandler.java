@@ -90,16 +90,14 @@ public class MessageHandler {
 	private final File channelDir;
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
-	private final ScheduledExecutorService executor;
 	private final AckCallback ackCallback = new AckCallback();
 	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
 
-	public MessageHandler(ScheduledExecutorService executor, File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
+	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
 		this.outbox = outbox;
 		this.freemail = freemail;
 		this.channelDir = channelDir;
 		this.freemailAccount = freemailAccount;
-		this.executor = executor;
 
 		//Create and start all the channels
 		if(!channelDir.exists()) {
@@ -453,7 +451,8 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			tasks.put(identifier, executor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
+			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+			tasks.put(identifier, senderExecutor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
 
 		private boolean sendMessage() {
