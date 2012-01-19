@@ -223,7 +223,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		@Override
 		public Thread newThread(Runnable runnable) {
-			return new Thread(runnable, prefix + " " + threadCount.getAndIncrement());
+			String name = prefix + " " + threadCount.getAndIncrement();
+			Logger.debug(this, "Creating new thread: " + name);
+			return new Thread(runnable, name);
 		}
 	}
 
