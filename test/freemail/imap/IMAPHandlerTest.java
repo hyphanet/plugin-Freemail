@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 
 import utils.Utils;
 
@@ -31,6 +32,7 @@ import fakes.FakeSocket;
 import fakes.NullAccountManager;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
+import freemail.utils.PropsFile;
 
 import junit.framework.TestCase;
 
