@@ -127,7 +127,7 @@ public abstract class Freemail implements ConfigClient {
 		}
 	}
 	
-	protected void startFcp(boolean daemon) {
+	protected void startFcp() {
 		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
 		fcpThread.setDaemon(true);
 		fcpThread.start();

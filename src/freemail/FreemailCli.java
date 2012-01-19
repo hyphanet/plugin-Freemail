@@ -98,7 +98,7 @@ public class FreemailCli extends Freemail {
 			Logger.error(FreemailCli.class, "Failed to start Freemail: "+ioe.getMessage());
 			return;
 		}
-		freemail.startFcp(false);
+		freemail.startFcp();
 		
 		if (action.equals("--newaccount")) {
 			try {
