@@ -190,8 +190,5 @@ public abstract class Postman {
 		return null;
 	}
 	
-	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
-		// override me!
-		return true;
-	}
+	public abstract boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException;
 }
