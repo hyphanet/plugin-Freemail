@@ -52,8 +52,10 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private final static ScheduledThreadPoolExecutor defaultExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
-	private final static ScheduledThreadPoolExecutor senderExecutor = new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory());
+	private final static ScheduledThreadPoolExecutor defaultExecutor =
+			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail executor thread"));
+	private final static ScheduledThreadPoolExecutor senderExecutor =
+			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail sender thread"));
 
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
@@ -212,11 +214,16 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	private static class FreemailThreadFactory implements ThreadFactory {
+		private final String prefix;
 		AtomicInteger threadCount = new AtomicInteger();
+
+		public FreemailThreadFactory(String prefix) {
+			this.prefix = prefix;
+		}
 
 		@Override
 		public Thread newThread(Runnable runnable) {
-			return new Thread(runnable, "Freemail executor thread " + threadCount.getAndIncrement());
+			return new Thread(runnable, prefix + " " + threadCount.getAndIncrement());
 		}
 	}
 
