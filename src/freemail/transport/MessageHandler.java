@@ -90,7 +90,6 @@ public class MessageHandler {
 	private final File channelDir;
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
-	private final AckCallback ackCallback = new AckCallback();
 	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
 
 	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
@@ -124,7 +123,7 @@ public class MessageHandler {
 
 			try {
 				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount);
-				channel.setCallback(ackCallback);
+				channel.setCallback(new AckCallback(channel.getRemoteIdentity()));
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
 				Logger.debug(this, "Deleting timed out channel");
@@ -249,7 +248,7 @@ public class MessageHandler {
 			Channel channel;
 			try {
 				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount);
-				channel.setCallback(ackCallback);
+				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
@@ -288,7 +287,7 @@ public class MessageHandler {
 			Channel channel;
 			try {
 				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount);
-				channel.setCallback(ackCallback);
+				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
@@ -498,15 +497,19 @@ public class MessageHandler {
 	}
 
 	private class AckCallback extends Postman implements ChannelEventCallback {
-		@Override
-		public void onAckReceived(String remote, long id) {
-			File rcptOutbox;
+		private final String remoteId;
+
+		private AckCallback(String remoteId) {
 			try {
-				String base32Id = Base32.encode(Base64.decode(remote)).toLowerCase();
-				rcptOutbox = new File(outbox, base32Id);
+				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase();
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}
+		}
+
+		@Override
+		public void onAckReceived(String remote, long id) {
+			File rcptOutbox = new File(outbox, remoteId);
 
 			File message = new File(rcptOutbox, "" + id);
 			if(!message.delete()) {
@@ -524,13 +527,7 @@ public class MessageHandler {
 
 		@Override
 		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
-			File rcptOutbox;
-			try {
-				String base32Id = Base32.encode(Base64.decode(channel.getRemoteIdentity())).toLowerCase();
-				rcptOutbox = new File(outbox, base32Id);
-			} catch (IllegalBase64Exception e1) {
-				throw new AssertionError();
-			}
+			File rcptOutbox = new File(outbox, remoteId);
 			if(!rcptOutbox.exists()) {
 				rcptOutbox.mkdir();
 			}
