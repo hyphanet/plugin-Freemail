@@ -37,6 +37,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.archive.util.Base32;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
@@ -130,16 +131,15 @@ class Channel {
 	private final FreemailAccount account;
 	private final Fetcher fetcher = new Fetcher();
 	private final RTSSender rtsSender = new RTSSender();
-	private final ChannelEventCallback channelEventCallback;
+	private final AtomicReference<ChannelEventCallback> channelEventCallback = new AtomicReference<ChannelEventCallback>();
 	private final MessageLog ackLog;
 
-	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, ChannelEventCallback channelEventCallback) throws ChannelTimedOutException {
+	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) throws ChannelTimedOutException {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
 		this.fcpClient = fcpClient;
 		this.account = account;
-		this.channelEventCallback = channelEventCallback;
 
 		if(freemail == null) throw new NullPointerException();
 		this.freemail = freemail;
@@ -244,6 +244,15 @@ class Channel {
 	void setRemoteIdentity(String remoteID) {
 		synchronized(channelProps) {
 			channelProps.put(PropsKeys.REMOTE_ID, remoteID);
+		}
+	}
+
+	void setCallback(ChannelEventCallback callback) {
+		//At the moment we only need to set the callback after creating the
+		//channel, and the rest of the code hasn't been checked to make sure
+		//it can handle a change, so be strict about it.
+		if(!channelEventCallback.compareAndSet(null, callback)) {
+			throw new IllegalStateException("Callback has already been set");
 		}
 	}
 
@@ -1195,7 +1204,7 @@ class Channel {
 			return true;
 		}
 
-		if(!channelEventCallback.handleMessage(this, br, id)) {
+		if(!channelEventCallback.get().handleMessage(this, br, id)) {
 			return false;
 		}
 
@@ -1279,7 +1288,7 @@ class Channel {
 		}
 
 		long messageId = Long.parseLong(id);
-		channelEventCallback.onAckReceived(remoteId, messageId);
+		channelEventCallback.get().onAckReceived(remoteId, messageId);
 
 		return true;
 	}
