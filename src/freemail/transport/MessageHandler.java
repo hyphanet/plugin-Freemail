@@ -508,7 +508,7 @@ public class MessageHandler {
 		}
 
 		@Override
-		public void onAckReceived(String remote, long id) {
+		public void onAckReceived(long id) {
 			File rcptOutbox = new File(outbox, remoteId);
 
 			File message = new File(rcptOutbox, "" + id);
