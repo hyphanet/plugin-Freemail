@@ -46,6 +46,7 @@ import freemail.Postman;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.transport.Channel.ChannelEventCallback;
+import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 import freemail.wot.Identity;
@@ -561,6 +562,17 @@ public class MessageHandler {
 			}
 
 			return true;
+		}
+
+		@Override
+		public boolean validateFrom(EmailAddress address) {
+			if(remoteId.equalsIgnoreCase(address.getSubDomain())) {
+				return true;
+			}
+
+			Logger.debug(this, "Marking as spoofed since subdomain doesn't match. Was: " + address.getSubDomain() +
+					" Expected: " + remoteId);
+			return false;
 		}
 	}
 }
