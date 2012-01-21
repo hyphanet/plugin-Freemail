@@ -1274,16 +1274,19 @@ class Channel {
 
 	private boolean handleAck(File result) {
 		PropsFile ackProps = PropsFile.createPropsFile(result);
-		String id = ackProps.get("id");
-		if(id == null) {
+		String ackString = ackProps.get("id");
+		if(ackString == null) {
 			Logger.debug(this, "Received ack without id, discarding");
 			return true;
 		}
 
-		Logger.debug(this, "Got ack with id " + id);
+		Logger.debug(this, "Got ack with id " + ackString);
 
-		long messageId = Long.parseLong(id);
-		channelEventCallback.get().onAckReceived(messageId);
+		String[] acks = ackString.split(",");
+		for(String ack : acks) {
+			long messageId = Long.parseLong(ack);
+			channelEventCallback.get().onAckReceived(messageId);
+		}
 
 		return true;
 	}

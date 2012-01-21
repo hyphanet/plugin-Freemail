@@ -156,8 +156,8 @@ properties can be added in the future.
 \subsection{Message Acknowledgements}
 When Bobs client receives a message, it reads it and passes it onto Bob. He then
 inserts a propsfile to the next availiable slot with 'messagetype' set to ack, and 'id'
-set to the value of 'id' from the message in question. For example, if Bob has just fetched a message
-from key: \\
+set to a comma separated list of the 'id' values of the messages that should be acked.
+For example, if Bob has just fetched a message from key: \\
 \\
 SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
 DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/$<$role$>$-$<$fetch slot$>$ \\
