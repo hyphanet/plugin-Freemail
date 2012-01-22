@@ -1232,7 +1232,7 @@ class Channel {
 			Logger.debug(this, "AckInserter(" + ackId + ") for " + Channel.this.toString() + " running");
 
 			if(System.currentTimeMillis() < insertAfter) {
-				long remaining = System.currentTimeMillis() - insertAfter;
+				long remaining = insertAfter - System.currentTimeMillis();
 				Logger.debug(this, "Rescheduling in " + remaining + "ms when inserting is allowed");
 				ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
 				senderExecutor.schedule(this, remaining, TimeUnit.MILLISECONDS);
