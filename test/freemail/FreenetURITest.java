@@ -6,7 +6,8 @@ import java.util.List;
 import junit.framework.TestCase;
 
 public class FreenetURITest extends TestCase {
-	private static final String KEY_BODY = "TJl1G~HtSb5uRWW2ei36yXbilXTehZwXNwTirvpVSQ,ISYik-w5cLR7n6IzL3GjmHmp~tj7AJaDWtNhrZ5qt-4,AQECAAE";
+	private static final String KEY_HASH = "TJl1G~HtSb5uRWW2ei36yXbilXTehZwXNwTirvpVSQ";
+	private static final String KEY_BODY = KEY_HASH + ",ISYik-w5cLR7n6IzL3GjmHmp~tj7AJaDWtNhrZ5qt-4,AQECAAE";
 
 	private static final List<String> validSSKs = new LinkedList<String>();
 	private static final List<String> validUSKs = new LinkedList<String>();
@@ -41,5 +42,9 @@ public class FreenetURITest extends TestCase {
 		for(String key : validUSKs) {
 			assertTrue("USK check failed for " + key, FreenetURI.checkUSK(key));
 		}
+	}
+
+	public void testCheckSSKHash() {
+		assertTrue("SSK hash check failed for " + KEY_HASH, FreenetURI.checkSSKHash(KEY_HASH));
 	}
 }
