@@ -37,8 +37,8 @@ public class FreemailAccount {
 	private final MessageHandler messageHandler;
 	
 	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
-		if((identity.length() < 42) || (identity.length() > 44)) {
-			throw new IllegalArgumentException("Expected identity string of length 42-44, but got " + identity);
+		if(!FreenetURI.checkSSKHash(identity)) {
+			throw new IllegalArgumentException("Expected valid identity string, but got " + identity);
 		}
 		try {
 			Base64.decode(identity);

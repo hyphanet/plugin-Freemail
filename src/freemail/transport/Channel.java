@@ -56,6 +56,7 @@ import freemail.AccountManager;
 import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
+import freemail.FreenetURI;
 import freemail.SlotManager;
 import freemail.SlotSaveCallback;
 import freemail.FreemailPlugin.TaskType;
@@ -71,7 +72,6 @@ import freemail.utils.PropsFile;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
 import freemail.wot.WoTProperties;
-import freenet.keys.FreenetURI;
 import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
@@ -195,7 +195,7 @@ class Channel {
 			try {
 				final String documentName = "documentName";
 
-				FreenetURI privateURI = new FreenetURI(rtsProps.get(RTSKeys.CHANNEL));
+				freenet.keys.FreenetURI privateURI = new freenet.keys.FreenetURI(rtsProps.get(RTSKeys.CHANNEL));
 				privateURI = privateURI.setDocName(documentName);
 
 				InsertableClientSSK insertableKey = InsertableClientSSK.create(privateURI);
@@ -1065,7 +1065,7 @@ class Channel {
 		}
 
 		private byte[] buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot, long timeout) {
-			assert (senderMailsiteKey.matches("^USK@\\S{42,44},\\S{42,44},\\S{7}/\\w+/-?[0-9]+/.*$")) : "Malformed sender mailsite: " + senderMailsiteKey;
+			assert (FreenetURI.checkUSK(senderMailsiteKey)) : "Malformed sender mailsite: " + senderMailsiteKey;
 			assert (recipientIdentityID != null);
 			assert (channelPrivateKey.matches("^SSK@\\S{42,44},\\S{42,44},\\S{7}/$")) : "Malformed channel key: " + channelPrivateKey;
 			assert (initiatorSlot != null);
