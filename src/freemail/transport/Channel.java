@@ -1065,9 +1065,9 @@ class Channel {
 		}
 
 		private byte[] buildRTSMessage(String senderMailsiteKey, String recipientIdentityID, String channelPrivateKey, String initiatorSlot, String responderSlot, long timeout) {
-			assert (senderMailsiteKey.matches("^USK@\\S{43,44},\\S{43,44},\\S{7}/\\w+/-?[0-9]+/.*$")) : "Malformed sender mailsite: " + senderMailsiteKey;
+			assert (senderMailsiteKey.matches("^USK@\\S{42,44},\\S{42,44},\\S{7}/\\w+/-?[0-9]+/.*$")) : "Malformed sender mailsite: " + senderMailsiteKey;
 			assert (recipientIdentityID != null);
-			assert (channelPrivateKey.matches("^SSK@\\S{43,44},\\S{43,44},\\S{7}/$")) : "Malformed channel key: " + channelPrivateKey;
+			assert (channelPrivateKey.matches("^SSK@\\S{42,44},\\S{42,44},\\S{7}/$")) : "Malformed channel key: " + channelPrivateKey;
 			assert (initiatorSlot != null);
 			assert (responderSlot != null);
 			assert (timeout > System.currentTimeMillis());
