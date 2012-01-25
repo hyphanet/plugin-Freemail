@@ -157,6 +157,11 @@ class MailHeaderFilter {
 			return val;
 		} else if (name.equalsIgnoreCase("To")) {
 			return val;
+		} else if (name.equalsIgnoreCase("CC")) {
+			return val;
+		} else if (name.equalsIgnoreCase("BCC")) {
+			//The BCC field should not be sent
+			return null;
 		} else if (name.equalsIgnoreCase("Subject")) {
 			return val;
 		} else if (name.equalsIgnoreCase("MIME-Version")) {
