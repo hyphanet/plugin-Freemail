@@ -90,11 +90,37 @@ public class SingleAccountWatcher implements Runnable {
 				
 				// is it time we inserted the mailsite?
 				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
+					int editionHint = 0;
+
+					//Try to get the edition from WoT
+					WoTConnection wotConnection = freemail.getWotConnection();
+					if(wotConnection != null) {
+						try {
+							String hint = wotConnection.getProperty(
+									account.getIdentity(), WoTProperties.MAILSITE_EDITION);
+							editionHint = Integer.parseInt(hint);
+						} catch (PluginNotFoundException e) {
+							//Only means that we can't get the hint from WoT so ignore it
+						} catch (NumberFormatException e) {
+							//Same as above, so ignore this too
+						}
+					}
+
+					//And from the account file
+					String hint = account.getProps().get("mailsite.slot");
+					try {
+						int slot = Integer.parseInt(hint);
+						if(slot > editionHint) {
+							editionHint = slot;
+						}
+					} catch (NumberFormatException e) {
+						//Same as for the WoT approach
+					}
+
 					MailSite ms = new MailSite(account.getProps());
-					int edition = ms.publish();
+					int edition = ms.publish(editionHint);
 					if (edition > 0) {
 						this.mailsite_last_upload = System.currentTimeMillis();
-						WoTConnection wotConnection = freemail.getWotConnection();
 						if(wotConnection != null) {
 							try {
 								wotConnection.setProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION, "" + edition);
