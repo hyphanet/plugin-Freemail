@@ -70,10 +70,18 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		 * corePoolSize == maximumPoolSize and allowing core threads to time
 		 * out. Allowing all the threads to time out is fine since none of the
 		 * tasks are sensitive to the additional thread creation delay.
+		 *
+		 * Note: if there are queued tasks at least 1 thread will be alive, but
+		 * unfortunately the timeout still applies to this thread so every time
+		 * the timeout expires the executor creates a new thread. Because of
+		 * this the timeout for the sender executor should be large to avoid
+		 * creating a large amount of threads, and for the default it should be
+		 * > Channel.TASK_RETRY_DELAY (since that makes the thread that runs
+		 * the Fetcher never time out).
 		 */
-		defaultExecutor.setKeepAliveTime(1, TimeUnit.MINUTES);
+		defaultExecutor.setKeepAliveTime(10, TimeUnit.MINUTES);
 		defaultExecutor.allowCoreThreadTimeOut(true);
-		senderExecutor.setKeepAliveTime(1, TimeUnit.MINUTES);
+		senderExecutor.setKeepAliveTime(1, TimeUnit.HOURS);
 		senderExecutor.allowCoreThreadTimeOut(true);
 	}
 	
