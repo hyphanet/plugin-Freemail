@@ -42,8 +42,8 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 	public SMTPListener(AccountManager accMgr, MessageSender sender, Configurator cfg) {
 		this.msgsender = sender;
 		this.accountManager = accMgr;
-		cfg.register("smtp_bind_address", this, "127.0.0.1");
-		cfg.register("smtp_bind_port", this, Integer.toString(LISTENPORT));
+		cfg.register(Configurator.SMTP_BIND_ADDRESS, this, "127.0.0.1");
+		cfg.register(Configurator.SMTP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
 	
 	public void run() {
@@ -55,9 +55,9 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 	}
 	
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase("smtp_bind_address")) {
+		if (key.equalsIgnoreCase(Configurator.SMTP_BIND_ADDRESS)) {
 			this.bindaddress = val;
-		} else if (key.equalsIgnoreCase("smtp_bind_port")) {
+		} else if (key.equalsIgnoreCase(Configurator.SMTP_BIND_PORT)) {
 			this.bindport = Integer.parseInt(val);
 		}
 	}
