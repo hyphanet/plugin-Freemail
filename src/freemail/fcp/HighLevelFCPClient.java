@@ -64,7 +64,7 @@ public class HighLevelFCPClient implements FCPClient {
 					break;
 				} catch (NoNodeConnectionException nnce) {
 					try {
-						Logger.error(this,"No Freenet node available - waiting: "+nnce.getMessage());
+						Logger.error(this,"Warning - no connection to node. Waiting...");
 						Thread.sleep(10000);
 					} catch (InterruptedException ie) {
 					}
@@ -167,6 +167,7 @@ public class HighLevelFCPClient implements FCPClient {
 					break;
 				} catch (NoNodeConnectionException nnce) {
 					try {
+						Logger.error(this,"Warning - no connection to node. Waiting...");
 						Thread.sleep(5000);
 					} catch (InterruptedException ie) {
 					}
