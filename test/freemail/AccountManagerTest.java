@@ -70,4 +70,27 @@ public class AccountManagerTest extends TestCase {
 		AccountManager manager = new AccountManager(dataDir);
 		assertTrue(manager.getAllAccounts().isEmpty());
 	}
+
+	/*
+	 * This checks for the bug fixed in commit a5fda3d0cd799d105447f7ff83361cd9600e80a0.
+	 * AccountManager used two different methods for validating usernames, so accounts with - in the
+	 * username could be created, but couldn't be authenticated.
+	 */
+	public void testAuthenticateUsernameWithMinus() throws Exception {
+		final String ACCOUNT_NAME = "test-user";
+		final String ACCOUNT_PASSWORD = "test-user";
+
+		// Creating accounts the real way doesn't work because there is no fcp connection to the
+		// node, so we have to do it the hard way
+		File accDir = new File(dataDir, ACCOUNT_NAME);
+		accDir.mkdir();
+		File accProps = new File(accDir, AccountManager.ACCOUNT_FILE);
+		accProps.createNewFile();
+
+		AccountManager manager = new AccountManager(dataDir);
+		FreemailAccount acc = manager.getAccount(ACCOUNT_NAME);
+		AccountManager.changePassword(acc, ACCOUNT_PASSWORD);
+
+		assertNotNull(manager.authenticate(ACCOUNT_NAME, ACCOUNT_PASSWORD));
+	}
 }
