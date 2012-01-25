@@ -100,7 +100,8 @@ public class OutboundContact {
 	private static final long MAILSITE_CACHE_TIME = 60 * 60 * 1000;
 	
 	public OutboundContact(FreemailAccount acc, EmailAddress a) throws BadFreemailAddressException, IOException,
-	                                                           OutboundContactFatalException, ConnectionTerminatedException {
+	                                                           OutboundContactFatalException, ConnectionTerminatedException,
+	                                                           InterruptedException {
 		this.address = a;
 		
 		this.account = acc;
@@ -167,7 +168,8 @@ public class OutboundContact {
 		}
 	}
 	
-	public void checkCTS() throws OutboundContactFatalException, ConnectionTerminatedException {
+	public void checkCTS() throws OutboundContactFatalException, ConnectionTerminatedException,
+	                              InterruptedException {
 		String status = this.contactfile.get("status");
 		if (status == null) {
 			this.init();
@@ -215,7 +217,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException {
+	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException, InterruptedException {
 		SSKKeyPair ssk = new SSKKeyPair();
 		
 		ssk.pubkey = this.contactfile.get("commssk.pubkey");
@@ -235,7 +237,7 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException {
+	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException, InterruptedException {
 		SSKKeyPair ssk = new SSKKeyPair();
 		
 		ssk.pubkey = this.contactfile.get("ackssk.pubkey");
@@ -253,7 +255,8 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private RSAKeyParameters getPubKey() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private RSAKeyParameters getPubKey() throws OutboundContactFatalException, ConnectionTerminatedException,
+	                                            InterruptedException {
 		String mod_str = this.contactfile.get("asymkey.modulus");
 		String exp_str = this.contactfile.get("asymkey.pubexponent");
 		
@@ -272,7 +275,8 @@ public class OutboundContact {
 		return new RSAKeyParameters(false, new BigInteger(mod_str, 32), new BigInteger(exp_str, 32));
 	}
 	
-	private String getRtsKsk() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private String getRtsKsk() throws OutboundContactFatalException, ConnectionTerminatedException,
+	                                  InterruptedException {
 		String rtsksk = this.contactfile.get("rtsksk");
 		
 		if (rtsksk == null) {
@@ -352,7 +356,8 @@ public class OutboundContact {
 	 *
 	 * @return true for success
 	 */
-	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException,
+	                              InterruptedException {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
@@ -480,7 +485,8 @@ public class OutboundContact {
 	}
 	
 	// fetch the redirect (assumes that this is a KSK address)
-	private String fetchKSKRedirect(String key) throws OutboundContactFatalException, ConnectionTerminatedException {
+	private String fetchKSKRedirect(String key) throws OutboundContactFatalException, ConnectionTerminatedException,
+	                                                   InterruptedException {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
 		Logger.normal(this,"Attempting to fetch mailsite redirect "+key);
@@ -521,7 +527,8 @@ public class OutboundContact {
 		return addr;
 	}
 	
-	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException,
+	                                       InterruptedException {
 		String lastFetchedStr = this.contactfile.get("lastfetched");
 		long lastFetched = 0;
 		if (lastFetchedStr != null) {
@@ -655,7 +662,7 @@ public class OutboundContact {
 		return false;
 	}
 	
-	public void doComm() {
+	public void doComm() throws InterruptedException {
 		try {
 			this.sendQueued();
 			this.pollAcks();
@@ -668,7 +675,8 @@ public class OutboundContact {
 		}
 	}
 	
-	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException,
+	                                 InterruptedException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
@@ -763,7 +771,8 @@ public class OutboundContact {
 		}
 	}
 	
-	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException,
+	                               InterruptedException {
 		HighLevelFCPClient fcpcli = null;
 		Set<QueuedMessage> msgs = this.getSendQueue(null);
 		

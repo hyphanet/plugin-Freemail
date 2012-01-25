@@ -44,7 +44,8 @@ public class Postman {
 	 * 
 	 * @throws ConnectionTerminatedException if the Freenet connection was terminated whilst trying to validate the address
 	 */
-	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException, ConnectionTerminatedException {
+	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException, ConnectionTerminatedException,
+	                                                                        InterruptedException {
 		MailMessage newmsg = mb.createMessage();
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
@@ -190,7 +191,8 @@ public class Postman {
 		return null;
 	}
 	
-	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
+	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException,
+	                                                      InterruptedException {
 		// override me!
 		return true;
 	}

@@ -115,6 +115,10 @@ public class MessageSender implements Runnable {
 					this.sendDir(acc, outbox);
 				} catch (ConnectionTerminatedException cte) {
 					return;
+				} catch (InterruptedException e) {
+					Logger.debug(this, "Sender thread interrupted, stopping");
+					kill();
+					return;
 				}
 			}
 
@@ -137,7 +141,8 @@ public class MessageSender implements Runnable {
 		if (senderthread != null) senderthread.interrupt();
 	}
 	
-	private void sendDir(FreemailAccount fromAccount, File dir) throws ConnectionTerminatedException {
+	private void sendDir(FreemailAccount fromAccount, File dir) throws ConnectionTerminatedException,
+	                                                                   InterruptedException {
 		if (dir == null) return;
 		File[] files = dir.listFiles();
 		for (int i = 0; i < files.length; i++) {
@@ -148,7 +153,8 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
-	private void sendSingle(FreemailAccount fromAccount, File msg) throws ConnectionTerminatedException {
+	private void sendSingle(FreemailAccount fromAccount, File msg) throws ConnectionTerminatedException,
+	                                                                      InterruptedException {
 		String parts[] = msg.getName().split(ATTR_SEP_CHAR, 3);
 		EmailAddress addr;
 		int tries;
@@ -194,7 +200,8 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
-	private boolean sendSecure(FreemailAccount fromAccount, EmailAddress addr, File msg) throws ConnectionTerminatedException {
+	private boolean sendSecure(FreemailAccount fromAccount, EmailAddress addr, File msg) throws ConnectionTerminatedException,
+	                                                                                            InterruptedException {
 		Logger.normal(this,"sending secure");
 		OutboundContact ct;
 		try {

@@ -139,7 +139,8 @@ public class AccountManager {
 		return validateChars(username, "@\'\"\\/,:%()+ ");
 	}
 	
-	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException {
+	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException,
+	                                                             InterruptedException {
 		String invalid=validateUsername(username);
 		if(!invalid.equals("")) {
 			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
@@ -202,7 +203,7 @@ public class AccountManager {
 		return accfile;
 	}
 	
-	private static PropsFile newAccountFile(File accdir) {
+	private static PropsFile newAccountFile(File accdir) throws InterruptedException {
 		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (accdir.exists() && !accfile.exists()) {
@@ -248,7 +249,7 @@ public class AccountManager {
 		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
 	
-	private static void initAccFile(PropsFile accfile) {
+	private static void initAccFile(PropsFile accfile) throws InterruptedException {
 		try {
 			Logger.normal(AccountManager.class,"Generating mailsite keys...");
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
