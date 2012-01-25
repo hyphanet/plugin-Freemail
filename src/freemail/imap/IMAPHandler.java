@@ -41,6 +41,7 @@ import freemail.MailMessage;
 import freemail.AccountManager;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
+import freemail.utils.Logger;
 
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
@@ -89,7 +90,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void dispatch(IMAPMessage msg) {
-		//Logger.normal(this,msg.toString());
+		Logger.debug(this, "Received: " + msg);
 		if (msg.type.equals("login")) {
 			this.handle_login(msg);
 		} else if (msg.type.equals("logout")) {
@@ -129,6 +130,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} else if (msg.type.equals("append")) {
 			this.handle_append(msg);
 		} else {
+			Logger.error(this, "Unknown IMAP command: " + msg.type);
 			this.reply(msg, "NO Sorry - not implemented");
 		}
 	}
@@ -1303,10 +1305,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void reply(IMAPMessage msg, String reply) {
+		Logger.debug(this, "Reply: " + msg.tag + " " + reply);
 		this.ps.print(msg.tag + " " + reply + "\r\n");
 	}
 	
 	private void sendState(String txt) {
+		Logger.debug(this, "Reply: * " + txt);
 		this.ps.print("* "+txt+"\r\n");
 	}
 	
