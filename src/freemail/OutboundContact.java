@@ -98,6 +98,13 @@ public class OutboundContact {
 	// If we last fetched the mailsite longer than this number of milliseconds
     // ago, re-fetch it.
 	private static final long MAILSITE_CACHE_TIME = 60 * 60 * 1000;
+
+	/**
+	 * Used to store the index of the next ack we should check. This is done so we won't start from
+	 * the beginning if we stopped due to a timeout, but instead start where we left of.
+	 */
+	//FIXME: This behaves badly when the outbox changes
+	private int nextAckIndex = 0;
 	
 	public OutboundContact(FreemailAccount acc, EmailAddress a) throws BadFreemailAddressException, IOException,
 	                                                           OutboundContactFatalException, ConnectionTerminatedException,
@@ -662,10 +669,10 @@ public class OutboundContact {
 		return false;
 	}
 	
-	public void doComm() throws InterruptedException {
+	public void doComm(long timeout) throws InterruptedException {
 		try {
-			this.sendQueued();
-			this.pollAcks();
+			this.sendQueued(timeout / 2);
+			this.pollAcks(timeout / 2);
 			this.checkCTS();
 		} catch (OutboundContactFatalException fe) {
 			Logger.error(this, "Fatal exception on outbound contact: "+fe.getMessage()+". This contact in invalid.");
@@ -675,8 +682,8 @@ public class OutboundContact {
 		}
 	}
 	
-	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException,
-	                                 InterruptedException {
+	private void sendQueued(long timeout) throws ConnectionTerminatedException, OutboundContactFatalException,
+	                                             InterruptedException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
@@ -693,6 +700,7 @@ public class OutboundContact {
 		 * when sending a lot of messages. */
 		Set<QueuedMessage> msgs = this.getSendQueue(new MessageUidComparator());
 		
+		long start = System.nanoTime();
 		for (QueuedMessage msg : msgs) {
 			if (msg.last_send_time > 0) continue;
 			
@@ -768,15 +776,24 @@ public class OutboundContact {
 					Logger.normal(this,"Failed to insert "+key+" will try again soon. Error: "+err.errorcode);
 				}
 			}
+
+			if (System.nanoTime() > (start + (timeout * 1000 * 1000))) {
+				Logger.debug(this, "Stopping message sending due to timeout");
+				break;
+			}
 		}
 	}
 	
-	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException,
-	                               InterruptedException {
+	private void pollAcks(long timeout) throws ConnectionTerminatedException, OutboundContactFatalException,
+	                                           InterruptedException {
 		HighLevelFCPClient fcpcli = null;
 		Set<QueuedMessage> msgs = this.getSendQueue(null);
 		
+		Logger.debug(this, "Starting from ack index " + nextAckIndex);
+		long start = System.nanoTime();
+		int ackIndex = 0;
 		for (QueuedMessage msg : msgs) {
+			if (ackIndex++ < nextAckIndex) continue;
 			if (msg.first_send_time < 0) continue;
 			
 			if (fcpcli == null) fcpcli = new HighLevelFCPClient();
@@ -832,6 +849,16 @@ public class OutboundContact {
 				//Don't check the timeout here so we get at least one proper fetch attempt if this
 				//is a temporary problem
 			}
+
+			if(System.nanoTime() > start + (timeout * 1000 * 1000)) {
+				Logger.debug(this, "Stopping ack fetching due to timeout");
+				break;
+			}
+		}
+
+		nextAckIndex = ackIndex;
+		if(nextAckIndex >= msgs.size()) {
+			nextAckIndex = 0;
 		}
 	}
 	
