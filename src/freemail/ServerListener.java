@@ -26,12 +26,12 @@ import java.util.Iterator;
 
 public abstract class ServerListener {
 	protected ServerSocket sock;
-	private final ArrayList /* of ServerHandler */ handlers;
-	private final ArrayList /* of Thread */ handlerThreads;
+	private final ArrayList<ServerHandler> handlers;
+	private final ArrayList<Thread> handlerThreads;
 	
 	protected ServerListener() {
-		handlers = new ArrayList();
-		handlerThreads = new ArrayList();
+		handlers = new ArrayList<ServerHandler>();
+		handlerThreads = new ArrayList<Thread>();
 	}
 	
 	/**
@@ -45,8 +45,8 @@ public abstract class ServerListener {
 		}
 		// kill all our handlers too
 		synchronized(handlers) {
-			for (Iterator i = handlers.iterator(); i.hasNext(); ) {
-				ServerHandler handler =(ServerHandler) i.next();
+			for (Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
+				ServerHandler handler = i.next();
 				handler.kill();
 			}
 		}
@@ -56,8 +56,8 @@ public abstract class ServerListener {
 	 * Wait for all our client threads to terminate
 	 */
 	public void joinClientThreads() {
-		for (Iterator i = handlerThreads.iterator(); i.hasNext(); ) {
-			Thread t = (Thread)i.next();
+		for (Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
+			Thread t = i.next();
 			while (t != null) {
 				try {
 					t.join();
@@ -79,8 +79,8 @@ public abstract class ServerListener {
 	protected void reapHandlers() {
 		// clean up dead handlers...
 		synchronized(handlers) {
-			for (Iterator i = handlers.iterator(); i.hasNext(); ) {
-				ServerHandler handler = (ServerHandler)i.next();
+			for (Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
+				ServerHandler handler = i.next();
 				if (!handler.isAlive()) {
 					i.remove();
 				}
@@ -88,8 +88,8 @@ public abstract class ServerListener {
 		}
 		
 		// ...and threads...
-		for (Iterator i = handlerThreads.iterator(); i.hasNext(); ) {
-			Thread t = (Thread)i.next();
+		for (Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
+			Thread t = i.next();
 			if (!t.isAlive()) {
 				i.remove();
 			}

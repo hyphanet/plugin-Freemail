@@ -46,6 +46,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		cfg.register(Configurator.SMTP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
 	
+	@Override
 	public void run() {
 		try {
 			this.realrun();
@@ -54,6 +55,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		}
 	}
 	
+	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase(Configurator.SMTP_BIND_ADDRESS)) {
 			this.bindaddress = val;

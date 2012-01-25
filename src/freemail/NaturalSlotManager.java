@@ -24,6 +24,7 @@ public class NaturalSlotManager extends SlotManager {
 		super(cb, userdata, slotlist);
 	}
 
+	@Override
 	protected String incSlot(String slot) {
 		int s = Integer.parseInt(slot);
 		

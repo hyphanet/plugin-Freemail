@@ -47,18 +47,21 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		super(CFGFILE);
 	}
 	
+	@Override
 	public String getVersion() {
 		return Version.getVersionString();
 	}
 	
+	@Override
 	public void runPlugin(PluginRespirator pr) {
 		pluginResp = pr;
 		
-		startFcp(true);
+		startFcp();
 		startWorkers(true);
 		startServers(true);
 	}
 
+	@Override
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
@@ -98,7 +101,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
 		HTMLNode shortnameContent = shortnameHelp.addChild("div", "class", "infobox-content");
 		shortnameContent.addChild("p",
-				"The short address is a shorter and more convenient form of your new email address." +
+				"The short address is a shorter and more convenient form of your new email address. " +
 				"If you select a short address domain you will get an additional email address " +
 				"that looks like this: <anything>@<short address>.freemail");
 		shortnameContent.addChild("p",
@@ -108,6 +111,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return pageNode.generate();
 	}
 
+	@Override
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
@@ -188,10 +192,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return pageNode.generate();
 	}
 
-	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
-		return null;
-	}
-
+	@Override
 	public long getRealVersion() {
 		return Version.BUILD_NO;
 	}

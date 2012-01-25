@@ -207,6 +207,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		return success;
 	}
 	
+	@Override
 	public void saveSlots(String slots, Object userdata) {
 		MySlotSaveData cbdata = (MySlotSaveData) userdata;
 		

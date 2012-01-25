@@ -38,6 +38,7 @@ import freemail.FreemailAccount;
 import freemail.MessageSender;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
+import freemail.utils.Logger;
 
 import org.bouncycastle.util.encoders.Base64;
 
@@ -51,7 +52,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	
 	private final AccountManager accountmanager;
 	
-	private Vector to;
+	private Vector<EmailAddress> to;
 	
 	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender) throws IOException {
 		super(client);
@@ -62,9 +63,10 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		
-		this.to = new Vector();
+		this.to = new Vector<EmailAddress>();
 	}
 	
+	@Override
 	public void run() {
 		this.sendWelcome();
 		
@@ -89,7 +91,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void dispatch(SMTPCommand cmd) {
-		//Logger.normal(this,cmd.toString());
+		Logger.debug(this, "Received: " + cmd);
 		if (cmd.command.equals("helo")) {
 			this.handle_helo(cmd);
 		} else if (cmd.command.equals("ehlo")) {
@@ -109,6 +111,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		} else if (cmd.command.equals("rset")) {
 			this.handle_rset(cmd);
 		} else {
+			Logger.error(this, "Unknown command: " + cmd.command);
 			this.ps.print("502 Unimplemented\r\n");
 		}
 	}
@@ -179,7 +182,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				}
 			}
 			
-                        String creds_plain = new String(Base64.decode(b64creds.getBytes()));
+			String creds_plain = new String(Base64.decode(b64creds.getBytes()));
 			String[] creds = creds_plain.split("\0");
 			
 			if (creds.length < 2) return;

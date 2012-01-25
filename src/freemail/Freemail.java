@@ -47,14 +47,14 @@ public abstract class Freemail implements ConfigClient {
 	protected static FCPConnection fcpconn = null;
 	
 	private Thread fcpThread;
-	private ArrayList /* of Thread */ singleAccountWatcherThreadList = new ArrayList();
+	private ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
 	private Thread messageSenderThread;
 	private Thread smtpThread;
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
-	private final ArrayList singleAccountWatcherList = new ArrayList();
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
 	private final MessageSender sender;
 	private final SMTPListener smtpl;
 	private final AckProcrastinator ackinserter;
@@ -116,6 +116,7 @@ public abstract class Freemail implements ConfigClient {
 		return accountManager;
 	}
 
+	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase(Configurator.DATA_DIR)) {
 			datadir = new File(val);
@@ -126,7 +127,7 @@ public abstract class Freemail implements ConfigClient {
 		}
 	}
 	
-	protected void startFcp(boolean daemon) {
+	protected void startFcp() {
 		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
 		fcpThread.setDaemon(true);
 		fcpThread.start();
@@ -162,9 +163,9 @@ public abstract class Freemail implements ConfigClient {
 		System.out.println("");
 		
 		// start a SingleAccountWatcher for each account
-		Iterator i = accountManager.getAllAccounts().iterator();
+		Iterator<FreemailAccount> i = accountManager.getAllAccounts().iterator();
 		while (i.hasNext()) {
-			FreemailAccount acc = (FreemailAccount)i.next();
+			FreemailAccount acc = i.next();
 			
 			startWorker(acc, daemon);
 		}
@@ -182,9 +183,9 @@ public abstract class Freemail implements ConfigClient {
 	
 	public void terminate() {
 		long start = System.nanoTime();
-		Iterator it = singleAccountWatcherList.iterator();
+		Iterator<SingleAccountWatcher> it = singleAccountWatcherList.iterator();
 		while(it.hasNext()) {
-			((SingleAccountWatcher)it.next()).kill();
+			it.next().kill();
 			it.remove();
 		}
 		long end = System.nanoTime();
@@ -205,10 +206,10 @@ public abstract class Freemail implements ConfigClient {
 		while (!cleanedUp) {
 			try {
 				start = System.nanoTime();
-				it = singleAccountWatcherThreadList.iterator();
+				Iterator<Thread> threadIt = singleAccountWatcherThreadList.iterator();
 				while(it.hasNext()) {
-					((Thread)it.next()).join();
-					it.remove();
+					threadIt.next().join();
+					threadIt.remove();
 				}
 				end = System.nanoTime();
 				Logger.debug(this, "Spent " + (end - start) + "ns joining SingleAccountWatchers");

@@ -27,7 +27,7 @@ public class SMTPCommand {
 
 	public SMTPCommand(String line) throws SMTPBadCommandException {
 		boolean in_quotes = false;
-		Vector tmp_args = new Vector();
+		Vector<String> tmp_args = new Vector<String>();
 		StringBuffer buf = new StringBuffer("");
 		
 		for (int i = 0; i < line.length(); i++) {
@@ -56,12 +56,12 @@ public class SMTPCommand {
 			tmp_args.add(buf.toString());
 		}
 		if (tmp_args.size() == 0) throw new SMTPBadCommandException();
-		String tmpcmd = (String)tmp_args.remove(0);
+		String tmpcmd = tmp_args.remove(0);
 		this.command = tmpcmd.toLowerCase();
 		this.args = new String[tmp_args.size()];
 		
 		for (int i = 0; i < tmp_args.size(); i++) {
-			this.args[i] = (String)tmp_args.get(i);
+			this.args[i] = tmp_args.get(i);
 		}
 	}
 }

@@ -205,10 +205,12 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		}
 	}
 	
+	@Override
 	public void saveSlots(String s, Object userdata) {
 		this.ibct_props.put("slots", s);
 	}
-	
+
+	@Override
 	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException,
 	                                                      InterruptedException {
 		String sd = from.getSubDomain();

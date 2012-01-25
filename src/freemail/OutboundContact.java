@@ -175,8 +175,7 @@ public class OutboundContact {
 		}
 	}
 	
-	public void checkCTS() throws OutboundContactFatalException, ConnectionTerminatedException,
-	                              InterruptedException {
+	public void checkCTS() throws ConnectionTerminatedException, InterruptedException {
 		String status = this.contactfile.get("status");
 		if (status == null) {
 			this.init();
@@ -262,8 +261,7 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private RSAKeyParameters getPubKey() throws OutboundContactFatalException, ConnectionTerminatedException,
-	                                            InterruptedException {
+	private RSAKeyParameters getPubKey() throws ConnectionTerminatedException, InterruptedException {
 		String mod_str = this.contactfile.get("asymkey.modulus");
 		String exp_str = this.contactfile.get("asymkey.pubexponent");
 		
@@ -282,8 +280,7 @@ public class OutboundContact {
 		return new RSAKeyParameters(false, new BigInteger(mod_str, 32), new BigInteger(exp_str, 32));
 	}
 	
-	private String getRtsKsk() throws OutboundContactFatalException, ConnectionTerminatedException,
-	                                  InterruptedException {
+	private String getRtsKsk() throws ConnectionTerminatedException, InterruptedException {
 		String rtsksk = this.contactfile.get("rtsksk");
 		
 		if (rtsksk == null) {
@@ -363,8 +360,7 @@ public class OutboundContact {
 	 *
 	 * @return true for success
 	 */
-	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException,
-	                              InterruptedException {
+	private boolean init() throws ConnectionTerminatedException, InterruptedException {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
@@ -519,6 +515,7 @@ public class OutboundContact {
 			br = new BufferedReader(new FileReader(result));
 		} catch (FileNotFoundException fnfe) {
 			// impossible
+			throw new AssertionError();
 		}
 		
 		String addr;
@@ -534,8 +531,7 @@ public class OutboundContact {
 		return addr;
 	}
 	
-	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException,
-	                                       InterruptedException {
+	private boolean fetchMailSite() throws ConnectionTerminatedException, InterruptedException {
 		String lastFetchedStr = this.contactfile.get("lastfetched");
 		long lastFetched = 0;
 		if (lastFetchedStr != null) {
@@ -674,16 +670,12 @@ public class OutboundContact {
 			this.sendQueued(timeout / 2);
 			this.pollAcks(timeout / 2);
 			this.checkCTS();
-		} catch (OutboundContactFatalException fe) {
-			Logger.error(this, "Fatal exception on outbound contact: "+fe.getMessage()+". This contact in invalid.");
-			// TODO: probably bounce all the messages and delete the contact.
 		} catch (ConnectionTerminatedException cte) {
 			// just exit
 		}
 	}
 	
-	private void sendQueued(long timeout) throws ConnectionTerminatedException, OutboundContactFatalException,
-	                                             InterruptedException {
+	private void sendQueued(long timeout) throws ConnectionTerminatedException, InterruptedException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
@@ -784,8 +776,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private void pollAcks(long timeout) throws ConnectionTerminatedException, OutboundContactFatalException,
-	                                           InterruptedException {
+	private void pollAcks(long timeout) throws ConnectionTerminatedException, InterruptedException {
 		HighLevelFCPClient fcpcli = null;
 		Set<QueuedMessage> msgs = this.getSendQueue(null);
 		

@@ -50,7 +50,6 @@ public class SingleAccountWatcher implements Runnable {
 	private static final long SEND_TIMEOUT = 2 * 10 * MIN_POLL_DURATION;
 
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
-	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
 	private final File obctdir;
@@ -72,13 +71,6 @@ public class SingleAccountWatcher implements Runnable {
 		
 		if (!this.ibctdir.exists()) {
 			this.ibctdir.mkdir();
-		}
-		
-		File nimdir = new File(contacts_dir, AccountManager.NIMDIR);
-		if (nimdir.exists()) {
-			this.nf = new NIMFetcher(account.getMessageBank(), nimdir);
-		} else {
-			this.nf = null;
 		}
 		
 		String rtskey=account.getProps().get("rtskey");
@@ -112,6 +104,7 @@ public class SingleAccountWatcher implements Runnable {
 		}
 	}
 	
+	@Override
 	public void run() {
 		while (!stopping) {
 			try {
@@ -146,9 +139,6 @@ public class SingleAccountWatcher implements Runnable {
 					}
 				}
 				Logger.debug(this, "polling rts");
-				if (this.nf != null) {
-					nf.fetch();
-				}
 				this.rtsf.poll();
 				if(stopping) {
 					break;
@@ -195,6 +185,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private static class outboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a base32 encoded filename
+		@Override
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z2-7]+");
 		}
@@ -202,6 +193,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private static class inboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a freenet key
+		@Override
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z0-9~-]+,[A-Za-z0-9~-]+,[A-Za-z0-9~-]+");
 		}

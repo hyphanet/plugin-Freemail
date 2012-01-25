@@ -35,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import freemail.config.ConfigClient;
-import freemail.config.Configurator;
 
 public class Logger implements ConfigClient {
 
@@ -54,8 +53,9 @@ public class Logger implements ConfigClient {
 	
 	static private SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
 	
+	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equals(Configurator.LOG_LEVEL)) {
+		if (key.equals("loglevel")) {
 			String[] levels = val.split("\\s*\\|\\s*");
 			
 			loglevel = 0;
@@ -95,7 +95,7 @@ public class Logger implements ConfigClient {
 		log(l, o.getClass(), s, level);
 	}
 
-	static private synchronized void log(int l, Class c, String s, String level) {
+	static private synchronized void log(int l, Class<?> c, String s, String level) {
 		if((l&loglevel)!=0) {
 			System.err.println(logDateFormat.format(new Date())+" "+level+"("+c.getName()+"): "+s);
 		}
@@ -109,7 +109,7 @@ public class Logger implements ConfigClient {
 		}
 	}
 
-	static public void minor(Class c, String s) {
+	static public void minor(Class<?> c, String s) {
 		if(useFreenetLogger()) {
 			freenet.support.Logger.minor(c,s);
 		} else {
@@ -125,7 +125,7 @@ public class Logger implements ConfigClient {
 		}
 	}
 
-	static public void normal(Class c, String s) {
+	static public void normal(Class<?> c, String s) {
 		if(useFreenetLogger()) {
 			freenet.support.Logger.normal(c,s);
 		} else {
@@ -141,7 +141,7 @@ public class Logger implements ConfigClient {
 		}
 	}
 
-	static public void error(Class c, String s) {
+	static public void error(Class<?> c, String s) {
 		if(useFreenetLogger()) {
 			freenet.support.Logger.error(c,s);
 		} else {
@@ -157,7 +157,7 @@ public class Logger implements ConfigClient {
 		}
 	}
 
-	static public void debug(Class c, String s) {
+	static public void debug(Class<?> c, String s) {
 		if(useFreenetLogger()) {
 			freenet.support.Logger.debug(c,s);
 		} else {

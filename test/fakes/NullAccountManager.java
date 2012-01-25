@@ -47,11 +47,6 @@ public class NullAccountManager extends AccountManager {
 	}
 
 	@Override
-	public void setupNIM(String username) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public FreemailAccount authenticate(String username, String password) {
 		throw new UnsupportedOperationException();
 	}

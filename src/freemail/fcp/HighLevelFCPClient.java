@@ -89,11 +89,11 @@ public class HighLevelFCPClient implements FCPClient {
 		if (reply.getType().equalsIgnoreCase("AllData")) {
 			return reply.getData();
 		} else if (reply.getType().equalsIgnoreCase("GetFailed")) {
-			String s_code = (String)reply.headers.get("Code");
+			String s_code = reply.headers.get("Code");
 			if (s_code == null) return null;
 			int code = Integer.parseInt(s_code);
 			if (code == FCP_PERMANANT_REDIRECT || code == FCP_TOO_MANY_PATH_COMPONENTS) {
-				String newuri = (String) reply.headers.get("RedirectURI");
+				String newuri = reply.headers.get("RedirectURI");
 				if (newuri == null) return null;
 				return this.fetch(newuri);
 			}
@@ -141,8 +141,8 @@ public class HighLevelFCPClient implements FCPClient {
 		if (reply.getType().equalsIgnoreCase("SSKKeypair")) {
 			SSKKeyPair retval = new SSKKeyPair();
 			
-			retval.privkey = (String)reply.headers.get("InsertURI");
-			retval.pubkey = (String)reply.headers.get("RequestURI");
+			retval.privkey = reply.headers.get("InsertURI");
+			retval.pubkey = reply.headers.get("RequestURI");
 			return retval;
 		} else {
 			return null;
@@ -277,10 +277,12 @@ public class HighLevelFCPClient implements FCPClient {
 		return -1;
 	}
 	
+	@Override
 	public void requestStatus(FCPMessage msg) {
 		
 	}
 	
+	@Override
 	public void requestFinished(FCPMessage msg) {
 		synchronized (donemsgLock) {
 			assert (donemsg == null);

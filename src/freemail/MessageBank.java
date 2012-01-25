@@ -146,12 +146,12 @@ public class MessageBank {
 		return null;
 	}
 	
-	public synchronized SortedMap listMessages() {
+	public synchronized SortedMap<Integer, MailMessage> listMessages() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
 
 		Arrays.sort(files, new UIDComparator());
 
-		TreeMap msgs = new TreeMap();
+		TreeMap<Integer, MailMessage> msgs = new TreeMap<Integer, MailMessage>();
 
 		int seq=1;
 		for (int i = 0; i < files.length; i++) {
@@ -221,7 +221,7 @@ public class MessageBank {
 	
 	public synchronized MessageBank[] listSubFolders() {
 		File[] files = this.dir.listFiles();
-		Vector subfolders = new Vector();
+		Vector<File> subfolders = new Vector<File>();
 		
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().startsWith(".")) continue;
@@ -233,10 +233,10 @@ public class MessageBank {
 		
 		MessageBank[] retval = new MessageBank[subfolders.size()];
 		
-		Enumeration e = subfolders.elements();
+		Enumeration<File> e = subfolders.elements();
 		int i = 0;
 		while (e.hasMoreElements()) {
-			retval[i] = new MessageBank((File)e.nextElement(), topLevel == null ? this : topLevel);
+			retval[i] = new MessageBank(e.nextElement(), topLevel == null ? this : topLevel);
 			i++;
 		}
 		return retval;
@@ -333,6 +333,7 @@ public class MessageBank {
 	}
 
 	private static class MessageFileNameFilter implements FilenameFilter {
+		@Override
 		public boolean accept(File dir, String name) {
 			if (name.startsWith(".")) return false;
 			if (!name.matches("[0-9]+(,.*)?")) return false;
@@ -341,10 +342,11 @@ public class MessageBank {
 	}
 	
 	// compare to filenames by number leading up to ","
-	private static class UIDComparator implements Comparator {
-		public final int compare ( Object a, Object b ) {
-			int ia=Integer.parseInt(((File)a).getName().split(",",2)[0]);
-			int ib=Integer.parseInt(((File)b).getName().split(",",2)[0]);
+	private static class UIDComparator implements Comparator<File> {
+		@Override
+		public final int compare ( File a, File b ) {
+			int ia=Integer.parseInt(a.getName().split(",",2)[0]);
+			int ib=Integer.parseInt(b.getName().split(",",2)[0]);
 
 			return( ia-ib );
 		}

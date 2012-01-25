@@ -41,11 +41,11 @@ public class FCPConnection implements Runnable {
 	private InputStream is;
 	private Socket conn;
 	private int nextMsgId;
-	private final HashMap clients;
+	private final HashMap<String, FCPClient> clients;
 
 	public FCPConnection(FCPContext ctx) {
 		this.fcpctx = ctx;
-		this.clients = new HashMap();
+		this.clients = new HashMap<String, FCPClient>();
 		
 		this.tryConnect();
 	}
@@ -79,9 +79,11 @@ public class FCPConnection implements Runnable {
 		} catch (FCPBadFileException bfe) {
 			// won't be thrown from a hello, so should really
 			// never get here!
+			throw new AssertionError();
 		}
 	}
 	
+	@Override
 	public void run() {
 		while (!stopping) {
 			try {
@@ -96,9 +98,9 @@ public class FCPConnection implements Runnable {
 				this.os = null;
 				this.is = null;
 				// tell all our clients it's all over
-				Iterator i = this.clients.values().iterator();
+				Iterator<FCPClient> i = this.clients.values().iterator();
 				while (i.hasNext()) {
-					FCPClient cli = (FCPClient)i.next();
+					FCPClient cli = i.next();
 					cli.requestFinished(new FCPMessage(1, "ConnectionClosed"));
 				}
 				this.clients.clear();
@@ -129,6 +131,7 @@ public class FCPConnection implements Runnable {
 		}
 	}
 	
+	@Override
 	protected void finalize() throws Throwable {
 		try {
 			this.conn.close();
@@ -161,7 +164,7 @@ public class FCPConnection implements Runnable {
 	}	
 	
 	private void dispatch(FCPMessage msg) {
-		FCPClient cli = (FCPClient)this.clients.get(msg.getId());
+		FCPClient cli = this.clients.get(msg.getId());
 		if (cli == null) {
 			// normally we'd leave it up to the client
 			// to delete any data, but it looks like

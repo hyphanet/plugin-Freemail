@@ -38,21 +38,21 @@ import freemail.support.io.LineReadingInputStream;
 public class FCPMessage {
 	private String messagetype;
 	private String identifier;
-	public final HashMap headers;
+	public final HashMap<String, String> headers;
 	private File data;
 	private InputStream outData;
 	
 	
 	public FCPMessage(int id, String type) {
 		this.identifier = Integer.toString(id);
-		this.headers = new HashMap();
+		this.headers = new HashMap<String, String>();
 		this.messagetype = type;
 		this.data = null;
 		this.outData = null;
 	}
 	
 	public FCPMessage(InputStream is) throws IOException {
-		this.headers = new HashMap();
+		this.headers = new HashMap<String, String>();
 		this.outData = null;
 		
 		this.messagetype = null;
@@ -68,7 +68,7 @@ public class FCPMessage {
 				return;
 			} else if (line.equals("Data")) {
 				try {
-					int len = Integer.decode((String)this.headers.get("DataLength")).intValue();
+					int len = Integer.decode(this.headers.get("DataLength")).intValue();
 					this.readData(is, len);
 				} catch (NumberFormatException nfe) {
 				}
@@ -168,9 +168,9 @@ public class FCPMessage {
 		
 		buf.append("Identifier="+this.identifier+"\r\n");
 		
-		for (Enumeration e = Collections.enumeration(this.headers.keySet()); e.hasMoreElements(); ) {
-			String hdr = (String) e.nextElement();
-			String val = (String) this.headers.get(hdr);
+		for (Enumeration<String> e = Collections.enumeration(this.headers.keySet()); e.hasMoreElements(); ) {
+			String hdr = e.nextElement();
+			String val = this.headers.get(hdr);
 			
 			buf.append(hdr+"="+val+"\r\n");
 		}
