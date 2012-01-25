@@ -38,6 +38,7 @@ import freemail.FreemailAccount;
 import freemail.MessageSender;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
+import freemail.utils.Logger;
 
 import org.bouncycastle.util.encoders.Base64;
 
@@ -90,7 +91,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void dispatch(SMTPCommand cmd) {
-		//Logger.normal(this,cmd.toString());
+		Logger.debug(this, "Received: " + cmd);
 		if (cmd.command.equals("helo")) {
 			this.handle_helo(cmd);
 		} else if (cmd.command.equals("ehlo")) {
@@ -110,6 +111,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		} else if (cmd.command.equals("rset")) {
 			this.handle_rset(cmd);
 		} else {
+			Logger.error(this, "Unknown command: " + cmd.command);
 			this.ps.print("502 Unimplemented\r\n");
 		}
 	}
