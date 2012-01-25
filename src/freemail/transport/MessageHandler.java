@@ -43,7 +43,6 @@ import freemail.FreemailPlugin;
 import freemail.FreemailPlugin.TaskType;
 import freemail.MailMessage;
 import freemail.Postman;
-import freemail.fcp.ConnectionTerminatedException;
 import freemail.fcp.HighLevelFCPClient;
 import freemail.transport.Channel.ChannelEventCallback;
 import freemail.utils.EmailAddress;
@@ -548,9 +547,6 @@ public class MessageHandler {
 			try {
 				storeMessage(message, freemailAccount.getMessageBank());
 			} catch(IOException e) {
-				return false;
-			} catch(ConnectionTerminatedException e) {
-				Logger.minor(this, "Couldn't store message because Freemail is shutting down, will try later");
 				return false;
 			}
 			Logger.normal(this, "You've got mail!");

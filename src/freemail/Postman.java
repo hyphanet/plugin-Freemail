@@ -30,7 +30,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.IOException;
-import freemail.fcp.ConnectionTerminatedException;
 
 import freemail.utils.EmailAddress;
 
@@ -40,11 +39,7 @@ import freemail.utils.EmailAddress;
 public abstract class Postman {
 	private static final int BOUNDARY_LENGTH = 32;
 
-	/**
-	 * 
-	 * @throws ConnectionTerminatedException if the Freenet connection was terminated whilst trying to validate the address
-	 */
-	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException, ConnectionTerminatedException {
+	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException {
 		MailMessage newmsg = mb.createMessage();
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
@@ -196,5 +191,5 @@ public abstract class Postman {
 		return null;
 	}
 	
-	public abstract boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException;
+	public abstract boolean validateFrom(EmailAddress from);
 }
