@@ -182,7 +182,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				}
 			}
 			
-                        String creds_plain = new String(Base64.decode(b64creds.getBytes()));
+			String creds_plain = new String(Base64.decode(b64creds.getBytes()));
 			String[] creds = creds_plain.split("\0");
 			
 			if (creds.length < 2) return;
