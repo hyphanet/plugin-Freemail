@@ -72,4 +72,51 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testFetchBodyStartRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 FETCH 1 (BODY.PEEK[]<0.15>)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (BODY[]<0> {15}");
+		expectedResponse.add("Subject: IMAP t)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testFetchBodyMiddleRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 FETCH 1 (BODY.PEEK[]<1.15>)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (BODY[]<1> {15}");
+		expectedResponse.add("ubject: IMAP te)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testFetchBodyEndRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 FETCH 1 (BODY.PEEK[]<15.1000>)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (BODY[]<15> {17}");
+		expectedResponse.add("est message 0");
+		expectedResponse.add("");
+		expectedResponse.add(")");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
