@@ -39,6 +39,23 @@ public class IMAPFetchTest extends IMAPTestBase {
 		INITIAL_RESPONSES = Collections.unmodifiableList(backing);
 	}
 
+	public void testFetchBodyPeek() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 FETCH 1 (BODY.PEEK[])");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (BODY[] {32}");
+		expectedResponse.add("Subject: IMAP test message 0");
+		expectedResponse.add("");
+		expectedResponse.add(")");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 	public void testUidFetchBodyPeek() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + USERNAME + " test");
