@@ -24,15 +24,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
+import java.util.HashMap;
+import java.util.Map;
 
 import utils.Utils;
 
+import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
-import fakes.NullAccountManager;
 import freemail.AccountManager;
-import freemail.FreemailAccount;
-import freemail.utils.PropsFile;
 
 import junit.framework.TestCase;
 
@@ -41,6 +40,7 @@ public class IMAPHandlerTest extends TestCase {
 	private static final String ACCOUNT_DIR = "account_dir";
 	private static final String USERNAME = "test";
 
+	private final Map<String, File> accountDirs = new HashMap<String, File>();
 	private File accountManagerDir;
 	private File accountDir;
 
@@ -67,6 +67,8 @@ public class IMAPHandlerTest extends TestCase {
 		if(!accountDir.mkdir()) {
 			System.out.println("WARNING: Could not create account directory, tests will probably fail");
 		}
+
+		accountDirs.put(USERNAME, accountDir);
 	}
 
 	@Override
@@ -87,7 +89,7 @@ public class IMAPHandlerTest extends TestCase {
 
 	public void testIMAPLogin() throws IOException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
@@ -107,7 +109,7 @@ public class IMAPHandlerTest extends TestCase {
 
 	public void testFailedIMAPLogin() throws IOException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, true);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, true, accountDirs);
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
@@ -127,7 +129,7 @@ public class IMAPHandlerTest extends TestCase {
 
 	public void testIMAPSelect() throws IOException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
@@ -153,7 +155,7 @@ public class IMAPHandlerTest extends TestCase {
 	 */
 	public void testIMAPListWithNoArguments() throws IOException, InterruptedException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
 		Thread imapThread = new Thread(new IMAPHandler(accManager, sock));
 		imapThread.start();
@@ -181,7 +183,7 @@ public class IMAPHandlerTest extends TestCase {
 
 	public void testIMAPSelectUnknown() throws IOException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
@@ -212,35 +214,5 @@ public class IMAPHandlerTest extends TestCase {
 			line = in.readLine();
 		}
 		return line;
-	}
-
-	private class ConfigurableAccountManager extends NullAccountManager {
-		private boolean failAuth;
-
-		public ConfigurableAccountManager(File datadir, boolean failAuth) {
-			super(datadir);
-
-			this.failAuth = failAuth;
-		}
-
-		@Override
-		public FreemailAccount authenticate(String username, String password) {
-			if(failAuth) return null;
-
-			//FreemailAccount constructor is package-protected and
-			//there is no reason to change that, so use reflection
-			//to construct a new account
-			try {
-				Class<FreemailAccount> freemailAccount = FreemailAccount.class;
-				Constructor<FreemailAccount> constructor = freemailAccount.getDeclaredConstructor(String.class, File.class, PropsFile.class);
-				constructor.setAccessible(true);
-				return constructor.newInstance(username, accountDir, null);
-			} catch (Exception e) {
-				e.printStackTrace();
-				fail(e.toString());
-			}
-
-			return null;
-		}
 	}
 }
