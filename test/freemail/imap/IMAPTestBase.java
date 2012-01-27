@@ -46,6 +46,9 @@ public abstract class IMAPTestBase extends TestCase {
 
 	@Override
 	public void setUp() {
+		assertFalse(TEST_DIR.getAbsolutePath() + " exists", TEST_DIR.exists());
+		assertTrue(TEST_DIR.mkdir());
+
 		accountManagerDir = createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
 		File accountDir = createDir(TEST_DIR, ACCOUNT_DIR);
 		accountDirs.put(USERNAME, accountDir);
@@ -53,15 +56,8 @@ public abstract class IMAPTestBase extends TestCase {
 
 	private File createDir(File parent, String name) {
 		File dir = new File(parent, name);
-		if(dir.exists()) {
-			System.out.println("WARNING: Directory (" + dir + ") exists, deleting");
-			Utils.delete(dir);
-		}
-
-		if(!dir.mkdirs()) {
-			System.out.println("WARNING: Could not create directory (" + dir + "), tests will probably fail");
-		}
-
+		assertFalse(dir + " already exists", dir.exists());
+		assertTrue("Couldn't create " + dir, dir.mkdir());
 		return dir;
 	}
 
