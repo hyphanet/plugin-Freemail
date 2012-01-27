@@ -81,7 +81,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		
 			this.client.close();
 		} catch (IOException ioe) {
-			
+			Logger.error(this, "Caught IOException while reading imap data: " + ioe.getMessage(), ioe);
 		}
 	}
 	
@@ -157,7 +157,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			this.client.close();
 		} catch (IOException ioe) {
-			
+			Logger.error(this, "Caugth IOException while closing socket: " + ioe.getMessage(), ioe);
 		}
 	}
 	
@@ -765,7 +765,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				try {
 					mmsg.readHeaders();
 				} catch (IOException ioe) {
-					
+					//FIXME: Handle IOException properly
+					Logger.error(this, "Caught IOException while reading message headers: " + ioe.getMessage(), ioe);
 				}
 				
 				String[] fields = parts[1].split(" ");
@@ -778,6 +779,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				try {
 					mmsg.readHeaders();
 				} catch (IOException ioe) {
+					//FIXME: Handle IOException properly
+					Logger.error(this, "Caught IOException while reading message headers: " + ioe.getMessage(), ioe);
 				}
 				
 				buf.append(mmsg.getAllHeadersAsString());
@@ -1261,6 +1264,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			mmsg.readHeaders();
 		} catch (IOException ioe) {
+			//FIXME: Handle IOException properly
+			Logger.error(this, "Caught IOException while reading message headers: " + ioe.getMessage(), ioe);
 		}
 		
 		buf.append(IMAPifyString(mmsg.getFirstHeader("Date"))+" ");
