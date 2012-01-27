@@ -700,7 +700,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				if(range_start!=-1) {
 					this.ps.print("<"+range_start+">");
 				}
-				this.ps.print(" ");
 
 				long partsize=0;
 				if(range_start==-1) {
