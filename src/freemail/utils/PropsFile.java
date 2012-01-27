@@ -149,8 +149,9 @@ public class PropsFile {
 	}
 	
 	private synchronized void write() throws IOException {
-		if(!file.getParentFile().exists()) {
-			if(!file.getParentFile().mkdirs()) {
+		File parentDir = file.getParentFile();
+		if(parentDir != null && !parentDir.exists()) {
+			if(!parentDir.mkdirs()) {
 				Logger.error(this, "Couldn't create parent directory of " + file);
 				throw new IOException("Couldn't create parent directory of " + file);
 			}
