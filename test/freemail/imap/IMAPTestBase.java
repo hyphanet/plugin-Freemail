@@ -24,11 +24,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import fakes.ConfigurableAccountManager;
+import fakes.FakeSocket;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.MailMessage;
@@ -100,4 +103,25 @@ public abstract class IMAPTestBase extends TestCase {
 		return line;
 	}
 
+	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
+		FakeSocket sock = new FakeSocket();
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+
+		new Thread(new IMAPHandler(accManager, sock)).start();
+
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+
+		for(String cmd : commands) {
+			send(toHandler, cmd + "\r\n");
+		}
+
+		int lineNum = 0;
+		for(String response : expectedResponse) {
+			String line = fromHandler.readLine();
+			assertEquals("Failed at line " + lineNum++, response, line);
+		}
+
+		assertFalse(fromHandler.ready());
+	}
 }
