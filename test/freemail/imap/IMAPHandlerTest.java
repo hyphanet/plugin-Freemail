@@ -39,6 +39,7 @@ import junit.framework.TestCase;
 public class IMAPHandlerTest extends TestCase {
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
 	private static final String ACCOUNT_DIR = "account_dir";
+	private static final String USERNAME = "test";
 
 	private File accountManagerDir;
 	private File accountDir;
@@ -96,7 +97,7 @@ public class IMAPHandlerTest extends TestCase {
 		//Read the greeting
 		String line = fromHandler.readLine();
 
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 
 		line = fromHandler.readLine();
 		assertEquals("0001 OK Logged in", line);
@@ -116,7 +117,7 @@ public class IMAPHandlerTest extends TestCase {
 		//Read the greeting
 		String line = fromHandler.readLine();
 
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 
 		line = readTaggedResponse(fromHandler);
 		assertEquals("0001 NO Login failed", line);
@@ -136,7 +137,7 @@ public class IMAPHandlerTest extends TestCase {
 		fromHandler.readLine(); //Greeting
 
 		//Login
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 		readTaggedResponse(fromHandler);
 
 		send(toHandler, "0002 SELECT INBOX\r\n");
@@ -162,7 +163,7 @@ public class IMAPHandlerTest extends TestCase {
 
 		fromHandler.readLine(); //Greeting
 
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 		readTaggedResponse(fromHandler);
 
 		send(toHandler, "0002 SELECT INBOX\r\n");
@@ -190,7 +191,7 @@ public class IMAPHandlerTest extends TestCase {
 		fromHandler.readLine(); //Greeting
 
 		//Login
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 		readTaggedResponse(fromHandler);
 
 		send(toHandler, "0002 SELECT ShouldNotExist\r\n");
