@@ -23,7 +23,7 @@ package freemail;
 
 public class Version {
 	/** The human readable version */
-	public static final String VERSION = "0.1 Pet Shop";
+	public static final String VERSION = "0.1";
 
 	/**
 	 * The build number, used by the plugin auto-updater. This must always
@@ -36,6 +36,12 @@ public class Version {
 	public static final String GIT_REVISION = "@custom@";
 
 	public static String getVersionString() {
-		return VERSION + " (" + GIT_REVISION + ")";
+		if(VERSION.equals("v" + GIT_REVISION)) {
+			//Presumably because this is a proper release,
+			//so don't include the redundant git info
+			return VERSION;
+		} else {
+			return VERSION + " (" + GIT_REVISION + ")";
+		}
 	}
 }
