@@ -22,15 +22,20 @@
 package freemail;
 
 public class Version {
-	public static final int VER_MAJOR = 0;
-	public static final int VER_MINOR = 1;
-	public static final int BUILD_NO = 14;
-	public static final String VERSION_TAG = "Pet Shop";
+	/** The human readable version */
+	public static final String VERSION = "0.1 Pet Shop";
 
-	// This will be replaced at build time by the correct value
+	/**
+	 * The build number, used by the plugin auto-updater. This must always
+	 * increase, and at least by one per build that is uploaded to the auto
+	 * update system.
+	 */
+	public static final int BUILD_NO = 14;
+
+	/** Version number updated at build time using git describe */
 	public static final String GIT_REVISION = "@custom@";
 
 	public static String getVersionString() {
-		return VER_MAJOR + "." + VER_MINOR + " " + VERSION_TAG + " (" + GIT_REVISION + ")";
+		return VERSION + " (" + GIT_REVISION + ")";
 	}
 }
