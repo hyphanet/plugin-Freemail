@@ -44,42 +44,25 @@ public abstract class IMAPTestBase extends TestCase {
 	protected final Map<String, File> accountDirs = new HashMap<String, File>();
 	protected File accountManagerDir;
 
-	private File accountDir;
-
 	@Override
 	public void setUp() {
-		if(TEST_DIR.exists()) {
-			System.out.println("WARNING: Test directory exists, deleting");
-			Utils.delete(TEST_DIR);
-		}
-
-		if(!TEST_DIR.mkdir()) {
-			System.out.println("WARNING: Could not create test directory, tests will probably fail");
-		}
-
-		// Set up account manager directory
-		accountManagerDir = new File(TEST_DIR, ACCOUNT_MANAGER_DIR);
-		if(accountManagerDir.exists()) {
-			System.out.println("WARNING: Account manager directory exists, deleting");
-			Utils.delete(accountManagerDir);
-		}
-
-		if(!accountManagerDir.mkdir()) {
-			System.out.println("WARNING: Could not create account manager directory, tests will probably fail");
-		}
-
-		// Set up account directory
-		accountDir = new File(TEST_DIR, ACCOUNT_DIR);
-		if(accountDir.exists()) {
-			System.out.println("WARNING: Account directory exists, deleting");
-			Utils.delete(accountDir);
-		}
-
-		if(!accountDir.mkdir()) {
-			System.out.println("WARNING: Could not create account directory, tests will probably fail");
-		}
-
+		accountManagerDir = createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
+		File accountDir = createDir(TEST_DIR, ACCOUNT_DIR);
 		accountDirs.put(USERNAME, accountDir);
+	}
+
+	private File createDir(File parent, String name) {
+		File dir = new File(parent, name);
+		if(dir.exists()) {
+			System.out.println("WARNING: Directory (" + dir + ") exists, deleting");
+			Utils.delete(dir);
+		}
+
+		if(!dir.mkdirs()) {
+			System.out.println("WARNING: Could not create directory (" + dir + "), tests will probably fail");
+		}
+
+		return dir;
 	}
 
 	@Override
