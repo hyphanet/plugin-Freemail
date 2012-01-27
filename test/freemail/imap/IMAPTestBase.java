@@ -37,6 +37,7 @@ import utils.Utils;
 public abstract class IMAPTestBase extends TestCase {
 	protected static final String USERNAME = "test";
 
+	private static final File TEST_DIR = new File("imaptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
 	private static final String ACCOUNT_DIR = "account_dir";
 
@@ -47,8 +48,17 @@ public abstract class IMAPTestBase extends TestCase {
 
 	@Override
 	public void setUp() {
+		if(TEST_DIR.exists()) {
+			System.out.println("WARNING: Test directory exists, deleting");
+			Utils.delete(TEST_DIR);
+		}
+
+		if(!TEST_DIR.mkdir()) {
+			System.out.println("WARNING: Could not create test directory, tests will probably fail");
+		}
+
 		// Set up account manager directory
-		accountManagerDir = new File(ACCOUNT_MANAGER_DIR);
+		accountManagerDir = new File(TEST_DIR, ACCOUNT_MANAGER_DIR);
 		if(accountManagerDir.exists()) {
 			System.out.println("WARNING: Account manager directory exists, deleting");
 			Utils.delete(accountManagerDir);
@@ -59,7 +69,7 @@ public abstract class IMAPTestBase extends TestCase {
 		}
 
 		// Set up account directory
-		accountDir = new File(ACCOUNT_DIR);
+		accountDir = new File(TEST_DIR, ACCOUNT_DIR);
 		if(accountDir.exists()) {
 			System.out.println("WARNING: Account directory exists, deleting");
 			Utils.delete(accountDir);
@@ -74,8 +84,7 @@ public abstract class IMAPTestBase extends TestCase {
 
 	@Override
 	public void tearDown() {
-		Utils.delete(accountManagerDir);
-		Utils.delete(accountDir);
+		Utils.delete(TEST_DIR);
 	}
 
 	protected static void send(PrintWriter out, String msg) {
