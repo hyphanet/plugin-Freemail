@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import freemail.config.ConfigClient;
+import freenet.support.Logger.LogLevel;
 
 public class Logger implements ConfigClient {
 
@@ -80,7 +81,7 @@ public class Logger implements ConfigClient {
 	{
 		if(!initialized) {
 			try {
-				freenet.support.Logger.shouldLog(0, null);
+				freenet.support.Logger.shouldLog(LogLevel.ERROR, null);
 				foundFreenetLogger=true;
 			}
 			catch(NoClassDefFoundError ex) {
