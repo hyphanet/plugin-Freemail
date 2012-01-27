@@ -20,63 +20,15 @@
 package freemail.imap;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import utils.Utils;
 
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 import freemail.AccountManager;
 
-import junit.framework.TestCase;
-
-public class IMAPHandlerTest extends TestCase {
-	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
-	private static final String ACCOUNT_DIR = "account_dir";
-	private static final String USERNAME = "test";
-
-	private final Map<String, File> accountDirs = new HashMap<String, File>();
-	private File accountManagerDir;
-	private File accountDir;
-
-	@Override
-	public void setUp() {
-		// Set up account manager directory
-		accountManagerDir = new File(ACCOUNT_MANAGER_DIR);
-		if(accountManagerDir.exists()) {
-			System.out.println("WARNING: Account manager directory exists, deleting");
-			Utils.delete(accountManagerDir);
-		}
-
-		if(!accountManagerDir.mkdir()) {
-			System.out.println("WARNING: Could not create account manager directory, tests will probably fail");
-		}
-
-		// Set up account directory
-		accountDir = new File(ACCOUNT_DIR);
-		if(accountDir.exists()) {
-			System.out.println("WARNING: Account directory exists, deleting");
-			Utils.delete(accountDir);
-		}
-
-		if(!accountDir.mkdir()) {
-			System.out.println("WARNING: Could not create account directory, tests will probably fail");
-		}
-
-		accountDirs.put(USERNAME, accountDir);
-	}
-
-	@Override
-	public void tearDown() {
-		Utils.delete(accountManagerDir);
-		Utils.delete(accountDir);
-	}
-
+public class IMAPHandlerTest extends IMAPTestBase {
 	public void testIMAPGreeting() throws IOException {
 		FakeSocket sock = new FakeSocket();
 
@@ -201,18 +153,5 @@ public class IMAPHandlerTest extends TestCase {
 		assertEquals("0002 NO No such mailbox", line);
 
 		assertFalse(fromHandler.ready());
-	}
-
-	private static void send(PrintWriter out, String msg) {
-		out.print(msg);
-		out.flush();
-	}
-
-	private static String readTaggedResponse(BufferedReader in) throws IOException {
-		String line = in.readLine();
-		while(line.startsWith("*")) {
-			line = in.readLine();
-		}
-		return line;
 	}
 }
