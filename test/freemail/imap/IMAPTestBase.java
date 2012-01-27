@@ -22,10 +22,16 @@ package freemail.imap;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+
+import fakes.ConfigurableAccountManager;
+import freemail.AccountManager;
+import freemail.FreemailAccount;
+import freemail.MailMessage;
 
 import junit.framework.TestCase;
 import utils.Utils;
@@ -52,6 +58,21 @@ public abstract class IMAPTestBase extends TestCase {
 		accountManagerDir = createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
 		File accountDir = createDir(TEST_DIR, ACCOUNT_DIR);
 		accountDirs.put(USERNAME, accountDir);
+
+		//Add a few messages to the inbox
+		AccountManager temp = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		FreemailAccount account = temp.authenticate(USERNAME, "");
+		for(int i = 0; i < 10; i++) {
+			MailMessage m = account.getMessageBank().createMessage();
+			m.addHeader("Subject", "IMAP test message " + i);
+			try {
+				m.writeHeadersAndGetStream();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				fail(e.toString());
+			}
+			m.commit();
+		}
 	}
 
 	private File createDir(File parent, String name) {
