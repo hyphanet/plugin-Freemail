@@ -131,4 +131,15 @@ public class IMAPHandlerTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUnimplementedCommand() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 NoSuchCommand");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 NO Sorry - not implemented");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
