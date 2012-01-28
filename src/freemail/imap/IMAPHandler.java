@@ -358,7 +358,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			try {
 				to = Integer.parseInt(parts[1]);
 			} catch (NumberFormatException nfe) {
-				this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
+				this.reply(msg, "BAD Bad number: "+parts[1]+". Please report this error!");
 				return;
 			}
 		}
