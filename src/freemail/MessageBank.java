@@ -303,7 +303,11 @@ public class MessageBank {
 			File uidFile = new File(dir, UIDVALIDITYFILE);
 			try {
 				BufferedReader reader = new BufferedReader(new FileReader(uidFile));
-				uid = Long.parseLong(reader.readLine());
+				try {
+					uid = Long.parseLong(reader.readLine());
+				} finally {
+					reader.close();
+				}
 			} catch (FileNotFoundException e) {
 				//No values have been assigned yet
 				uid = uidValidity + 1;
