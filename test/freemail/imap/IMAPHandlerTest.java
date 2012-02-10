@@ -20,93 +20,38 @@
 package freemail.imap;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
+import java.util.LinkedList;
+import java.util.List;
 
-import utils.Utils;
-
+import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
-import fakes.NullAccountManager;
 import freemail.AccountManager;
-import freemail.FreemailAccount;
-import freemail.utils.PropsFile;
 
-import junit.framework.TestCase;
-
-public class IMAPHandlerTest extends TestCase {
-	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
-	private static final String ACCOUNT_DIR = "account_dir";
-
-	private File accountManagerDir;
-	private File accountDir;
-
-	@Override
-	public void setUp() {
-		// Set up account manager directory
-		accountManagerDir = new File(ACCOUNT_MANAGER_DIR);
-		if(accountManagerDir.exists()) {
-			System.out.println("WARNING: Account manager directory exists, deleting");
-			Utils.delete(accountManagerDir);
-		}
-
-		if(!accountManagerDir.mkdir()) {
-			System.out.println("WARNING: Could not create account manager directory, tests will probably fail");
-		}
-
-		// Set up account directory
-		accountDir = new File(ACCOUNT_DIR);
-		if(accountDir.exists()) {
-			System.out.println("WARNING: Account directory exists, deleting");
-			Utils.delete(accountDir);
-		}
-
-		if(!accountDir.mkdir()) {
-			System.out.println("WARNING: Could not create account directory, tests will probably fail");
-		}
-	}
-
-	@Override
-	public void tearDown() {
-		Utils.delete(accountManagerDir);
-		Utils.delete(accountDir);
-	}
-
+public class IMAPHandlerTest extends IMAPTestBase {
 	public void testIMAPGreeting() throws IOException {
-		FakeSocket sock = new FakeSocket();
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 
-		new Thread(new IMAPHandler(null, sock)).start();
-
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-
-		assertEquals("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.", fromHandler.readLine());
+		runSimpleTest(new LinkedList<String>(), expectedResponse);
 	}
 
 	public void testIMAPLogin() throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-
-		//Read the greeting
-		String line = fromHandler.readLine();
-
-		send(toHandler, "0001 LOGIN test test\r\n");
-
-		line = fromHandler.readLine();
-		assertEquals("0001 OK Logged in", line);
-
-		assertFalse(fromHandler.ready());
+		runSimpleTest(commands, expectedResponse);
 	}
 
 	public void testFailedIMAPLogin() throws IOException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, true);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, true, accountDirs);
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
@@ -116,7 +61,7 @@ public class IMAPHandlerTest extends TestCase {
 		//Read the greeting
 		String line = fromHandler.readLine();
 
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 
 		line = readTaggedResponse(fromHandler);
 		assertEquals("0001 NO Login failed", line);
@@ -125,25 +70,21 @@ public class IMAPHandlerTest extends TestCase {
 	}
 
 	public void testIMAPSelect() throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* 10 EXISTS");
+		expectedResponse.add("* 10 RECENT");
+		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
+		expectedResponse.add("0002 OK [READ-WRITE] Done");
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-
-		fromHandler.readLine(); //Greeting
-
-		//Login
-		send(toHandler, "0001 LOGIN test test\r\n");
-		readTaggedResponse(fromHandler);
-
-		send(toHandler, "0002 SELECT INBOX\r\n");
-		String line = readTaggedResponse(fromHandler);
-		assertEquals("0002 OK [READ-WRITE] Done", line);
-
-		assertFalse(fromHandler.ready());
+		runSimpleTest(commands, expectedResponse);
 	}
 
 	/*
@@ -152,7 +93,7 @@ public class IMAPHandlerTest extends TestCase {
 	 */
 	public void testIMAPListWithNoArguments() throws IOException, InterruptedException {
 		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
 		Thread imapThread = new Thread(new IMAPHandler(accManager, sock));
 		imapThread.start();
@@ -162,7 +103,7 @@ public class IMAPHandlerTest extends TestCase {
 
 		fromHandler.readLine(); //Greeting
 
-		send(toHandler, "0001 LOGIN test test\r\n");
+		send(toHandler, "0001 LOGIN " + USERNAME + " test\r\n");
 		readTaggedResponse(fromHandler);
 
 		send(toHandler, "0002 SELECT INBOX\r\n");
@@ -179,67 +120,26 @@ public class IMAPHandlerTest extends TestCase {
 	}
 
 	public void testIMAPSelectUnknown() throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false);
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT ShouldNotExist\r\n");
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("0002 NO No such mailbox");
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-
-		fromHandler.readLine(); //Greeting
-
-		//Login
-		send(toHandler, "0001 LOGIN test test\r\n");
-		readTaggedResponse(fromHandler);
-
-		send(toHandler, "0002 SELECT ShouldNotExist\r\n");
-		String line = readTaggedResponse(fromHandler);
-		assertEquals("0002 NO No such mailbox", line);
-
-		assertFalse(fromHandler.ready());
+		runSimpleTest(commands, expectedResponse);
 	}
 
-	private static void send(PrintWriter out, String msg) {
-		out.print(msg);
-		out.flush();
-	}
+	public void testUnimplementedCommand() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 NoSuchCommand");
 
-	private static String readTaggedResponse(BufferedReader in) throws IOException {
-		String line = in.readLine();
-		while(line.startsWith("*")) {
-			line = in.readLine();
-		}
-		return line;
-	}
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 NO Sorry - not implemented");
 
-	private class ConfigurableAccountManager extends NullAccountManager {
-		private boolean failAuth;
-
-		public ConfigurableAccountManager(File datadir, boolean failAuth) {
-			super(datadir);
-
-			this.failAuth = failAuth;
-		}
-
-		@Override
-		public FreemailAccount authenticate(String username, String password) {
-			if(failAuth) return null;
-
-			//FreemailAccount constructor is package-protected and
-			//there is no reason to change that, so use reflection
-			//to construct a new account
-			try {
-				Class<FreemailAccount> freemailAccount = FreemailAccount.class;
-				Constructor<FreemailAccount> constructor = freemailAccount.getDeclaredConstructor(String.class, File.class, PropsFile.class);
-				constructor.setAccessible(true);
-				return constructor.newInstance(username, accountDir, null);
-			} catch (Exception e) {
-				e.printStackTrace();
-				fail(e.toString());
-			}
-
-			return null;
-		}
+		runSimpleTest(commands, expectedResponse);
 	}
 }
