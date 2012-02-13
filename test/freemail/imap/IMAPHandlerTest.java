@@ -143,6 +143,63 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	public void testLogout() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGOUT");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("* BYE");
+		expectedResponse.add("0001 OK Bye");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCapability() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 CAPABILITY");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("* CAPABILITY IMAP4rev1 CHILDREN NAMESPACE");
+		expectedResponse.add("0001 OK Capability completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testNoop() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 NOOP");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK NOOP completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testLoginWithoutArguments() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testLoginWithoutPassword() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME);
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 	/*
 	 * This checks for the bug fixed in c43fcb18df185a5c67fbfcabf31eca22f44b7493.
 	 * The IMAP handler thread would crash with a NullPointerException if
