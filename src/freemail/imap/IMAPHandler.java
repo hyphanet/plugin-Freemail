@@ -934,6 +934,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_expunge(IMAPMessage msg) {
+		if (!this.verify_auth(msg)) {
+			return;
+		}
+
 		if (this.mb == null) {
 			this.reply(msg, "NO No mailbox selected");
 			return;
@@ -944,6 +948,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_close(IMAPMessage msg) {
+		if (!this.verify_auth(msg)) {
+			return;
+		}
+
 		if (this.mb == null) {
 			this.reply(msg, "NO No mailbox selected");
 			return;
