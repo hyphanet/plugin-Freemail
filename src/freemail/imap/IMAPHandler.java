@@ -315,6 +315,15 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_check(IMAPMessage msg) {
+		if(!this.verify_auth(msg)) {
+			return;
+		}
+
+		if(this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
+		}
+
 		this.reply(msg, "OK Check completed");
 	}
 	
@@ -977,6 +986,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_namespace(IMAPMessage msg) {
+		if(!this.verify_auth(msg)) {
+			return;
+		}
+
 		this.sendState("NAMESPACE ((\"INBOX.\" \".\")) NIL NIL");
 		this.reply(msg, "OK Namespace completed");
 	}
@@ -1200,6 +1213,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void handle_append(IMAPMessage msg) {
+		if(!this.verify_auth(msg)) {
+			return;
+		}
+
 		if (msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "BAD Not enough arguments");
 			return;
