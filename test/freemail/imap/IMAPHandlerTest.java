@@ -142,4 +142,20 @@ public class IMAPHandlerTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	/*
+	 * This checks for the bug fixed in c43fcb18df185a5c67fbfcabf31eca22f44b7493.
+	 * The IMAP handler thread would crash with a NullPointerException if
+	 * append was called with a subfolder of index before logging in.
+	 */
+	public void testAppend() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 APPEND inbox.folder arg2");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 NO Must be authenticated");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
