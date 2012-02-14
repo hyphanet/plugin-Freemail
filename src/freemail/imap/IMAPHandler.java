@@ -606,12 +606,18 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.ps.print(")\r\n");
 				this.ps.flush();
 				return true;
-			} else {
+			} else if((i + 1) < imap_args.length) {
 				this.ps.print(" ");
 			}
 		}
 		
 		// if we get here, we've reached the end of the list without a terminating parenthesis. Naughty client.
+		if (send_uid_too) {
+			this.ps.print(" UID "+msg.getUID());
+		}
+		this.ps.print(")\r\n");
+		this.ps.flush();
+
 		return false;
 	}
 	
