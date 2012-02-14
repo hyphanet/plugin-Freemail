@@ -174,4 +174,70 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUidFetchSingleArg() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH 10:* BODY.PEEK[]");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* 10 EXISTS");
+		expectedResponse.add("* 10 RECENT");
+		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
+		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.add("* 10 FETCH (BODY[] {32}");
+		expectedResponse.add("Subject: IMAP test message 9");
+		expectedResponse.add("");
+		expectedResponse.add(" UID 10)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidFetchWithOnlyUid() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH 10:* UID");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* 10 EXISTS");
+		expectedResponse.add("* 10 RECENT");
+		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
+		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.add("* 10 FETCH (UID 10)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testFetchWithOnlyUid() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 FETCH 10:* UID");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* 10 EXISTS");
+		expectedResponse.add("* 10 RECENT");
+		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
+		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.add("* 10 FETCH (UID 10)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
