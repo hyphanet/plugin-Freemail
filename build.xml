@@ -150,13 +150,8 @@
 		<delete dir="${dist}"/>
 	</target>
 
-	<target name="cleaner">
+	<target name="cleaner" depends="clean">
 		<delete dir="${build}"/>
-		<delete dir="${build-test}"/>
-	</target>
-
-	<target name="squeakyclean" depends="cleaner">
-		<delete dir="${deps}"/>
 	</target>
 
 	<target name="distclean" description="Delete everything and restore to the original state.">
