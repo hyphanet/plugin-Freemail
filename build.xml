@@ -9,7 +9,6 @@
 	<property name="test.run" location="run"/>
 	<property name="build" location="build"/>
 	<property name="build-test" location="build-test"/>
-	<property name="lib" location="lib"/>
 	<property name="dist" location="dist"/>
 	<property name="deps" location="deps"/>
 	<property name="version.src" value="freemail/Version.java"/>
@@ -83,7 +82,6 @@
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
-				<pathelement location="${lib}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -164,7 +162,6 @@
 	<target name="distclean" description="Delete everything and restore to the original state.">
 		<delete dir="${build}"/>
 		<delete dir="${build-test}"/>
-		<delete dir="${lib}"/>
 		<delete dir="${deps}"/>
 	</target>
 </project>
