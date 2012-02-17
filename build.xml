@@ -13,7 +13,7 @@
 	<property name="deps" location="deps"/>
 	<property name="version.src" value="freemail/Version.java"/>
 	<property name="version.build" value="freemail/Version.class"/>
-	
+
 	<property name="bcdist" value="lcrypto-jdk14-138"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
 
@@ -42,8 +42,8 @@
 
 	<target name="bouncycastle-fetch" depends="bouncycastle-check" unless="bouncycastle-dist.present">
 		<mkdir dir="${deps}" />
-		<get src="http://www.bouncycastle.org/download/${bcdist}.zip" 
-		dest="${deps}/${bcdist}.zip" 
+		<get src="http://www.bouncycastle.org/download/${bcdist}.zip"
+		dest="${deps}/${bcdist}.zip"
 		verbose="true"
 		usetimestamp="true" />
 
@@ -76,7 +76,7 @@
 		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
 			<include name="${version.src}"/>
 		</javac>
-		
+
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
@@ -133,11 +133,11 @@
 				<attribute name="Built-By" value="${user.name}"/>
 				<section name="common">
 					<attribute name="Implementation-Title" value="Freemail"/>
-					<attribute name="Implementation-Version" value="0.0"/> 
+					<attribute name="Implementation-Version" value="0.0"/>
 					<attribute name="Implementation-Vendor" value="Dave Baker"/>
 				</section>
 			</manifest>
-		</jar>    
+		</jar>
 	</target>
 
 	<target name="clean">
