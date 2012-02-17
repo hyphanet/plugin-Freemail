@@ -665,6 +665,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			this.ps.flush();
 			return this.sendBody(mmsg, "header");
 		} else if (attr.startsWith("internaldate")) {
+			/*
+			 * FIXME: Internaldate should not return Date from the message
+			 * For messages received though SMTP we want the date when we received it, for messages
+			 * added by COPY it should be the internal date of the source message, and for messages
+			 * added by APPEND it should either be the specified date or the date of the APPEND.
+			 * See RFC 3501 section 2.3.3 (Internal Date Message Attribute).
+			 */
 			val = mmsg.getFirstHeader("Date");
 			if (val == null) {
 				// possibly should keep our own dates...
