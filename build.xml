@@ -77,6 +77,7 @@
 			<include name="${version.src}"/>
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement path="${main.lib}"/>
 			</classpath>
 		</javac>
 
@@ -85,6 +86,7 @@
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement path="${main.lib}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -103,6 +105,7 @@
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${build}"/>
 				<pathelement location="${junit}"/>
+				<pathelement path="${test.lib}"/>
 			</classpath>
 			<compilerarg line="-Xlint"/>
 		</javac>
@@ -116,6 +119,7 @@
 				<pathelement path="${build}"/>
 				<pathelement path="${build-test}"/>
 				<pathelement location="${junit}"/>
+				<pathelement path="${test.lib}"/>
 			</classpath>
 			<formatter type="plain" usefile="false"/>
 			<batchtest fork="yes">
