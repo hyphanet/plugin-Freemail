@@ -75,6 +75,9 @@
 		<!-- Compile the patched version file -->
 		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
 			<include name="${version.src}"/>
+			<classpath>
+				<pathelement location="${freenet-cvs-snapshot.location}"/>
+			</classpath>
 		</javac>
 
 		<!-- Bundle the whole lot together, unless anyone whinges.
