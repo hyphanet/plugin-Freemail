@@ -619,6 +619,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.ps.flush();
 				return true;
 			} else if((i + 1) < imap_args.length) {
+				//Only print a space if there are more arguments to deal with
 				this.ps.print(" ");
 			}
 		}
