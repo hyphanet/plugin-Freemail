@@ -447,12 +447,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				if(vals.length==1) {
 					ts.add(new Integer(vals[0]));
 				} else {
-					from=Integer.parseInt(vals[0]);
-					if(vals[1].equals("*")) {
-						to=msgs.lastKey().intValue();
-					} else {
-						to=Integer.parseInt(vals[1]);
-					}
+					int maxMsgNum = msgs.lastKey().intValue();
+					from = parseSequenceNumber(vals[0], maxMsgNum);
+					to = parseSequenceNumber(vals[1], maxMsgNum);
+
 					for(int j=from;j<=to;j++) {
 						ts.add(new Integer(j));
 					}
@@ -544,6 +542,14 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.reply(msg, "NO No messages copied");
 		} else {
 			this.reply(msg, "BAD Unknown command");
+		}
+	}
+
+	private int parseSequenceNumber(String seqNum, int maxMessageNum) {
+		if(seqNum.equals("*")) {
+			return maxMessageNum;
+		} else {
+			return Integer.parseInt(seqNum);
 		}
 	}
 	
