@@ -286,4 +286,37 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	/*
+	 * In the sequence number range * is the highest sequence number in use and the order of the two
+	 * doesn't matter (i.e. 2:4 == 4:2), so 20:* should return the highest numbered message
+	 * (assuming * < 20).
+	 */
+	public void testSequenceNumberRangeWithFirstAboveMax() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH 20:* (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 10 FETCH (UID 10 FLAGS ())");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testSequenceNumberRangeWithWildcardFirst() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH *:10 (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 10 FETCH (UID 10 FLAGS ())");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
