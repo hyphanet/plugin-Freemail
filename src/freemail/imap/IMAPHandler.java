@@ -451,6 +451,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					from = parseSequenceNumber(vals[0], maxMsgNum);
 					to = parseSequenceNumber(vals[1], maxMsgNum);
 
+					if(from > to) {
+						int temp = to;
+						to = from;
+						from = temp;
+					}
+
 					for(int j=from;j<=to;j++) {
 						ts.add(new Integer(j));
 					}
