@@ -329,16 +329,21 @@ public class InboxToadlet extends WebPage {
 				msg1 = temp;
 			}
 
-			switch (field) {
-			case SUBJECT:
-				return msg0.getFirstHeader("Subject").compareTo(msg1.getFirstHeader("Subject"));
-			case DATE:
-				return msg0.getFirstHeader("Date").compareTo(msg1.getFirstHeader("Date"));
-			case FROM:
-				return msg0.getFirstHeader("From").compareTo(msg1.getFirstHeader("From"));
-			default:
-				Logger.error(this, "Missing sort case for " + field);
-				return msg0.getFirstHeader("Date").compareTo(msg1.getFirstHeader("Date"));
+			String header0 = msg0.getFirstHeader(field.name);
+			String header1 = msg1.getFirstHeader(field.name);
+
+			if(header0 == null) {
+				if(header1 == null) {
+					return 0; //Equal
+				} else {
+					return 1; //Sort non-null before null
+				}
+			} else {
+				if(header1 == null) {
+					return -1; //Sort non-null before null
+				} else {
+					return header0.compareTo(header1);
+				}
 			}
 		}
 	}
