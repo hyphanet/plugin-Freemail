@@ -26,6 +26,8 @@ import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 
+import junit.framework.ComparisonFailure;
+
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 import freemail.AccountManager;
@@ -302,5 +304,47 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("0005 OK Expunge complete");
 
 		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testLiteralWithoutEndingLinebreak() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+
+		/*
+		 * Now send the literal that doesn't end with \r\n. Note that the 'A' belongs to the
+		 * literal, not to the tag of the logout command. If the logout command is read as part of
+		 * the literal (which is a bug) the last command will be read instead and the test will fail
+		 * due to the unexpected output ("0004 NO Sorry - not implemented").
+		 */
+		commands.add("0002 APPEND INBOX {1}");
+		commands.add("A0003 LOGOUT");
+		commands.add("0004 ShouldNotRun");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("+ OK");
+		expectedResponse.add("0002 OK APPEND completed");
+		expectedResponse.add("* BYE");
+		expectedResponse.add("0003 OK Bye");
+
+		try {
+			runSimpleTest(commands, expectedResponse);
+			fail("String literals without ending linebreak appear to work, fix this " +
+			     "test so regressions will cause the test to fail");
+		} catch(ComparisonFailure e) {
+			/*
+			 * A test failure is expected at the moment since the bug hasn't
+			 * been fixed yet. Check that the expected and actual values don't
+			 * change and print a warning.
+			 */
+			final String expected = "* BYE";
+			final String actual = "0004 NO Sorry - not implemented";
+
+			assertEquals(expected, e.getExpected());
+			assertEquals(actual, e.getActual());
+
+			System.err.println("testLiteralWithoutEndingLinebreak: Expected failure");
+		}
 	}
 }
