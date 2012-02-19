@@ -29,8 +29,13 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -38,6 +43,14 @@ import freemail.imap.IMAPMessageFlags;
 import freemail.utils.Logger;
 
 public class MailMessage {
+	private static final Set<String> dateFormats;
+	static {
+		Set<String> backing = new HashSet<String>();
+		backing.add("EEE, d MMM yyyy HH:mm:ss Z"); //Mon, 17 Oct 2011 10:24:14 +0200
+		backing.add("d MMM yyyy HH:mm:ss Z");      //     18 Feb 2012 03:32:22 +0100
+		dateFormats = Collections.unmodifiableSet(backing);
+	}
+
 	private File file;
 	private OutputStream os;
 	private PrintStream ps;
@@ -353,6 +366,25 @@ public class MailMessage {
 	@Override
 	public String toString() {
 		return "MailMessage backed by " + file;
+	}
+
+	public Date getDate() {
+		String date = getFirstHeader("Date");
+		if(date == null) {
+			return null;
+		}
+
+		for(String format : dateFormats) {
+			SimpleDateFormat sdf = new SimpleDateFormat(format);
+			try {
+				return sdf.parse(date);
+			} catch (ParseException e) {
+				//Try next format
+			}
+		}
+
+		Logger.minor(this, "No format matched for date " + date);
+		return null;
 	}
 
 	/**

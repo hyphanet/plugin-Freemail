@@ -22,9 +22,6 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -312,14 +309,6 @@ public class InboxToadlet extends WebPage {
 	}
 
 	private static class MailMessageComparator implements Comparator<MailMessage> {
-		private static final Set<String> dateFormats;
-		static {
-			Set<String> backing = new HashSet<String>();
-			backing.add("EEE, d MMM yyyy HH:mm:ss Z"); //Mon, 17 Oct 2011 10:24:14 +0200
-			backing.add("d MMM yyyy HH:mm:ss Z");      //     18 Feb 2012 03:32:22 +0100
-			dateFormats = Collections.unmodifiableSet(backing);
-		}
-
 		private final SortField field;
 		private final boolean ascending;
 
@@ -341,20 +330,15 @@ public class InboxToadlet extends WebPage {
 				msg1 = temp;
 			}
 
-			String msg0Header = msg0.getFirstHeader(field.name);
-			String msg1Header = msg1.getFirstHeader(field.name);
-
 			if(field == SortField.DATE) {
-				try {
-					Date msg1Date = parseDate(msg0Header);
-					Date msg2Date = parseDate(msg1Header);
+				Date msg1Date = msg0.getDate();
+				Date msg2Date = msg1.getDate();
 
-					return msg1Date.compareTo(msg2Date);
-				} catch (ParseException e) {
-					//Fall back to string comparison
-				}
+				return compare(msg1Date, msg2Date);
 			}
 
+			String msg0Header = msg0.getFirstHeader(field.name);
+			String msg1Header = msg1.getFirstHeader(field.name);
 			return compare(msg0Header, msg1Header);
 		}
 
@@ -372,24 +356,6 @@ public class InboxToadlet extends WebPage {
 					return o1.compareTo(o2);
 				}
 			}
-		}
-
-		private Date parseDate(String date) throws ParseException {
-			if(date == null) {
-				throw new ParseException(date, 0);
-			}
-
-			for(String format : dateFormats) {
-				SimpleDateFormat sdf = new SimpleDateFormat(format);
-				try {
-					return sdf.parse(date);
-				} catch (ParseException e) {
-					//Try next format
-				}
-			}
-
-			Logger.minor(this, "No formats matched " + date);
-			throw new ParseException(date, 0);
 		}
 	}
 }
