@@ -113,7 +113,7 @@
 
 	<target name="unit" depends="unit-build" unless="${test.skip}">
 		<mkdir dir="${test.run}"/>
-		<junit printsummary="yes" fork="yes" haltonfailure="yes" dir="${test.run}">
+		<junit fork="yes" haltonfailure="yes" dir="${test.run}">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${build}"/>
