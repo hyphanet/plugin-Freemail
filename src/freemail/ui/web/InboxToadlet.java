@@ -22,6 +22,7 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -243,7 +244,21 @@ public class InboxToadlet extends WebPage {
 		if(!read) {
 			date = date.addChild("strong");
 		}
-		date.addChild("#", msg.getFirstHeader("Date"));
+
+		Date msgDate = msg.getDate();
+		if(msgDate != null) {
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			date.addChild("#", sdf.format(msgDate));
+		} else {
+			/* Use the raw date header if possible. If it is null
+			 * the field will  simply be left blank */
+			//TODO: This should probably be removed once getDate() has been tested with real world messages
+			String rawDate = msg.getFirstHeader("Date");
+			if(rawDate != null) {
+				Logger.error(this, "Displaying raw date: " + rawDate);
+				date.addChild("#", rawDate);
+			}
+		}
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {
