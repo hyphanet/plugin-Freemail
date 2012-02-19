@@ -122,6 +122,6 @@ public abstract class IMAPTestBase extends TestCase {
 			assertEquals("Failed at line " + lineNum++, response, line);
 		}
 
-		assertFalse(fromHandler.ready());
+		assertFalse("IMAP socket has more data", fromHandler.ready());
 	}
 }
