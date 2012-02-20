@@ -500,6 +500,7 @@ public class MessageHandler {
 		private final String remoteId;
 
 		private AckCallback(String remoteId) {
+			assert (remoteId != null);
 			try {
 				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase();
 			} catch (IllegalBase64Exception e) {
