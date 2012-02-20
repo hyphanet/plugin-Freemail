@@ -25,7 +25,6 @@ Freemail.InboxToadlet.move=Flytt
 Freemail.InboxToadlet.subject=Emne
 Freemail.InboxToadlet.from=Fra
 Freemail.InboxToadlet.date=Dato
-Freemail.InboxToadlet.defaultSubject=(Emne mangler)
 Freemail.NewMessageToadlet.boxTitle=Ny melding
 Freemail.NewMessageToadlet.to=Til
 Freemail.NewMessageToadlet.subject=Emne
@@ -47,4 +46,5 @@ Freemail.OutboxToadlet.lastSendTime=Sist sent
 Freemail.OutboxToadlet.name=Utboks
 Freemail.OutboxToadlet.title=Utboks
 Freemail.OutboxToadlet.neverSent=Aldri
+Freemail.Web.Common.defaultSubject=(Emne mangler)
 End

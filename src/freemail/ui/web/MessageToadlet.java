@@ -162,7 +162,7 @@ public class MessageToadlet extends WebPage {
 
 		String subject = message.getFirstHeader("Subject");
 		if((subject == null) || (subject.equals(""))) {
-			subject = FreemailL10n.getString("Freemail.InboxToadlet.defaultSubject");
+			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}
 		subjectPara.addChild("#", " " + subject);
 	}

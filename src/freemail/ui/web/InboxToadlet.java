@@ -230,7 +230,7 @@ public class InboxToadlet extends WebPage {
 		}
 		String subject = msg.getFirstHeader("Subject");
 		if((subject == null) || (subject.equals(""))) {
-			subject = FreemailL10n.getString("Freemail.InboxToadlet.defaultSubject");
+			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}
 		title.addChild("a", "href", messageLink, subject);
 
