@@ -121,6 +121,7 @@ public class MessageHandler {
 				continue;
 			}
 
+			Logger.debug(this, "Initializing channel from directory " + f);
 			try {
 				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, null);
 				channel.setCallback(new AckCallback(channel.getRemoteIdentity()));
