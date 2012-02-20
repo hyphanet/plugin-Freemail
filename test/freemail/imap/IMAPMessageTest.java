@@ -19,6 +19,7 @@
 
 package freemail.imap;
 
+import junit.framework.ComparisonFailure;
 import junit.framework.TestCase;
 
 public class IMAPMessageTest extends TestCase {
@@ -55,5 +56,30 @@ public class IMAPMessageTest extends TestCase {
 	public void testParseQuotedString() throws IMAPBadMessageException {
 		IMAPMessage msg = new IMAPMessage("0003 APPEND \"IN BOX\"");
 		assertEquals("\"IN BOX\"", msg.args[0]);
+	}
+
+	public void testParseParenthesesList() throws IMAPBadMessageException {
+		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
+
+		/* Fixing the parsing is trivial, but breaks other parts of the code that depend on the
+		 * current behavior, so leave it until those parts can be fixed. */
+		try {
+			assertEquals("(\\Seen custom)", msg.args[1]);
+			fail("IMAPMessage parsing of parentheses appear to work, fix this " +
+			     "test so regressions will cause the test to fail");
+		} catch(ComparisonFailure e) {
+			/*
+			 * A test failure is expected at the moment since the bug hasn't
+			 * been fixed yet. Check that the expected and actual values don't
+			 * change and print a warning.
+			 */
+			final String expected = "(\\Seen custom)";
+			final String actual = "(\\Seen";
+
+			assertEquals(expected, e.getExpected());
+			assertEquals(actual, e.getActual());
+
+			System.err.println("testParseParenthesesList: Expected failure");
+		}
 	}
 }
