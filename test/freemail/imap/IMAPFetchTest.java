@@ -31,7 +31,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 		backing.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		backing.add("0001 OK Logged in");
 		backing.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		backing.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		backing.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		backing.add("* 10 EXISTS");
 		backing.add("* 10 RECENT");
 		backing.add("* OK [UIDVALIDITY 1] Ok");

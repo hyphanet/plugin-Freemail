@@ -282,7 +282,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 		
 		this.sendState("FLAGS ("+IMAPMessageFlags.getAllFlagsAsString()+")");
-		this.sendState("OK [PERMANENTFLAGS (\\* "+IMAPMessageFlags.getPermanentFlagsAsString()+")] Limited");
+		this.sendState("OK [PERMANENTFLAGS ("+IMAPMessageFlags.getPermanentFlagsAsString()+")] Limited");
 			
 		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 			

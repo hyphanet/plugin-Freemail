@@ -80,7 +80,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		expectedResponse.add("* 10 EXISTS");
 		expectedResponse.add("* 10 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
@@ -230,7 +230,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		expectedResponse.add("* 10 EXISTS");
 		expectedResponse.add("* 10 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
@@ -239,7 +239,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("0004 OK Mailbox closed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		expectedResponse.add("* 9 EXISTS");
 		expectedResponse.add("* 0 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
@@ -259,7 +259,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		expectedResponse.add("* 10 EXISTS");
 		expectedResponse.add("* 10 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
@@ -267,7 +267,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		expectedResponse.add("* 10 EXISTS");
 		expectedResponse.add("* 0 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
@@ -288,7 +288,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\* \\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
 		expectedResponse.add("* 10 EXISTS");
 		expectedResponse.add("* 10 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
