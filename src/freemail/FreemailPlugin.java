@@ -90,6 +90,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 	
 	public void runPlugin(PluginRespirator pr) {
+		long start = System.nanoTime();
+
 		pluginRespirator = pr;
 
 		startFcp(true);
@@ -98,6 +100,9 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		startIdentityFetch(pr, getAccountManager());
 
 		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
+
+		long end = System.nanoTime();
+		Logger.minor(this, "Spent " + (end - start) + "ns in runPlugin()");
 	}
 
 	public static ScheduledExecutorService getExecutor(TaskType type) {
