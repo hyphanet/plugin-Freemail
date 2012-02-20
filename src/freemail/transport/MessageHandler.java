@@ -122,7 +122,7 @@ public class MessageHandler {
 			}
 
 			try {
-				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount);
+				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, null);
 				channel.setCallback(new AckCallback(channel.getRemoteIdentity()));
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
@@ -247,13 +247,12 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, remoteIdentity);
 				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
 			}
-			channel.setRemoteIdentity(remoteIdentity);
 			channel.startTasks();
 			channels.add(channel);
 
@@ -286,13 +285,12 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, remoteIdentity);
 				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
 				throw new AssertionError("Caugth ChannelTimedOutException when creating a new channel");
 			}
-			channel.setRemoteIdentity(remoteIdentity);
 			channel.processRTS(rtsProps);
 			channel.startTasks();
 			channels.add(channel);

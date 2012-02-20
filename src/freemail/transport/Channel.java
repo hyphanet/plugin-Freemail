@@ -134,7 +134,7 @@ class Channel {
 	private final AtomicReference<ChannelEventCallback> channelEventCallback = new AtomicReference<ChannelEventCallback>();
 	private final MessageLog ackLog;
 
-	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account) throws ChannelTimedOutException {
+	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, String remoteId) throws ChannelTimedOutException {
 		if(executor == null) throw new NullPointerException();
 		this.executor = executor;
 
@@ -179,6 +179,23 @@ class Channel {
 				//If the value doesn't exist it is probably because we haven't sent the RTS yet
 				Logger.debug(this, "Adding timeout=Long.MAX_VALUE to channel props");
 				channelProps.put(PropsKeys.TIMEOUT, Long.MAX_VALUE);
+			}
+		}
+
+		//Set remote id if given
+		if(remoteId != null) {
+			synchronized(channelProps) {
+				String prev = channelProps.get(PropsKeys.REMOTE_ID);
+
+				if((prev != null) && (!remoteId.equals(prev))) {
+					/* Since the remote id should only be set when the
+					 * channel is created this shouldn't happen. */
+					Logger.error(this, "Changing remote id");
+					Logger.debug(this, "Changing remote id from " + prev + " to " + remoteId);
+					assert (false) : "Changing remote id from " + prev + " to " + remoteId;
+				}
+
+				channelProps.put(PropsKeys.REMOTE_ID, remoteId);
 			}
 		}
 	}
@@ -239,12 +256,6 @@ class Channel {
 			Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
 		}
 		startFetcher();
-	}
-
-	void setRemoteIdentity(String remoteID) {
-		synchronized(channelProps) {
-			channelProps.put(PropsKeys.REMOTE_ID, remoteID);
-		}
 	}
 
 	void setCallback(ChannelEventCallback callback) {
