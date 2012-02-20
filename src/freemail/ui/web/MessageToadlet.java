@@ -159,7 +159,12 @@ public class MessageToadlet extends WebPage {
 
 		HTMLNode subjectPara = headerBox.addChild("p");
 		subjectPara.addChild("strong", "Subject:");
-		subjectPara.addChild("#", " " + message.getFirstHeader("subject"));
+
+		String subject = message.getFirstHeader("Subject");
+		if((subject == null) || (subject.equals(""))) {
+			subject = FreemailL10n.getString("Freemail.InboxToadlet.defaultSubject");
+		}
+		subjectPara.addChild("#", " " + subject);
 	}
 
 	private void addMessageContents(HTMLNode messageNode, MailMessage message) {
