@@ -47,8 +47,8 @@ public class IdentityMatcherTest extends TestCase {
 		EnumSet<IdentityMatcher.MatchMethod> set = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
 		Map<String, List<Identity>> matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), set);
 
-		assert (matches.size() == 1);
-		assert (matches.get(recipient).get(0).equals(identity));
+		assertEquals(1, matches.size());
+		assertEquals(identity, matches.get(recipient).get(0));
 	}
 
 	private class FakeWoTConnection implements WoTConnection {
