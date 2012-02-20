@@ -41,4 +41,19 @@ public class IMAPMessageTest extends TestCase {
 			assertEquals(correct[i], actual[i]);
 		}
 	}
+
+	public void testParseTag() throws IMAPBadMessageException {
+		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
+		assertEquals("0003", msg.tag);
+	}
+
+	public void testParseCommand() throws IMAPBadMessageException {
+		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
+		assertEquals("APPEND", msg.type.toUpperCase());
+	}
+
+	public void testParseQuotedString() throws IMAPBadMessageException {
+		IMAPMessage msg = new IMAPMessage("0003 APPEND \"IN BOX\"");
+		assertEquals("\"IN BOX\"", msg.args[0]);
+	}
 }
