@@ -1283,6 +1283,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			datalen = Integer.parseInt(sdatalen);
 		} catch (NumberFormatException nfe) {
+			//FIXME: Send error message
 			datalen = 0;
 		}
 		

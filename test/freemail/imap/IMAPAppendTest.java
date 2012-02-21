@@ -122,4 +122,34 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testAppendWithBadLiteralLength() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 APPEND INBOX {BAD}");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Unable to parse literal length");
+
+		try {
+			runSimpleTest(commands, expectedResponse);
+			fail("Append with bad literal length appear to work, fix this " +
+			     "test so regressions will cause the test to fail");
+		} catch(ComparisonFailure e) {
+			/*
+			 * A test failure is expected at the moment since the bug hasn't
+			 * been fixed yet. Check that the expected and actual values don't
+			 * change and print a warning.
+			 */
+			final String expected = "0003 BAD Unable to parse literal length";
+			final String actual = "+ OK";
+
+			assertEquals(expected, e.getExpected());
+			assertEquals(actual, e.getActual());
+
+			System.err.println("testAppendWithBadLiteralLength: Expected failure");
+		}
+	}
 }
