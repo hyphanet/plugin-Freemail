@@ -29,6 +29,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeSet;
 import java.lang.NumberFormatException;
@@ -1252,12 +1254,25 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		String mbname = trimQuotes(msg.args[0]);
 		
 		String sdatalen = "";
-		String sflags = "";
+		List<String> flags = new LinkedList<String>();
 		
 		for (int i = 1; i < msg.args.length; i++) {
 			if (msg.args[i].startsWith("(")) {
-				//List of flags
-				sflags = msg.args[i].substring(1, msg.args[i].length() - 1);
+				if(msg.args[i].endsWith(")")) {
+					//Only flag
+					flags.add(msg.args[i].substring(1, msg.args[i].length() - 1));
+					i++;
+				} else {
+					//Add all the flags
+					flags.add(msg.args[i].substring(1, msg.args[i].length()));
+					i++;
+					while(!msg.args[i].endsWith(")")) {
+						flags.add(msg.args[i]);
+						i++;
+					}
+					flags.add(msg.args[i].substring(0, msg.args[i].length() - 1));
+					i++;
+				}
 			} else if (msg.args[i].startsWith("{")) {
 				//Data length
 				sdatalen = msg.args[i].substring(1, msg.args[i].length() -1);
@@ -1300,9 +1315,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		String[] flags = sflags.split(" ");
-		for (int i = 0; i < flags.length; i++) {
-			newmsg.flags.set(flags[i], true);
+		for (String flag : flags) {
+			newmsg.flags.set(flag, true);
 		}
 		newmsg.storeFlags();
 		this.reply(msg, "OK APPEND completed");

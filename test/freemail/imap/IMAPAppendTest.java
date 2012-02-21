@@ -80,24 +80,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 		expectedResponse.add("* 11 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
 		expectedResponse.add("0004 OK Fetch completed");
 
-		try {
-			runSimpleTest(commands, expectedResponse);
-			fail("Append with custom flags appear to work, fix this " +
-			     "test so regressions will cause the test to fail");
-		} catch(ComparisonFailure e) {
-			/*
-			 * A test failure is expected at the moment since the bug hasn't
-			 * been fixed yet. Check that the expected and actual values don't
-			 * change and print a warning.
-			 */
-			final String expected = "* 11 FETCH (FLAGS (\\Seen \\Recent) UID 11)";
-			final String actual = "* 11 FETCH (FLAGS (\\Recent) UID 11)";
-
-			assertEquals(expected, e.getExpected());
-			assertEquals(actual, e.getActual());
-
-			System.err.println("testAppendWithCustomFlag: Expected failure");
-		}
+		runSimpleTest(commands, expectedResponse);
 	}
 
 	public void testAppendWithFlagAndDate() throws IOException {
