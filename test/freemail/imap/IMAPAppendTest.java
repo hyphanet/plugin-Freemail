@@ -83,6 +83,25 @@ public class IMAPAppendTest extends IMAPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	public void testAppendWithTwoStandardFlags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 APPEND INBOX (\\Seen \\Flagged) {23}");
+		commands.add("Subject: Test message");
+		commands.add("0004 UID FETCH 10:* FLAGS");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("0003 OK APPEND completed");
+		expectedResponse.add("* 10 FETCH (FLAGS () UID 10)");
+		expectedResponse.add("* 11 FETCH (FLAGS (\\Seen \\Flagged \\Recent) UID 11)");
+		expectedResponse.add("0004 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 	public void testAppendWithFlagAndDate() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + USERNAME + " test");
