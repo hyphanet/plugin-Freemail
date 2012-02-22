@@ -157,6 +157,7 @@
 		</delete>
 		<delete dir="${build-test}"/>
 		<delete dir="${dist}"/>
+		<delete dir="${run}"/>
 	</target>
 
 	<target name="cleaner" depends="clean">
