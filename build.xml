@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <project name="Freemail" default="dist" basedir=".">
-	<property file="override.properties"/>
+	<property name="override" location="override.properties" />
+	<property file="${override}"/>
 	<property file="build.properties"/>
 
 	<!-- set global properties for this build -->
@@ -166,5 +167,6 @@
 		<delete dir="${build}"/>
 		<delete dir="${build-test}"/>
 		<delete dir="${deps}"/>
+		<delete dir="${override}"/>
 	</target>
 </project>
