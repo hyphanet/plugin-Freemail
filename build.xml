@@ -163,9 +163,7 @@
 		<delete dir="${build}"/>
 	</target>
 
-	<target name="distclean" description="Delete everything and restore to the original state.">
-		<delete dir="${build}"/>
-		<delete dir="${build-test}"/>
+	<target name="distclean" depends="cleaner" description="Delete everything and restore to the original state.">
 		<delete dir="${deps}"/>
 		<delete dir="${override}"/>
 	</target>
