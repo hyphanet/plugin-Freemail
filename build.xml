@@ -151,7 +151,7 @@
 
 	<target name="clean">
 		<delete includeEmptyDirs="true">
-			<fileset dir="${build}">
+			<fileset dir="${build}" erroronmissingdir="false">
 				<exclude name="org/bouncycastle/**"/>
 			</fileset>
 		</delete>
