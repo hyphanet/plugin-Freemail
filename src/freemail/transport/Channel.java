@@ -1207,6 +1207,7 @@ class Channel {
 		try {
 			id = Long.parseLong(s_id);
 		} catch (NumberFormatException nfe) {
+			/* FIXME: Id doesn't have to be an integer */
 			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
 			msgprops.closeReader();
 			return true;
