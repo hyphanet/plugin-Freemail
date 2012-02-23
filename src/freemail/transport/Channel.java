@@ -333,7 +333,7 @@ class Channel {
 				}
 			}
 		} catch(IOException e) {
-			Logger.error(this, "Caugth IOException while checking acklog: " + e);
+			Logger.error(this, "Caugth IOException while checking acklog: " + e.getMessage(), e);
 		} catch(RejectedExecutionException e) {
 			// Catch it here instead of inside the loop since there is no point
 			// in trying to schedule the rest
@@ -1221,7 +1221,7 @@ class Channel {
 			try {
 				ackLog.add(id, Long.toString(ackDelay));
 			} catch(IOException e) {
-				Logger.error(this, "Caugth IOException while writing to ack log: " + e);
+				Logger.error(this, "Caugth IOException while writing to ack log: " + e.getMessage(), e);
 				return false;
 			}
 		}
@@ -1290,7 +1290,7 @@ class Channel {
 					try {
 						ackLog.remove(ackId);
 					} catch(IOException e) {
-						Logger.error(this, "Caugth IOException while writing to ack log: " + e);
+						Logger.error(this, "Caugth IOException while writing to ack log: " + e.getMessage(), e);
 					}
 				}
 			} else {
