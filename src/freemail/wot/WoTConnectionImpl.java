@@ -20,6 +20,7 @@
 
 package freemail.wot;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -202,6 +203,10 @@ class WoTConnectionImpl implements WoTConnection {
 	}
 
 	private Message sendBlocking(final Message msg, String expectedMessageType) {
+		return sendBlocking(msg, Collections.singleton(expectedMessageType));
+	}
+
+	private Message sendBlocking(final Message msg, Set<String> expectedMessageTypes) {
 		assert (msg != null);
 
 		//Synchronize on pluginTalker so only one message can be sent at a time
@@ -232,13 +237,16 @@ class WoTConnectionImpl implements WoTConnection {
 		long end = System.nanoTime();
 		Logger.debug(this, "WoT request (" + msg.sfs.get("Message") + ") took " + (end - start) + "ns");
 
-		if(expectedMessageType.equals(retValue.sfs.get("Message"))) {
-			return retValue;
+		String replyType = retValue.sfs.get("Message");
+		for(String expectedMessageType : expectedMessageTypes) {
+			if(expectedMessageType.equals(replyType)) {
+				return retValue;
+			}
 		}
 
 		Logger.error(this, "Got the wrong message from WoT. Original message was " +
 				retValue.sfs.get("OriginalMessage") + ", response was " +
-				retValue.sfs.get("Message"));
+				replyType);
 
 		//Log the contents of the message, but at debug since it might contain private keys etc.
 		Iterator<String> keyIterator = retValue.sfs.keyIterator();
