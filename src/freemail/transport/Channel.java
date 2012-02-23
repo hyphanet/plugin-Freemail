@@ -1114,8 +1114,7 @@ class Channel {
 			try {
 				rtsMessageBytes = rtsMessage.toString().getBytes("UTF-8");
 			} catch(UnsupportedEncodingException e) {
-				Logger.error(this, "JVM doesn't support UTF-8 charset");
-				e.printStackTrace();
+				Logger.error(this, "JVM doesn't support UTF-8 charset", e);
 				return null;
 			}
 
@@ -1136,8 +1135,7 @@ class Channel {
 			try {
 				signature = signatureCipher.processBlock(hash, 0, hash.length);
 			} catch(InvalidCipherTextException e) {
-				Logger.error(this, "Failed to RSA encrypt hash: " + e.getMessage());
-				e.printStackTrace();
+				Logger.error(this, "Failed to RSA encrypt hash: " + e.getMessage(), e);
 				return null;
 			}
 
@@ -1166,8 +1164,7 @@ class Channel {
 			try {
 				aesCipher.doFinal(encryptedMessage, offset);
 			} catch(InvalidCipherTextException e) {
-				Logger.error(this, "Failed to perform symmetric encryption on RTS data: " + e.getMessage());
-				e.printStackTrace();
+				Logger.error(this, "Failed to perform symmetric encryption on RTS data: " + e.getMessage(), e);
 				return null;
 			}
 
@@ -1178,8 +1175,7 @@ class Channel {
 			try {
 				encryptedAesParameters = keyCipher.processBlock(aesKeyAndIV, 0, aesKeyAndIV.length);
 			} catch(InvalidCipherTextException e) {
-				Logger.error(this, "Failed to perform asymmetric encryption on RTS symmetric key: " + e.getMessage());
-				e.printStackTrace();
+				Logger.error(this, "Failed to perform asymmetric encryption on RTS symmetric key: " + e.getMessage(), e);
 				return null;
 			}
 
