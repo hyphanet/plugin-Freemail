@@ -273,7 +273,7 @@ public class HighLevelFCPClient implements FCPClient {
 			} catch (FCPBadFileException bfe) {
 				return -1;
 			} catch (FCPException e) {
-				Logger.error(this, "Unknown error while doing slotinsert: " + e);
+				Logger.error(this, "Unknown error while doing slotinsert: " + e.getMessage());
 				return -1;
 			}
 			if (emsg == null) {
