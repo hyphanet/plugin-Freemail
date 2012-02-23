@@ -71,8 +71,6 @@ public class FreemailCli extends Freemail {
 				System.out.println("  Creates an account");
 				System.out.println(" java -jar Freemail.jar [-c config] --passwd <account name> <password>");
 				System.out.println("  Changes the password for the given account");
-				System.out.println(" java -jar Freemail.jar [-c config] --shortaddress <name> <domain prefix>");
-				System.out.println("  Adds a short address or changes the short address for the given account.");
 				return;
 			} else {
 				System.out.println("Unknown option: '"+args[i]+"'");
