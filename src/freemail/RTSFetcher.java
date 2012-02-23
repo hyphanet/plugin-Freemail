@@ -454,6 +454,7 @@ public class RTSFetcher implements SlotSaveCallback {
 	 * Make sure an RTS file has all the right properties in it
 	 * If any are missing, throw an exception which says which are missing
 	 */
+	/* FIXME: Throw a different exception */
 	private void validate_rts(PropsFile rts) throws Exception {
 		StringBuffer missing = new StringBuffer();
 		
