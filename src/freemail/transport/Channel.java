@@ -657,7 +657,7 @@ class Channel {
 				basekey = channelProps.get(PropsKeys.PUBLIC_KEY);
 			}
 			if(basekey == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.PUBLIC_KEY + "' entry!");
+				Logger.error(this, "Channel " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.PUBLIC_KEY + "' entry!");
 				//TODO: Either delete the channel or resend the RTS
 				return;
 			}
@@ -668,7 +668,7 @@ class Channel {
 			}
 
 			if(fetchCode == null) {
-				Logger.error(this, "Contact " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.FETCH_CODE + "' entry!");
+				Logger.error(this, "Channel " + channelDir.getName() + " is corrupt - account file has no '" + PropsKeys.FETCH_CODE + "' entry!");
 				//TODO: Either delete the channel or resend the RTS
 				return;
 			}
