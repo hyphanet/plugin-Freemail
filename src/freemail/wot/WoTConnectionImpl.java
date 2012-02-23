@@ -194,12 +194,23 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Identity", identity);
 		sfs.putOverwrite("Property", key);
 
-		Message response = sendBlocking(new Message(sfs, null), "PropertyValue");
+		Set<String> expectedTypes = new HashSet<String>();
+		expectedTypes.add("PropertyValue");
+
+		/* Also include Error since WoT returns this if the property doesn't exist for the message */
+		/* FIXME: Perhaps check the description and log if it isn't what we expect? */
+		expectedTypes.add("Error");
+
+		Message response = sendBlocking(new Message(sfs, null), expectedTypes);
 		if(response == null) {
 			return null;
 		}
 
-		return response.sfs.get("Property");
+		if("PropertyValue".equals(response.sfs.get("Message"))) {
+			return response.sfs.get("Property");
+		} else {
+			return null;
+		}
 	}
 
 	private Message sendBlocking(final Message msg, String expectedMessageType) {
