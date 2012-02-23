@@ -315,6 +315,7 @@ public class MessageBank {
 				Logger.error(this, "Uid validity file contains illegal value, starting over. This could break IMAP clients");
 				uid = uidValidity + 1;
 			} catch (IOException e) {
+				/* FIXME: This case isn't handled by callers */
 				Logger.error(this, "Caugth IOException while reading uid validity");
 				return -1;
 			}
