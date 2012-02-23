@@ -197,7 +197,7 @@ public class RTSFetcher implements SlotSaveCallback {
 					Logger.error(this,keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
 				}
 			} catch (FCPException e) {
-				Logger.error(this, "Unknown error while checking RTS: " + e);
+				Logger.error(this, "Unknown error while checking RTS: " + e.getMessage());
 				success = false;
 			}
 		}
@@ -321,7 +321,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			rtsfile.delete();
 			return false;
 		} catch (FCPException e) {
-			Logger.error(this, "Unknown error while checking sender's mailsite: " + e);
+			Logger.error(this, "Unknown error while checking sender's mailsite: " + e.getMessage());
 
 			//Try again later
 			rtsfile.delete();
