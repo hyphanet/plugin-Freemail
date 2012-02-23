@@ -58,7 +58,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
-			Logger.error(this,"Error in IMAP server - "+ioe.getMessage());
+			Logger.error(this,"Error in IMAP server - "+ioe.getMessage(), ioe);
 		}
 	}
 
