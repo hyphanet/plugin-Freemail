@@ -85,6 +85,7 @@ public class MessageToadlet extends WebPage {
 		MailMessage msg = MessageBankTools.getMessage(messageBank, messageUid);
 
 		if(msg == null) {
+			/* FIXME: L10n */
 			HTMLNode infobox = addErrorbox(container, "Message doesn't exist");
 			infobox.addChild("p", "The message you requested doesn't exist");
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -132,6 +133,7 @@ public class MessageToadlet extends WebPage {
 		try {
 			message.readHeaders();
 		} catch(IOException e) {
+			/* FIXME: L10n */
 			Logger.error(this, "Caugth IOException reading headers for " + message);
 			headerBox.addChild("p", "There was a problem reading the message headers");
 			return;

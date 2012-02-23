@@ -167,6 +167,7 @@ public class AddAccountToadlet extends WebPage {
 			Logger.error(this, "Requested identity (" + identity + ") doesn't exist");
 
 			//TODO: Write a better message
+			/* FIXME: L10n */
 			writeHTMLReply(ctx, 200, "OK", "The specified identitiy doesn't exist");
 			return;
 		}
