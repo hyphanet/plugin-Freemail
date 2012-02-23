@@ -397,8 +397,7 @@ public class MailMessage {
 	 */
 	public static String generateMessageID(String domain, Date date) {
 		if(domain == null) {
-			Logger.error(MailMessage.class, "Domain passed to generateMessageID() was null");
-			new Exception("Domain passed to generateMessageID() was null").printStackTrace();
+			Logger.error(MailMessage.class, "Domain passed to generateMessageID() was null", new Exception());
 		}
 
 		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
