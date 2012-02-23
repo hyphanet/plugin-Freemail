@@ -480,7 +480,7 @@ public class MessageHandler {
 					//Try again with a new channel
 					continue;
 				} catch(IOException e) {
-					Logger.error(this, "Caugth IOException while sending: " + e);
+					Logger.error(this, "Caugth IOException while sending message: " + e.getMessage(), e);
 					inserted = false;
 				}
 
@@ -542,7 +542,7 @@ public class MessageHandler {
 			try {
 				isDupe = msgLog.isPresent(id);
 			} catch (IOException ioe) {
-				Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.");
+				Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.", ioe);
 				return false;
 			}
 			if(isDupe) {
@@ -560,7 +560,7 @@ public class MessageHandler {
 				msgLog.add(id, null);
 			} catch(IOException e) {
 				// how should we handle this? Remove the message from the inbox again?
-				Logger.error(this,"warning: failed to write log file!");
+				Logger.error(this,"warning: failed to write log file!", e);
 			}
 
 			return true;
