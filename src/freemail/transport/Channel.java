@@ -1166,7 +1166,7 @@ class Channel {
 			try {
 				aesCipher.doFinal(encryptedMessage, offset);
 			} catch(InvalidCipherTextException e) {
-				Logger.error(this, "Failed to perform symmertic encryption on RTS data: " + e.getMessage());
+				Logger.error(this, "Failed to perform symmetric encryption on RTS data: " + e.getMessage());
 				e.printStackTrace();
 				return null;
 			}
@@ -1178,7 +1178,7 @@ class Channel {
 			try {
 				encryptedAesParameters = keyCipher.processBlock(aesKeyAndIV, 0, aesKeyAndIV.length);
 			} catch(InvalidCipherTextException e) {
-				Logger.error(this, "Failed to perform asymmertic encryption on RTS symmetric key: " + e.getMessage());
+				Logger.error(this, "Failed to perform asymmetric encryption on RTS symmetric key: " + e.getMessage());
 				e.printStackTrace();
 				return null;
 			}
