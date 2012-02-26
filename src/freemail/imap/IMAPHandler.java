@@ -1261,7 +1261,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				if(msg.args[i].endsWith(")")) {
 					//Only flag
 					flags.add(msg.args[i].substring(1, msg.args[i].length() - 1));
-					i++;
 				} else {
 					//Add all the flags
 					flags.add(msg.args[i].substring(1, msg.args[i].length()));
@@ -1271,7 +1270,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 						i++;
 					}
 					flags.add(msg.args[i].substring(0, msg.args[i].length() - 1));
-					i++;
 				}
 			} else if (msg.args[i].startsWith("{")) {
 				//Data length
