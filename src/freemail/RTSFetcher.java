@@ -464,6 +464,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			String mailsite = rts.get("mailsite");
 			if(!FreenetURI.checkUSK(mailsite)) {
 				Logger.error(this, "RTS contains malformed mailsite key: " + mailsite);
+				/* FIXME: Throw a better exception */
 				throw new Exception();
 			}
 		}
@@ -478,6 +479,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			String channel = rts.get("channel");
 			if(!FreenetURI.checkSSK(channel)) {
 				Logger.error(this, "RTS contains malformed channel key: " + channel);
+				/* FIXME: Throw a better exception */
 				throw new Exception();
 			}
 		}
@@ -490,6 +492,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 		
 		if (missing.length() == 0) return;
+		/* FIXME: Throw a better exception */
 		throw new Exception(missing.toString().substring(0, missing.length() - 2));
 	}
 }
