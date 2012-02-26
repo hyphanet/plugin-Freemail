@@ -152,4 +152,38 @@ public class IMAPAppendTest extends IMAPTestBase {
 			System.err.println("testAppendWithBadLiteralLength: Expected failure");
 		}
 	}
+
+	public void testMultilineAppend() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("7 append \"INBOX\" (\\Seen) {42}");
+		commands.add("To: zidel@zidel.freemail");
+		commands.add("");
+		commands.add("Test message");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("7 OK APPEND completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testMultilineAppendWithTwoFlags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("7 append \"INBOX\" (\\Seen \\Deleted) {42}");
+		commands.add("To: zidel@zidel.freemail");
+		commands.add("");
+		commands.add("Test message");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("7 OK APPEND completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
