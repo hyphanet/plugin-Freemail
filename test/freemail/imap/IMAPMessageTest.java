@@ -19,7 +19,6 @@
 
 package freemail.imap;
 
-import junit.framework.ComparisonFailure;
 import junit.framework.TestCase;
 
 public class IMAPMessageTest extends TestCase {
