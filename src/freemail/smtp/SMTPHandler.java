@@ -122,7 +122,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		} else if (cmd.command.equals("rset")) {
 			this.handle_rset(cmd);
 		} else {
-			Logger.error(this, "Unknown command: " + cmd.command);
+			Logger.normal(this, "Unknown command: " + cmd.command);
 			this.ps.print("502 Unimplemented\r\n");
 		}
 	}
