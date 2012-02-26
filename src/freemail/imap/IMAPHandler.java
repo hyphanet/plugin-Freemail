@@ -1281,8 +1281,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			datalen = Integer.parseInt(sdatalen);
 		} catch (NumberFormatException nfe) {
-			//FIXME: Send error message
-			datalen = 0;
+			this.reply(msg, "BAD Unable to parse literal length");
+			return;
 		}
 		
 		MessageBank destmb = this.getMailboxFromPath(mbname);

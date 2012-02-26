@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.ComparisonFailure;
-
 public class IMAPAppendTest extends IMAPTestBase {
 	private static final List<String> INITIAL_RESPONSES;
 	static {
@@ -133,24 +131,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Unable to parse literal length");
 
-		try {
-			runSimpleTest(commands, expectedResponse);
-			fail("Append with bad literal length appear to work, fix this " +
-			     "test so regressions will cause the test to fail");
-		} catch(ComparisonFailure e) {
-			/*
-			 * A test failure is expected at the moment since the bug hasn't
-			 * been fixed yet. Check that the expected and actual values don't
-			 * change and print a warning.
-			 */
-			final String expected = "0003 BAD Unable to parse literal length";
-			final String actual = "+ OK";
-
-			assertEquals(expected, e.getExpected());
-			assertEquals(actual, e.getActual());
-
-			System.err.println("testAppendWithBadLiteralLength: Expected failure");
-		}
+		runSimpleTest(commands, expectedResponse);
 	}
 
 	public void testMultilineAppend() throws IOException {
