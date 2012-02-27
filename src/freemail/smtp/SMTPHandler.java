@@ -78,9 +78,11 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 					//Logger.normal(this,line);
 					msg = new SMTPCommand(line);
 				} catch (SMTPBadCommandException bce) {
+					Logger.debug(this, "Parsing failed, line was: " + line);
 					continue;
 				}
 				
+				Logger.debug(this, "Received: " + line);
 				this.dispatch(msg);
 			}
 		
@@ -91,7 +93,6 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 	
 	private void dispatch(SMTPCommand cmd) {
-		Logger.debug(this, "Received: " + cmd);
 		if (cmd.command.equals("helo")) {
 			this.handle_helo(cmd);
 		} else if (cmd.command.equals("ehlo")) {
