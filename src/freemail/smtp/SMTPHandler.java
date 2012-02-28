@@ -47,7 +47,6 @@ import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 import freemail.wot.Identity;
 import freemail.wot.IdentityMatcher;
-import freemail.wot.WoTConnection;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.FileBucket;
@@ -63,18 +62,18 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	public static final String MY_HOSTNAME = "localhost";
 	
 	private final AccountManager accountmanager;
-	private final WoTConnection wotConnection;
+	private final IdentityMatcher identityMatcher;
 	
 	private Vector<Identity> to;
 	
-	public SMTPHandler(AccountManager accMgr, Socket client, WoTConnection wotConnection) throws IOException {
+	public SMTPHandler(AccountManager accMgr, Socket client, IdentityMatcher identityMatcher) throws IOException {
 		super(client);
 		accountmanager = accMgr;
 		this.account = null;
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
-		this.wotConnection = wotConnection;
+		this.identityMatcher = identityMatcher;
 		
 		this.to = new Vector();
 	}
@@ -272,13 +271,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 
 		//Check if the identity is in WoT
-		IdentityMatcher matcher = new IdentityMatcher(wotConnection);
 		Set<String> recipient = new HashSet<String>();
 		recipient.add(address);
 		Map<String, List<Identity>> matches;
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.of(IdentityMatcher.MatchMethod.PARTIAL_BASE32);
-			matches = matcher.matchIdentities(recipient, account.getIdentity(), methods);
+			matches = identityMatcher.matchIdentities(recipient, account.getIdentity(), methods);
 		} catch(PluginNotFoundException e) {
 			this.ps.print("554 WoT plugin not loaded\r\n");
 			return;

@@ -31,7 +31,7 @@ import freemail.ServerListener;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
 import freemail.utils.Logger;
-import freemail.wot.WoTConnection;
+import freemail.wot.IdentityMatcher;
 
 public class SMTPListener extends ServerListener implements Runnable,ConfigClient {
 	private static final int LISTENPORT = 3025;
@@ -67,7 +67,8 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
 		while (!sock.isClosed()) {
 			try {
-				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), freemail.getWotConnection());
+				IdentityMatcher matcher = new IdentityMatcher(freemail.getWotConnection());
+				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), matcher);
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
 				newthread.start();
