@@ -228,7 +228,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			Logger.normal(this,"Error reading RTS message!");
 			return false;
 		} catch (InvalidCipherTextException icte) {
-			Logger.normal(this,"Could not decrypt RTS message - discarding."+icte.getMessage());
+			Logger.normal(this,"Could not decrypt RTS message - discarding. "+icte.getMessage());
 			return true;
 		}
 		
