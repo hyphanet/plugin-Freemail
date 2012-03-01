@@ -35,7 +35,6 @@ public class FreemailCli extends Freemail {
 		String action = "";
 		String username = null;
 		String newpasswd = null;
-		String alias = null;
 		String cfgfile = CFGFILE;
 
 		for (int i = 0; i < args.length; i++) {
@@ -57,15 +56,6 @@ public class FreemailCli extends Freemail {
 				}
 				username = args[i - 1];
 				newpasswd = args[i];
-			} else if (args[i].equals("--shortaddress")) {
-				action = args[i];
-				i = i + 2;
-				if (args.length - 1 < i) {
-					System.out.println("Usage: --shortaddress <name> <domain prefix>");
-					return;
-				}
-				username = args[i - 1];
-				alias = args[i];
 			} else if (args[i].equals("-c")) {
 				i++;
 				if (args.length - 1 < i) {
@@ -112,25 +102,6 @@ public class FreemailCli extends Freemail {
 			} catch (Exception e) {
 				System.out.println("Couldn't change password for "+username+". "+e.getMessage());
 				e.printStackTrace();
-			}
-			return;
-		} else if (action.equals("--shortaddress")) {
-			boolean success = false;
-			FreemailAccount account = freemail.getAccountManager().getAccount(username);
-			try {
-				success = AccountManager.addShortAddress(account, alias);
-			} catch (IllegalArgumentException iae) {
-				System.out.println("Couldn't add short address for "+account+". Error: "+iae.getMessage());
-				return;
-			} catch (Exception e) {
-				System.out.println("Couldn't add short address for "+account+". "+e.getMessage());
-				e.printStackTrace();
-				return;
-			}
-			if (success) {
-				System.out.println("You now have all Freemail addresses ending: '@"+alias+".freemail'. Your long address will continue to work.");
-			} else {
-				System.out.println("Failed to add short address.");
 			}
 			return;
 		}

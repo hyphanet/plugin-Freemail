@@ -69,18 +69,6 @@ public class SingleAccountWatcher implements Runnable {
 		} else {
 			Logger.error(this, "You do not have a freemail address USK. This account is really broken.");
 		}
-		
-		String shortdomain = AccountManager.getKSKFreemailDomain(account.getProps());
-		if (shortdomain != null) {
-			Logger.normal(this,"Short Freemail address (*probably* secure): <anything>@"+shortdomain);
-
-			String invalid=AccountManager.validateShortAddress(shortdomain);
-			if(!invalid.equals("")) {
-				Logger.normal(this,"Your short Freemail address contains invalid characters (\""+invalid+"\"), others may have problems sending you mail");
-			}
-		} else {
-			Logger.normal(this,"You don't have a short Freemail address. You could get one by running Freemail with the --shortaddress option, followed by your account name and the name you'd like. For example, 'java -jar freemail.jar --shortaddress bob bob' will give you all addresses ending '@bob.freemail'. Try to pick something unique!");
-		}
 	}
 	
 	public void run() {

@@ -132,22 +132,6 @@ public class AccountManager {
 	public List<FreemailAccount> getAllAccounts() {
 		return new LinkedList(accounts.values());
 	}
-
-	// avoid invalid chars in username or address
-	// returns the first invalid char to give user a hint
-	private static String validateChars(String username, String invalid) {
-		for(int i=0;i<invalid.length();i++) {
-			if(username.indexOf(invalid.substring(i,i+1))>=0) {
-				return invalid.substring(i,i+1);
-			}
-		}
-		return "";
-	}
-
-	// @, space and other email meta chars
-	public static String validateShortAddress(String username) {
-		return validateChars(username, "@\'\"\\/,:%()+ ");
-	}
 	
 	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
 		MD5Digest md5 = new MD5Digest();
@@ -168,14 +152,6 @@ public class AccountManager {
 		}
 		
 		return accfile;
-	}
-	
-	public static String getKSKFreemailDomain(PropsFile accfile) {
-		String alias = accfile.get("domain_alias");
-		
-		if (alias == null) return null;
-		
-		return alias+".freemail";
 	}
 	
 	public static RSAKeyParameters getPrivateKey(PropsFile props) {
@@ -230,52 +206,6 @@ public class AccountManager {
 
 		Logger.normal(AccountManager.class,"Account creation completed.");
 		return true;
-	}
-	
-	public static boolean addShortAddress(FreemailAccount account, String alias) throws Exception {
-		String invalid=validateShortAddress(alias);
-		if(!invalid.equals("")) {
-			throw new IllegalArgumentException("The short address may not contain the character '"+invalid+"'");
-		}
-		
-		alias = alias.toLowerCase();
-		
-		MailSite ms = new MailSite(account.getProps());
-		
-		if (ms.insertAlias(alias)) {
-			account.getProps().put("domain_alias", alias);
-			
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
-			EmailAddress to = new EmailAddress(account.getNickname()+"@"+getKSKFreemailDomain(account.getProps()));
-		
-			MailMessage m = account.getMessageBank().createMessage();
-			Date currentDate = new Date();
-		
-			m.addHeader("From", "Freemail Daemon <nowhere@dontreply>");
-			m.addHeader("To", to.toString());
-			m.addHeader("Subject", "Your New Address");
-			m.addHeader("Date", sdf.format(currentDate));
-			m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
-			m.addHeader("Content-Transfer-Encoding", "7bit");
-			m.addHeader("Content-Disposition", "inline");
-			m.addHeader("Message-id", "<" + MailMessage.generateMessageID(getKSKFreemailDomain(account.getProps()), currentDate) + ">");
-		
-			PrintStream ps = m.writeHeadersAndGetStream();
-		
-			ps.println("Hi!");
-			ps.println("");
-			ps.println("This is to inform you that your new short Freemail address is:");
-			ps.println("");
-			ps.println(to);
-			ps.println("");
-			ps.println("Your long Freemail address will continue to work. If you have had previous short addresses, you should not rely on them working any longer.");
-			
-		
-			m.commit();
-			return true;
-		} else {
-			return false;
-		}
 	}
 	
 	public FreemailAccount authenticate(String username, String password) {
