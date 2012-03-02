@@ -77,7 +77,7 @@ public class MessageBank {
 		} else {
 			try {
 				uid = Long.parseLong(s);
-				Logger.minor(MessageBank.class, "Read uidvalidity " + uid + " for " + dir);
+				Logger.debug(MessageBank.class, "Read uidvalidity " + uid + " for " + dir);
 
 				if(uid >= 0x100000000l || uid < 0) {
 					uid = getNewUidValidity();
