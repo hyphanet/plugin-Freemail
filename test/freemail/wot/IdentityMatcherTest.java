@@ -46,15 +46,46 @@ public class IdentityMatcherTest extends TestCase {
 		runMatcherTest(recipient, set);
 	}
 
+	public void testFullBase32IdentityMatch() throws PluginNotFoundException {
+		String recipient = identity.getNickname() + "@" + identity.getBase32IdentityID() + ".freemail";
+		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
+
+		runMatcherTest(recipient, set);
+	}
+
+	public void testFullBase32MatchWithOnlyId() throws PluginNotFoundException {
+		String recipient = identity.getBase32IdentityID();
+		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
+
+		runMatcherTest(recipient, set);
+	}
+
 	private void runMatcherTest(String recipient, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
 		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
 		Set<String> recipients = Collections.singleton(recipient);
-
 		Map<String, List<Identity>> matches;
 		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), methods);
 
 		assertEquals(1, matches.size());
 		assertEquals(identity, matches.get(recipient).get(0));
+	}
+
+	public void testFullMatchWithPartialId() throws PluginNotFoundException {
+		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
+
+		//Check an identity string that is missing the last character
+		String id = identity.getBase32IdentityID();
+		id = id.substring(0, id.length() - 1);
+		id = identity.getNickname() + "@" + id + ".freemail";
+		Set<String> recipients = Collections.singleton(id);
+
+		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
+
+		Map<String, List<Identity>> matches;
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), set);
+
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(id).size());
 	}
 
 	private class FakeWoTConnection implements WoTConnection {
