@@ -71,6 +71,15 @@ public class IdentityMatcher {
 					return true;
 				}
 				break;
+			case FULL_BASE32:
+				if(matchFullAddress(recipient, wotIdentity.getBase32IdentityID())) {
+					return true;
+				}
+				break;
+			case FULL_BASE64:
+				if(matchFullAddress(recipient, wotIdentity.getIdentityID())) {
+					return true;
+				}
 			}
 		}
 
@@ -96,8 +105,30 @@ public class IdentityMatcher {
 		return identityAddress.startsWith(recipient);
 	}
 
+	/**
+	 * Matches addresses of the format [local part@]&lt;identityId&gt;[.freemail]
+	 * @param recipient the address to check
+	 * @param identity the identity to check against
+	 * @return {@code true} if recipient matches identity
+	 */
+	private boolean matchFullAddress(String recipient, String identityId) {
+		//Remove the optional local part
+		if(recipient.contains("@")) {
+			recipient = recipient.substring(recipient.indexOf("@") + 1);
+		}
+
+		//Remove the optional ".freemail"
+		if(recipient.endsWith(".freemail")) {
+			recipient = recipient.substring(0, recipient.length() - ".freemail".length());
+		}
+
+		return recipient.equals(identityId);
+	}
+
 	public enum MatchMethod {
 		PARTIAL_BASE32,
-		PARTIAL_BASE64;
+		PARTIAL_BASE64,
+		FULL_BASE32,
+		FULL_BASE64,
 	}
 }
