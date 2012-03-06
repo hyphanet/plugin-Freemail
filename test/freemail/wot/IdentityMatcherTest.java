@@ -20,6 +20,7 @@
 
 package freemail.wot;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import freemail.wot.Identity;
+import freemail.wot.IdentityMatcher.MatchMethod;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
 import freenet.pluginmanager.PluginNotFoundException;
@@ -38,14 +40,18 @@ public class IdentityMatcherTest extends TestCase {
 	private static final Identity identity = new Identity("D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc", "SSK@D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc,xgddjFHx2S~5U6PeFkwqO5V~1gZngFLoM-xaoMKSBI8,AQACAAE", "zidel");
 
 	public void testFullIdentityMatch() throws PluginNotFoundException {
-		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
-
 		String recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
-		Set<String> recipients = new HashSet<String>();
-		recipients.add(recipient);
+		EnumSet<MatchMethod> set = EnumSet.allOf(MatchMethod.class);
 
-		EnumSet<IdentityMatcher.MatchMethod> set = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
-		Map<String, List<Identity>> matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), set);
+		runMatcherTest(recipient, set);
+	}
+
+	private void runMatcherTest(String recipient, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
+		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
+		Set<String> recipients = Collections.singleton(recipient);
+
+		Map<String, List<Identity>> matches;
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), methods);
 
 		assertEquals(1, matches.size());
 		assertEquals(identity, matches.get(recipient).get(0));
