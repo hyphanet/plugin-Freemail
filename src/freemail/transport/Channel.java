@@ -531,7 +531,7 @@ class Channel {
 						channelProps.put(prefix + PropsKeys.MSG_SLOT, sendSlot);
 					}
 
-					Logger.debug(this, "Insert collided, assigned slot " + sendSlot + " to message " + prefix);
+					Logger.debug(this, "Insert collided, assigned new slot " + sendSlot + " to message " + prefix);
 				}
 
 				/* TODO: Log at a higher level for more serious errors */
