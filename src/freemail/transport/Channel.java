@@ -449,11 +449,15 @@ class Channel {
 			sendCode = channelProps.get(PropsKeys.SEND_CODE);
 
 			if(privateKey == null) {
+				/* Most likely because we tried sending the message before sending the RTS */
 				Logger.debug(this, "Can't insert, missing private key");
 				return false;
 			}
 			if(sendCode == null) {
-				Logger.debug(this, "Can't insert, missing send code");
+				/* If we have the private key, but not the send code something
+				 * is wrong since sending/receiving an RTS stores these atomically */
+				/* FIXME: Perhaps set the timeout to 0 so the channel will be deleted? */
+				Logger.error(this, "Can't insert, missing send code but have private key");
 				return false;
 			}
 		}
