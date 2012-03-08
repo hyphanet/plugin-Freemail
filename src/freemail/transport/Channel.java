@@ -1065,12 +1065,12 @@ class Channel {
 				recipientState = channelProps.get(PropsKeys.RECIPIENT_STATE);
 			}
 			if((senderState != null) && senderState.equals("cts-received")) {
-				Logger.debug(this, "CTS has been received");
+				Logger.debug(this, "Won't send RTS, CTS has been received");
 				return -1;
 			}
 			if((recipientState != null) && (recipientState.equals("rts-received") || recipientState.equals("cts-sent"))) {
 				//We've received an RTS from the other side
-				Logger.debug(this, "RTS received from other side");
+				Logger.debug(this, "Won't send RTS, RTS has been received from other side");
 				return -1;
 			}
 
