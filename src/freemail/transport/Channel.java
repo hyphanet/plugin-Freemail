@@ -529,6 +529,7 @@ class Channel {
 					Logger.debug(this, "Insert collided, assigned slot " + sendSlot + " to message " + prefix);
 				}
 
+				/* TODO: Log at a higher level for more serious errors */
 				Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
 				return false;
 			} finally {
