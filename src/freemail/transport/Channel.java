@@ -603,12 +603,10 @@ class Channel {
 			try {
 				realRun();
 			} catch(RuntimeException e) {
-				Logger.debug(this, "Caugth " + e);
-				e.printStackTrace();
+				Logger.error(this, "Caugth RuntimeException while running fetcher", e);
 				throw e;
 			} catch(Error e) {
-				Logger.debug(this, "Caugth " + e);
-				e.printStackTrace();
+				Logger.error(this, "Caugth Error while running fetcher", e);
 				throw e;
 			} catch (InterruptedException e) {
 				Logger.debug(this, "Fetcher interrupted, quitting");
