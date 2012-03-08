@@ -1311,7 +1311,7 @@ class Channel {
 		PropsFile ackProps = PropsFile.createPropsFile(result);
 		String ackString = ackProps.get("id");
 		if(ackString == null) {
-			Logger.debug(this, "Received ack without id, discarding");
+			Logger.error(this, "Received ack without id, discarding");
 			return true;
 		}
 
