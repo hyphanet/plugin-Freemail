@@ -1079,7 +1079,7 @@ class Channel {
 				try {
 					sendTime = Long.parseLong(rtsSentAt);
 				} catch(NumberFormatException e) {
-					Logger.debug(this, "Illegal value in " + PropsKeys.RTS_SENT_AT + " field, assuming 0");
+					Logger.error(this, "Illegal value in " + PropsKeys.RTS_SENT_AT + " field, assuming 0");
 					sendTime = 0;
 				}
 
