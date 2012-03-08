@@ -491,6 +491,7 @@ class Channel {
 					Logger.error(this, "Caugth FCPBadFileException while inserting message", e);
 					return false;
 				} catch(ConnectionTerminatedException e) {
+					/* Expected if Freemail is shutting down */
 					Logger.debug(this, "Caugth " + e);
 					return false;
 				} catch (FCPException e) {
