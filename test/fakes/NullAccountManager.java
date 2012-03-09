@@ -25,10 +25,21 @@ import java.util.List;
 import freemail.AccountManager;
 import freemail.Freemail;
 import freemail.FreemailAccount;
+import freemail.wot.OwnIdentity;
 
 public class NullAccountManager extends AccountManager {
 	public NullAccountManager(File datadir, Freemail freemail) {
 		super(datadir, freemail);
+	}
+
+	@Override
+	public void addIdentities(List<OwnIdentity> oids) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public FreemailAccount authenticate(String username, String password) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -42,7 +53,7 @@ public class NullAccountManager extends AccountManager {
 	}
 
 	@Override
-	public FreemailAccount authenticate(String username, String password) {
+	public void startTasks() {
 		throw new UnsupportedOperationException();
 	}
 }
