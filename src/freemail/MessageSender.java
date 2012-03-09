@@ -29,9 +29,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.Enumeration;
 
-import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.EmailAddress;
-import freemail.utils.DateStringFactory;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
 
@@ -43,7 +41,6 @@ public class MessageSender implements Runnable {
 
 	public static final String OUTBOX_DIR = "outbox";
 	private static final int MIN_RUN_TIME = 60000;
-	public static final String NIM_KEY_PREFIX = "KSK@freemail-nim-";
 	private static final int MAX_TRIES = 10;
 	private final AccountManager accountManager;
 	private Thread senderthread = null;
@@ -173,30 +170,18 @@ public class MessageSender implements Runnable {
 			return;
 		}
 		
-		if (addr.is_nim_address()) {
-			HighLevelFCPClient cli = new HighLevelFCPClient();
-			
-			try {
-				if (cli.SlotInsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
+		if (this.sendSecure(fromAccount, addr, msg)) {
+			msg.delete();
+		} else {
+			tries++;
+			if (tries > MAX_TRIES) {
+				if (Postman.bounceMessage(msg, fromAccount.getMessageBank(),
+						"Tried too many times to deliver this message, but it doesn't apear that this address even exists. "
+								+"If you're sure that it does, check your Freenet connection.")) {
 					msg.delete();
 				}
-			} catch (ConnectionTerminatedException cte) {
-				// just don't delete the message
-			}
-		} else {
-			if (this.sendSecure(fromAccount, addr, msg)) {
-				msg.delete();
 			} else {
-				tries++;
-				if (tries > MAX_TRIES) {
-					if (Postman.bounceMessage(msg, fromAccount.getMessageBank(),
-							"Tried too many times to deliver this message, but it doesn't apear that this address even exists. "
-							+"If you're sure that it does, check your Freenet connection.")) {
-						msg.delete();
-					}
-				} else {
-					this.moveToOutbox(msg, tries, parts[2], msg.getParentFile());
-				}
+				this.moveToOutbox(msg, tries, parts[2], msg.getParentFile());
 			}
 		}
 	}

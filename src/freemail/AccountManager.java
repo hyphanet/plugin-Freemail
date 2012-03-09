@@ -53,9 +53,6 @@ import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 
 public class AccountManager {
-	// this really doesn't matter a great deal
-	public static final String NIMDIR = "nim";
-	
 	static final String ACCOUNT_FILE = "accprops";
 	private static final int RTS_KEY_LENGTH = 32;
 	
