@@ -107,7 +107,7 @@ public class MessageHandler {
 
 		for(File f : channelDir.listFiles()) {
 			if(!f.isDirectory()) {
-				Logger.debug(this, "Spurious file in channel directory: " + f);
+				Logger.error(this, "Spurious file in channel directory: " + f);
 				continue;
 			}
 
@@ -117,7 +117,7 @@ public class MessageHandler {
 					nextChannelNum.set(num + 1);
 				}
 			} catch(NumberFormatException e) {
-				Logger.debug(this, "Found directory with malformed name: " + f);
+				Logger.error(this, "Found directory with malformed name: " + f);
 				continue;
 			}
 
