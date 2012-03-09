@@ -32,7 +32,6 @@ import freenet.pluginmanager.FredPluginHTTP;
 import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
-import freenet.pluginmanager.PluginHTTPException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -62,7 +61,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	@Override
-	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
+	public String handleHTTPGet(HTTPRequest request) {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -112,7 +111,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	@Override
-	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
+	public String handleHTTPPost(HTTPRequest request) {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;

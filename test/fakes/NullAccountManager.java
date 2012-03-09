@@ -20,7 +20,6 @@
 package fakes;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import freemail.AccountManager;
@@ -42,7 +41,7 @@ public class NullAccountManager extends AccountManager {
 	}
 
 	@Override
-	public FreemailAccount createAccount(String username) throws IOException, IllegalArgumentException {
+	public FreemailAccount createAccount(String username) throws IllegalArgumentException {
 		throw new UnsupportedOperationException();
 	}
 
