@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -56,8 +55,6 @@ import org.bouncycastle.crypto.DataLengthException;
 
 import freemail.support.io.LineReadingInputStream;
 import freemail.support.io.TooLongException;
-
-import org.archive.util.Base32;
 
 public class RTSFetcher implements SlotSaveCallback {
 	private String rtskey;
@@ -306,7 +303,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		}
 		
 		// verify the signature
-		String their_mailsite_raw = rtsprops.get("mailsite");
+		String their_mailsite = rtsprops.get("mailsite");
 		
 		SHA256Digest sha256 = new SHA256Digest();
 		sha256.update(plaintext, 0, messagebytes);
@@ -314,23 +311,6 @@ public class RTSFetcher implements SlotSaveCallback {
 		sha256.doFinal(our_hash, 0);
 		
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
-		
-		FreenetURI their_mailsite_furi;
-		try {
-			their_mailsite_furi = new FreenetURI(their_mailsite_raw);
-		} catch (MalformedURLException mfue) {
-			Logger.normal(this,"Mailsite in the RTS message is not a valid Freenet URI. Discarding RTS message.");
-			rtsfile.delete();
-			return true;
-		}
-		
-		String their_mailsite = "USK@"+their_mailsite_furi.getKeyBody()+"/"+their_mailsite_furi.getSuffix();
-		
-		if (!their_mailsite.endsWith("/")) {
-			their_mailsite += "/";
-		}
-		their_mailsite += AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
-		
 		
 		Logger.normal(this,"Trying to fetch sender's mailsite: "+their_mailsite);
 		File msfile;
@@ -393,28 +373,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		Logger.normal(this,"Signature valid :)");
 		// the signature is valid! Hooray!
 		// Now verify the message is for us
-		String our_mailsite_keybody;
-		try {
-			our_mailsite_keybody = new FreenetURI(account.getProps().get("mailsite.pubkey")).getKeyBody();
-		} catch (MalformedURLException mfue) {
-			Logger.normal(this,"Local mailsite URI is invalid! Corrupt account file?");
-			msfile.delete();
-			rtsfile.delete();
-			return false;
-		}
-		
-		String our_domain_alias = account.getProps().get("domain_alias");
-		FreenetURI mailsite_furi;
-		try {
-			mailsite_furi = new FreenetURI(our_mailsite_keybody);
-		} catch (MalformedURLException mfe) {
-			msfile.delete();
-			rtsfile.delete();
-			return false;
-		}
-		String our_subdomain = Base32.encode(mailsite_furi.getKeyBody().getBytes());
-		
-		if (!rtsprops.get("to").equalsIgnoreCase(our_subdomain) && our_domain_alias != null && !rtsprops.get("to").equals(our_domain_alias)) {
+		if(!account.getIdentity().equals(rtsprops.get("to"))) {
 			Logger.normal(this,"Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();
@@ -423,23 +382,16 @@ public class RTSFetcher implements SlotSaveCallback {
 		
 		Logger.normal(this,"Original message intended for us :)");
 		
-		// create the inbound contact
-		InboundContact ibct = new InboundContact(this.contact_dir, their_mailsite_furi);
-		
-		ibct.setProp("commssk", rtsprops.get("commssk"));
-		String ackssk = rtsprops.get("ackssk");
-		if (!ackssk.endsWith("/")) ackssk += "/";
-		ibct.setProp("ackssk", ackssk);
-		ibct.setProp("slots", rtsprops.get("initialslot"));
-		
-		// insert the cts at some point
-		AckProcrastinator.put(ackssk+"cts");
-		
-		msfile.delete();
-		rtsfile.delete();
-		
-		Logger.normal(this,"Inbound contact created!");
-		
+		//Clean up temp files
+		if(!msfile.delete()) {
+			Logger.error(this, "Couldn't delete fetched mailsite: " + msfile);
+		}
+		if(!rtsfile.delete()) {
+			Logger.error(this, "Couldn't delete rts file: " + rtsfile);
+		}
+
+		account.getMessageHandler().createChannelFromRTS(rtsprops);
+
 		return true;
 	}
 	
@@ -505,23 +457,35 @@ public class RTSFetcher implements SlotSaveCallback {
 	private void validate_rts(PropsFile rts) throws Exception {
 		StringBuffer missing = new StringBuffer();
 		
-		if (rts.get("commssk") == null) {
-			missing.append("commssk, ");
+		if (rts.get("mailsite") == null) {
+			missing.append("mailsite, ");
+		} else {
+			String mailsite = rts.get("mailsite");
+			if(!mailsite.matches("^USK@\\S{43,44},\\S{43,44},\\S{7}/\\w+/-?[0-9]+/.*$")) {
+				Logger.error(this, "RTS contains malformed mailsite key: " + mailsite);
+				throw new Exception();
+			}
 		}
-		if (rts.get("ackssk") == null) {
-			missing.append("ackssk, ");
-		}
-		if (rts.get("messagetype") == null) {
-			missing.append("messagetype, ");
-		}
+
 		if (rts.get("to") == null) {
 			missing.append("to, ");
 		}
-		if (rts.get("mailsite") == null) {
-			missing.append("mailsite, ");
+
+		if (rts.get("channel") == null) {
+			missing.append("channel, ");
+		} else {
+			String channel = rts.get("channel");
+			if(!channel.matches("^SSK@\\S{43,44},\\S{43,44},\\S{7}/$")) {
+				Logger.error(this, "RTS contains malformed channel key: " + channel);
+				throw new Exception();
+			}
 		}
-		if (rts.get("initialslot") == null) {
-			missing.append("initialslot, ");
+
+		if (rts.get("initiatorSlot") == null) {
+			missing.append("initiatorSlot, ");
+		}
+		if (rts.get("responderSlot") == null) {
+			missing.append("responderSlot, ");
 		}
 		
 		if (missing.length() == 0) return;

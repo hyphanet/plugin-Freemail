@@ -26,6 +26,9 @@ import utils.Utils;
 import junit.framework.TestCase;
 
 public class AccountManagerTest extends TestCase {
+	private static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
+	private static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
+
 	private File dataDir;
 
 	@Override
@@ -46,28 +49,23 @@ public class AccountManagerTest extends TestCase {
 		Utils.delete(dataDir);
 	}
 
-	public void testUsernameValidation() {
-		assertEquals("", AccountManager.validateUsername("testuser"));
-		assertEquals("", AccountManager.validateUsername("test-user"));
-	}
-
 	public void testAuthenticateSimpleUsername() throws Exception {
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
 		// node, so we have to do it the hard way
-		File accDir = new File(dataDir, "test");
+		File accDir = new File(dataDir, BASE32_USERNAME);
 		accDir.mkdir();
 		File accProps = new File(accDir, AccountManager.ACCOUNT_FILE);
 		accProps.createNewFile();
 
-		AccountManager manager = new AccountManager(dataDir);
-		FreemailAccount acc = manager.getAccount("test");
+		AccountManager manager = new AccountManager(dataDir, null);
+		FreemailAccount acc = manager.getAccount(BASE64_USERNAME);
 		AccountManager.changePassword(acc, "test");
 
-		assertNotNull(manager.authenticate("test", "test"));
+		assertNotNull(manager.authenticate(BASE64_USERNAME, "test"));
 	}
 
 	public void testAccountManager() {
-		AccountManager manager = new AccountManager(dataDir);
+		AccountManager manager = new AccountManager(dataDir, null);
 		assertTrue(manager.getAllAccounts().isEmpty());
 	}
 
@@ -77,20 +75,19 @@ public class AccountManagerTest extends TestCase {
 	 * username could be created, but couldn't be authenticated.
 	 */
 	public void testAuthenticateUsernameWithMinus() throws Exception {
-		final String ACCOUNT_NAME = "test-user";
 		final String ACCOUNT_PASSWORD = "test-user";
 
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
 		// node, so we have to do it the hard way
-		File accDir = new File(dataDir, ACCOUNT_NAME);
+		File accDir = new File(dataDir, BASE32_USERNAME);
 		accDir.mkdir();
 		File accProps = new File(accDir, AccountManager.ACCOUNT_FILE);
 		accProps.createNewFile();
 
-		AccountManager manager = new AccountManager(dataDir);
-		FreemailAccount acc = manager.getAccount(ACCOUNT_NAME);
+		AccountManager manager = new AccountManager(dataDir, null);
+		FreemailAccount acc = manager.getAccount(BASE64_USERNAME);
 		AccountManager.changePassword(acc, ACCOUNT_PASSWORD);
 
-		assertNotNull(manager.authenticate(ACCOUNT_NAME, ACCOUNT_PASSWORD));
+		assertNotNull(manager.authenticate(BASE64_USERNAME, ACCOUNT_PASSWORD));
 	}
 }

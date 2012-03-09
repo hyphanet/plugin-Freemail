@@ -24,7 +24,9 @@ package freemail;
 import java.io.File;
 import java.io.PrintStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +35,8 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.security.SecureRandom;
 import java.math.BigInteger;
-import java.net.MalformedURLException;
 
+import org.archive.util.Base32;
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
@@ -42,15 +44,11 @@ import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 
-import org.archive.util.Base32;
-
-import freemail.FreenetURI;
-import freemail.fcp.ConnectionTerminatedException;
-import freemail.fcp.HighLevelFCPClient;
-import freemail.fcp.SSKKeyPair;
 import freemail.utils.PropsFile;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
+import freemail.wot.OwnIdentity;
+import freenet.support.Base64;
 
 public class AccountManager {
 	static final String ACCOUNT_FILE = "accprops";
@@ -68,35 +66,57 @@ public class AccountManager {
 	// each time a request is made for a given account.
 	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
 	
+	//singleAccountWatcherList locks both these lists
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
+	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
+
 	private final File datadir;
+	private final Freemail freemail;
 	
-	public AccountManager(File _datadir) {
+	public AccountManager(File _datadir, Freemail freemail) {
 		datadir = _datadir;
 		if (!datadir.exists()) {
 			datadir.mkdir();
 		}
-		
-		File[] files = datadir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().equals(".") || files[i].getName().equals(".."))
-				continue;
-			if (!files[i].isDirectory()) continue;
 
-			String invalid=validateUsername(files[i].getName());
-			if(!invalid.equals("")) {
-				Logger.error(this,"Account name "+files[i].getName()+" contains invalid chars (\""+invalid
-						+"\"), you may get problems accessing the account.");
+		this.freemail = freemail;
+
+		for(File accountDir : datadir.listFiles()) {
+			if(!accountDir.isDirectory()) {
+				continue;
 			}
-			
-			PropsFile accFile = getAccountFile(files[i]);
+
+			PropsFile accFile = getAccountFile(accountDir);
 			if (accFile == null) {
-				Logger.error(this, "Couldn't initialise account from directory '"+files[i].getName()+"' - ignoring.");
+				Logger.error(this, "Couldn't initialise account from directory '"+accountDir.getName()+"' - ignoring.");
 				continue;
 			}
 
-			FreemailAccount account = new FreemailAccount(files[i].getName(), files[i], accFile);
+			String identityId = Base64.encode(Base32.decode(accountDir.getName()));
+			FreemailAccount account = new FreemailAccount(identityId, accountDir, accFile, freemail);
+			account.setNickname(accFile.get("nickname"));
 			synchronized(accounts) {
-				accounts.put(files[i].getName(), account);
+				accounts.put(account.getIdentity(), account);
+			}
+		}
+	}
+
+	public void startTasks() {
+		synchronized(accounts) {
+			for(FreemailAccount account : accounts.values()) {
+				//Start the tasks needed for this account
+				account.startTasks();
+
+				//Now start a SingleAccountWatcher for this account
+				SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
+				Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getIdentity());
+				t.setDaemon(true);
+				t.start();
+
+				synchronized(singleAccountWatcherList) {
+					singleAccountWatcherList.add(saw);
+					singleAccountWatcherThreadList.add(t);
+				}
 			}
 		}
 	}
@@ -112,51 +132,8 @@ public class AccountManager {
 			return new LinkedList<FreemailAccount>(accounts.values());
 		}
 	}
-
-	// avoid invalid chars in username or address
-	// returns the first invalid char to give user a hint
-	private static String validateChars(String username, String invalid) {
-		for(int i=0;i<invalid.length();i++) {
-			if(username.indexOf(invalid.substring(i,i+1))>=0) {
-				return invalid.substring(i,i+1);
-			}
-		}
-		return "";
-	}
-
-	// @ plus chars that may be invalid as filenames
-	public static String validateUsername(String username) {
-		return validateChars(username, "@\'\"\\/ :");
-	}
-
-	// @, space and other email meta chars
-	public static String validateShortAddress(String username) {
-		return validateChars(username, "@\'\"\\/,:%()+ ");
-	}
 	
-	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException,
-	                                                             InterruptedException {
-		String invalid=validateUsername(username);
-		if(!invalid.equals("")) {
-			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
-		}
-		
-		File accountdir = new File(datadir, username);
-		if (!accountdir.exists() && !accountdir.mkdir()) throw new IOException("Failed to create directory "+username+" in "+datadir);
-		
-		PropsFile accProps = newAccountFile(accountdir);
-		
-		FreemailAccount account = new FreemailAccount(username, accountdir, accProps);
-		synchronized(accounts) {
-			accounts.put(username, account);
-		}
-		
-		putWelcomeMessage(account, new EmailAddress(username+"@"+getFreemailDomain(accProps)));
-		
-		return account;
-	}
-	
-	public static void changePassword(FreemailAccount account, String newpassword) {
+	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
 		MD5Digest md5 = new MD5Digest();
 		
 		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
@@ -177,40 +154,6 @@ public class AccountManager {
 		return accfile;
 	}
 	
-	private static PropsFile newAccountFile(File accdir) throws InterruptedException {
-		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
-		
-		if (accdir.exists() && !accfile.exists()) {
-			initAccFile(accfile);
-		}
-		
-		return accfile;
-	}
-	
-	public static String getFreemailDomain(PropsFile accfile) {
-		FreenetURI mailsite;
-		try {
-			String pubkey=accfile.get("mailsite.pubkey");
-			if(pubkey==null) {
-				return null;
-			}
-			mailsite = new FreenetURI(pubkey);
-		} catch (MalformedURLException mfue) {
-			Logger.error(AccountManager.class,"Warning: Couldn't fetch mailsite public key from account file! Your account file is probably corrupt.");
-			return null;
-		}
-		
-		return Base32.encode(mailsite.getKeyBody().getBytes())+".freemail";
-	}
-	
-	public static String getKSKFreemailDomain(PropsFile accfile) {
-		String alias = accfile.get("domain_alias");
-		
-		if (alias == null) return null;
-		
-		return alias+".freemail";
-	}
-	
 	public static RSAKeyParameters getPrivateKey(PropsFile props) {
 		String mod_str = props.get("asymkey.modulus");
 		String privexp_str = props.get("asymkey.privexponent");
@@ -223,52 +166,21 @@ public class AccountManager {
 		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
 	
-	private static void initAccFile(PropsFile accfile) throws InterruptedException {
-		try {
-			Logger.normal(AccountManager.class,"Generating mailsite keys...");
-			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
-			
-			SSKKeyPair keypair = null;
-			try {
-				 keypair = fcpcli.makeSSK();
-			} catch (ConnectionTerminatedException cte) {
-				// leave keypair as null 
-			}
-			
-			if (keypair == null) {
-				Logger.normal(AccountManager.class,"Unable to connect to the Freenet node");
-				return;
-			}
-			
-			// write private key
-			if (!accfile.put("mailsite.privkey", keypair.privkey+MAILSITE_SUFFIX)) {
-				throw new IOException("Unable to write account file");
-			}
-			
-			// write public key
-			if (!accfile.put("mailsite.pubkey", keypair.pubkey+MAILSITE_SUFFIX)) {
-				throw new IOException("Unable to write account file");
-			}
-			
-			// initialise RTS KSK
-			Random rnd = new Random();
-			String rtskey = new String();
-			
-			int i;
-			for (i = 0; i < RTS_KEY_LENGTH; i++) {
-				rtskey += (char)(rnd.nextInt(26) + (int)'a');
-			}
-			
-			if (!accfile.put("rtskey", rtskey)) {
-				throw new IOException("Unable to write account file");
-			}
-			
-			Logger.normal(AccountManager.class,"Mailsite keys generated.");
-			Logger.normal(AccountManager.class,"Your Freemail address is any username followed by '@"+getFreemailDomain(accfile)+"'");
-		} catch (IOException ioe) {
-			Logger.error(AccountManager.class,"Couldn't create mailsite key file! "+ioe.getMessage());
+	private static boolean initAccFile(PropsFile accfile, OwnIdentity oid) {
+		//Initialise RTS KSK
+		Random rnd = new Random();
+		String rtskey = new String();
+
+		int i;
+		for(i = 0; i < RTS_KEY_LENGTH; i++) {
+			rtskey += (char)(rnd.nextInt(26) + 'a');
 		}
-		
+
+		if(!accfile.put("rtskey", rtskey)) {
+			Logger.error(AccountManager.class, "Couldn't put rts key");
+			return false;
+		}
+
 		// generate an RSA keypair
 		Logger.normal(AccountManager.class,"Generating cryptographic keypair (this could take a few minutes)...");
 		
@@ -287,58 +199,16 @@ public class AccountManager {
 		accfile.put("asymkey.pubexponent", pub.getExponent().toString(32));
 		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
 		
+		String privateKey = oid.getInsertURI();
+		privateKey = privateKey.substring(0, privateKey.indexOf("/"));
+		privateKey = privateKey + "/mailsite/";
+		accfile.put("mailsite.privkey", privateKey);
+
 		Logger.normal(AccountManager.class,"Account creation completed.");
-	}
-	
-	public static boolean addShortAddress(FreemailAccount account, String alias) throws Exception {
-		String invalid=validateShortAddress(alias);
-		if(!invalid.equals("")) {
-			throw new IllegalArgumentException("The short address may not contain the character '"+invalid+"'");
-		}
-		
-		alias = alias.toLowerCase();
-		
-		MailSite ms = new MailSite(account.getProps());
-		
-		if (ms.insertAlias(alias)) {
-			account.getProps().put("domain_alias", alias);
-			
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
-			EmailAddress to = new EmailAddress(account.getUsername()+"@"+getKSKFreemailDomain(account.getProps()));
-		
-			MailMessage m = account.getMessageBank().createMessage();
-		
-			m.addHeader("From", "Freemail Daemon <nowhere@dontreply>");
-			m.addHeader("To", to.toString());
-			m.addHeader("Subject", "Your New Address");
-			m.addHeader("Date", sdf.format(new Date()));
-			m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
-			m.addHeader("Content-Transfer-Encoding", "7bit");
-			m.addHeader("Content-Disposition", "inline");
-		
-			PrintStream ps = m.writeHeadersAndGetStream();
-		
-			ps.println("Hi!");
-			ps.println("");
-			ps.println("This is to inform you that your new short Freemail address is:");
-			ps.println("");
-			ps.println(to);
-			ps.println("");
-			ps.println("Your long Freemail address will continue to work. If you have had previous short addresses, you should not rely on them working any longer.");
-			
-		
-			m.commit();
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
 	
 	public FreemailAccount authenticate(String username, String password) {
-		if (!(validateUsername(username).equals(""))) {
-			return null;
-		}
-		
 		FreemailAccount account = null;
 		synchronized(accounts) {
 			account = accounts.get(username);
@@ -365,14 +235,16 @@ public class AccountManager {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		
 		MailMessage m = account.getMessageBank().createMessage();
+		Date currentDate = new Date();
 		
 		m.addHeader("From", "Dave Baker <dave@dbkr.freemail>");
 		m.addHeader("To", to.toString());
 		m.addHeader("Subject", "Welcome to Freemail!");
-		m.addHeader("Date", sdf.format(new Date()));
+		m.addHeader("Date", sdf.format(currentDate));
 		m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
 		m.addHeader("Content-Transfer-Encoding", "7bit");
 		m.addHeader("Content-Disposition", "inline");
+		m.addHeader("Message-id", "<" + MailMessage.generateMessageID(to.domain, currentDate) + ">");
 		
 		PrintStream ps = m.writeHeadersAndGetStream();
 		
@@ -402,5 +274,80 @@ public class AccountManager {
 		ps.println("(Freemail developer)");
 		
 		m.commit();
+	}
+
+	public void addIdentities(List<OwnIdentity> oids) {
+		for(OwnIdentity oid : oids) {
+			addIdentity(oid);
+		}
+	}
+
+	private void addIdentity(OwnIdentity oid) {
+		File accountDir = new File(datadir, oid.getBase32IdentityID());
+		FreemailAccount account = null;
+		PropsFile accProps = null;
+
+		if(!accountDir.exists()) {
+			//Need to create a new account
+			if(!accountDir.mkdir()) {
+				//Account creation failed, so don't start it and try again on next startup
+				//FIXME: Need better error handling
+				return;
+			}
+
+			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+			initAccFile(accProps, oid);
+
+			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps, freemail);
+			account.setNickname(oid.getNickname());
+			try {
+				putWelcomeMessage(account, new EmailAddress(oid.getNickname()+"@"+account.getDomain()));
+			} catch (IOException e) {
+				//FIXME: Handle this properly
+				Logger.error(this, "Failed while sending welcome message to " + oid);
+			}
+		} else {
+			accProps = PropsFile.createPropsFile(new File(accountDir, ACCOUNT_FILE));
+			account = new FreemailAccount(oid.getIdentityID(), accountDir, accProps, freemail);
+			account.setNickname(oid.getNickname());
+		}
+
+		accounts.put(account.getIdentity(), account);
+
+		//Now start a SingleAccountWatcher for this account
+		SingleAccountWatcher saw = new SingleAccountWatcher(account, freemail);
+		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getIdentity());
+		t.setDaemon(true);
+		t.start();
+
+		synchronized(singleAccountWatcherList) {
+			singleAccountWatcherList.add(saw);
+			singleAccountWatcherThreadList.add(t);
+		}
+	}
+
+	void terminate() {
+		synchronized(singleAccountWatcherList) {
+			Iterator<SingleAccountWatcher> sawIt = singleAccountWatcherList.iterator();
+			while(sawIt.hasNext()) {
+				sawIt.next().kill();
+				sawIt.remove();
+			}
+
+			Iterator<Thread> threadIt = singleAccountWatcherThreadList.iterator();
+			while(threadIt.hasNext()) {
+				threadIt.next().interrupt();
+			}
+
+			threadIt = singleAccountWatcherThreadList.iterator();
+			while(threadIt.hasNext()) {
+				try {
+					threadIt.next().join();
+				} catch (InterruptedException e) {
+					Logger.error(this, "Got InterruptedException while joining SingleAccountWatcher thread");
+				}
+				threadIt.remove();
+			}
+		}
 	}
 }

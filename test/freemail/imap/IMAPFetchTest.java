@@ -41,7 +41,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchBodyPeek() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 1 (BODY.PEEK[])");
 
@@ -58,7 +58,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testUidFetchBodyPeek() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID FETCH 1 (BODY.PEEK[])");
 
@@ -75,7 +75,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchBodyStartRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 1 (BODY.PEEK[]<0.15>)");
 
@@ -90,7 +90,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchBodyMiddleRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 1 (BODY.PEEK[]<1.15>)");
 
@@ -105,7 +105,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchBodyEndRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 1 (BODY.PEEK[]<15.1000>)");
 
@@ -122,7 +122,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchSequenceNumberRangeWithWildcard() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 10:* (UID)");
 
@@ -136,7 +136,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchWithSequenceNumberRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 9:10 (UID)");
 
@@ -151,7 +151,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchWithOutOfBoundsSequenceNumber() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 9:11 (UID)");
 
@@ -164,7 +164,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchWithInvalidSequenceNumberRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 FETCH 9:BAD (UID)");
 
@@ -177,7 +177,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testUidFetchSingleArg() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 UID FETCH 10:* BODY.PEEK[]");
 
@@ -194,7 +194,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testUidFetchWithOnlyUid() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 UID FETCH 10:* UID");
 
@@ -208,7 +208,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchWithOnlyUid() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 FETCH 10:* UID");
 
@@ -222,7 +222,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchWithUnterminatedArgumentList() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 FETCH 10:* (BODY.PEEK[]");
 
@@ -239,7 +239,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testFetchWithLongArgumentList() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 FETCH 10:* (UID FLAGS BODY.PEEK[]<0.1>)");
 
@@ -259,7 +259,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 	 */
 	public void testSequenceNumberRangeWithFirstAboveMax() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 UID FETCH 20:* (UID FLAGS)");
 
@@ -273,7 +273,7 @@ public class IMAPFetchTest extends IMAPTestBase {
 
 	public void testSequenceNumberRangeWithWildcardFirst() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 UID FETCH *:10 (UID FLAGS)");
 

@@ -35,7 +35,6 @@ public class FreemailCli extends Freemail {
 		String action = "";
 		String username = null;
 		String newpasswd = null;
-		String alias = null;
 		String cfgfile = CFGFILE;
 
 		for (int i = 0; i < args.length; i++) {
@@ -57,15 +56,6 @@ public class FreemailCli extends Freemail {
 				}
 				username = args[i - 1];
 				newpasswd = args[i];
-			} else if (args[i].equals("--shortaddress")) {
-				action = args[i];
-				i = i + 2;
-				if (args.length - 1 < i) {
-					System.out.println("Usage: --shortaddress <name> <domain prefix>");
-					return;
-				}
-				username = args[i - 1];
-				alias = args[i];
 			} else if (args[i].equals("-c")) {
 				i++;
 				if (args.length - 1 < i) {
@@ -101,16 +91,8 @@ public class FreemailCli extends Freemail {
 		freemail.startFcp();
 		
 		if (action.equals("--newaccount")) {
-			try {
-				freemail.getAccountManager().createAccount(username);
-				System.out.println("Account created for "+username+". You may now set a password with --passwd <username> <password>");
-			} catch (IOException ioe) {
-				System.out.println("Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
-			} catch (IllegalArgumentException iae) {
-				System.out.println("Couldn't create account. Error: "+iae.getMessage());
-			} catch (InterruptedException e) {
-				System.out.println("Freemail was interrupted while the account was being created");
-			}
+			//FIXME: Support adding new OwnIdentities
+			System.out.println("Account creation is only supported through WoT for now");
 			return;
 		} else if (action.equals("--passwd")) {
 			try {
@@ -122,28 +104,9 @@ public class FreemailCli extends Freemail {
 				e.printStackTrace();
 			}
 			return;
-		} else if (action.equals("--shortaddress")) {
-			boolean success = false;
-			FreemailAccount account = freemail.getAccountManager().getAccount(username);
-			try {
-				success = AccountManager.addShortAddress(account, alias);
-			} catch (IllegalArgumentException iae) {
-				System.out.println("Couldn't add short address for "+account+". Error: "+iae.getMessage());
-				return;
-			} catch (Exception e) {
-				System.out.println("Couldn't add short address for "+account+". "+e.getMessage());
-				e.printStackTrace();
-				return;
-			}
-			if (success) {
-				System.out.println("You now have all Freemail addresses ending: '@"+alias+".freemail'. Your long address will continue to work.");
-			} else {
-				System.out.println("Failed to add short address.");
-			}
-			return;
 		}
 
-		freemail.startWorkers(false);
+		freemail.startWorkers();
 		freemail.startServers(false);
 	}
 }

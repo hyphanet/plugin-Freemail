@@ -1,0 +1,41 @@
+/* Hide the float container */
+div.content {
+	margin: 0em;
+	padding: 0em;
+	border: 0em;
+	width: 100%;
+}
+
+/* Folder list */
+div.folderlist {
+	float: left;
+	margin-right: 1em;
+}
+
+div.folder > div.folder {
+	margin-left: 0.5em;
+}
+
+div.folder > p {
+	margin: 0.0em;
+	padding: 0.0em;
+}
+
+/* Inbox message list */
+div.messagelist {
+	float: left;
+	margin-left: 1em;
+	width: 70%;
+}
+
+/* Message page */
+div.message-headers > p {
+	margin: 0em;
+	padding: 0em;
+}
+
+div.message {
+	float: left;
+	margin-left: 1em;
+	width: 70%;
+}

@@ -22,7 +22,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testBasicAppendFromSelectedState() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 APPEND INBOX {23}");
 		commands.add("Subject: Test message");
@@ -41,7 +41,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testAppendWithFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 APPEND INBOX (\\Seen) {23}");
 		commands.add("Subject: Test message");
@@ -64,7 +64,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 	 */
 	public void testAppendWithCustomFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 APPEND INBOX (\\Seen custom) {23}");
 		commands.add("Subject: Test message");
@@ -83,7 +83,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testAppendWithTwoStandardFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 APPEND INBOX (\\Seen \\Flagged) {23}");
 		commands.add("Subject: Test message");
@@ -102,7 +102,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testAppendWithFlagAndDate() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 APPEND INBOX (\\Seen) \"23-Oct-2007 19:05:17 +0100\" {39}");
 		commands.add("Subject: Test message");
@@ -123,7 +123,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testAppendWithBadLiteralLength() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 APPEND INBOX {BAD}");
 
@@ -136,7 +136,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testMultilineAppend() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("7 append \"INBOX\" (\\Seen) {42}");
 		commands.add("To: zidel@zidel.freemail");
@@ -153,7 +153,7 @@ public class IMAPAppendTest extends IMAPTestBase {
 
 	public void testMultilineAppendWithTwoFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("7 append \"INBOX\" (\\Seen \\Deleted) {42}");
 		commands.add("To: zidel@zidel.freemail");

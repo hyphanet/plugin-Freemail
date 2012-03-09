@@ -100,7 +100,7 @@ public class IMAPStateCheckTest extends IMAPTestBase {
 
 	private void assertFailsWithoutSelect(String cmd) throws IOException {
 		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + USERNAME + " test");
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 " + cmd);
 
 		List<String> expectedResponse = new LinkedList<String>();

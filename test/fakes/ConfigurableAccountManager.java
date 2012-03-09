@@ -27,6 +27,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
+import freemail.Freemail;
 import freemail.FreemailAccount;
 import freemail.utils.PropsFile;
 
@@ -35,7 +36,7 @@ public class ConfigurableAccountManager extends NullAccountManager {
 	private final boolean failAuth;
 
 	public ConfigurableAccountManager(File datadir, boolean failAuth, Map<String, File> accountDirs) {
-		super(datadir);
+		super(datadir, null);
 
 		this.accountDirs = accountDirs;
 		this.failAuth = failAuth;
@@ -54,9 +55,9 @@ public class ConfigurableAccountManager extends NullAccountManager {
 		try {
 			Class<FreemailAccount> freemailAccount = FreemailAccount.class;
 			Constructor<FreemailAccount> constructor =
-					freemailAccount.getDeclaredConstructor(String.class, File.class, PropsFile.class);
+					freemailAccount.getDeclaredConstructor(String.class, File.class, PropsFile.class, Freemail.class);
 			constructor.setAccessible(true);
-			return constructor.newInstance(username, accountDir, null);
+			return constructor.newInstance(username, accountDir, null, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.toString());

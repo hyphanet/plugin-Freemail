@@ -24,40 +24,31 @@ package freemail;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 import freemail.fcp.FCPConnection;
 import freemail.fcp.FCPContext;
 import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
 import freemail.utils.Logger;
+import freemail.wot.WoTConnection;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
 
 public abstract class Freemail implements ConfigClient {
-	private static final String TEMPDIRNAME = "temp";
-	protected static final String DEFAULT_DATADIR = "data";
-	private static final String GLOBALDATADIR = "globaldata";
-	private static final String ACKDIR = "delayedacks";
-	protected static final String CFGFILE = "globalconfig";
+	private static final String BASEDIR = "Freemail";
+	private static final String TEMPDIRNAME = BASEDIR + "/temp";
+	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
+	protected static final String CFGFILE = BASEDIR + "/globalconfig";
 	private File datadir;
-	private static File globaldatadir;
 	private static File tempdir;
 	protected static FCPConnection fcpconn = null;
 	
 	private Thread fcpThread;
-	private ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
-	private Thread messageSenderThread;
 	private Thread smtpThread;
-	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
-	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
-	private final MessageSender sender;
 	private final SMTPListener smtpl;
-	private final AckProcrastinator ackinserter;
 	private final IMAPListener imapl;
 	
 	protected final Configurator configurator;
@@ -73,12 +64,6 @@ public abstract class Freemail implements ConfigClient {
 			throw new IOException("Couldn't create data dir");
 		}
 		
-		configurator.register(Configurator.GLOBAL_DATA_DIR, this, GLOBALDATADIR);
-		if (!globaldatadir.exists() && !globaldatadir.mkdirs()) {
-			Logger.error(this,"Freemail: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
-			throw new IOException("Couldn't create data dir");
-		}
-		
 		configurator.register(Configurator.TEMP_DIR, this, Freemail.TEMPDIRNAME);
 		if (!tempdir.exists() && !tempdir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
@@ -91,19 +76,16 @@ public abstract class Freemail implements ConfigClient {
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
-		accountManager = new AccountManager(datadir);
-		
-		sender = new MessageSender(accountManager);
-		
-		File ackdir = new File(globaldatadir, ACKDIR);
-		AckProcrastinator.setAckDir(ackdir);
-		ackinserter = new AckProcrastinator();
-		
+		accountManager = new AccountManager(datadir, this);
 		
 		imapl = new IMAPListener(accountManager, configurator);
-		smtpl = new SMTPListener(accountManager, sender, configurator);
+		smtpl = new SMTPListener(accountManager, configurator, this);
 	}
 	
+	public WoTConnection getWotConnection() {
+		return null;
+	}
+
 	public static File getTempDir() {
 		return Freemail.tempdir;
 	}
@@ -122,8 +104,6 @@ public abstract class Freemail implements ConfigClient {
 			datadir = new File(val);
 		} else if (key.equalsIgnoreCase(Configurator.TEMP_DIR)) {
 			tempdir = new File(val);
-		} else if (key.equalsIgnoreCase(Configurator.GLOBAL_DATA_DIR)) {
-			globaldatadir = new File(val);
 		}
 	}
 	
@@ -148,52 +128,22 @@ public abstract class Freemail implements ConfigClient {
 		imapThread.start();
 	}
 	
-	protected void startWorker(FreemailAccount account, boolean daemon) {
-		SingleAccountWatcher saw = new SingleAccountWatcher(account); 
-		singleAccountWatcherList.add(saw);
-		Thread t = new Thread(saw, "Freemail Account Watcher for "+account.getUsername());
-		t.setDaemon(daemon);
-		t.start();
-		singleAccountWatcherThreadList.add(t);
-	}
-	
-	protected void startWorkers(boolean daemon) {
+	protected void startWorkers() {
 		System.out.println("This is Freemail version "+Version.getVersionString());
 		System.out.println("Freemail is released under the terms of the GNU General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
-		
-		// start a SingleAccountWatcher for each account
-		Iterator<FreemailAccount> i = accountManager.getAllAccounts().iterator();
-		while (i.hasNext()) {
-			FreemailAccount acc = i.next();
-			
-			startWorker(acc, daemon);
-		}
-		
-		// start the sender thread
-		messageSenderThread = new Thread(sender, "Freemail Message sender");
-		messageSenderThread.setDaemon(daemon);
-		messageSenderThread.start();
-		
-		// start the delayed ACK inserter
-		ackInserterThread = new Thread(ackinserter, "Freemail Delayed ACK Inserter");
-		ackInserterThread.setDaemon(daemon);
-		ackInserterThread.start();
+
+		//Start account watchers, channel tasks etc.
+		accountManager.startTasks();
 	}
-	
+
 	public void terminate() {
 		long start = System.nanoTime();
-		Iterator<SingleAccountWatcher> it = singleAccountWatcherList.iterator();
-		while(it.hasNext()) {
-			it.next().kill();
-			it.remove();
-		}
+		accountManager.terminate();
 		long end = System.nanoTime();
-		Logger.debug(this, "Spent " + (end - start) + "ns killing SingleAccountWatchers");
+		Logger.debug(this, "Spent " + (end - start) + "ns killing account manager");
 
 		start = System.nanoTime();
-		sender.kill();
-		ackinserter.kill();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
@@ -206,23 +156,6 @@ public abstract class Freemail implements ConfigClient {
 		while (!cleanedUp) {
 			try {
 				start = System.nanoTime();
-				Iterator<Thread> threadIt = singleAccountWatcherThreadList.iterator();
-				while(it.hasNext()) {
-					threadIt.next().join();
-					threadIt.remove();
-				}
-				end = System.nanoTime();
-				Logger.debug(this, "Spent " + (end - start) + "ns joining SingleAccountWatchers");
-				
-				start = System.nanoTime();
-				if (messageSenderThread != null) {
-					messageSenderThread.join();
-					messageSenderThread = null;
-				}
-				if (ackInserterThread != null) {
-					ackInserterThread.join();
-					ackInserterThread = null;
-				}
 				if (smtpThread != null) {
 					smtpThread.join();
 					smtpl.joinClientThreads();

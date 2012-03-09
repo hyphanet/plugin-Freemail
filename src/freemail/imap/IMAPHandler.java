@@ -37,6 +37,8 @@ import java.lang.NumberFormatException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.archive.util.Base32;
+
 import freemail.FreemailAccount;
 import freemail.MessageBank;
 import freemail.MailMessage;
@@ -44,6 +46,7 @@ import freemail.AccountManager;
 import freemail.ServerHandler;
 import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
+import freenet.support.Base64;
 
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
@@ -143,7 +146,22 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		FreemailAccount account = accountManager.authenticate(trimQuotes(msg.args[0]), trimQuotes(msg.args[1]));
+		String username = trimQuotes(msg.args[0]);
+		String password = trimQuotes(msg.args[1]);
+
+		if(username.contains("@") && username.endsWith(".freemail")) {
+			//Extract the base32 identity string and convert it to base64
+			username = username.substring(username.indexOf("@") + 1,
+			                              username.length() - ".freemail".length());
+
+			//We need to use the Freenet Base64 encoder here since it uses a slightly different set
+			//of characters
+			username = Base64.encode(Base32.decode(username));
+
+			Logger.debug(this, "Extracted Identity string: " + username);
+		}
+
+		FreemailAccount account = accountManager.authenticate(username, password);
 		if (account != null) {
 			this.inbox = account.getMessageBank();
 			

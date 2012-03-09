@@ -26,22 +26,23 @@ import java.net.InetAddress;
 import java.io.IOException;
 
 import freemail.AccountManager;
-import freemail.MessageSender;
+import freemail.Freemail;
 import freemail.ServerListener;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
 import freemail.utils.Logger;
+import freemail.wot.IdentityMatcher;
 
 public class SMTPListener extends ServerListener implements Runnable,ConfigClient {
 	private static final int LISTENPORT = 3025;
-	private final MessageSender msgsender;
 	private String bindaddress;
 	private int bindport;
 	private final AccountManager accountManager;
+	private final Freemail freemail;
 	
-	public SMTPListener(AccountManager accMgr, MessageSender sender, Configurator cfg) {
-		this.msgsender = sender;
+	public SMTPListener(AccountManager accMgr, Configurator cfg, Freemail freemail) {
 		this.accountManager = accMgr;
+		this.freemail = freemail;
 		cfg.register(Configurator.SMTP_BIND_ADDRESS, this, "127.0.0.1");
 		cfg.register(Configurator.SMTP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
@@ -68,7 +69,8 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
 		while (!sock.isClosed()) {
 			try {
-				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), this.msgsender);
+				IdentityMatcher matcher = new IdentityMatcher(freemail.getWotConnection());
+				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), matcher);
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
 				newthread.start();

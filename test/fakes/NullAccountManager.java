@@ -23,11 +23,12 @@ import java.io.File;
 import java.util.List;
 
 import freemail.AccountManager;
+import freemail.Freemail;
 import freemail.FreemailAccount;
 
 public class NullAccountManager extends AccountManager {
-	public NullAccountManager(File datadir) {
-		super(datadir);
+	public NullAccountManager(File datadir, Freemail freemail) {
+		super(datadir, freemail);
 	}
 
 	@Override
@@ -37,11 +38,6 @@ public class NullAccountManager extends AccountManager {
 
 	@Override
 	public List<FreemailAccount> getAllAccounts() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public FreemailAccount createAccount(String username) throws IllegalArgumentException {
 		throw new UnsupportedOperationException();
 	}
 

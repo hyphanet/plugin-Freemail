@@ -69,7 +69,7 @@ public class MailSite {
 		return buf.toString();
 	}
 	
-	public int publish() throws InterruptedException {
+	public int publish(int minslot) throws InterruptedException {
 		byte[] mailpage;
 		String mailsite_s = this.getMailPage();
 		if (mailsite_s == null) {
@@ -85,14 +85,6 @@ public class MailSite {
 		if (key == null) return -1;
 		
 		HighLevelFCPClient cli = new HighLevelFCPClient();
-		
-		String minslot_s = this.accprops.get("mailsite.slot");
-		int minslot;
-		if (minslot_s != null) {
-			minslot = Integer.parseInt(minslot_s);
-		} else {
-			minslot = 1;
-		}
 		
 		int actualslot = -1;
 		try {

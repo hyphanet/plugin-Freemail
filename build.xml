@@ -97,6 +97,14 @@
 		<copy todir="${build}/freemailgui/images">
 			<fileset dir="${src}/freemailgui/images" />
 	       </copy>
+
+	       <!-- Copy l10n and css -->
+		<copy todir="${build}">
+			<fileset dir="${src}">
+				<include name="freemail/l10n/*.l10n" />
+				<include name="freemail/ui/web/css/*.css" />
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="unit-build" depends="compile" unless="${test.skip}">

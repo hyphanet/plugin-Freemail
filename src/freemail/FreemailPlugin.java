@@ -24,26 +24,65 @@ package freemail;
 
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import freemail.config.Configurator;
-import freenet.clients.http.PageNode;
+import freemail.l10n.FreemailL10n;
+import freemail.ui.web.WebInterface;
+import freemail.utils.Logger;
+import freemail.wot.OwnIdentity;
+import freemail.wot.WoTConnection;
+import freemail.wot.WoTConnections;
+import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
-import freenet.pluginmanager.FredPluginHTTP;
+import freenet.pluginmanager.FredPluginBaseL10n;
+import freenet.pluginmanager.FredPluginL10n;
 import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
-import freenet.support.HTMLNode;
-import freenet.support.api.HTTPRequest;
 
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.
-public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHTTP,
-                                                        FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
-	private PluginRespirator pluginResp;
+public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
+                                                        FredPluginThreadless, FredPluginVersioned,
+                                                        FredPluginRealVersioned, FredPluginL10n {
+	private final static ScheduledThreadPoolExecutor defaultExecutor =
+			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail executor thread"));
+	private final static ScheduledThreadPoolExecutor senderExecutor =
+			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail sender thread"));
+
+	private WebInterface webInterface = null;
+	private volatile PluginRespirator pluginRespirator = null;
+	private WoTConnection wotConnection = null;
 	
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
+
+		/*
+		 * We want the executor to vary the pool size even if the queue isn't
+		 * full since the queue is unbounded. We do this by setting
+		 * corePoolSize == maximumPoolSize and allowing core threads to time
+		 * out. Allowing all the threads to time out is fine since none of the
+		 * tasks are sensitive to the additional thread creation delay.
+		 *
+		 * Note: if there are queued tasks at least 1 thread will be alive, but
+		 * unfortunately the timeout still applies to this thread so every time
+		 * the timeout expires the executor creates a new thread. Because of
+		 * this the timeout for the sender executor should be large to avoid
+		 * creating a large amount of threads, and for the default it should be
+		 * > Channel.TASK_RETRY_DELAY (since that makes the thread that runs
+		 * the Fetcher never time out).
+		 */
+		defaultExecutor.setKeepAliveTime(10, TimeUnit.MINUTES);
+		defaultExecutor.allowCoreThreadTimeOut(true);
+		senderExecutor.setKeepAliveTime(1, TimeUnit.HOURS);
+		senderExecutor.allowCoreThreadTimeOut(true);
 	}
 	
 	@Override
@@ -53,142 +92,66 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	
 	@Override
 	public void runPlugin(PluginRespirator pr) {
-		pluginResp = pr;
-		
+		long start = System.nanoTime();
+
+		pluginRespirator = pr;
+
 		startFcp();
-		startWorkers(true);
+		startWorkers();
 		startServers(true);
+		startIdentityFetch(pr, getAccountManager());
+
+		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
+
+		long end = System.nanoTime();
+		Logger.minor(this, "Spent " + (end - start) + "ns in runPlugin()");
 	}
 
-	@Override
-	public String handleHTTPGet(HTTPRequest request) {
-		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode pageNode = page.outer;
-		HTMLNode contentNode = page.content;
-
-		HTMLNode addBox = contentNode.addChild("div", "class", "infobox");
-		addBox.addChild("div", "class", "infobox-header", "Add account");
-		
-		HTMLNode boxContent = addBox.addChild("div", "class", "infobox-content");
-		HTMLNode form = pluginResp.addFormChild(boxContent, "", "addAccountForm");
-		
-		HTMLNode table = form.addChild("table", "class", "plugintable");
-		HTMLNode tableRowName = table.addChild("tr");
-		tableRowName.addChild("td", "Username");
-		tableRowName.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "name", "", "30" });
-		HTMLNode tableRowPassword = table.addChild("tr");
-		tableRowPassword.addChild("td", "Password");
-		tableRowPassword.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "password", "password", "", "30" });
-		HTMLNode tableRowDomain = table.addChild("tr");
-		tableRowDomain.addChild("td", "Short address");
-		tableRowDomain.addChild("td").addChild("input", new String[] { "type", "name", "value", "size" }, new String[] { "text", "domain", "", "30" });
-		HTMLNode tableRowSubmit = table.addChild("tr");
-		tableRowSubmit.addChild("td");
-		tableRowSubmit.addChild("td").addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "add", "Add account"});
-
-		HTMLNode clientConfigHelp = contentNode.addChild("div", "class", "infobox");
-		clientConfigHelp.addChild("div", "class", "infobox-header", "Configuring your email client");
-		clientConfigHelp.addChild("div", "class", "infobox-content").addChild("p",
-				"The username and password you select will be used both for sending and receiving " +
-				"email, and the username will also be the name of the new account. For receiving email " +
-				"the server is " + getIMAPServerAddress() + " and the port is " +
-				configurator.get(Configurator.IMAP_BIND_PORT) + ". For sending the values are " +
-				getSMTPServerAddress() + " and " + configurator.get(Configurator.SMTP_BIND_PORT)
-				+ " respectively.");
-
-		HTMLNode shortnameHelp = contentNode.addChild("div", "class", "infobox");
-		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
-		HTMLNode shortnameContent = shortnameHelp.addChild("div", "class", "infobox-content");
-		shortnameContent.addChild("p",
-				"The short address is a shorter and more convenient form of your new email address. " +
-				"If you select a short address domain you will get an additional email address " +
-				"that looks like this: <anything>@<short address>.freemail");
-		shortnameContent.addChild("p",
-				"Unfortunately using the short address is also less secure than using the long form " +
-				"address");
-
-		return pageNode.generate();
-	}
-
-	@Override
-	public String handleHTTPPost(HTTPRequest request) {
-		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
-		HTMLNode pageNode = page.outer;
-		HTMLNode contentNode = page.content;
-		
-		String add = request.getPartAsString("add", 100);
-		String name = request.getPartAsString("name", 100);
-		String password = request.getPartAsString("password", 100);
-		String domain = request.getPartAsString("domain", 100);
-		
-		if(add.equals("Add account")) {
-			if(!(name.equals("") || password.equals(""))) {
-				try {
-					FreemailAccount newAccount = getAccountManager().createAccount(name);
-					AccountManager.changePassword(newAccount, password);
-					boolean tryShortAddress = false;
-					boolean shortAddressWorked = false;
-					if(!domain.equals("")) {
-						tryShortAddress = true;
-						shortAddressWorked = AccountManager.addShortAddress(newAccount, domain);
-					}
-					startWorker(newAccount, true);
-
-					HTMLNode successBox = contentNode.addChild("div", "class", "infobox infobox-success");
-					successBox.addChild("div", "class", "infobox-header", "Account Created");
-					// TODO: This is not the world's best into message, but it's only temporary (hopefully...)
-					HTMLNode text = successBox.addChild("div", "class", "infobox-content");
-					text.addChild("#", "The account ");
-					text.addChild("i", name);
-					String shortAddrMsg = "";
-					if (tryShortAddress && ! shortAddressWorked) {
-						shortAddrMsg = ", but your short address could NOT be created";
-					}
-					text.addChild("#", " was created successfully"+shortAddrMsg+".");
-					text.addChild("br");
-					text.addChild("br");
-					text.addChild("#", "You now need to configure your email client to send and receive email through "
-							+ "Freemail using IMAP and SMTP. For IMAP the server is "
-							+ getIMAPServerAddress() + " and the port is " +
-							configurator.get(Configurator.IMAP_BIND_PORT) + ". For SMTP the values are " +
-							getSMTPServerAddress() + " and " + configurator.get(Configurator.SMTP_BIND_PORT)
-							+ " respectively.");
-					text.addChild("br");
-					text.addChild("br");
-
-					String longAddress = newAccount.getUsername() + "@" +
-							AccountManager.getFreemailDomain(newAccount.getProps()).toLowerCase();
-					if (shortAddressWorked) {
-						text.addChild("#", "Your new addresses are:");
-						text.addChild("br");
-						text.addChild("#", longAddress);
-						text.addChild("br");
-						text.addChild("#", newAccount.getUsername() + "@" + domain + ".freemail");
-					} else {
-						text.addChild("#", "Your new address is " + longAddress);
-					}
-				} catch (IOException ioe) {
-					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
-					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
-					errorBox.addChild("div", "class", "infobox-content", "Couldn't create account. Please check write access to Freemail's working directory. If you want to overwrite your account, delete the appropriate directory manually in 'data' first. Freemail will intentionally not overwrite it. Error: "+ioe.getMessage());
-				} catch (Exception e) {
-					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox-error");
-					errorBox.addChild("div", "class", "infobox-header", "Error"); 
-					errorBox.addChild("div", "class", "infobox-content", "Couldn't change password for "+name+". "+e.getMessage());
-				}
-				
-				// XXX: There doesn't seem to be a way to get (or set) our root in the web interface,
-				//      so we'll just have to assume it's this and won't change
-				contentNode.addChild("a", "href", "/plugins/freemail.FreemailPlugin",
-						"Freemail Home");
-			} else {
-				HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
-				errorBox.addChild("div", "class", "infobox-header", "Error"); 
-				errorBox.addChild("div", "class", "infobox-content", "Couldn't create account, name or password is missing");
-			}
+	public static ScheduledExecutorService getExecutor(TaskType type) {
+		switch (type) {
+		case UNSPECIFIED:
+			return defaultExecutor;
+		case SENDER:
+			return senderExecutor;
+		default:
+			throw new AssertionError("Missing case " + type);
 		}
-		
-		return pageNode.generate();
+	}
+
+	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
+		pr.getNode().executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				List<OwnIdentity> oids = null;
+				while(oids == null) {
+					WoTConnection wot = getWotConnection();
+					if(wot != null) {
+						try {
+							oids = wot.getAllOwnIdentities();
+						} catch(PluginNotFoundException e) {
+							//Try again later
+							oids = null;
+						}
+					}
+
+					if(oids == null) {
+						try {
+							Thread.sleep(60 * 1000);
+						} catch(InterruptedException e) {
+							//Just try again
+						}
+					}
+				}
+
+				for(OwnIdentity oid : oids) {
+					for(FreemailAccount account : accountManager.getAllAccounts()) {
+						if(account.getIdentity().equals(oid.getIdentityID())) {
+							account.setNickname(oid.getNickname());
+						}
+					}
+				}
+			}
+		}, "Freemail OwnIdentity nickname fetcher");
 	}
 
 	@Override
@@ -196,23 +159,94 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return Version.BUILD_NO;
 	}
 
-	private String getIMAPServerAddress() {
-		String address = configurator.get(Configurator.IMAP_BIND_ADDRESS);
+	@Override
+	public synchronized WoTConnection getWotConnection() {
+		if(wotConnection == null) {
+			if(pluginRespirator == null) {
+				//runPlugin() hasn't been called yet
+				return null;
+			}
 
-		if("0.0.0.0".equals(address)) {
-			address = "127.0.0.1";
+			wotConnection = WoTConnections.wotConnection(pluginRespirator);
 		}
-
-		return address;
+		return wotConnection;
 	}
 
-	private String getSMTPServerAddress() {
-		String address = configurator.get(Configurator.SMTP_BIND_ADDRESS);
+	@Override
+	public void terminate() {
+		Logger.debug(this, "terminate() called");
+		defaultExecutor.shutdownNow();
+		senderExecutor.shutdownNow();
 
-		if("0.0.0.0".equals(address)) {
-			address = "127.0.0.1";
+		long start = System.nanoTime();
+		webInterface.terminate();
+		long end = System.nanoTime();
+		Logger.debug(this, "Web interface terminated (in " + (end - start) + "ns), proceeding with normal termination");
+
+		start = System.nanoTime();
+		super.terminate();
+		end = System.nanoTime();
+		Logger.debug(this, "Normal termination took " + (end - start) + "ns");
+
+		start = System.nanoTime();
+		try {
+			defaultExecutor.awaitTermination(1, TimeUnit.HOURS);
+			senderExecutor.awaitTermination(1, TimeUnit.HOURS);
+		} catch(InterruptedException e) {
+			Logger.debug(this, "Thread was interrupted while waiting for excutors to terminate.");
+		}
+		end = System.nanoTime();
+		Logger.debug(this, "Spent " + (end - start) + "ns waiting for executors to terminate");
+	}
+
+	@Override
+	public String getString(String key) {
+		return FreemailL10n.getString(key);
+	}
+
+	@Override
+	public void setLanguage(LANGUAGE newLanguage) {
+		FreemailL10n.setLanguage(this, newLanguage);
+	}
+
+	@Override
+	public String getL10nFilesBasePath() {
+		return FreemailL10n.getL10nFilesBasePath();
+	}
+
+	@Override
+	public String getL10nFilesMask() {
+		return FreemailL10n.getL10nFilesMask();
+	}
+
+	@Override
+	public String getL10nOverrideFilesMask() {
+		return FreemailL10n.getL10nOverrideFilesMask();
+	}
+
+	@Override
+	public ClassLoader getPluginClassLoader() {
+		return FreemailPlugin.class.getClassLoader();
+	}
+
+	private static class FreemailThreadFactory implements ThreadFactory {
+		private final String prefix;
+		AtomicInteger threadCount = new AtomicInteger();
+
+		public FreemailThreadFactory(String prefix) {
+			this.prefix = prefix;
 		}
 
-		return address;
+		@Override
+		public Thread newThread(Runnable runnable) {
+			String name = prefix + " " + threadCount.getAndIncrement();
+			Logger.debug(this, "Creating new thread: " + name);
+			return new Thread(runnable, name);
+		}
+	}
+
+	public static enum TaskType {
+		UNSPECIFIED,
+		SENDER
 	}
 }

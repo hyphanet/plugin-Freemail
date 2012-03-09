@@ -30,16 +30,26 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import freemail.Freemail;
 import freemail.AccountManager;
 import freemail.FreemailAccount;
-import freemail.MessageSender;
 import freemail.ServerHandler;
-import freemail.utils.EmailAddress;
+import freemail.transport.MessageHandler;
 import freemail.utils.Logger;
+import freemail.wot.Identity;
+import freemail.wot.IdentityMatcher;
+import freenet.pluginmanager.PluginNotFoundException;
+import freenet.support.api.Bucket;
+import freenet.support.io.FileBucket;
 
+import org.archive.util.Base32;
 import org.bouncycastle.util.encoders.Base64;
 
 public class SMTPHandler extends ServerHandler implements Runnable {
@@ -47,23 +57,23 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
 	private FreemailAccount account;
-	private final MessageSender msgsender;
 	public static final String MY_HOSTNAME = "localhost";
 	
 	private final AccountManager accountmanager;
+	private final IdentityMatcher identityMatcher;
 	
-	private Vector<EmailAddress> to;
+	private Vector<Identity> to;
 	
-	public SMTPHandler(AccountManager accMgr, Socket client, MessageSender sender) throws IOException {
+	public SMTPHandler(AccountManager accMgr, Socket client, IdentityMatcher identityMatcher) throws IOException {
 		super(client);
 		accountmanager = accMgr;
-		this.msgsender = sender;
 		this.account = null;
 		this.os = client.getOutputStream();
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
+		this.identityMatcher = identityMatcher;
 		
-		this.to = new Vector<EmailAddress>();
+		this.to = new Vector<Identity>();
 	}
 	
 	@Override
@@ -202,6 +212,18 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
+		if(uname.contains("@") && uname.endsWith(".freemail")) {
+			//Extract the base32 identity string and convert it to base64
+			uname = uname.substring(uname.indexOf("@") + 1,
+					uname.length() - ".freemail".length());
+
+			//We need to use the Freenet Base64 encoder here since it uses a slightly different set
+			//of characters
+			uname = freenet.support.Base64.encode(Base32.decode(uname));
+
+			Logger.debug(this, "Extracted Identity string: " + uname);
+		}
+
 		account = accountmanager.authenticate(uname, password);
 		if (account != null) {
 			this.ps.print("235 Authenticated\r\n");
@@ -244,19 +266,28 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
-		EmailAddress addr = new EmailAddress(parts[1]);
-		if (addr.user == null || addr.domain == null) {
-			this.ps.print("504 Bad address\r\n");
+		String address = parts[1];
+		if(address.startsWith("<") && address.endsWith(">")) {
+			address = address.substring(1, address.length() - 1);
+		}
+
+		//Check if the identity is in WoT
+		Set<String> recipient = new HashSet<String>();
+		recipient.add(address);
+		Map<String, List<Identity>> matches;
+		try {
+			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.of(IdentityMatcher.MatchMethod.FULL_BASE32);
+			matches = identityMatcher.matchIdentities(recipient, account.getIdentity(), methods);
+		} catch(PluginNotFoundException e) {
+			this.ps.print("554 WoT plugin not loaded\r\n");
+			return;
+		}
+		if(matches.get(address).size() != 1) {
+			this.ps.print("550 No such user\r\n");
 			return;
 		}
 		
-		if (!addr.is_freemail_address()) {
-			this.ps.print("553 Not a Freemail address\r\n");
-			return;
-		}
-		
-		
-		this.to.add(addr);
+		this.to.add(matches.get(address).get(0));
 		
 		this.ps.print("250 OK\r\n");
 	}
@@ -272,8 +303,9 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 		
+		File tempfile = null;
 		try {
-			File tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
+			tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
 			PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile));
 			
 			this.ps.print("354 Go crazy\r\n");
@@ -296,13 +328,21 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 			
-			this.msgsender.sendMessage(this.account, to, tempfile);
-			
-			tempfile.delete();
+			MessageHandler messageSender = account.getMessageHandler();
+			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
+			try {
+				messageSender.sendMessage(to, data);
+			} finally {
+				data.free();
+			}
 			
 			this.ps.print("250 So be it\r\n");
 		} catch (IOException ioe) {
 			this.ps.print("452 Can't store message\r\n");
+		} finally {
+			if(tempfile != null) {
+				tempfile.delete();
+			}
 		}
 	}
 	
