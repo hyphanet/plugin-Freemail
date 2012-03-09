@@ -64,7 +64,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		long start = System.nanoTime();
 		makeWebPageGet(uri, req, ctx, page);
 		long time = ((System.nanoTime() - start) / 1000) / 1000;
-		Logger.debug(this, "Page generation (get) took " + time  + " ms");
+		Logger.minor(this, "Page generation (get) took " + time  + " ms");
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -88,7 +88,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		long start = System.nanoTime();
 		makeWebPagePost(uri, req, ctx, page);
 		long time = ((System.nanoTime() - start) / 1000) / 1000;
-		Logger.debug(this, "Page generation (post) took " + time  + " ms");
+		Logger.minor(this, "Page generation (post) took " + time  + " ms");
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {

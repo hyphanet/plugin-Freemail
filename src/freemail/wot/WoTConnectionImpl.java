@@ -246,7 +246,7 @@ class WoTConnectionImpl implements WoTConnection {
 			}
 		}
 		long end = System.nanoTime();
-		Logger.debug(this, "WoT request (" + msg.sfs.get("Message") + ") took " + (end - start) + "ns");
+		Logger.minor(this, "WoT request (" + msg.sfs.get("Message") + ") took " + (end - start) + "ns");
 
 		String replyType = retValue.sfs.get("Message");
 		for(String expectedMessageType : expectedMessageTypes) {

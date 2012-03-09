@@ -141,7 +141,7 @@ public abstract class Freemail implements ConfigClient {
 		long start = System.nanoTime();
 		accountManager.terminate();
 		long end = System.nanoTime();
-		Logger.debug(this, "Spent " + (end - start) + "ns killing account manager");
+		Logger.minor(this, "Spent " + (end - start) + "ns killing account manager");
 
 		start = System.nanoTime();
 		smtpl.kill();
@@ -149,7 +149,7 @@ public abstract class Freemail implements ConfigClient {
 		// now kill the FCP thread - that's what all the other threads will be waiting on
 		fcpconn.kill();
 		end = System.nanoTime();
-		Logger.debug(this, "Spent " + (end - start) + "ns killing other threads");
+		Logger.minor(this, "Spent " + (end - start) + "ns killing other threads");
 		
 		// now clean up all the threads
 		boolean cleanedUp = false;
@@ -171,7 +171,7 @@ public abstract class Freemail implements ConfigClient {
 					fcpThread = null;
 				}
 				end = System.nanoTime();
-				Logger.debug(this, "Spent " + (end - start) + "ns joining other threads");
+				Logger.minor(this, "Spent " + (end - start) + "ns joining other threads");
 			} catch (InterruptedException ie) {
 				
 			}
