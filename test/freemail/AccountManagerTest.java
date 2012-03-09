@@ -20,6 +20,7 @@
 package freemail;
 
 import java.io.File;
+import java.io.IOException;
 
 import utils.Utils;
 
@@ -49,7 +50,7 @@ public class AccountManagerTest extends TestCase {
 		Utils.delete(dataDir);
 	}
 
-	public void testAuthenticateSimpleUsername() throws Exception {
+	public void testAuthenticateSimpleUsername() throws IOException {
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
 		// node, so we have to do it the hard way
 		File accDir = new File(dataDir, BASE32_USERNAME);
@@ -74,7 +75,7 @@ public class AccountManagerTest extends TestCase {
 	 * AccountManager used two different methods for validating usernames, so accounts with - in the
 	 * username could be created, but couldn't be authenticated.
 	 */
-	public void testAuthenticateUsernameWithMinus() throws Exception {
+	public void testAuthenticateUsernameWithMinus() throws IOException {
 		final String ACCOUNT_PASSWORD = "test-user";
 
 		// Creating accounts the real way doesn't work because there is no fcp connection to the

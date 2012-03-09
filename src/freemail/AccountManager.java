@@ -133,7 +133,7 @@ public class AccountManager {
 		}
 	}
 	
-	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
+	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
 		
 		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);

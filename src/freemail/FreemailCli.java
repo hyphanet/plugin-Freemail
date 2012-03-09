@@ -95,14 +95,9 @@ public class FreemailCli extends Freemail {
 			System.out.println("Account creation is only supported through WoT for now");
 			return;
 		} else if (action.equals("--passwd")) {
-			try {
-				FreemailAccount account = freemail.getAccountManager().getAccount(username);
-				AccountManager.changePassword(account, newpasswd);
-				System.out.println("Password changed.");
-			} catch (Exception e) {
-				System.out.println("Couldn't change password for "+username+". "+e.getMessage());
-				e.printStackTrace();
-			}
+			FreemailAccount account = freemail.getAccountManager().getAccount(username);
+			AccountManager.changePassword(account, newpasswd);
+			System.out.println("Password changed.");
 			return;
 		}
 

@@ -175,12 +175,7 @@ public class AddAccountToadlet extends WebPage {
 		toAdd.add(ownIdentity);
 		accountManager.addIdentities(toAdd);
 		FreemailAccount account = accountManager.getAccount(ownIdentity.getIdentityID());
-		try {
-			AccountManager.changePassword(account, password);
-		} catch(Exception e) {
-			//This is never actually thrown
-			throw new AssertionError();
-		}
+		AccountManager.changePassword(account, password);
 
 		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", LogInToadlet.getPath());
 	}
