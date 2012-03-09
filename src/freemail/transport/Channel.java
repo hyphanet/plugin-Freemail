@@ -673,7 +673,7 @@ class Channel {
 			while((slot = slotManager.getNextSlot()) != null) {
 				String key = basekey + slot;
 
-				Logger.minor(this, "Attempting to fetch mail on key " + key);
+				Logger.debug(this, "Attempting to fetch mail on key " + key);
 				File result;
 				try {
 					result = fcpClient.fetch(key);
