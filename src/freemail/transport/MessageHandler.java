@@ -139,13 +139,13 @@ public class MessageHandler {
 		if(outbox.isDirectory()) {
 			for(File rcptOutbox : outbox.listFiles()) {
 				if(!rcptOutbox.isDirectory()) {
-					Logger.debug(this, "Spurious file in outbox: " + rcptOutbox);
+					Logger.error(this, "Spurious file in outbox: " + rcptOutbox);
 					continue;
 				}
 
 				for(File f : rcptOutbox.listFiles()) {
 					if(!f.isFile()) {
-						Logger.debug(this, "Spurious file in contact outbox: " + f);
+						Logger.error(this, "Spurious file in contact outbox: " + f);
 						continue;
 					}
 
