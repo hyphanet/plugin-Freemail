@@ -21,22 +21,16 @@
 
 package freemail;
 
-import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 
 import freemail.utils.PropsFile;
-import freemail.fcp.FCPException;
 import freemail.fcp.HighLevelFCPClient;
-import freemail.fcp.FCPPutFailedException;
-import freemail.fcp.FCPBadFileException;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
 
 public class MailSite {
 	private final PropsFile accprops;
 	public static final String MAILPAGE = "mailpage";
-	public static final String ALIAS_SUFFIX = "-mailsite";
 
 	MailSite(PropsFile a) {
 		this.accprops = a;
@@ -97,59 +91,6 @@ public class MailSite {
 		
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
 		
-		// leave this out for now, until we know whether we're doing it
-		// with real USK redirects or fake put-a-USK-in-a-KSK redirect
-		// are we set up to use a KSK domain alias too?
-		String alias = this.accprops.get("domain_alias");
-		if (alias != null) {
-			if (!this.insertAlias(alias)) return -1;
-		}
-		
 		return actualslot;
-	}
-	
-	public boolean insertAlias(String alias) throws InterruptedException {
-		String targetKey = this.accprops.get("mailsite.pubkey");
-		if (targetKey == null) return false;
-		FreenetURI furi;
-		try {
-			furi = new FreenetURI(targetKey);
-		} catch (MalformedURLException mfue) {
-			return false;
-		}
-		targetKey = "USK@"+furi.getKeyBody()+"/"+AccountManager.MAILSITE_SUFFIX+"/-1/"+MAILPAGE;
-			
-		ByteArrayInputStream bis = new ByteArrayInputStream(targetKey.getBytes());
-			
-		Logger.normal(this,"Inserting mailsite redirect from "+"KSK@"+alias+ALIAS_SUFFIX+" to "+targetKey);
-		
-		HighLevelFCPClient cli = new HighLevelFCPClient();
-			
-		FCPPutFailedException err = null;
-		try {
-			err = cli.put(bis, "KSK@"+alias+ALIAS_SUFFIX);
-		} catch (FCPBadFileException bfe) {
-				// impossible
-			throw new AssertionError();
-		} catch (ConnectionTerminatedException cte) {
-			return false;
-		} catch (FCPException e) {
-			Logger.error(this, "Unknown error while inserting mailsite redirect: " + e);
-			return false;
-		}
-			
-		if (err == null) {
-			Logger.normal(this,"Mailsite redirect inserted successfully");
-			return true;
-		} else if (err.errorcode == FCPPutFailedException.COLLISION) {
-			Logger.error(this,"Mailsite alias collided - somebody is already using that alias! Choose another one!");
-			return false;
-		} else if (err.errorcode == FCPPutFailedException.REJECTED_OVERLOAD) {
-			Logger.error(this,"Mailsite alias could not be inserted (rejected overload), this is probably a temporary error");
-			return false;
-		} else {
-			Logger.error(this,"Mailsite redirect insert failed, but did not collide. (errorcode="+err.errorcode+")");
-			return false;
-		}
 	}
 }

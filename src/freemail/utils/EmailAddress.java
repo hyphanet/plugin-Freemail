@@ -123,11 +123,7 @@ public class EmailAddress {
 	}
 	
 	public String getMailpageKey() {
-		if (this.is_ssk_address()) {
-			return "USK@"+new String (Base32.decode(this.getSubDomain()))+"/"+AccountManager.MAILSITE_SUFFIX+"/"+AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
-		} else {
-			return "KSK@"+this.getSubDomain()+MailSite.ALIAS_SUFFIX;
-		}
+		return "USK@"+new String (Base32.decode(this.getSubDomain()))+"/"+AccountManager.MAILSITE_SUFFIX+"/"+AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
 	}
 	
 	@Override
