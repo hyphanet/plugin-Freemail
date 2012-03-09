@@ -163,7 +163,7 @@ public class MessageHandler {
 						ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
 						tasks.put(Long.toString(num), senderExecutor.schedule(new SenderTask(rcptOutbox, num), 0, TimeUnit.NANOSECONDS));
 					} catch(NumberFormatException e) {
-						Logger.debug(this, "Found file without valid message number: " + f);
+						Logger.error(this, "Found file without valid message number: " + f);
 						continue;
 					}
 				}
