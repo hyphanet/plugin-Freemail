@@ -48,7 +48,7 @@ public class Logger {
 
 	// static final private int loglevel=INTERNAL|DEBUG|MINOR|NORMAL|ERROR; // everything
 	// static final private int loglevel=DEBUG|NORMAL|ERROR;
-	private static int loglevel = NORMAL | ERROR; // should be ok for normal users
+	private static volatile int loglevel = NORMAL | ERROR; // should be ok for normal users
 
 	private static SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
 
