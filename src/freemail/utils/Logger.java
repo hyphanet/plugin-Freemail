@@ -216,21 +216,23 @@ public class Logger {
 			if(key.equals("loglevel")) {
 				String[] levels = val.split("\\s*\\|\\s*");
 
-				loglevel = 0;
+				int updated = 0;
 
 				for (int i = 0; i < levels.length; i++) {
 					if(levels[i].equalsIgnoreCase("internal")) {
-						loglevel |= INTERNAL;
+						updated |= INTERNAL;
 					} else if(levels[i].equalsIgnoreCase("debug")) {
-						loglevel |= DEBUG;
+						updated |= DEBUG;
 					} else if(levels[i].equalsIgnoreCase("minor")) {
-						loglevel |= MINOR;
+						updated |= MINOR;
 					} else if(levels[i].equalsIgnoreCase("normal")) {
-						loglevel |= NORMAL;
+						updated |= NORMAL;
 					} else if(levels[i].equalsIgnoreCase("error")) {
-						loglevel |= ERROR;
+						updated |= ERROR;
 					}
 				}
+
+				loglevel = updated;
 			} else {
 				Logger.error(this, "setConfigProp called with key " + key);
 				assert false : "setConfigProp called with key " + key;
