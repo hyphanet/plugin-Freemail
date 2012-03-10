@@ -218,7 +218,7 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 		}
 		while (carryon) {
-			Logger.normal(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
+			Logger.debug(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
 			
 			try {
 				fis = new FileInputStream(data);
@@ -236,11 +236,11 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
+				Logger.debug(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
-				Logger.normal(this,"collision");
+				Logger.debug(this,"collision");
 			} else {
 				Logger.error(this,"Slot insert failed, error code is "+emsg.errorcode);
 				// try again later
@@ -263,7 +263,7 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 		}
 		while (carryon) {
-			Logger.normal(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
+			Logger.debug(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
 			
 			bis = new ByteArrayInputStream(data);
 			
@@ -277,11 +277,11 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				Logger.normal(this,"insert of "+basekey+"-"+slot+suffix+" successful");
+				Logger.debug(this,"insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
-				Logger.normal(this,"collision");
+				Logger.debug(this,"collision");
 			} else {
 				Logger.error(this,"Slot insert failed, error code is "+emsg.errorcode);
 				// try again later
