@@ -35,12 +35,11 @@ import freenet.support.Logger.LogLevel;
  * Logger class from Freenet and calls the Freenet Logger class is available.
  */
 public class Logger {
-	private static final int INTERNAL = 1 << 0;
-	private static final int DEBUG    = 1 << 1;
-	private static final int MINOR    = 1 << 2;
-	private static final int NORMAL   = 1 << 3;
-	private static final int WARNING  = 1 << 4;
-	private static final int ERROR    = 1 << 5;
+	private static final int DEBUG    = 1 << 0;
+	private static final int MINOR    = 1 << 1;
+	private static final int NORMAL   = 1 << 2;
+	private static final int WARNING  = 1 << 3;
+	private static final int ERROR    = 1 << 4;
 
 	private static final ConfigClient INSTANCE = new LoggerConfigClient();
 
@@ -208,9 +207,7 @@ public class Logger {
 				int updated = 0;
 
 				for (int i = 0; i < levels.length; i++) {
-					if(levels[i].equalsIgnoreCase("internal")) {
-						updated |= INTERNAL;
-					} else if(levels[i].equalsIgnoreCase("debug")) {
+					if(levels[i].equalsIgnoreCase("debug")) {
 						updated |= DEBUG;
 					} else if(levels[i].equalsIgnoreCase("minor")) {
 						updated |= MINOR;
