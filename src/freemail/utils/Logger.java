@@ -34,14 +34,14 @@ import freenet.support.Logger.LogLevel;
  * that not everything is written to stdout. This class attempts to mimic the
  * Logger class from Freenet and calls the Freenet Logger class is available.
  */
-public class Logger implements ConfigClient {
+public class Logger {
 	private static final int INTERNAL = 1;
 	private static final int DEBUG = 2;
 	private static final int MINOR = 4;
 	private static final int NORMAL = 8;
 	private static final int ERROR = 16;
 
-	private static final Logger INSTANCE = new Logger();
+	private static final ConfigClient INSTANCE = new LoggerConfigClient();
 
 	static boolean initialized = false;
 	static boolean foundFreenetLogger = false;
@@ -51,29 +51,6 @@ public class Logger implements ConfigClient {
 	private static int loglevel = NORMAL | ERROR; // should be ok for normal users
 
 	private static SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
-
-	@Override
-	public void setConfigProp(String key, String val) {
-		if(key.equals("loglevel")) {
-			String[] levels = val.split("\\s*\\|\\s*");
-
-			loglevel = 0;
-
-			for (int i = 0; i < levels.length; i++) {
-				if(levels[i].equalsIgnoreCase("internal")) {
-					loglevel |= INTERNAL;
-				} else if(levels[i].equalsIgnoreCase("debug")) {
-					loglevel |= DEBUG;
-				} else if(levels[i].equalsIgnoreCase("minor")) {
-					loglevel |= MINOR;
-				} else if(levels[i].equalsIgnoreCase("normal")) {
-					loglevel |= NORMAL;
-				} else if(levels[i].equalsIgnoreCase("error")) {
-					loglevel |= ERROR;
-				}
-			}
-		}
-	}
 
 	public static void registerConfig(Configurator config) {
 		config.register(Configurator.LOG_LEVEL, INSTANCE, "normal|error");
@@ -230,6 +207,31 @@ public class Logger implements ConfigClient {
 			freenet.support.Logger.debug(c, s, t);
 		} else {
 			log(DEBUG, c, s, "DEBUG", t);
+		}
+	}
+
+	private static class LoggerConfigClient implements ConfigClient {
+		@Override
+		public void setConfigProp(String key, String val) {
+			if(key.equals("loglevel")) {
+				String[] levels = val.split("\\s*\\|\\s*");
+
+				loglevel = 0;
+
+				for (int i = 0; i < levels.length; i++) {
+					if(levels[i].equalsIgnoreCase("internal")) {
+						loglevel |= INTERNAL;
+					} else if(levels[i].equalsIgnoreCase("debug")) {
+						loglevel |= DEBUG;
+					} else if(levels[i].equalsIgnoreCase("minor")) {
+						loglevel |= MINOR;
+					} else if(levels[i].equalsIgnoreCase("normal")) {
+						loglevel |= NORMAL;
+					} else if(levels[i].equalsIgnoreCase("error")) {
+						loglevel |= ERROR;
+					}
+				}
+			}
 		}
 	}
 }
