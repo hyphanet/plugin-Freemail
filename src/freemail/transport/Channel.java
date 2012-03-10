@@ -557,11 +557,12 @@ class Channel {
 	boolean canSendMessages() {
 		synchronized(channelProps) {
 			String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+
 			long timeout;
 			try {
 				timeout = Long.parseLong(rawTimeout);
 			} catch(NumberFormatException e) {
-				Logger.debug(this, "Returning false from canSendMessages(), parse error: " + rawTimeout);
+				Logger.error(this, "Returning false from canSendMessages(), parse error: " + rawTimeout);
 				return false;
 			}
 
