@@ -35,11 +35,12 @@ import freenet.support.Logger.LogLevel;
  * Logger class from Freenet and calls the Freenet Logger class is available.
  */
 public class Logger {
-	private static final int INTERNAL = 1;
-	private static final int DEBUG = 2;
-	private static final int MINOR = 4;
-	private static final int NORMAL = 8;
-	private static final int ERROR = 16;
+	private static final int INTERNAL = 1 << 0;
+	private static final int DEBUG    = 1 << 1;
+	private static final int MINOR    = 1 << 2;
+	private static final int NORMAL   = 1 << 3;
+	private static final int WARNING  = 1 << 4;
+	private static final int ERROR    = 1 << 5;
 
 	private static final ConfigClient INSTANCE = new LoggerConfigClient();
 
@@ -57,12 +58,12 @@ public class Logger {
 
 	// static final private int loglevel=INTERNAL|DEBUG|MINOR|NORMAL|ERROR; // everything
 	// static final private int loglevel=DEBUG|NORMAL|ERROR;
-	private static volatile int loglevel = NORMAL | ERROR; // should be ok for normal users
+	private static volatile int loglevel = NORMAL | WARNING | ERROR; // should be ok for normal users
 
 	private static SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
 
 	public static void registerConfig(Configurator config) {
-		config.register(Configurator.LOG_LEVEL, INSTANCE, "normal|error");
+		config.register(Configurator.LOG_LEVEL, INSTANCE, "normal|warning|error");
 	}
 
 	private static void log(int l, Object o, String s, String level, Throwable t) {
@@ -206,6 +207,30 @@ public class Logger {
 		}
 	}
 
+	public static void warning(Object o, String s) {
+		warning(o, s, null);
+	}
+
+	public static void warning(Class<?> c, String s) {
+		warning(c, s, null);
+	}
+
+	public static void warning(Object o, String s, Throwable t) {
+		if(useFreenetLogger) {
+			freenet.support.Logger.warning(o, s, t);
+		} else {
+			log(WARNING, o, s, "WARNING", t);
+		}
+	}
+
+	public static void warning(Class<?> c, String s, Throwable t) {
+		if(useFreenetLogger) {
+			freenet.support.Logger.warning(c, s, t);
+		} else {
+			log(WARNING, c, s, "WARNING", t);
+		}
+	}
+
 	private static class LoggerConfigClient implements ConfigClient {
 		@Override
 		public void setConfigProp(String key, String val) {
@@ -223,6 +248,8 @@ public class Logger {
 						updated |= MINOR;
 					} else if(levels[i].equalsIgnoreCase("normal")) {
 						updated |= NORMAL;
+					} else if(levels[i].equalsIgnoreCase("warning")) {
+						updated |= WARNING;
 					} else if(levels[i].equalsIgnoreCase("error")) {
 						updated |= ERROR;
 					}
