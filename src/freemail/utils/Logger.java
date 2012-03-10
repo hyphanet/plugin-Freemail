@@ -231,6 +231,9 @@ public class Logger {
 						loglevel |= ERROR;
 					}
 				}
+			} else {
+				Logger.error(this, "setConfigProp called with key " + key);
+				assert false : "setConfigProp called with key " + key;
 			}
 		}
 	}
