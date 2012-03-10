@@ -80,19 +80,11 @@ public class Logger {
 	}
 
 	public static void minor(Object o, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.minor(o, s);
-		} else {
-			log(MINOR, o, s, "MINOR", null);
-		}
+		minor(o, s, null);
 	}
 
 	public static void minor(Class<?> c, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.minor(c, s);
-		} else {
-			log(MINOR, c, s, "MINOR", null);
-		}
+		minor(c, s, null);
 	}
 
 	public static void minor(Object o, String s, Throwable t) {
@@ -112,19 +104,11 @@ public class Logger {
 	}
 
 	public static void normal(Object o, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.normal(o, s);
-		} else {
-			log(NORMAL, o, s, "NORMAL", null);
-		}
+		normal(o, s, null);
 	}
 
 	public static void normal(Class<?> c, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.normal(c, s);
-		} else {
-			log(NORMAL, c, s, "NORMAL", null);
-		}
+		normal(c, s, null);
 	}
 
 	public static void normal(Object o, String s, Throwable t) {
@@ -144,19 +128,11 @@ public class Logger {
 	}
 
 	public static void error(Object o, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.error(o, s);
-		} else {
-			log(ERROR, o, s, "ERROR", null);
-		}
+		error(o, s, null);
 	}
 
 	public static void error(Class<?> c, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.error(c, s);
-		} else {
-			log(ERROR, c, s, "ERROR", null);
-		}
+		error(c, s, null);
 	}
 
 	public static void error(Object o, String s, Throwable t) {
@@ -176,19 +152,11 @@ public class Logger {
 	}
 
 	public static void debug(Object o, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.debug(o, s);
-		} else {
-			log(DEBUG, o, s, "DEBUG", null);
-		}
+		debug(o, s, null);
 	}
 
 	public static void debug(Class<?> c, String s) {
-		if(useFreenetLogger) {
-			freenet.support.Logger.debug(c, s);
-		} else {
-			log(DEBUG, c, s, "DEBUG", null);
-		}
+		debug(c, s, null);
 	}
 
 	public static void debug(Object o, String s, Throwable t) {
