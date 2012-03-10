@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import freemail.config.ConfigClient;
+import freemail.config.Configurator;
 import freenet.support.Logger.LogLevel;
 
 /**
@@ -39,6 +40,8 @@ public class Logger implements ConfigClient {
 	private static final int MINOR = 4;
 	private static final int NORMAL = 8;
 	private static final int ERROR = 16;
+
+	private static final Logger INSTANCE = new Logger();
 
 	static boolean initialized = false;
 	static boolean foundFreenetLogger = false;
@@ -70,6 +73,10 @@ public class Logger implements ConfigClient {
 				}
 			}
 		}
+	}
+
+	public static void registerConfig(Configurator config) {
+		config.register(Configurator.LOG_LEVEL, INSTANCE, "normal|error");
 	}
 
 	private static boolean useFreenetLogger() {

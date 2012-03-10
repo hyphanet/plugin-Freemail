@@ -56,7 +56,7 @@ public abstract class Freemail implements ConfigClient {
 	protected Freemail(String cfgfile) throws IOException {
 		configurator = new Configurator(new File(cfgfile));
 		
-		configurator.register(Configurator.LOG_LEVEL, new Logger(), "normal|error");
+		Logger.registerConfig(configurator);
 		
 		configurator.register(Configurator.DATA_DIR, this, Freemail.DEFAULT_DATADIR);
 		if (!datadir.exists() && !datadir.mkdirs()) {
