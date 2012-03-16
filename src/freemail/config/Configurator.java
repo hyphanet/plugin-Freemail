@@ -24,6 +24,7 @@ package freemail.config;
 import java.io.File;
 import java.util.HashMap;
 
+import freemail.utils.Logger;
 import freemail.utils.PropsFile;
 
 /** "Probably the simplest config interface in the world"
@@ -74,7 +75,10 @@ public class Configurator {
 	}
 
 	public void register(String key, ConfigClient cb, String defaultval) {
-		this.callbacks.put(key, cb);
+		ConfigClient old = this.callbacks.put(key, cb);
+		if(old != null) {
+			Logger.warning(this, "Replacing previous callback for " + key);
+		}
 		
 		String val = this.props.get(key);
 		if (val == null) {
