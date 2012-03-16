@@ -856,7 +856,7 @@ class Channel {
 			}
 			if(remoteId == null) {
 				/* FIXME: Make sure the channel is deleted, e.g. by setting TIMEOUT to 0 */
-				Logger.debug(this, "Missing remote identity");
+				Logger.error(this, "Missing remote identity");
 				return;
 			}
 
