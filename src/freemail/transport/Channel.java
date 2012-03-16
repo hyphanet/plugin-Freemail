@@ -488,7 +488,7 @@ class Channel {
 					long end = System.nanoTime();
 					Logger.debug(this, "Message insert took " + (end - start) + "ns");
 				} catch(FCPBadFileException e) {
-					Logger.debug(this, "Caugth " + e);
+					Logger.debug(this, "Caugth FCPBadFileException while inserting message", e);
 					return false;
 				} catch(ConnectionTerminatedException e) {
 					Logger.debug(this, "Caugth " + e);
