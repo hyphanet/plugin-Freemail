@@ -44,8 +44,7 @@ public class Utils {
 				return false;
 			}
 		}
-		file.delete();
 
-		return true;
+		return file.delete();
 	}
 }
