@@ -223,6 +223,8 @@ public class NewMessageToadlet extends WebPage {
 		String folder = getBucketAsString(req.getPart("folder"));
 		String message = getBucketAsString(req.getPart("message"));
 
+		Logger.debug(this, "Replying to message " + message + " in folder " + folder);
+
 		MessageBank mb = MessageBankTools.getMessageBank(getFreemailAccount(ctx).getMessageBank(), folder);
 		MailMessage msg = MessageBankTools.getMessage(mb, Integer.parseInt(message));
 		msg.readHeaders();
