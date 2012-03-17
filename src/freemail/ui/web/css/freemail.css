@@ -1,15 +1,21 @@
 /* Hide the float container */
 div.content {
 	margin: 0em;
-	padding: 0em;
+	padding-top: 0em;
+	padding-right: 0em;
+	padding-left: 0em;
 	border: 0em;
 	width: 100%;
+
+	/* Add some padding so the status bar doesn't cover content */
+	padding-bottom: 2em;
 }
 
 /* Folder list */
 div.folderlist {
 	float: left;
 	margin-right: 1em;
+	padding-bottom: 2em;
 }
 
 div.folder > div.folder {
@@ -26,6 +32,7 @@ div.messagelist {
 	float: left;
 	margin-left: 1em;
 	width: 70%;
+	padding-bottom: 2em;
 }
 
 /* Message page */
@@ -38,4 +45,5 @@ div.message {
 	float: left;
 	margin-left: 1em;
 	width: 70%;
+	padding-bottom: 2em;
 }
