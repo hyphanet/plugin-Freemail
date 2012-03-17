@@ -257,6 +257,7 @@ public class AccountManager {
 		ps.println("");
 		ps.println("There are several places to discuss Freemail, report problems, or ask for help:");
 		ps.println(" * The 'freemail' board on FMS");
+		ps.println(" * The 'eng.freenet.freemail' board on Freetalk");
 		ps.println(" * The bug tracker: https://bugs.freenetproject.org/ (select 'Freemail' in the top right).");
 		ps.println(" * #freemail on irc.freenode.net");
 		ps.println(" * The mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
