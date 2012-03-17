@@ -20,11 +20,35 @@
 
 package freemail.support;
 
+import freemail.FreemailAccount;
 import freemail.MailMessage;
 import freemail.MessageBank;
 import freemail.utils.Logger;
 
 public class MessageBankTools {
+	/**
+	 * Returns the message bank indicated by {@code folderName}, or null if it
+	 * could not be found. The name of the subfolder uses '.' as a hierarchy delimiter.
+	 * @param account the owner of the subfolder
+	 * @param folderName the name of the folder that should be returned
+	 * @return the message bank indicated by {@code folderName}
+	 * @throws NullPointerException if any of the parameters are {@code null}
+	 */
+	public static MessageBank getMessageBank(FreemailAccount account, String folderName) {
+		if(account == null) throw new NullPointerException("Parameter account was null");
+		if(folderName == null) throw new NullPointerException("Parameter folderName was null");
+
+		MessageBank topLevel = account.getMessageBank();
+		if(!folderName.startsWith(topLevel.getName())) {
+			throw new IllegalArgumentException("Parameter folderName has wrong value: " + folderName);
+		}
+
+		if(folderName.equals(topLevel.getName())) {
+			return topLevel;
+		}
+		return getMessageBank(topLevel, folderName.substring(topLevel.getName().length()));
+	}
+
 	/**
 	 * Returns the subfolder of {@code messageBank} indicated by {@code folderName}, or null if it
 	 * could not be found. The name of the subfolder uses '.' as a hierarchy delimiter.

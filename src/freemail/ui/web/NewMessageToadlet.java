@@ -225,7 +225,7 @@ public class NewMessageToadlet extends WebPage {
 
 		Logger.debug(this, "Replying to message " + message + " in folder " + folder);
 
-		MessageBank mb = MessageBankTools.getMessageBank(getFreemailAccount(ctx).getMessageBank(), folder);
+		MessageBank mb = MessageBankTools.getMessageBank(getFreemailAccount(ctx), folder);
 		MailMessage msg = MessageBankTools.getMessage(mb, Integer.parseInt(message));
 		msg.readHeaders();
 
