@@ -22,6 +22,7 @@ package freemail.support;
 
 import freemail.MailMessage;
 import freemail.MessageBank;
+import freemail.utils.Logger;
 
 public class MessageBankTools {
 	/**
@@ -40,6 +41,7 @@ public class MessageBankTools {
 		for(String name : folderName.split("\\.")) {
 			folder = folder.getSubFolder(name);
 			if(folder == null) {
+				Logger.debug(MessageBankTools.class, "Returning null for folder " + folderName);
 				return null;
 			}
 		}
