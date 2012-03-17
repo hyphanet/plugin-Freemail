@@ -271,8 +271,7 @@ public class AccountManager {
 		ps.println("");
 		ps.println("");
 		ps.println("");
-		ps.println("Dave Baker");
-		ps.println("(Freemail developer)");
+		ps.println("The Freemail developers");
 		
 		m.commit();
 	}
