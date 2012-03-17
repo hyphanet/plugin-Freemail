@@ -259,7 +259,7 @@ public class AccountManager {
 		ps.println(" * The 'freemail' board on FMS");
 		ps.println(" * The 'eng.freenet.freemail' board on Freetalk");
 		ps.println(" * The bug tracker: https://bugs.freenetproject.org/ (select 'Freemail' in the top right).");
-		ps.println(" * #freemail on irc.freenode.net");
+		ps.println(" * #freenet on irc.freenode.net");
 		ps.println(" * The mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
 		ps.println("");
 		ps.println("Don't forget to stay up to date with the Freemail news and latest version at the freesite, which can be found at:");
