@@ -67,13 +67,7 @@ public class MessageToadlet extends WebPage {
 
 		//Add the message
 		String folderName = req.getParam("folder", "inbox");
-		MessageBank messageBank;
-		if(folderName.equals("inbox")) {
-			messageBank = account.getMessageBank();
-		} else {
-			folderName = folderName.substring("index.".length());
-			messageBank = MessageBankTools.getMessageBank(account.getMessageBank(), folderName);
-		}
+		MessageBank messageBank = MessageBankTools.getMessageBank(account, folderName);
 
 		int messageUid;
 		try {
