@@ -55,6 +55,9 @@ public class MessageBankTools {
 	 * @throws NullPointerException if {@code messageBank} is {@code null}
 	 */
 	public static MailMessage getMessage(MessageBank messageBank, int messageUid) {
+		if(messageBank == null) throw new NullPointerException("Parameter messageBank was null");
+		if(messageUid < 0) throw new IllegalArgumentException("Parameter messageUid was < 0: " + messageUid);
+
 		return messageBank.listMessages().get(Integer.valueOf(messageUid));
 	}
 }
