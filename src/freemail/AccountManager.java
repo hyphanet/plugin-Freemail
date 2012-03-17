@@ -237,7 +237,7 @@ public class AccountManager {
 		MailMessage m = account.getMessageBank().createMessage();
 		Date currentDate = new Date();
 		
-		m.addHeader("From", "Dave Baker <dave@dbkr.freemail>");
+		m.addHeader("From", "Martin Nyhus <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
 		m.addHeader("To", to.toString());
 		m.addHeader("Subject", "Welcome to Freemail!");
 		m.addHeader("Date", sdf.format(currentDate));
