@@ -745,7 +745,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 		}
 
- 		if (attr.charAt(0) == '[') attr = attr.substring(1);
+		if (attr.charAt(0) == '[') attr = attr.substring(1);
 		if (attr.charAt(attr.length() - 1) == ']')
 			attr = attr.substring(0, attr.length() - 1);
 

@@ -70,8 +70,8 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 				IMAPHandler newcli = new IMAPHandler(accountManager, sock.accept());
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
- 				newthread.start();
- 				addHandler(newcli, newthread);
+				newthread.start();
+				addHandler(newcli, newthread);
 			} catch (SocketTimeoutException ste) {
 
 			} catch (IOException ioe) {

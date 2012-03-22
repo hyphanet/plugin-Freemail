@@ -121,7 +121,7 @@ public class FCPMessage {
 				if (toRead > buf.length)
 					toRead = buf.length;
 				int read = is.read(buf, 0, toRead);
- 				fos.write(buf, 0, read);
+				fos.write(buf, 0, read);
 				len -= read;
 			}
 			fos.close();
