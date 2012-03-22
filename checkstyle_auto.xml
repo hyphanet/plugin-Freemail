@@ -6,6 +6,12 @@
 <module name="Checker">
 	<property name="charset" value="UTF-8"/>
 
+	<!-- Checks that files end with a newline -->
+	<module name="NewlineAtEndOfFile">
+		<!-- Only accept Unix line separator -->
+		<property name="lineSeparator" value="lf"/>
+	</module>
+
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
 		<module name="AvoidStarImport"/>
