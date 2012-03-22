@@ -181,7 +181,9 @@
 	     config that normally doesn't produce any warnings. -->
 	<target name="checkstyle-auto" unless="${checkstyle.skip}">
 		<cs:checkstyle config="checkstyle_auto.xml">
-			<fileset dir="${src}" includes="**/*.java"/>
+			<fileset dir="${src}" includes="**/*.java">
+				<exclude name="org/**"/>
+			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
