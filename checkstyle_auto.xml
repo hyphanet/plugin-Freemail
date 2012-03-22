@@ -12,6 +12,14 @@
 		<property name="lineSeparator" value="lf"/>
 	</module>
 
+	<!-- Check for whitespace at the end of lines -->
+	<module name="RegexpSingleline">
+		<property name="format" value="\s+$"/>
+		<property name="minimum" value="0"/>
+		<property name="maximum" value="0"/>
+		<property name="message" value="Line has trailing whitespace"/>
+	</module>
+
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
 		<module name="AvoidStarImport"/>
