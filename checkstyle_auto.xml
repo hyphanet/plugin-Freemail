@@ -20,6 +20,14 @@
 		<property name="message" value="Line has trailing whitespace"/>
 	</module>
 
+	<!-- Check for spaces before tabs -->
+	<module name="RegexpSingleline">
+		<property name="format" value=" +.*\t+"/>
+		<property name="minimum" value="0"/>
+		<property name="maximum" value="0"/>
+		<property name="message" value="Line has tabs after spaces"/>
+	</module>
+
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
 		<module name="AvoidStarImport"/>
