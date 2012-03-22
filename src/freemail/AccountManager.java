@@ -159,7 +159,7 @@ public class AccountManager {
 		String privexp_str = props.get("asymkey.privexponent");
 
 		if (mod_str == null || privexp_str == null) {
-			Logger.error(AccountManager.class,"Couldn't get private key - account file corrupt?");
+			Logger.error(AccountManager.class, "Couldn't get private key - account file corrupt?");
 			return null;
 		}
 
@@ -182,7 +182,7 @@ public class AccountManager {
 		}
 
 		// generate an RSA keypair
-		Logger.normal(AccountManager.class,"Generating cryptographic keypair (this could take a few minutes)...");
+		Logger.normal(AccountManager.class, "Generating cryptographic keypair (this could take a few minutes)...");
 
 		SecureRandom rand = new SecureRandom();
 
@@ -204,7 +204,7 @@ public class AccountManager {
 		privateKey = privateKey + "/mailsite/";
 		accfile.put("mailsite.privkey", privateKey);
 
-		Logger.normal(AccountManager.class,"Account creation completed.");
+		Logger.normal(AccountManager.class, "Account creation completed.");
 		return true;
 	}
 

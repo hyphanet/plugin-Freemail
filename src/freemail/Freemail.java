@@ -60,13 +60,13 @@ public abstract class Freemail implements ConfigClient {
 
 		configurator.register(Configurator.DATA_DIR, this, Freemail.DEFAULT_DATADIR);
 		if (!datadir.exists() && !datadir.mkdirs()) {
-			Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
+			Logger.error(this, "Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 
 		configurator.register(Configurator.TEMP_DIR, this, Freemail.TEMPDIRNAME);
 		if (!tempdir.exists() && !tempdir.mkdirs()) {
-			Logger.error(this,"Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
+			Logger.error(this, "Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 

@@ -100,7 +100,7 @@ public class RTSFetcher implements SlotSaveCallback {
 				}
 				tries++;
 				if (tries > RTS_MAX_ATTEMPTS) {
-					Logger.normal(this,"Maximum attempts at handling RTS reached - deleting RTS");
+					Logger.normal(this, "Maximum attempts at handling RTS reached - deleting RTS");
 					files[i].delete();
 				} else {
 					File newname = new File(this.contact_dir, parts[0] + "," + tries);
@@ -161,12 +161,12 @@ public class RTSFetcher implements SlotSaveCallback {
 		int slot;
 		boolean success = true;
 		while ((slot = sm.getNextSlotNat()) > 0) {
-			Logger.minor(this,"trying to fetch "+keybase+slot);
+			Logger.minor(this, "trying to fetch "+keybase+slot);
 
 			try {
 				File result = fcpcli.fetch(keybase+slot);
 
-				Logger.normal(this,keybase+slot+": got RTS!");
+				Logger.normal(this, keybase+slot+": got RTS!");
 
 				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+",0");
 
@@ -177,7 +177,7 @@ public class RTSFetcher implements SlotSaveCallback {
 				}
 			} catch (FCPFetchException fe) {
 				if (fe.isFatal()) {
-					Logger.error(this,keybase+slot+": fatal fetch error - marking slot as used.");
+					Logger.error(this, keybase+slot+": fatal fetch error - marking slot as used.");
 					sm.slotUsed();
 				} else if (fe.getCode() == FCPFetchException.ALL_DATA_NOT_FOUND) {
 					// This could be the node not managing to find the CHK containing the actual data (since RTS messages are
@@ -185,16 +185,16 @@ public class RTSFetcher implements SlotSaveCallback {
 					// 1KB of data). It could also be someone inserting dummy redirects to our RTS queue. We'll have to keep
 					// checking it, but we have to check slots until we find some that are really empty, we'd never manage
 					// to fetch anything if they are dead keys.
-					Logger.error(this,keybase+slot+": All Data not found - leaving slot in queue and will poll an extra key");
+					Logger.error(this, keybase+slot+": All Data not found - leaving slot in queue and will poll an extra key");
 					sm.incPollAhead();
 				} else if (fe.getCode() == FCPFetchException.DATA_NOT_FOUND || fe.getCode() == FCPFetchException.RECENTLY_FAILED) {
-					Logger.minor(this,keybase+slot+": no RTS.");
+					Logger.minor(this, keybase+slot+": no RTS.");
 				} else if (fe.isNetworkError()) {
 					// Freenet is having special moment. This doesn't count as a valid poll.
 					success = false;
 				} else {
 					// We've covered most things above, so I think this should a fairly exceptional case. Let's log it at error.
-					Logger.error(this,keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
+					Logger.error(this, keybase+slot+": other non-fatal fetch error:"+fe.getMessage());
 				}
 			} catch (FCPException e) {
 				Logger.error(this, "Unknown error while checking RTS: " + e.getMessage());
@@ -216,7 +216,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		if (!rtsmessage.exists()) return false;
 
 		if (rtsmessage.length() > RTS_MAX_SIZE) {
-			Logger.normal(this,"RTS Message is too large - discarding!");
+			Logger.normal(this, "RTS Message is too large - discarding!");
 			return true;
 		}
 
@@ -225,10 +225,10 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			plaintext = decrypt_rts(rtsmessage);
 		} catch (IOException ioe) {
-			Logger.normal(this,"Error reading RTS message!");
+			Logger.normal(this, "Error reading RTS message!");
 			return false;
 		} catch (InvalidCipherTextException icte) {
-			Logger.normal(this,"Could not decrypt RTS message - discarding. "+icte.getMessage());
+			Logger.normal(this, "Could not decrypt RTS message - discarding. "+icte.getMessage());
 			return true;
 		}
 
@@ -247,14 +247,14 @@ public class RTSFetcher implements SlotSaveCallback {
 				try {
 					line = lis.readLine(200, 200, false);
 				} catch (TooLongException tle) {
-					Logger.normal(this,"RTS message has lines that are too long. Discarding.");
+					Logger.normal(this, "RTS message has lines that are too long. Discarding.");
 					rtsfile.delete();
 					return true;
 				}
 				messagebytes += lis.getLastBytesRead();
 
 				if (line == null || line.equals("")) break;
-				//FreemailLogger.normal(this,line);
+				//FreemailLogger.normal(this, line);
 
 				ps.println(line);
 			}
@@ -264,7 +264,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			if (line == null) {
 				// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
 
-				Logger.normal(this,"Couldn't find signature on RTS message - ignoring!");
+				Logger.normal(this, "Couldn't find signature on RTS message - ignoring!");
 				rtsfile.delete();
 				return true;
 			}
@@ -286,7 +286,7 @@ public class RTSFetcher implements SlotSaveCallback {
 
 			bis.close();
 		} catch (IOException ioe) {
-			Logger.normal(this,"IO error whilst handling RTS message. "+ioe.getMessage());
+			Logger.normal(this, "IO error whilst handling RTS message. "+ioe.getMessage());
 			ioe.printStackTrace();
 			if (rtsfile != null) rtsfile.delete();
 			return false;
@@ -297,7 +297,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			validate_rts(rtsprops);
 		} catch (Exception e) {
-			Logger.normal(this,"RTS message does not contain vital information: "+e.getMessage()+" - discarding");
+			Logger.normal(this, "RTS message does not contain vital information: "+e.getMessage()+" - discarding");
 			rtsfile.delete();
 			return true;
 		}
@@ -312,7 +312,7 @@ public class RTSFetcher implements SlotSaveCallback {
 
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 
-		Logger.normal(this,"Trying to fetch sender's mailsite: "+their_mailsite);
+		Logger.normal(this, "Trying to fetch sender's mailsite: "+their_mailsite);
 		File msfile;
 		try {
 			msfile = fcpcli.fetch(their_mailsite);
@@ -333,7 +333,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		String their_modulus = mailsite.get("asymkey.modulus");
 
 		if (their_exponent == null || their_modulus == null) {
-			Logger.normal(this,"Mailsite fetched successfully but missing vital information! Discarding this RTS.");
+			Logger.normal(this, "Mailsite fetched successfully but missing vital information! Discarding this RTS.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -347,7 +347,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		try {
 			their_hash = deccipher.processBlock(their_encrypted_sig, 0, deccipher.getInputBlockSize());
 		} catch (InvalidCipherTextException icte) {
-			Logger.normal(this,"It was not possible to decrypt the signature of this RTS message. Discarding the RTS message.");
+			Logger.normal(this, "It was not possible to decrypt the signature of this RTS message. Discarding the RTS message.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -356,7 +356,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		// finally we can now check that our hash and their hash
 		// match!
 		if (their_hash.length < our_hash.length) {
-			Logger.normal(this,"The signature of the RTS message is not valid (our hash: "+our_hash.length+"bytes, their hash: "+their_hash.length+"bytes. Discarding the RTS message.");
+			Logger.normal(this, "The signature of the RTS message is not valid (our hash: "+our_hash.length+"bytes, their hash: "+their_hash.length+"bytes. Discarding the RTS message.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
@@ -364,23 +364,23 @@ public class RTSFetcher implements SlotSaveCallback {
 		int i;
 		for (i = 0; i < our_hash.length; i++) {
 			if (their_hash[i] != our_hash[i]) {
-				Logger.normal(this,"The signature of the RTS message is not valid. Discarding the RTS message.");
+				Logger.normal(this, "The signature of the RTS message is not valid. Discarding the RTS message.");
 				msfile.delete();
 				rtsfile.delete();
 				return true;
 			}
 		}
-		Logger.normal(this,"Signature valid :)");
+		Logger.normal(this, "Signature valid :)");
 		// the signature is valid! Hooray!
 		// Now verify the message is for us
 		if(!account.getIdentity().equals(rtsprops.get("to"))) {
-			Logger.normal(this,"Recieved an RTS message that was not intended for the recipient. Discarding.");
+			Logger.normal(this, "Recieved an RTS message that was not intended for the recipient. Discarding.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
 		}
 
-		Logger.normal(this,"Original message intended for us :)");
+		Logger.normal(this, "Original message intended for us :)");
 
 		//Clean up temp files
 		if(!msfile.delete()) {

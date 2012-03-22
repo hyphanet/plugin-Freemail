@@ -33,7 +33,7 @@ import freemail.config.Configurator;
 import freemail.utils.Logger;
 import freemail.wot.IdentityMatcher;
 
-public class SMTPListener extends ServerListener implements Runnable,ConfigClient {
+public class SMTPListener extends ServerListener implements Runnable, ConfigClient {
 	private static final int LISTENPORT = 3025;
 	private String bindaddress;
 	private int bindport;
@@ -52,7 +52,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
-			Logger.error(this,"Error in SMTP server - "+ioe.getMessage());
+			Logger.error(this, "Error in SMTP server - "+ioe.getMessage());
 		}
 	}
 

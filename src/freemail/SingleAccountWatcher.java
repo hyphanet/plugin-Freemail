@@ -55,7 +55,7 @@ public class SingleAccountWatcher implements Runnable {
 		String rtskey=account.getProps().get("rtskey");
 
 		if(rtskey==null) {
-			Logger.error(this,"Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
+			Logger.error(this, "Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
 		}
 
 		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", rtsdir, account);
@@ -65,7 +65,7 @@ public class SingleAccountWatcher implements Runnable {
 		// temporary info message until there's a nicer UI :)
 		String freemailDomain=account.getDomain();
 		if(freemailDomain!=null) {
-			Logger.normal(this,"Secure Freemail address: <anything>@"+freemailDomain);
+			Logger.normal(this, "Secure Freemail address: <anything>@"+freemailDomain);
 		} else {
 			Logger.error(this, "You do not have a freemail address USK. This account is really broken.");
 		}

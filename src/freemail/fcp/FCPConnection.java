@@ -64,12 +64,12 @@ public class FCPConnection implements Runnable {
 			hello.writeto(this.os);
 			FCPMessage reply = this.getMessage();
 			if (reply.getType() == null) {
-				Logger.error(this,"Connection closed");
+				Logger.error(this, "Connection closed");
 				this.conn = null;
 				return;
 			}
 			if (!reply.getType().equals("NodeHello")) {
-				Logger.error(this,"Warning - got '"+reply.getType()+"' from node, expecting 'NodeHello'");
+				Logger.error(this, "Warning - got '"+reply.getType()+"' from node, expecting 'NodeHello'");
 			}
 		} catch (IOException ioe) {
 			this.conn = null;

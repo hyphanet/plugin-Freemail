@@ -1214,7 +1214,7 @@ class Channel {
 			id = Long.parseLong(s_id);
 		} catch (NumberFormatException nfe) {
 			/* FIXME: Id doesn't have to be an integer */
-			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
+			Logger.error(this, "Got a message with an invalid (non-integer) id. Discarding.");
 			msgprops.closeReader();
 			return true;
 		}
@@ -1231,7 +1231,7 @@ class Channel {
 
 		BufferedReader br = msgprops.getReader();
 		if (br == null) {
-			Logger.error(this,"Got an invalid message. Discarding.");
+			Logger.error(this, "Got an invalid message. Discarding.");
 			msgprops.closeReader();
 			return true;
 		}

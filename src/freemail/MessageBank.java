@@ -139,7 +139,7 @@ public class MessageBank {
 		this.writeNextId(newid);
 
 		if (newfile != null) {
-			MailMessage newmsg = new MailMessage(newfile,0);
+			MailMessage newmsg = new MailMessage(newfile, 0);
 			return newmsg;
 		}
 
@@ -157,7 +157,7 @@ public class MessageBank {
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].isDirectory()) continue;
 
-			MailMessage msg = new MailMessage(files[i],seq++);
+			MailMessage msg = new MailMessage(files[i], seq++);
 
 			msgs.put(new Integer(msg.getUID()), msg);
 		}
@@ -175,7 +175,7 @@ public class MessageBank {
 		for (int i = 0; i < files.length; i++) {
 			//if (files[i].getName().startsWith(".")) continue;
 
-			MailMessage msg = new MailMessage(files[i],i+1);
+			MailMessage msg = new MailMessage(files[i], i+1);
 
 			msgs[i] = msg;
 		}
@@ -350,8 +350,8 @@ public class MessageBank {
 	private static class UIDComparator implements Comparator<File> {
 		@Override
 		public final int compare (File a, File b) {
-			int ia=Integer.parseInt(a.getName().split(",",2)[0]);
-			int ib=Integer.parseInt(b.getName().split(",",2)[0]);
+			int ia=Integer.parseInt(a.getName().split(",", 2)[0]);
+			int ib=Integer.parseInt(b.getName().split(",", 2)[0]);
 
 			return(ia-ib);
 		}

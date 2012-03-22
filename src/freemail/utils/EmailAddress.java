@@ -118,7 +118,7 @@ public class EmailAddress {
 		if(index<0) {
 			return null;
 		} else {
-			return this.domain.substring(0,index);
+			return this.domain.substring(0, index);
 		}
 	}
 

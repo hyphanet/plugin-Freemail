@@ -730,10 +730,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		int range_len=-1;
 
 		if(attr.matches(".*<\\d+\\.\\d+>$")) {
-			String range=attr.substring(attr.indexOf("<")+1,attr.length()-1);
+			String range=attr.substring(attr.indexOf("<")+1, attr.length()-1);
 			attr=attr.substring(0, attr.indexOf("<"));
 
-			String r_start=range.substring(0,range.indexOf("."));
+			String r_start=range.substring(0, range.indexOf("."));
 			String r_end=range.substring(range.indexOf(".")+1);
 			try {
 				range_start=Integer.parseInt(r_start);

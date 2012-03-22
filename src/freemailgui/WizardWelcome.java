@@ -40,7 +40,7 @@ public class WizardWelcome extends JPanel {
 		welcomelabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 		this.add(welcomelabel);
 
-		this.add(Box.createRigidArea(new Dimension(0,15)));
+		this.add(Box.createRigidArea(new Dimension(0, 15)));
 
 		JLabel introlabel = new JLabel(bundle.getString("intro"));
 		introlabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);

@@ -32,7 +32,7 @@ import freemail.config.Configurator;
 import freemail.config.ConfigClient;
 import freemail.utils.Logger;
 
-public class IMAPListener extends ServerListener implements Runnable,ConfigClient {
+public class IMAPListener extends ServerListener implements Runnable, ConfigClient {
 	private static final int LISTENPORT = 3143;
 	private String bindaddress;
 	private int bindport;
@@ -58,7 +58,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
-			Logger.error(this,"Error in IMAP server - "+ioe.getMessage(), ioe);
+			Logger.error(this, "Error in IMAP server - "+ioe.getMessage(), ioe);
 		}
 	}
 
