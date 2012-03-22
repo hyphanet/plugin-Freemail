@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+	"-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+	"http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+	<property name="charset" value="UTF-8"/>
+
+	<module name="TreeWalker">
+		<!-- Check for a few simple import problems -->
+		<module name="AvoidStarImport"/>
+		<module name="UnusedImports"/>
+
+		<!-- Avoid static imports except from some classes -->
+		<module name="AvoidStaticImport">
+			<property name="excludes" value="junit.framework.Assert.*"/>
+		</module>
+
+		<!-- Blacklist for imports -->
+		<module name="IllegalImport">
+			<!--
+			     sun.*      - Sun implementation specific stuff
+			     com.sun.*  -
+			-->
+			<property name="illegalPkgs" value="sun, com.sun"/>
+		</module>
+	</module>
+</module>
