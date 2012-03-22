@@ -46,19 +46,19 @@ public class FCPConnection implements Runnable {
 	public FCPConnection(FCPContext ctx) {
 		this.fcpctx = ctx;
 		this.clients = new HashMap<String, FCPClient>();
-		
+
 		this.tryConnect();
 	}
-	
+
 	private void tryConnect() {
 		if (this.conn != null || stopping) return;
-		
+
 		try {
 			this.nextMsgId = 1;
 			this.conn = this.fcpctx.getConn();
 			this.is = this.conn.getInputStream();
 			this.os = this.conn.getOutputStream();
-			
+
 			FCPMessage hello = new FCPMessage(this.nextMsgId, "ClientHello");
 			this.nextMsgId++;
 			hello.writeto(this.os);
@@ -82,14 +82,14 @@ public class FCPConnection implements Runnable {
 			throw new AssertionError();
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		while (!stopping) {
 			try {
 				this.tryConnect();
 				if (this.conn == null || stopping) throw new IOException();
-				
+
 				FCPMessage msg = this.getMessage();
 				if (msg.getType() == null) throw new IOException("Connection closed");
 				this.dispatch(msg);
@@ -130,7 +130,7 @@ public class FCPConnection implements Runnable {
 			// ignore
 		}
 	}
-	
+
 	@Override
 	protected void finalize() throws Throwable {
 		try {
@@ -139,7 +139,7 @@ public class FCPConnection implements Runnable {
 		}
 		super.finalize();
 	}
-	
+
 	public synchronized void doRequest(FCPClient cli, FCPMessage msg) throws NoNodeConnectionException,
 	                                                                         ConnectionTerminatedException, FCPBadFileException {
 		if (stopping) throw new ConnectionTerminatedException("This FCP Connection has been terminated");
@@ -161,8 +161,8 @@ public class FCPConnection implements Runnable {
 	 */
 	public synchronized void cancelRequest(FCPMessage msg) {
 		this.clients.remove(msg.getId());
-	}	
-	
+	}
+
 	private void dispatch(FCPMessage msg) {
 		FCPClient cli = this.clients.get(msg.getId());
 		if (cli == null) {
@@ -179,13 +179,13 @@ public class FCPConnection implements Runnable {
 			cli.requestStatus(msg);
 		}
 	}
-	
+
 	public synchronized FCPMessage getMessage(String type) {
 		FCPMessage m = new FCPMessage(this.nextMsgId, type);
 		this.nextMsgId++;
 		return m;
 	}
-	
+
 	private FCPMessage getMessage() throws IOException {
 		return new FCPMessage(this.is);
 	}

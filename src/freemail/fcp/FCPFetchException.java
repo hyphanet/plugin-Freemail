@@ -21,7 +21,7 @@ package freemail.fcp;
 
 public class FCPFetchException extends FCPException {
 	static final long serialVersionUID = -1;
-	
+
 	// The following code shamelessly stolen from Freenet's FetchException.java (but reordered)
 	/** Too many levels of recursion into archives */
 	public static final int TOO_DEEP_ARCHIVE_RECURSION = 1;
@@ -83,39 +83,39 @@ public class FCPFetchException extends FCPException {
 	public static final int WRONG_MIME_TYPE = 29;
 	/** A node killed the request because it had recently been tried and had DNFed */
 	public static final int RECENTLY_FAILED = 30;
-	
+
 	private final FCPMessage fcpMessage;
-	
+
 	public FCPFetchException(FCPMessage fcpmsg) {
 		super(fcpmsg);
 		this.fcpMessage = fcpmsg;
 
 		assert (fcpmsg.getType().equalsIgnoreCase("GetFailed")) : "Message type was " + fcpmsg.getType();
 	}
-	
+
 	public FCPMessage getFailureMessage() {
 		return fcpMessage;
 	}
-	
+
 	public int getCode() {
 		return errorcode;
 	}
-	
+
 	@Override
 	public String getMessage() {
 		if(shortCodeDescription != null) return shortCodeDescription;
-		
+
 		// No short description? try the long one.
 		if(codeDescription != null) return codeDescription;
 		if(extraDescription != null) return extraDescription;
-		
+
 		// No? Does it have a code?
 		if(errorcode > 0) return "Error number " + errorcode + " (no description given)";
-		
+
 		// Give up then
 		return "Unknown error (no hints given by the node)";
 	}
-	
+
 	/**
 	 * @return true if the error is the fault of the network or our connection to it, and has no bearing on whether or not
 	 *              the key itself is present or not.
@@ -132,7 +132,7 @@ public class FCPFetchException extends FCPException {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @return true if all future requests for this this key will fail too
 	 */

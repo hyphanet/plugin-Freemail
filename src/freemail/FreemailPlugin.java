@@ -60,7 +60,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
 	private WoTConnection wotConnection = null;
-	
+
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
 
@@ -84,12 +84,12 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		senderExecutor.setKeepAliveTime(1, TimeUnit.HOURS);
 		senderExecutor.allowCoreThreadTimeOut(true);
 	}
-	
+
 	@Override
 	public String getVersion() {
 		return Version.getVersionString();
 	}
-	
+
 	@Override
 	public void runPlugin(PluginRespirator pr) {
 		long start = System.nanoTime();

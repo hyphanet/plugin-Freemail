@@ -32,23 +32,23 @@ public class DateStringFactory {
 	public static String getKeyString() {
 		return getOffsetKeyString(0);
 	}
-	
+
 	// get a date in a format we use for keys, offset from today
 	public static synchronized String getOffsetKeyString(int offset) {
 		cal.setTime(new Date());
 		cal.add(Calendar.DAY_OF_MONTH, offset);
-		
+
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		sdf.setTimeZone(gmt);
-		
+
 		return sdf.format(cal.getTime());
 	}
-	
+
 	public static Date dateFromKeyString(String str) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 			sdf.setTimeZone(gmt);
-			
+
 			sdf.setLenient(false);
 			return sdf.parse(str);
 		} catch (ParseException pe) {

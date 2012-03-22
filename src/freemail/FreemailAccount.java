@@ -35,7 +35,7 @@ public class FreemailAccount {
 	private final PropsFile accprops;
 	private final MessageBank mb;
 	private final MessageHandler messageHandler;
-	
+
 	FreemailAccount(String identity, File _accdir, PropsFile _accprops, Freemail freemail) {
 		if(!FreenetURI.checkSSKHash(identity)) {
 			throw new IllegalArgumentException("Expected valid identity string, but got " + identity);
@@ -54,7 +54,7 @@ public class FreemailAccount {
 		File channelDir = new File(accdir, "channel");
 		messageHandler = new MessageHandler(new File(accdir, "outbox"), freemail, channelDir, this);
 	}
-	
+
 	public void startTasks() {
 		messageHandler.start();
 	}
@@ -71,15 +71,15 @@ public class FreemailAccount {
 			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);
 		}
 	}
-	
+
 	public File getAccountDir() {
 		return accdir;
 	}
-	
+
 	public PropsFile getProps() {
 		return accprops;
 	}
-	
+
 	public MessageBank getMessageBank() {
 		return mb;
 	}

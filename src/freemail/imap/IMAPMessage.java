@@ -30,7 +30,7 @@ public class IMAPMessage {
 	IMAPMessage(String raw) throws IMAPBadMessageException {
 		char[] a1 = {'[', '"'};
 		char[] a2 = {']', '"'};
-		
+
 		String[] parts = doSplit(raw, a1, a2);
 		if (parts.length < 2) {
 			throw new IMAPBadMessageException();
@@ -44,7 +44,7 @@ public class IMAPMessage {
 			this.args = null;
 		}
 	}
-	
+
 	public static String[] doSplit(String in, char c1, char c2) {
 		char[] a1 = new char[1];
 		a1[0] = c1;
@@ -52,16 +52,16 @@ public class IMAPMessage {
 		a2[0] = c2;
 		return doSplit(in, a1, a2);
 	}
-	
+
 	// split on spaces that aren't between two given characters
 	public static String[] doSplit(String in, char[] c1, char[] c2) {
 		Vector<String> parts = new Vector<String>();
 		StringBuffer buf = new StringBuffer("");
 		Stack<Character> context = new Stack<Character>();
-		
+
 		for (int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
-			
+
 			int pos = -1;
 			for (int j = 0; j < c1.length; j++) {
 				if (c1[j] == c) {
@@ -69,7 +69,7 @@ public class IMAPMessage {
 					break;
 				}
 			}
-			
+
 			if (!context.empty() && c == context.peek().charValue()) {
 				context.pop();
 				buf.append(c);
@@ -83,28 +83,28 @@ public class IMAPMessage {
 				buf.append(c);
 			} else buf.append(c);
 		}
-		
+
 		parts.add(buf.toString());
-		
+
 		String[] retval = new String[parts.size()];
-		
+
 		for (int i = 0; i < parts.size(); i++) {
 			retval[i] = parts.get(i);
 		}
-		
+
 		return retval;
 	}
-	
+
 	// for debugging
 	@Override
 	public String toString() {
 		String retval = new String("");
-		
+
 		retval += this.tag + " ";
 		retval += this.type;
-		
+
 		if (this.args == null) return retval;
-		
+
 		for (int i = 0; i < this.args.length; i++) {
 			retval += " " + this.args[i];
 		}

@@ -32,16 +32,16 @@ public class EmailAddress {
 	public String realname;
 	public String user;
 	public String domain;
-	
+
 	public EmailAddress(String address) {
 		this.realname = null;
 		this.user = null;
 		this.domain = null;
-		
+
 		StringBuffer bank = new StringBuffer("");
 		for (int i = 0; i < address.length(); i++) {
 			char c = address.charAt(i);
-			
+
 			switch (c) {
 				case '@':
 					this.user = bank.toString().toLowerCase();
@@ -67,11 +67,11 @@ public class EmailAddress {
 					bank.append(c);
 			}
 		}
-		
+
 		if (this.realname == null && this.domain == null) {
 			this.domain = bank.toString().toLowerCase();
 		}
-		
+
 		// trim quotes out of the real name field
 		if (realname != null) {
 			this.realname = this.realname.trim();
@@ -85,16 +85,16 @@ public class EmailAddress {
 			}
 		}
 	}
-	
+
 	public EmailAddress() {
 	}
-	
+
 	public boolean is_freemail_address() {
 		if (this.domain == null) return false;
 		if (!this.domain.endsWith(".freemail")) return false;
 		return true;
 	}
-	
+
 	public boolean is_ssk_address() {
 		if (!this.is_freemail_address()) return false;
 		String key;
@@ -103,14 +103,14 @@ public class EmailAddress {
 		} catch (Exception e) {
 			return false;
 		}
-		
+
 		String[] parts = key.split(",", 3);
-		
+
 		if (parts.length < 3) return false;
 		if (parts[0].length() != SSK_PART_LENGTH || parts[1].length() != SSK_PART_LENGTH) return false;
 		return true;
 	}
-	
+
 	// get the part of the domain before the '.freemail'
 	// note that the domain may contain additional dots, so we cannot use split
 	public String getSubDomain() {
@@ -118,19 +118,19 @@ public class EmailAddress {
 		if(index<0) {
 			return null;
 		} else {
-			return this.domain.substring(0,index); 
+			return this.domain.substring(0,index);
 		}
 	}
-	
+
 	public String getMailpageKey() {
 		return "USK@"+new String (Base32.decode(this.getSubDomain()))+"/"+AccountManager.MAILSITE_SUFFIX+"/"+AccountManager.MAILSITE_VERSION+"/"+MailSite.MAILPAGE;
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.user+"@"+this.domain;
 	}
-	
+
 	public String toLongString() {
 		return this.realname + " <"+this.user+"@"+this.domain+">";
 	}

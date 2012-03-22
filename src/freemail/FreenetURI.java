@@ -42,26 +42,26 @@ public class FreenetURI {
 
 	public FreenetURI(String uri) throws MalformedURLException {
 		String[] parts = uri.split(":", 2);
-		
+
 		if (parts.length == 2 && !parts[0].equals("freenet")) {
 			throw new MalformedURLException("Invalid scheme - not a Freenet address");
 		} else if (parts.length == 2) {
 			uri = parts[1];
 		}
-		
+
 		// now split on the '@'
 		parts = uri.split("@", 2);
-		
+
 		if (parts.length < 2) {
 			this.keytype  = "KSK";
 		} else {
 			this.keytype = parts[0];
 			uri = parts[1];
 		}
-		
+
 		// finally, separate the body from the metastrings
 		parts = uri.split("/", 2);
-		
+
 		if (parts.length < 2) {
 			this.keybody = uri;
 			this.suffix = null;
@@ -70,15 +70,15 @@ public class FreenetURI {
 			this.suffix = parts[1];
 		}
 	}
-	
+
 	public String getKeyType() {
 		return this.keytype;
 	}
-	
+
 	public String getKeyBody() {
 		return this.keybody;
 	}
-	
+
 	public String getSuffix() {
 		return this.suffix;
 	}
@@ -129,7 +129,7 @@ public class FreenetURI {
 	public static boolean checkSSKHash(String hash) {
 		return hash.matches("^" + SSK_HASH_REGEX + "$");
 	}
-	
+
 	/*
 	 * Read a Freenet URI from args and print out in parts to test
 	 */
@@ -141,7 +141,7 @@ public class FreenetURI {
 			mue.printStackTrace();
 			return;
 		}
-		
+
 		System.out.println("Key type: "+uri.getKeyType());
 		System.out.println("Key body: "+uri.getKeyBody());
 		System.out.println("Suffix: "+uri.getSuffix());

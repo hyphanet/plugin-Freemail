@@ -54,48 +54,48 @@ public class SetupWizard implements ActionListener {
 			}
 		});
 	}
-	
+
 	public SetupWizard() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 		}
-		
+
 		try {
 			this.bundle = ResourceBundle.getBundle("freemailgui.text.MessageBundle", Locale.getDefault());
 		} catch (MissingResourceException mre) {
-			this.bundle = ResourceBundle.getBundle("freemailgui.text.MessageBundle", new Locale("en", "GB")); 
+			this.bundle = ResourceBundle.getBundle("freemailgui.text.MessageBundle", new Locale("en", "GB"));
 		}
-		
+
 		this.frame = new JFrame(this.bundle.getString("wizard_title"));
 		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		ImageIcon icon = new ImageIcon(getClass().getResource("images/pigeon_small.png"));
 		this.frame.setIconImage(icon.getImage());
-		
+
 		this.panel = new JPanel();
 		this.panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		this.panel.setLayout(new BoxLayout(this.panel, BoxLayout.Y_AXIS));
-		
+
 		ImageIcon logo = new ImageIcon(getClass().getResource("images/logo_and_text.png"));
 		this.logolabel = new JLabel();
 		logolabel.setIcon(logo);
 		logolabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-		
+
 		this.backbutton = new JButton("<< "+bundle.getString("back"));
 		this.backbutton.addActionListener(this);
-		
+
 		this.cancelbutton = new JButton(bundle.getString("cancel"));
 		this.cancelbutton.addActionListener(this);
-		
+
 		this.nextbutton = new JButton(bundle.getString("next")+" >>");
 		this.nextbutton.addActionListener(this);
-		
+
 		this.currentstep = 0;
 		this.makeGUI();
 		this.frame.add(this.panel);
 	}
-	
+
 	public void show() {
 		// make the window a fixed size - it's a wizard
 		this.frame.setSize(500, 400);
@@ -104,13 +104,13 @@ public class SetupWizard implements ActionListener {
 		this.frame.validate();
 		this.frame.setVisible(true);
 	}
-	
+
 	private void makeGUI() {
 		this.panel.removeAll();
-		
+
 		this.panel.add(logolabel, 0);
 		this.panel.add(Box.createVerticalGlue());
-		
+
 		switch (this.currentstep) {
 			case 0:
 				this.subpanel = new WizardWelcome(this.bundle);
@@ -122,17 +122,17 @@ public class SetupWizard implements ActionListener {
 				this.subpanel = new WizardAskGenKeys(this.bundle);
 				break;
 		}
-		
+
 		if (this.currentstep == 0) {
 			this.backbutton.setEnabled(false);
 		} else {
 			this.backbutton.setEnabled(true);
 		}
-		
+
 		this.panel.add(this.subpanel);
-		
+
 		this.panel.add(Box.createVerticalGlue());
-		
+
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
 		buttons.add(this.backbutton);
@@ -140,11 +140,11 @@ public class SetupWizard implements ActionListener {
 		buttons.add(this.cancelbutton);
 		buttons.add(Box.createHorizontalGlue());
 		buttons.add(this.nextbutton);
-		
+
 		this.panel.add(buttons);
 		this.frame.validate();
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == this.cancelbutton) {

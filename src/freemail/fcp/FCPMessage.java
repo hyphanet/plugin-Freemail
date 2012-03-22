@@ -41,8 +41,8 @@ public class FCPMessage {
 	public final HashMap<String, String> headers;
 	private File data;
 	private InputStream outData;
-	
-	
+
+
 	public FCPMessage(int id, String type) {
 		this.identifier = Integer.toString(id);
 		this.headers = new HashMap<String, String>();
@@ -50,14 +50,14 @@ public class FCPMessage {
 		this.data = null;
 		this.outData = null;
 	}
-	
+
 	public FCPMessage(InputStream is) throws IOException {
 		this.headers = new HashMap<String, String>();
 		this.outData = null;
-		
+
 		this.messagetype = null;
 		LineReader r = new LineReadingInputStream(is);
-		
+
 		String line;
 		while ( (line = r.readLine(200, 200, false)) != null) {
 			/***************************************/
@@ -80,7 +80,7 @@ public class FCPMessage {
 			}
 		}
 	}
-	
+
 	private void addHeader(String name, String val) {
 		if (name.equalsIgnoreCase("Identifier")) {
 			this.identifier = val;
@@ -88,23 +88,23 @@ public class FCPMessage {
 			this.headers.put(name, val);
 		}
 	}
-	
+
 	public String getType() {
 		return this.messagetype;
 	}
-	
+
 	public String getId() {
 		return this.identifier;
 	}
-	
+
 	public File getData() {
 		return this.data;
 	}
-	
+
 	public void setData(InputStream d) {
 		this.outData = d;
 	}
-	
+
 	private void readData(InputStream is, int len) {
 		try {
 			this.data = File.createTempFile("freemail-fcp", null, Freemail.getTempDir());
@@ -114,7 +114,7 @@ public class FCPMessage {
 		}
 		try {
 			FileOutputStream fos = new FileOutputStream(this.data);
-			
+
 			byte[] buf = new byte[1024];
 			while (len > 0) {
 				int toRead = len;
@@ -130,7 +130,7 @@ public class FCPMessage {
 			return;
 		}
 	}
-	
+
 	public boolean isCompletionMessage() {
 		if (this.messagetype.equalsIgnoreCase("PutFailed"))
 			return true;
@@ -148,33 +148,33 @@ public class FCPMessage {
 			return true;
 		return false;
 	}
-	
+
 	public void release() {
 		if (this.data != null) {
 			this.data.delete();
 		}
 	}
-	
+
 	public void writeto(OutputStream os) throws IOException, FCPBadFileException {
 		StringBuffer buf = new StringBuffer();
-		
+
 		buf.append(this.messagetype);
 		buf.append("\r\n");
-		
+
 		if (this.messagetype.equalsIgnoreCase("ClientHello")) {
 			buf.append("Name=freemail\r\n");
 			buf.append("ExpectedVersion=2.0\r\n");
 		}
-		
+
 		buf.append("Identifier="+this.identifier+"\r\n");
-		
+
 		for (Enumeration<String> e = Collections.enumeration(this.headers.keySet()); e.hasMoreElements(); ) {
 			String hdr = e.nextElement();
 			String val = this.headers.get(hdr);
-			
+
 			buf.append(hdr+"="+val+"\r\n");
 		}
-		
+
 		if (this.outData != null) {
 			buf.append("UploadFrom=direct\r\n");
 			try {
@@ -192,7 +192,7 @@ public class FCPMessage {
 		}
 		if (this.outData != null) {
 			byte[] bytebuf = new byte[1024];
-			
+
 			int read;
 			while ( (read = this.outData.read(bytebuf)) > 0) {
 				os.write(bytebuf, 0, read);

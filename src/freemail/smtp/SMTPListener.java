@@ -39,14 +39,14 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 	private int bindport;
 	private final AccountManager accountManager;
 	private final Freemail freemail;
-	
+
 	public SMTPListener(AccountManager accMgr, Configurator cfg, Freemail freemail) {
 		this.accountManager = accMgr;
 		this.freemail = freemail;
 		cfg.register(Configurator.SMTP_BIND_ADDRESS, this, "127.0.0.1");
 		cfg.register(Configurator.SMTP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
-	
+
 	@Override
 	public void run() {
 		try {
@@ -55,7 +55,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 			Logger.error(this,"Error in SMTP server - "+ioe.getMessage());
 		}
 	}
-	
+
 	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase(Configurator.SMTP_BIND_ADDRESS)) {
@@ -64,7 +64,7 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 			this.bindport = Integer.parseInt(val);
 		}
 	}
-	
+
 	public void realrun() throws IOException {
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
 		while (!sock.isClosed()) {
@@ -76,9 +76,9 @@ public class SMTPListener extends ServerListener implements Runnable,ConfigClien
 				newthread.start();
 				addHandler(newcli, newthread);
 			} catch (IOException ioe) {
-				
+
 			}
-			
+
 			reapHandlers();
 		}
 	}

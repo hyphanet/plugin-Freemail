@@ -28,11 +28,11 @@ import freemail.config.Configurator;
 public class FCPContext implements ConfigClient {
 	private String hostname;
 	private int port;
-	
+
 	public Socket getConn() throws IOException {
 		return new Socket(this.hostname, this.port);
 	}
-	
+
 	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase(Configurator.FCP_HOST)) {

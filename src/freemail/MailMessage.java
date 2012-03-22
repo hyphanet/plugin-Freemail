@@ -59,12 +59,12 @@ public class MailMessage {
 	private int msg_seqnum=0;
 	public IMAPMessageFlags flags;
 	private static final Random messageIdRandom = new Random();
-	
+
 	public MailMessage(File f, int msg_seqnum) {
 		this.file = f;
 		this.headers = new Vector<MailMessageHeader>();
 		this.msg_seqnum=msg_seqnum;
-		
+
 		// initialize flags from filename
 		String[] parts = f.getName().split(",");
 		if (parts.length < 2 && !f.getName().endsWith(",")) {
@@ -79,34 +79,34 @@ public class MailMessage {
 		}
 		this.brdr = null;
 	}
-	
+
 	public void addHeader(String name, String val) {
 		this.headers.add(new MailMessageHeader(name, val));
 	}
-	
+
 	// get the first header of a given name
 	public String getFirstHeader(String name) {
 		Enumeration<MailMessageHeader> e = this.headers.elements();
-		
+
 		while (e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
-			
+
 			if (h.name.equalsIgnoreCase(name)) {
 				return h.val;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public String getHeaders(String name) {
 		StringBuffer buf = new StringBuffer("");
-		
+
 		Enumeration<MailMessageHeader> e = this.headers.elements();
-		
+
 		while (e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
-			
+
 			if (h.name.equalsIgnoreCase(name)) {
 				buf.append(h.name);
 				buf.append(": ");
@@ -114,10 +114,10 @@ public class MailMessage {
 				buf.append("\r\n");
 			}
 		}
-		
+
 		return buf.toString();
 	}
-	
+
 	@Override
 	public int hashCode() {
 		if(file == null) {
@@ -148,93 +148,93 @@ public class MailMessage {
 
 	public String[] getHeadersAsArray(String name) {
 		Vector<String> hdrs = new Vector<String>();
-		
+
 		Enumeration<MailMessageHeader> e = this.headers.elements();
-		
+
 		while (e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
-			
+
 			if (h.name.equalsIgnoreCase(name)) {
 				hdrs.add(h.val);
 			}
 		}
-		
+
 		String[] retval = new String[hdrs.size()];
-		
+
 		Enumeration<String> headers = hdrs.elements();
-		
+
 		int i = 0;
 		while (headers.hasMoreElements()) {
 			retval[i] = headers.nextElement();
 			i++;
 		}
-		
+
 		return retval;
 	}
-	
+
 	public void removeHeader(String name, String val) {
 		int i;
-		
+
 		for (i = 0; i < this.headers.size(); i++) {
 			MailMessageHeader h = this.headers.elementAt(i);
-			
+
 			if (h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
 				this.headers.remove(i);
 				i--;
 			}
 		}
 	}
-	
+
 	public String getAllHeadersAsString() {
 		Enumeration<MailMessageHeader> e = this.headers.elements();
 		StringBuffer buf = new StringBuffer();
-		
+
 		while (e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
-			
+
 			buf.append(h.name);
 			buf.append(": ");
 			buf.append(h.val);
 			buf.append("\r\n");
 		}
-		
+
 		return buf.toString();
 	}
-	
+
 	public PrintStream writeHeadersAndGetStream() throws FileNotFoundException {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
-		
+
 		Enumeration<MailMessageHeader>  e = this.headers.elements();
-		
+
 		while (e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
-			
+
 			this.ps.println(h.name + ": " + h.val);
 		}
-		
+
 		this.ps.println("");
-		
+
 		return this.ps;
 	}
-	
+
 	public PrintStream getRawStream() throws FileNotFoundException {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
-		
+
 		return this.ps;
 	}
-	
+
 	public void commit() {
 		try {
 			this.os.close();
 			// also potentially move from a temp dir to real inbox
 			// to do safer inbox access
 		} catch (IOException ioe) {
-			
+
 		}
 	}
-	
+
 	public void cancel() {
 		try {
 			this.os.close();
@@ -242,17 +242,17 @@ public class MailMessage {
 		}
 		this.file.delete();
 	}
-	
+
 	public void readHeaders() throws IOException {
 		BufferedReader bufrdr = new BufferedReader(new FileReader(this.file));
-		
+
 		this.readHeaders(bufrdr);
 		bufrdr.close();
 	}
-	
+
 	public void readHeaders(BufferedReader bufrdr) throws IOException {
 		if (this.headers.size() > 0) return;
-		
+
 		String line;
 		String[] parts = null;
 		while ( (line = bufrdr.readLine()) != null) {
@@ -263,7 +263,7 @@ public class MailMessage {
 				break;
 			} else if (line.startsWith(" ") || line.startsWith("\t")) {
 				// continuation of previous line
-				if (parts == null || parts[1] == null) 
+				if (parts == null || parts[1] == null)
 					continue;
 				parts[1] += " "+line.trim();
 			} else {
@@ -271,61 +271,61 @@ public class MailMessage {
 					this.addHeader(parts[0], parts[1]);
 				parts = null;
 				parts = line.split(": ", 2);
-				
+
 				if (parts.length < 2)
 					parts = null;
 			}
 		}
-		
+
 		if (parts != null) {
 			this.addHeader(parts[0], parts[1]);
 		}
 	}
-	
+
 	public int getUID() {
 		String[] parts = this.file.getName().split(",");
-		
+
 		return Integer.parseInt(parts[0]);
 	}
 
 	public int getSeqNum() {
 		return msg_seqnum;
 	}
-	
+
 	public long getSize() throws IOException {
 		// this is quite arduous since we have to send the message
 		// with \r\n's, and hence it may not be the size it is on disk
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
-		
+
 		long counter = 0;
 		String line;
-		
+
 		while ( (line = br.readLine()) != null) {
 			counter += line.getBytes().length;
 			counter += "\r\n".getBytes().length;
 		}
-		
+
 		br.close();
 		return counter;
 	}
-	
+
 	public void closeStream() {
 		try {
 			if (this.brdr != null) this.brdr.close();
 		} catch (IOException ioe) {
-			
+
 		}
 		this.brdr = null;
 	}
-	
+
 	public String readLine() throws IOException {
 		if (this.brdr == null) {
 			this.brdr = new BufferedReader(new FileReader(this.file));
 		}
-		
+
 		return this.brdr.readLine();
 	}
-	
+
 	public boolean copyTo(MailMessage msg) {
 		this.closeStream();
 		String line;
@@ -339,30 +339,30 @@ public class MailMessage {
 			msg.cancel();
 			return false;
 		}
-		
+
 		msg.flags = this.flags;
 		msg.storeFlags();
 		return true;
 	}
-	
+
 	// programming-by-contract - anything that tries to read the message
 	// or suchlike after calling this method is responsible for the
 	// torrent of exceptions they'll get thrown at them!
 	public void delete() {
 		this.file.delete();
 	}
-	
+
 	public void storeFlags() {
 		String[] parts = this.file.getName().split(",");
-		
+
 		String newname = parts[0] + "," + this.flags.getShortFlagString();
 		File newfile = new File(this.file.getParentFile(), newname);
-		
+
 		if(this.file.renameTo(newfile)) {
 			this.file = newfile;
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return "MailMessage backed by " + file;
@@ -406,7 +406,7 @@ public class MailMessage {
 	private static class MailMessageHeader {
 		public String name;
 		public String val;
-		
+
 		public MailMessageHeader(String n, String v) {
 			this.name = n;
 			this.val = v;

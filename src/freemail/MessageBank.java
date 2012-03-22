@@ -52,7 +52,7 @@ public class MessageBank {
 
 	public MessageBank(FreemailAccount account) {
 		this.dir = new File(account.getAccountDir(), MESSAGES_DIR);
-		
+
 		if (!this.dir.exists()) {
 			this.dir.mkdir();
 		}
@@ -61,7 +61,7 @@ public class MessageBank {
 		topLevel = null;
 		this.uidValidity = 1;
 	}
-	
+
 	private MessageBank(File d, MessageBank topLevel) {
 		this.dir = d;
 		this.topLevel = topLevel;
@@ -91,39 +91,39 @@ public class MessageBank {
 		props.put("uidvalidity", uid);
 		uidValidity = uid;
 	}
-	
+
 	public String getName() {
 		return this.dir.getName();
 	}
-	
+
 	public String getFolderFlagsString() {
 		StringBuffer retval = new StringBuffer("(");
-		
+
 		if (this.listSubFolders().length > 0) {
 			retval.append("\\HasChildren");
 		} else {
 			retval.append("\\HasNoChildren");
 		}
-		
+
 		retval.append(")");
 		return retval.toString();
 	}
-	
+
 	public synchronized boolean delete() {
 		File[] files = this.dir.listFiles();
-		
+
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().equals(".")) continue;
 			if (files[i].getName().equals("..")) continue;
-			
+
 			// this method should will fail if there are directories
 			// here. It should never be called if this is the case.
 			if (!files[i].delete()) return false;
 		}
-		
+
 		return this.dir.delete();
 	}
-	
+
 	public synchronized MailMessage createMessage() {
 		long newid = this.nextId();
 		File newfile;
@@ -135,17 +135,17 @@ public class MessageBank {
 		} catch (IOException ioe) {
 			newfile = null;
 		}
-		
+
 		this.writeNextId(newid);
-		
+
 		if (newfile != null) {
 			MailMessage newmsg = new MailMessage(newfile,0);
 			return newmsg;
 		}
-		
+
 		return null;
 	}
-	
+
 	public synchronized SortedMap<Integer, MailMessage> listMessages() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
 
@@ -156,36 +156,36 @@ public class MessageBank {
 		int seq=1;
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].isDirectory()) continue;
-			
+
 			MailMessage msg = new MailMessage(files[i],seq++);
-			
+
 			msgs.put(new Integer(msg.getUID()), msg);
 		}
-		
+
 		return msgs;
 	}
-	
+
 	public synchronized MailMessage[] listMessagesArray() {
 		File[] files = this.dir.listFiles(new MessageFileNameFilter());
 
 		Arrays.sort(files, new UIDComparator());
-		
+
 		MailMessage[] msgs = new MailMessage[files.length];
-		
+
 		for (int i = 0; i < files.length; i++) {
 			//if (files[i].getName().startsWith(".")) continue;
-			
+
 			MailMessage msg = new MailMessage(files[i],i+1);
-			
+
 			msgs[i] = msg;
 		}
-		
+
 		return msgs;
 	}
-	
+
 	public MessageBank getSubFolder(String name) {
 		if (!name.matches("[\\w\\s_]*")) return null;
-		
+
 		File targetdir = new File(this.dir, name);
 		if (!targetdir.exists()) {
 			return null;
@@ -193,12 +193,12 @@ public class MessageBank {
 
 		return new MessageBank(targetdir, topLevel == null ? this : topLevel);
 	}
-	
+
 	public synchronized MessageBank makeSubFolder(String name) {
 		if (!name.matches("[\\w\\s_]*")) return null;
-		
+
 		File targetdir = new File(this.dir, name);
-		
+
 		//Check for a ghost directory left by old versions of Freemail
 		File ghostdir = new File(this.dir, "."+name);
 		if (ghostdir.exists()) {
@@ -208,31 +208,31 @@ public class MessageBank {
 			}
 			ghostdir.delete();
 		}
-		
+
 		if (targetdir.exists()) {
 			return null;
 		}
-		   
+
 		if (targetdir.mkdir()) {
 			return new MessageBank(targetdir, topLevel == null ? this : topLevel);
 		}
 		return null;
 	}
-	
+
 	public synchronized MessageBank[] listSubFolders() {
 		File[] files = this.dir.listFiles();
 		Vector<File> subfolders = new Vector<File>();
-		
+
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().startsWith(".")) continue;
-			
+
 			if (files[i].isDirectory()) {
 				subfolders.add(files[i]);
 			}
 		}
-		
+
 		MessageBank[] retval = new MessageBank[subfolders.size()];
-		
+
 		Enumeration<File> e = subfolders.elements();
 		int i = 0;
 		while (e.hasMoreElements()) {
@@ -241,7 +241,7 @@ public class MessageBank {
 		}
 		return retval;
 	}
-	
+
 	/**
 	 * Returns the 32 bit unsigned UIDVALIDITY value for this MessageBank.
 	 * @return the 32 bit unsigned UIDVALIDITY value for this MessageBank
@@ -254,22 +254,22 @@ public class MessageBank {
 	private synchronized long nextId() {
 		File nidfile = new File(this.dir, NIDFILE);
 		long retval;
-		
+
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(nidfile));
-			
+
 			retval = Long.parseLong(br.readLine());
-		
+
 			br.close();
 		} catch (IOException ioe) {
 			return 1;
 		} catch (NumberFormatException nfe) {
 			return 1;
 		}
-		
+
 		return retval;
 	}
-	
+
 	private synchronized void writeNextId(long newid) {
 		// write the new ID to a temporary file
 		File nidfile = new File(this.dir, NIDTMPFILE);
@@ -278,7 +278,7 @@ public class MessageBank {
 			ps.print(newid);
 			ps.flush();
 			ps.close();
-			
+
 			// make sure the old nextid file doesn't contain a
 			// value greater than our one
 			if (this.nextId() <= newid) {
@@ -290,7 +290,7 @@ public class MessageBank {
 			// how to handle this?
 		}
 	}
-	
+
 	private long getNewUidValidity() {
 		if(topLevel != null) {
 			//The top level MessageBank controls the values
@@ -345,7 +345,7 @@ public class MessageBank {
 			return true;
 		}
 	}
-	
+
 	// compare to filenames by number leading up to ","
 	private static class UIDComparator implements Comparator<File> {
 		@Override

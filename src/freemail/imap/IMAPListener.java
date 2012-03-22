@@ -37,13 +37,13 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 	private String bindaddress;
 	private int bindport;
 	private final AccountManager accountManager;
-	
+
 	public IMAPListener(AccountManager accMgr, Configurator cfg) {
 		accountManager = accMgr;
 		cfg.register(Configurator.IMAP_BIND_ADDRESS, this, "127.0.0.1");
 		cfg.register(Configurator.IMAP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
-	
+
 	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase(Configurator.IMAP_BIND_ADDRESS)) {
@@ -52,7 +52,7 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 			this.bindport = Integer.parseInt(val);
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		try {
@@ -73,11 +73,11 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
  				newthread.start();
  				addHandler(newcli, newthread);
 			} catch (SocketTimeoutException ste) {
-				
+
 			} catch (IOException ioe) {
-				
+
 			}
-			
+
 			reapHandlers();
 		}
 	}

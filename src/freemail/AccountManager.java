@@ -53,26 +53,26 @@ import freenet.support.Base64;
 public class AccountManager {
 	static final String ACCOUNT_FILE = "accprops";
 	private static final int RTS_KEY_LENGTH = 32;
-	
+
 	private static final int ASYM_KEY_MODULUS_LENGTH = 4096;
 	private static final BigInteger ASYM_KEY_EXPONENT = new BigInteger("17", 10);
 	private static final int ASYM_KEY_CERTAINTY = 80;
-	
+
 	public static final String MAILSITE_SUFFIX = "mailsite";
 	public static final String MAILSITE_VERSION = "-1";
-	
+
 	// We keep FreemailAccount objects for all the accounts in this instance of Freemail - they need to be in memory
 	// anyway since there's SingleAccountWatcher thread running for each of them anyway - and we return the same object
 	// each time a request is made for a given account.
 	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
-	
+
 	//singleAccountWatcherList locks both these lists
 	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
 	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
 
 	private final File datadir;
 	private final Freemail freemail;
-	
+
 	public AccountManager(File _datadir, Freemail freemail) {
 		datadir = _datadir;
 		if (!datadir.exists()) {
@@ -120,52 +120,52 @@ public class AccountManager {
 			}
 		}
 	}
-	
+
 	public FreemailAccount getAccount(String username) {
 		synchronized(accounts) {
 			return accounts.get(username);
 		}
 	}
-	
+
 	public List<FreemailAccount> getAllAccounts() {
 		synchronized(accounts) {
 			return new LinkedList<FreemailAccount>(accounts.values());
 		}
 	}
-	
+
 	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
-		
+
 		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
-		
+
 		account.getProps().put("md5passwd", strmd5);
 	}
-	
+
 	private static PropsFile getAccountFile(File accdir) {
 		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
-		
+
 		if (!accdir.exists() || !accfile.exists()) {
 			return null;
 		}
-		
+
 		return accfile;
 	}
-	
+
 	public static RSAKeyParameters getPrivateKey(PropsFile props) {
 		String mod_str = props.get("asymkey.modulus");
 		String privexp_str = props.get("asymkey.privexponent");
-		
+
 		if (mod_str == null || privexp_str == null) {
 			Logger.error(AccountManager.class,"Couldn't get private key - account file corrupt?");
 			return null;
 		}
-		
+
 		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
-	
+
 	private static boolean initAccFile(PropsFile accfile, OwnIdentity oid) {
 		//Initialise RTS KSK
 		Random rnd = new Random();
@@ -183,14 +183,14 @@ public class AccountManager {
 
 		// generate an RSA keypair
 		Logger.normal(AccountManager.class,"Generating cryptographic keypair (this could take a few minutes)...");
-		
+
 		SecureRandom rand = new SecureRandom();
 
 		RSAKeyGenerationParameters kparams = new RSAKeyGenerationParameters(ASYM_KEY_EXPONENT, rand, ASYM_KEY_MODULUS_LENGTH, ASYM_KEY_CERTAINTY);
 
 		RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
 		kpg.init(kparams);
-		
+
 		AsymmetricCipherKeyPair keypair = kpg.generateKeyPair();
 		RSAKeyParameters pub = (RSAKeyParameters) keypair.getPublic();
 		RSAKeyParameters priv = (RSAKeyParameters) keypair.getPrivate();
@@ -198,7 +198,7 @@ public class AccountManager {
 		accfile.put("asymkey.modulus", pub.getModulus().toString(32));
 		accfile.put("asymkey.pubexponent", pub.getExponent().toString(32));
 		accfile.put("asymkey.privexponent", priv.getExponent().toString(32));
-		
+
 		String privateKey = oid.getInsertURI();
 		privateKey = privateKey.substring(0, privateKey.indexOf("/"));
 		privateKey = privateKey + "/mailsite/";
@@ -207,36 +207,36 @@ public class AccountManager {
 		Logger.normal(AccountManager.class,"Account creation completed.");
 		return true;
 	}
-	
+
 	public FreemailAccount authenticate(String username, String password) {
 		FreemailAccount account = null;
 		synchronized(accounts) {
 			account = accounts.get(username);
 		}
 		if (account == null) return null;
-		
+
 		String realmd5str = account.getProps().get("md5passwd");
 		if (realmd5str == null) return null;
-		
+
 		MD5Digest md5 = new MD5Digest();
 		md5.update(password.getBytes(), 0, password.getBytes().length);
 		byte[] givenmd5 = new byte[md5.getDigestSize()];
 		md5.doFinal(givenmd5, 0);
-		
+
 		String givenmd5str = new String(Hex.encode(givenmd5));
-		
+
 		if (realmd5str.equals(givenmd5str)) {
 			return account;
 		}
 		return null;
 	}
-	
+
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
-		
+
 		MailMessage m = account.getMessageBank().createMessage();
 		Date currentDate = new Date();
-		
+
 		m.addHeader("From", "Martin Nyhus <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
 		m.addHeader("To", to.toString());
 		m.addHeader("Subject", "Welcome to Freemail!");
@@ -245,9 +245,9 @@ public class AccountManager {
 		m.addHeader("Content-Transfer-Encoding", "7bit");
 		m.addHeader("Content-Disposition", "inline");
 		m.addHeader("Message-id", "<" + MailMessage.generateMessageID(to.domain, currentDate) + ">");
-		
+
 		PrintStream ps = m.writeHeadersAndGetStream();
-		
+
 		ps.println("Welcome to Freemail!");
 		ps.println("");
 		ps.println("Thanks for downloading and testing Freemail. You can get started and send me a Freemail now by hitting 'reply'.");
@@ -272,7 +272,7 @@ public class AccountManager {
 		ps.println("");
 		ps.println("");
 		ps.println("The Freemail developers");
-		
+
 		m.commit();
 	}
 
