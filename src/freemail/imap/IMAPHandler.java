@@ -462,7 +462,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			String[] rangeparts = msg.args[1].split(",");
 
-			for(int i=0;i<rangeparts.length;i++) {
+			for(int i=0; i<rangeparts.length; i++) {
 				String vals[]=rangeparts[i].split(":");
 				if(vals.length==1) {
 					ts.add(new Integer(vals[0]));
@@ -477,7 +477,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 						from = temp;
 					}
 
-					for(int j=from;j<=to;j++) {
+					for(int j=from; j<=to; j++) {
 						ts.add(new Integer(j));
 					}
 				}
@@ -523,7 +523,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			if(count>0) {
 				if(count<ts.size()) {
 					MailMessage[] t = new MailMessage[count];
-					for(int i=0;i<count;i++) {
+					for(int i=0; i<count; i++) {
 						t[i]=targetmsgs[i];
 					}
 					targetmsgs=t;
