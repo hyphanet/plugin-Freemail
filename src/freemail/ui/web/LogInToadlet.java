@@ -88,8 +88,8 @@ public class LogInToadlet extends WebPage {
 			}
 			ownIdSelector.addChild("option", "value", account.getIdentity(), nickname);
 		}
-		loginForm.addChild("input", new String[] { "type",   "name",   "value" },
-		                            new String[] { "submit", "submit", FreemailL10n.getString("Freemail.LoginToadlet.LoginButton") });
+		loginForm.addChild("input", new String[] {"type",   "name",   "value"},
+		                            new String[] {"submit", "submit", FreemailL10n.getString("Freemail.LoginToadlet.LoginButton")});
 	}
 
 	private void addNewAccountBox(HTMLNode parent) {
