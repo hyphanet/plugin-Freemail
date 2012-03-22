@@ -160,7 +160,7 @@ public class RTSFetcher implements SlotSaveCallback {
 
 		int slot;
 		boolean success = true;
-		while ( (slot = sm.getNextSlotNat()) > 0) {
+		while ((slot = sm.getNextSlotNat()) > 0) {
 			Logger.minor(this,"trying to fetch "+keybase+slot);
 
 			try {

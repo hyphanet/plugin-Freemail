@@ -59,7 +59,7 @@ public class FCPMessage {
 		LineReader r = new LineReadingInputStream(is);
 
 		String line;
-		while ( (line = r.readLine(200, 200, false)) != null) {
+		while ((line = r.readLine(200, 200, false)) != null) {
 			/***************************************/
 			//Logger.normal(this,line);
 			if (this.messagetype == null) {
@@ -194,7 +194,7 @@ public class FCPMessage {
 			byte[] bytebuf = new byte[1024];
 
 			int read;
-			while ( (read = this.outData.read(bytebuf)) > 0) {
+			while ((read = this.outData.read(bytebuf)) > 0) {
 				os.write(bytebuf, 0, read);
 			}
 			this.outData.close();

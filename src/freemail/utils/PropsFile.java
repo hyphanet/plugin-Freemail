@@ -120,7 +120,7 @@ public class PropsFile {
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
 
 		String line = null;
-		while ( (line = br.readLine()) != null) {
+		while ((line = br.readLine()) != null) {
 			if (this.commentPrefix != null && line.startsWith(this.commentPrefix)) {
 				continue;
 			}

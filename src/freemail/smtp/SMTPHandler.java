@@ -82,7 +82,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while ( !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while (!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
 					//Logger.normal(this,line);
@@ -312,7 +312,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 			String line;
 			boolean done = false;
-			while ( (line = this.bufrdr.readLine()) != null) {
+			while ((line = this.bufrdr.readLine()) != null) {
 				if (line.equals(".")) {
 					done = true;
 					break;

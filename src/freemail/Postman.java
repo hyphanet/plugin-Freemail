@@ -77,7 +77,7 @@ public abstract class Postman {
 		PrintStream ps = newmsg.writeHeadersAndGetStream();
 
 		String line;
-		while ( (line = brdr.readLine()) != null) {
+		while ((line = brdr.readLine()) != null) {
 			ps.println(line);
 		}
 
@@ -138,12 +138,12 @@ public abstract class Postman {
 
 			String line;
 			if (isFreemailFormat) {
-				while ( (line = br.readLine()) != null) {
+				while ((line = br.readLine()) != null) {
 					if (line.length() == 0) break;
 				}
 			}
 
-			while ( (line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 				if (line.indexOf(boundary) > 0) {
 					// The random boundary string appears in the
 					// message! What are the odds!?
@@ -171,12 +171,12 @@ public abstract class Postman {
 
 			String line;
 			if (isFreemailFormat) {
-				while ( (line = br.readLine()) != null) {
+				while ((line = br.readLine()) != null) {
 					if (line.length() == 0) break;
 				}
 			}
 
-			while ( (line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 				if (line.length() == 0) return null;
 				String[] parts = line.split(": ", 2);
 				if (parts.length < 2) continue;

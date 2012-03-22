@@ -73,7 +73,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while ( !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while (!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				IMAPMessage msg = null;
 				try {
 					msg = new IMAPMessage(line);
@@ -769,7 +769,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.ps.print(" {"+partsize+"}\r\n");
 
 				String line;
-				while ( (line = mmsg.readLine()) != null) {
+				while ((line = mmsg.readLine()) != null) {
 					line=line+"\r\n";
 					if(range_start>0) {
 						if(range_start>=line.length()) {
@@ -845,10 +845,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				String line;
 				// fast forward past the headers
 				try {
-					while ( (line = mmsg.readLine()) != null) {
+					while ((line = mmsg.readLine()) != null) {
 						if (line.length() == 0) break;
 					}
-					while ( (line = mmsg.readLine()) != null) {
+					while ((line = mmsg.readLine()) != null) {
 						buf.append(line+"\r\n");
 					}
 					mmsg.closeStream();
@@ -1316,7 +1316,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			String line;
 			int bytesread = 0;
-			while ( (line = this.bufrdr.readLine()) != null) {
+			while ((line = this.bufrdr.readLine()) != null) {
 				msgps.println(line);
 
 				bytesread += line.getBytes().length;

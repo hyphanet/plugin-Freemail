@@ -96,7 +96,7 @@ class MessageLog {
 		BufferedReader br = new BufferedReader(new FileReader(this.logfile));
 
 		String line;
-		while ( (line = br.readLine()) != null) {
+		while ((line = br.readLine()) != null) {
 			int sepIndex = line.indexOf(SEPARATOR);
 			long curid = Long.parseLong(line.substring(0, sepIndex));
 

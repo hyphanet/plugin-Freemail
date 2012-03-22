@@ -51,7 +51,7 @@ class MailLog {
 			BufferedReader br = new BufferedReader(frdr);
 			String line;
 
-			while ( (line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 				String[] parts = line.split("=");
 
 				if (parts.length != 2) continue;

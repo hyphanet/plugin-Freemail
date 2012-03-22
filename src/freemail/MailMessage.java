@@ -255,7 +255,7 @@ public class MailMessage {
 
 		String line;
 		String[] parts = null;
-		while ( (line = bufrdr.readLine()) != null) {
+		while ((line = bufrdr.readLine()) != null) {
 			if (line.length() == 0) {
 				if (parts != null)
 					this.addHeader(parts[0], parts[1]);
@@ -300,7 +300,7 @@ public class MailMessage {
 		long counter = 0;
 		String line;
 
-		while ( (line = br.readLine()) != null) {
+		while ((line = br.readLine()) != null) {
 			counter += line.getBytes().length;
 			counter += "\r\n".getBytes().length;
 		}
@@ -331,7 +331,7 @@ public class MailMessage {
 		String line;
 		try {
 			PrintStream copyps = msg.getRawStream();
-			while ( (line = this.readLine()) != null) {
+			while ((line = this.readLine()) != null) {
 				copyps.println(line);
 			}
 			msg.commit();
