@@ -96,6 +96,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		pluginRespirator = pr;
 
+		updateFileFormat();
+
 		startFcp();
 		startWorkers();
 		startServers(true);

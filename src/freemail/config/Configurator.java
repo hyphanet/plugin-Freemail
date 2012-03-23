@@ -42,6 +42,7 @@ public class Configurator {
 	public static final String SMTP_BIND_ADDRESS = "smtp_bind_address";
 	public static final String SMTP_BIND_PORT = "smtp_bind_port";
 	public static final String TEMP_DIR = "tempdir";
+	public static final String FILE_FORMAT = "fileformat";
 
 	private final PropsFile props;
 	private final HashMap<String, ConfigClient> callbacks;

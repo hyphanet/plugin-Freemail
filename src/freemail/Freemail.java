@@ -39,6 +39,8 @@ public abstract class Freemail implements ConfigClient {
 	private static final String TEMPDIRNAME = BASEDIR + "/temp";
 	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
 	protected static final String CFGFILE = BASEDIR + "/globalconfig";
+	private static final long LATEST_FILE_FORMAT = 1;
+
 	private File datadir;
 	private static File tempdir;
 	protected static FCPConnection fcpconn = null;
@@ -135,6 +137,25 @@ public abstract class Freemail implements ConfigClient {
 
 		//Start account watchers, channel tasks etc.
 		accountManager.startTasks();
+	}
+
+	/**
+	 * Updates the on-disk file format to the newest version if needed.
+	 */
+	protected void updateFileFormat() {
+		long currentVersion;
+		try {
+			String rawVersion = configurator.get(Configurator.FILE_FORMAT);
+			currentVersion = Long.parseLong(rawVersion);
+		} catch(NumberFormatException e) {
+			//Version is missing, so assume we just create a new config
+			configurator.set(Configurator.FILE_FORMAT, Long.toString(LATEST_FILE_FORMAT));
+			return;
+		}
+
+		if(currentVersion != LATEST_FILE_FORMAT) {
+			Logger.error(this, "Read unknown file format from config: " + currentVersion);
+		}
 	}
 
 	public void terminate() {
