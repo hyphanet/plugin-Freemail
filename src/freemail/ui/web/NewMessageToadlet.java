@@ -98,18 +98,16 @@ public class NewMessageToadlet extends WebPage {
 
 	@Override
 	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		String action = getBucketAsString(req.getPart("action"));
-		if("sendMessage".equals(action)) {
+		if(req.isPartSet("sendMessage")) {
 			sendMessage(req, ctx, page);
-		} else if("reply".equals(action)) {
+		} else if(req.isPartSet("reply")) {
 			createReply(req, ctx, page);
 		} else {
-			Logger.error(this, "Unknown action requested: " + action);
+			Logger.error(this, "Unknown action requested");
 
 			String boxTitle = FreemailL10n.getString("Freemail.NewMessageToadlet.unknownActionTitle");
 			HTMLNode errorBox = addErrorbox(page.content, boxTitle);
 			errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction"));
-			errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction", "action", action));
 
 			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
 		}
@@ -267,8 +265,6 @@ public class NewMessageToadlet extends WebPage {
 		assert (body != null);
 
 		HTMLNode messageForm = ctx.addFormChild(parent, path(), "newMessage");
-		messageForm.addChild("input", new String[] {"type",   "name",   "value"},
-		                              new String[] {"hidden", "action", "sendMessage"});
 		messageForm.addChild("input", new String[] {"type",   "name",      "value"},
 		                              new String[] {"hidden", "inReplyTo", inReplyTo});
 
@@ -285,8 +281,9 @@ public class NewMessageToadlet extends WebPage {
 		                                    new String[] {"message-text", "100",  "30",   "message-text"},
 		                                    body);
 
-		messageForm.addChild("input", new String[] {"type",   "value"},
-		                              new String[] {"submit", FreemailL10n.getString("Freemail.NewMessageToadlet.send")});
+		String sendText = FreemailL10n.getString("Freemail.NewMessageToadlet.send");
+		messageForm.addChild("input", new String[] {"type",   "name",        "value"},
+		                              new String[] {"submit", "sendMessage", sendText});
 	}
 
 	private String getBucketAsString(Bucket b) {

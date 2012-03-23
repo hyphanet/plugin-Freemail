@@ -112,13 +112,13 @@ public class MessageToadlet extends WebPage {
 		//Add reply button
 		HTMLNode replyForm = ctx.addFormChild(buttonBox, NewMessageToadlet.getPath(), "reply");
 		replyForm.addChild("input", new String[] {"type",   "name",   "value"},
-		                            new String[] {"hidden", "action", "reply"});
-		replyForm.addChild("input", new String[] {"type",   "name",   "value"},
 		                            new String[] {"hidden", "folder", folderName});
 		replyForm.addChild("input", new String[] {"type",   "name",    "value"},
 		                            new String[] {"hidden", "message", "" + uid});
-		replyForm.addChild("input", new String[] {"type",   "value"},
-		                            new String[] {"submit", FreemailL10n.getString("Freemail.MessageToadlet.reply")});
+
+		String replyText = FreemailL10n.getString("Freemail.MessageToadlet.reply");
+		replyForm.addChild("input", new String[] {"type",   "name",  "value"},
+		                            new String[] {"submit", "reply", replyText});
 	}
 
 	private void addMessageHeaders(HTMLNode messageNode, MailMessage message) {
