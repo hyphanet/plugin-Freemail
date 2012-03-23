@@ -131,6 +131,13 @@ public class MessageHandler {
 				if(!Channel.deleteChannel(f)) {
 					Logger.error(this, "Failed to delete channel because there are files left in " + f);
 				}
+			} catch(IllegalStateException e) {
+				//Channel is broken for some reason so get rid of it
+				Logger.error(this, "Deleting broken channel");
+				if(!Channel.deleteChannel(f)) {
+					Logger.error(this, "Failed to delete channel because "
+							+ "there are files left in "+ f);
+				}
 			}
 		}
 	}

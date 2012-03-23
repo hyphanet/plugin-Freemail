@@ -198,6 +198,16 @@ class Channel {
 
 				channelProps.put(PropsKeys.REMOTE_ID, remoteId);
 			}
+		} else {
+			//If not, make sure it is in the config file
+			synchronized (channelProps) {
+				String prev = channelProps.get(PropsKeys.REMOTE_ID);
+				if(prev == null) {
+					Logger.error(this, "Channel is broken because remote id is missing ("
+							+ channelDir + ")");
+					throw new IllegalStateException("Remote id missing");
+				}
+			}
 		}
 	}
 
