@@ -29,9 +29,11 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +79,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
+		List<String> recipients = new LinkedList<String>();
 		String recipient = req.getParam("to");
 		if(!recipient.equals("")) {
 			Identity identity;
@@ -87,11 +90,13 @@ public class NewMessageToadlet extends WebPage {
 				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 				return;
 			}
-			recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
+			recipients.add(identity.getNickname() + "@" + identity.getIdentityID() + ".freemail");
+		} else {
+			recipients.add("");
 		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, recipient, "", "", "");
+		addMessageForm(messageBox, ctx, recipients, "", "", "");
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -254,13 +259,13 @@ public class NewMessageToadlet extends WebPage {
 		msg.closeStream();
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, recipient, subject, body.toString(), inReplyTo);
+		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject, body.toString(), inReplyTo);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void addMessageForm(HTMLNode parent, ToadletContext ctx, String recipient, String subject, String body, String inReplyTo) {
-		assert (recipient != null);
+	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject, String body, String inReplyTo) {
+		assert (recipients != null);
 		assert (subject != null);
 		assert (body != null);
 
@@ -269,8 +274,27 @@ public class NewMessageToadlet extends WebPage {
 		                              new String[] {"hidden", "inReplyTo", inReplyTo});
 
 		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
-		recipientBox.addChild("input", new String[] {"name", "type", "size", "value"},
-		                               new String[] {"to",   "text", "100",  recipient});
+
+		//Add one field per recipient
+		int recpNum = 0;
+		Iterator<String> recipientsIt = recipients.iterator();
+		while(recipientsIt.hasNext()) {
+			String recipient = recipientsIt.next();
+
+			HTMLNode recipientDiv = recipientBox.addChild("div");
+			recipientDiv.addChild("input", new String[] {"name",         "type", "size", "value"},
+			                               new String[] {"to" + recpNum, "text", "100",  recipient});
+
+			if(recipientsIt.hasNext()) {
+				String buttonName = "removeRcpt" + recpNum;
+				recipientDiv.addChild("input", new String[] {"type",  "name",     "class",       "src"},
+				                               new String[] {"image", buttonName, "removeRcpt",  "/Freemail/static/images/svg/minus.svg"});
+			} else {
+				recipientDiv.addChild("input", new String[] {"type",  "name",     "class",   "src"},
+				                               new String[] {"image", "addRcpt",  "addRcpt", "/Freemail/static/images/svg/plus.svg"});
+			}
+			recpNum++;
+		}
 
 		HTMLNode subjectBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.subject"));
 		subjectBox.addChild("input", new String[] {"name",    "type", "size", "value"},

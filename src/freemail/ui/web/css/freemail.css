@@ -47,3 +47,15 @@ div.message {
 	width: 70%;
 	padding-bottom: 2em;
 }
+
+/* New message page */
+input.addRcpt {
+	border: none;
+	width: 1em;
+	height: 1em;
+}
+input.removeRcpt {
+	border: none;
+	width: 1em;
+	height: 1em;
+}
