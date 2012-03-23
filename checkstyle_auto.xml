@@ -98,5 +98,15 @@
 
 		<!-- Check for empty statements -->
 		<module name="EmptyStatement"/>
+
+		<!-- Check that classes that override equals() also override hashCode() -->
+		<module name="EqualsHashCode"/>
+
+		<!-- Various code checks -->
+		<module name="IllegalInstantiation"/>
+		<module name="IllegalTokenText"/>
+		<module name="SimplifyBooleanExpression"/>
+		<module name="SimplifyBooleanReturn"/>
+		<module name="StringLiteralEquality"/>
 	</module>
 </module>
