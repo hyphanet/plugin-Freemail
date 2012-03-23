@@ -857,7 +857,7 @@ class Channel {
 
 			String remoteId;
 			synchronized(channelProps) {
-				 remoteId = channelProps.get(PropsKeys.REMOTE_ID);
+				remoteId = channelProps.get(PropsKeys.REMOTE_ID);
 			}
 			if(remoteId == null) {
 				/* FIXME: Make sure the channel is deleted, e.g. by setting TIMEOUT to 0 */
