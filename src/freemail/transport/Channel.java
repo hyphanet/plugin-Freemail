@@ -282,6 +282,9 @@ class Channel {
 		File channelPropsFile = new File(channelDir, CHANNEL_PROPS_NAME);
 		channelPropsFile.delete();
 
+		File ackLog = new File(channelDir, ACK_LOG);
+		ackLog.delete();
+
 		return channelDir.delete();
 	}
 
