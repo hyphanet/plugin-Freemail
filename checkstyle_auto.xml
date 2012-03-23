@@ -75,5 +75,8 @@
 		<module name="WhitespaceAfter">
 			<property name="tokens" value="COMMA,SEMI"/>
 		</module>
+
+		<!--Check modifier order -->
+		<module name="ModifierOrder"/>
 	</module>
 </module>
