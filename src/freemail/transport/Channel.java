@@ -414,10 +414,11 @@ class Channel {
 		}
 
 		//Build the header of the inserted message
-		Bucket messageHeader = new ArrayBucket(
-				("messagetype=message\r\n" +
-				"id=" + messageId + "\r\n" +
-				"\r\n").getBytes());
+		String header =
+			"messagetype=message\r\n"
+			+ "id=" + messageId + "\r\n"
+			+ "\r\n";
+		Bucket messageHeader = new ArrayBucket(header.getBytes());
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
@@ -1272,10 +1273,11 @@ class Channel {
 			}
 
 			//Build the header of the inserted message
-			Bucket bucket = new ArrayBucket(
-					("messagetype=ack\r\n" +
-							"id=" + ackId + "\r\n" +
-					"\r\n").getBytes());
+			String header =
+				"messagetype=ack\r\n"
+				+ "id=" + ackId + "\r\n"
+				+ "\r\n";
+			Bucket bucket = new ArrayBucket(header.getBytes());
 
 			boolean inserted;
 			try {

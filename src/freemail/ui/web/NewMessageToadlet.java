@@ -182,13 +182,15 @@ public class NewMessageToadlet extends WebPage {
 
 		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 		//TODO: Check for newlines etc.
-		Bucket messageHeader = new ArrayBucket(
-				("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n" +
-				"From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ">\r\n" +
-				"To: " + getBucketAsString(b) + "\r\n" +
-				dateHeader +
-				"Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n" +
-				"\r\n").getBytes("UTF-8"));
+		String fromAddr = account.getNickname() + "@" + account.getDomain();
+		String header =
+			"Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n"
+			+ "From: " + account.getNickname() + " <" + fromAddr + ">\r\n"
+			+ "To: " + getBucketAsString(b) + "\r\n"
+			+ dateHeader
+			+ "Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n"
+			+ "\r\n";
+		Bucket messageHeader = new ArrayBucket(header.getBytes("UTF-8"));
 		Bucket messageText = req.getPart("message-text");
 
 		//Now combine them in a single bucket

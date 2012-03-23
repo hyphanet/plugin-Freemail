@@ -572,8 +572,8 @@ public class MessageHandler {
 				return true;
 			}
 
-			Logger.debug(this, "Marking as spoofed since subdomain doesn't match. Was: " + address.getSubDomain() +
-					" Expected: " + remoteId);
+			Logger.debug(this, "Marking as spoofed since subdomain doesn't match. Was: "
+					+ address.getSubDomain() + " Expected: " + remoteId);
 			return false;
 		}
 	}

@@ -255,9 +255,9 @@ class WoTConnectionImpl implements WoTConnection {
 			}
 		}
 
-		Logger.error(this, "Got the wrong message from WoT. Original message was " +
-				retValue.sfs.get("OriginalMessage") + ", response was " +
-				replyType);
+		Logger.error(this, "Got the wrong message from WoT. Original message was "
+				+ retValue.sfs.get("OriginalMessage") + ", response was "
+				+ replyType);
 
 		//Log the contents of the message, but at debug since it might contain private keys etc.
 		Iterator<String> keyIterator = retValue.sfs.keyIterator();
