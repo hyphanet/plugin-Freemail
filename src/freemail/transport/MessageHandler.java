@@ -63,9 +63,9 @@ import freenet.support.io.FileBucket;
  * the inbox of the account that is specified during construction.
  */
 public class MessageHandler {
-	private final static String INDEX_NAME = "index";
-	private final static long RESEND_TIME = 24 * 60 * 60 * 1000;
-	private final static String MSG_LOG_NAME = "log";
+	private static final String INDEX_NAME = "index";
+	private static final long RESEND_TIME = 24 * 60 * 60 * 1000;
+	private static final String MSG_LOG_NAME = "log";
 
 	/**
 	 * Holds the static portions of the keys used in the index file. The values that are stored per

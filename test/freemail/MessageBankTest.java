@@ -27,7 +27,7 @@ import junit.framework.TestCase;
 
 public class MessageBankTest extends TestCase {
 	private static final String IDENTITY_ID = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
-	private final static String ACCOUNT_DIR = "accdir";
+	private static final String ACCOUNT_DIR = "accdir";
 
 	private File accountDir;
 	private MessageBank rootMessageBank;
