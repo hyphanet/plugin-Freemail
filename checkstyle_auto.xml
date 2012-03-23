@@ -78,5 +78,25 @@
 
 		<!--Check modifier order -->
 		<module name="ModifierOrder"/>
+
+		<!-- Check parameter count -->
+		<module name="ParameterNumber">
+			<property name="max" value="7"/>
+		</module>
+
+		<!-- Check for more than 1 outer type per file -->
+		<module name="OuterTypeNumber"/>
+
+		<!-- Check method count -->
+		<module name="MethodCount"/>
+
+		<!-- Check for equals(SomethingNotObject) without equals(Object) -->
+		<module name="CovariantEquals"/>
+
+		<!-- Check for broken double checked locking pattern -->
+		<module name="DoubleCheckedLocking"/>
+
+		<!-- Check for empty statements -->
+		<module name="EmptyStatement"/>
 	</module>
 </module>
