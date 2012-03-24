@@ -96,7 +96,7 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, recipients, "", "", "");
+		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), "");
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -119,6 +119,10 @@ public class NewMessageToadlet extends WebPage {
 		}
 		Logger.debug(this, "Found " + recipients.size() + " recipients");
 
+		String subject = getBucketAsString(req.getPart("subject"));
+		String inReplyTo = getBucketAsString(req.getPart("inReplyTo"));
+		Bucket body = req.getPart("message-text");
+
 		//Because the button is an image we get x/y coordinates as addRcpt.x and addRcpt.y
 		if(req.isPartSet("addRcpt.x") && req.isPartSet("addRcpt.y")) {
 			Logger.debug(this, "Adding new recipient");
@@ -128,7 +132,7 @@ public class NewMessageToadlet extends WebPage {
 			HTMLNode contentNode = page.content;
 
 			HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-			addMessageForm(messageBox, ctx, recipients, "", "", "");
+			addMessageForm(messageBox, ctx, recipients, subject, body, inReplyTo);
 
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
@@ -144,7 +148,7 @@ public class NewMessageToadlet extends WebPage {
 				HTMLNode contentNode = page.content;
 
 				HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-				addMessageForm(messageBox, ctx, recipients, "", "", "");
+				addMessageForm(messageBox, ctx, recipients, subject, body, inReplyTo);
 
 				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 				return;
@@ -305,12 +309,13 @@ public class NewMessageToadlet extends WebPage {
 		msg.closeStream();
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject, body.toString(), inReplyTo);
+		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,
+		               bucketFromString(body.toString()), inReplyTo);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject, String body, String inReplyTo) {
+	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject, Bucket body, String inReplyTo) {
 		assert (recipients != null);
 		assert (subject != null);
 		assert (body != null);
@@ -349,7 +354,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode messageBodyBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.body"));
 		messageBodyBox.addChild("textarea", new String[] {"name",         "cols", "rows", "class"},
 		                                    new String[] {"message-text", "100",  "30",   "message-text"},
-		                                    body);
+		                                    getBucketAsString(body));
 
 		String sendText = FreemailL10n.getString("Freemail.NewMessageToadlet.send");
 		messageForm.addChild("input", new String[] {"type",   "name",        "value"},
@@ -408,5 +413,9 @@ public class NewMessageToadlet extends WebPage {
 	@Override
 	boolean requiresValidSession() {
 		return true;
+	}
+
+	private Bucket bucketFromString(String data) {
+		return new ArrayBucket(data.getBytes());
 	}
 }
