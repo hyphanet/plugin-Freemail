@@ -151,7 +151,11 @@ public class NewMessageToadlet extends WebPage {
 			}
 		}
 
-		Logger.error(this, "Unknown action requested");
+		String parts = "";
+		for(String part : req.getParts()) {
+			parts += part + "=\"" + getBucketAsString(req.getPart(part)) + "\" ";
+		}
+		Logger.error(this, "Unknown action requested. Set parts: " + parts);
 
 		String boxTitle = FreemailL10n.getString("Freemail.NewMessageToadlet.unknownActionTitle");
 		HTMLNode errorBox = addErrorbox(page.content, boxTitle);
