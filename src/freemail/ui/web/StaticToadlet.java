@@ -106,8 +106,15 @@ public class StaticToadlet extends WebPage {
 		if(!path.startsWith(WebInterface.PATH + "/static/")) {
 			throw new IllegalArgumentException("Path must be within /static/");
 		}
+		if(!path.endsWith("/")) {
+			throw new IllegalArgumentException("Path must end with /");
+		}
+
 		if(!source.startsWith("/freemail/")) {
 			throw new IllegalArgumentException("Source must be within /freemail/");
+		}
+		if(!source.endsWith("/")) {
+			throw new IllegalArgumentException("Source must end with /");
 		}
 
 		requests.add(new Mapping(path, Pattern.compile(filename), source, mime));
