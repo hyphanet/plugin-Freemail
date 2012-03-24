@@ -65,12 +65,15 @@ public class WebInterface {
 		registerToadlet(newMessageToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.NewMessageToadlet.name", "Freemail.NewMessageToadlet.title", false);
 
 		//Toadlets that don't go in the menu
-		CSSToadlet cssToadlet = new CSSToadlet(pluginRespirator);
 		MessageToadlet messageToadlet = new MessageToadlet(freemail.getAccountManager(), pluginRespirator);
 		AddAccountToadlet addAccountToadlet = new AddAccountToadlet(pluginRespirator, freemail.getWotConnection(), freemail.getAccountManager());
-		registerInvisibleToadlet(cssToadlet, true, false);
 		registerInvisibleToadlet(messageToadlet, true, false);
 		registerInvisibleToadlet(addAccountToadlet, true, false);
+
+		StaticToadlet staticToadlet = new StaticToadlet(pluginRespirator);
+		staticToadlet.handle(WebInterface.PATH + "/static/css/", "[a-zA-Z0-9]+\\.css",
+		                     "/freemail/ui/web/css/", "text/css");
+		registerInvisibleToadlet(staticToadlet, true, false);
 	}
 
 	/**

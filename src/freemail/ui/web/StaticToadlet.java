@@ -23,6 +23,9 @@ package freemail.ui.web;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -32,10 +35,12 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
-public class CSSToadlet extends WebPage {
-	private static final String PATH = WebInterface.PATH + "/static/css";
+public class StaticToadlet extends WebPage {
+	private static final String PATH = WebInterface.PATH + "/static";
 
-	CSSToadlet(PluginRespirator pluginRespirator) {
+	private final List<Mapping> requests = new CopyOnWriteArrayList<Mapping>();
+
+	StaticToadlet(PluginRespirator pluginRespirator) {
 		super(pluginRespirator);
 	}
 
@@ -46,20 +51,36 @@ public class CSSToadlet extends WebPage {
 
 	@Override
 	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		String filename = uri.getPath().substring(PATH.length() + "/".length());
+		String path = uri.getPath();
 
-		//Check that the filename has the expected format
-		if(!filename.matches("[a-zA-Z0-9]+\\.css")) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Invalid filename format");
+		//Check for path matches
+		Mapping request = null;
+		String filename = null;
+		for(Mapping r : requests) {
+			if(!path.startsWith(r.path)) {
+				continue;
+			}
+
+			filename = path.substring(r.path.length());
+			if(!r.filename.matcher(filename).matches()) {
+				continue;
+			}
+
+			request = r;
+			break;
+		}
+
+		if(request == null) {
+			writeHTMLReply(ctx, 403, "Forbidden", "No match found for that path");
 			return;
 		}
 
-		InputStream is = getClass().getResourceAsStream("/freemail/ui/web/css/" + filename);
+		InputStream is = getClass().getResourceAsStream(request.source + filename);
 
 		Bucket b = ctx.getBucketFactory().makeBucket(-1);
 		BucketTools.copyFrom(b, is, -1);
 
-		writeReply(ctx, 200, "text/css", "OK", null, b);
+		writeReply(ctx, 200, request.mime, "OK", null, b);
 	}
 
 	@Override
@@ -79,5 +100,30 @@ public class CSSToadlet extends WebPage {
 	@Override
 	boolean requiresValidSession() {
 		return false;
+	}
+
+	void handle(String path, String filename, String source, String mime) {
+		if(!path.startsWith(WebInterface.PATH + "/static/")) {
+			throw new IllegalArgumentException("Path must be within /static/");
+		}
+		if(!source.startsWith("/freemail/")) {
+			throw new IllegalArgumentException("Source must be within /freemail/");
+		}
+
+		requests.add(new Mapping(path, Pattern.compile(filename), source, mime));
+	}
+
+	private class Mapping {
+		private final String path;
+		private final Pattern filename;
+		private final String source;
+		private final String mime;
+
+		Mapping(String path, Pattern filename, String source, String mime) {
+			this.path = path;
+			this.filename = filename;
+			this.source = source;
+			this.mime = mime;
+		}
 	}
 }

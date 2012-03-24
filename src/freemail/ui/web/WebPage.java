@@ -59,7 +59,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		}
 
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
-		page.addCustomStyleSheet(CSSToadlet.getPath() + "/freemail.css");
+		page.addCustomStyleSheet(StaticToadlet.getPath() + "/css/freemail.css");
 
 		long start = System.nanoTime();
 		makeWebPageGet(uri, req, ctx, page);
@@ -83,7 +83,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		}
 
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
-		page.addCustomStyleSheet(CSSToadlet.getPath() + "/freemail.css");
+		page.addCustomStyleSheet(StaticToadlet.getPath() + "/css/freemail.css");
 
 		long start = System.nanoTime();
 		makeWebPagePost(uri, req, ctx, page);
