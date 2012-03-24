@@ -30,12 +30,11 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -167,7 +166,9 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		Set<String> recipients = new HashSet<String>();
+		//FIXME: Consider how to handle duplicate recipients
+
+		Map<String, String> recipients = new HashMap<String, String>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
 			String recipient = getBucketAsString(req.getPart("to" + i));
 			if(recipient.equals("")) {
@@ -175,14 +176,20 @@ public class NewMessageToadlet extends WebPage {
 				continue;
 			}
 
-			recipients.add(recipient);
+			//Strip parts if needed
+			String address = recipient;
+			if(address.contains("<") && address.contains(">")) {
+				address = address.substring(address.indexOf("<") + 1, address.indexOf(">"));
+			}
+
+			recipients.put(address, recipient);
 		}
 
 		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
 		Map<String, List<Identity>> matches;
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
-			matches = messageSender.matchIdentities(recipients, sessionManager.useSession(ctx).getUserID(), methods);
+			matches = messageSender.matchIdentities(recipients.keySet(), sessionManager.useSession(ctx).getUserID(), methods);
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
 			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
@@ -220,8 +227,8 @@ public class NewMessageToadlet extends WebPage {
 		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
 
 		//TODO: Check for newlines etc.
-		for(String recipient : matches.keySet()) {
-			//Use the keySet so we get what the user typed
+		for(String recipient : recipients.values()) {
+			//Use the values so we get what the user typed
 			header.append("To: " + recipient + "\r\n");
 		}
 		header.append("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n");
