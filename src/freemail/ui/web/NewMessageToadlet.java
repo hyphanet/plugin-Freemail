@@ -20,11 +20,9 @@
 
 package freemail.ui.web;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -169,35 +167,22 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		//Read list of recipients. Whitespace seems to be the only reasonable way to separate
-		//identities, but people will probably use all sorts of characters that can also appear in
-		//nicknames, so the matching should be sufficiently fuzzy to handle that
-		Set<String> identities = new HashSet<String>();
-
-		Bucket b = req.getPart("to");
-		BufferedReader data;
-		try {
-			data = new BufferedReader(new InputStreamReader(b.getInputStream(), "UTF-8"));
-		} catch(UnsupportedEncodingException e) {
-			throw new AssertionError();
-		} catch(IOException e) {
-			throw new AssertionError();
-		}
-
-		String line = data.readLine();
-		while(line != null) {
-			String[] parts = line.split("\\s");
-			for(String part : parts) {
-				identities.add(part);
+		Set<String> recipients = new HashSet<String>();
+		for(int i = 0; req.isPartSet("to" + i); i++) {
+			String recipient = getBucketAsString(req.getPart("to" + i));
+			if(recipient.equals("")) {
+				//Skip empty fields
+				continue;
 			}
-			line = data.readLine();
+
+			recipients.add(recipient);
 		}
 
 		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
 		Map<String, List<Identity>> matches;
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
-			matches = messageSender.matchIdentities(identities, sessionManager.useSession(ctx).getUserID(), methods);
+			matches = messageSender.matchIdentities(recipients, sessionManager.useSession(ctx).getUserID(), methods);
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
 			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
@@ -229,21 +214,23 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		//Build message header
+		StringBuilder header = new StringBuilder();
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String dateHeader = "Date: " + sdf.format(new Date()) + "\r\n";
-
 		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
+
 		//TODO: Check for newlines etc.
-		String fromAddr = account.getNickname() + "@" + account.getDomain();
-		String header =
-			"Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n"
-			+ "From: " + account.getNickname() + " <" + fromAddr + ">\r\n"
-			+ "To: " + getBucketAsString(b) + "\r\n"
-			+ dateHeader
-			+ "Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n"
-			+ "\r\n";
-		Bucket messageHeader = new ArrayBucket(header.getBytes("UTF-8"));
+		for(String recipient : matches.keySet()) {
+			//Use the keySet so we get what the user typed
+			header.append("To: " + recipient + "\r\n");
+		}
+		header.append("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n");
+		header.append("Date: " + sdf.format(new Date()) + "\r\n");
+		header.append("From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ">\r\n");
+		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
+		header.append("\r\n");
+
+		Bucket messageHeader = new ArrayBucket(header.toString().getBytes("UTF-8"));
 		Bucket messageText = req.getPart("message-text");
 
 		//Now combine them in a single bucket
@@ -253,13 +240,13 @@ public class NewMessageToadlet extends WebPage {
 		BucketTools.copyTo(messageText, messageOutputStream, -1);
 		messageOutputStream.close();
 
-		List<Identity> recipients = new LinkedList<Identity>();
+		List<Identity> identities = new LinkedList<Identity>();
 		for(List<Identity> identityList : matches.values()) {
 			assert (identityList.size() == 1);
-			recipients.add(identityList.get(0));
+			identities.add(identityList.get(0));
 		}
 
-		account.getMessageHandler().sendMessage(recipients, message);
+		account.getMessageHandler().sendMessage(identities, message);
 		message.free();
 
 		HTMLNode pageNode = page.outer;
