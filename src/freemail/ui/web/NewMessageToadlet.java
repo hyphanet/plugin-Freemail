@@ -105,17 +105,59 @@ public class NewMessageToadlet extends WebPage {
 	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		if(req.isPartSet("sendMessage")) {
 			sendMessage(req, ctx, page);
-		} else if(req.isPartSet("reply")) {
-			createReply(req, ctx, page);
-		} else {
-			Logger.error(this, "Unknown action requested");
-
-			String boxTitle = FreemailL10n.getString("Freemail.NewMessageToadlet.unknownActionTitle");
-			HTMLNode errorBox = addErrorbox(page.content, boxTitle);
-			errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction"));
-
-			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+			return;
 		}
+
+		if(req.isPartSet("reply")) {
+			createReply(req, ctx, page);
+			return;
+		}
+
+		List<String> recipients = new LinkedList<String>();
+		for(int i = 0; req.isPartSet("to" + i); i++) {
+			recipients.add(getBucketAsString(req.getPart("to" + i)));
+		}
+		Logger.debug(this, "Found " + recipients.size() + " recipients");
+
+		//Because the button is an image we get x/y coordinates as addRcpt.x and addRcpt.y
+		if(req.isPartSet("addRcpt.x") && req.isPartSet("addRcpt.y")) {
+			Logger.debug(this, "Adding new recipient");
+
+			recipients.add("");
+			HTMLNode pageNode = page.outer;
+			HTMLNode contentNode = page.content;
+
+			HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
+			addMessageForm(messageBox, ctx, recipients, "", "", "");
+
+			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			return;
+		}
+
+		for(int i = 0; i < recipients.size(); i++) {
+			//Same as above
+			if(req.isPartSet("removeRcpt" + i + ".x") && req.isPartSet("removeRcpt" + i + ".y")) {
+				Logger.debug(this, "Removing recipient " + i);
+
+				recipients.remove(i);
+				HTMLNode pageNode = page.outer;
+				HTMLNode contentNode = page.content;
+
+				HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
+				addMessageForm(messageBox, ctx, recipients, "", "", "");
+
+				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+				return;
+			}
+		}
+
+		Logger.error(this, "Unknown action requested");
+
+		String boxTitle = FreemailL10n.getString("Freemail.NewMessageToadlet.unknownActionTitle");
+		HTMLNode errorBox = addErrorbox(page.content, boxTitle);
+		errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction"));
+
+		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
 	}
 
 	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
