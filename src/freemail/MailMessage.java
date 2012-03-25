@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -41,6 +43,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.Hex;
 
 import freemail.imap.IMAPMessageFlags;
 import freemail.utils.Logger;
@@ -438,13 +441,33 @@ public class MailMessage {
 		return word;
 	}
 
-	private String decodeMIMEEncodedWord(String charset, String encoding, String text)
+	private String decodeMIMEEncodedWord(String charsetName, String encoding, String text)
 			throws UnsupportedEncodingException {
+
+		Charset charset = Charset.forName(charsetName);
 
 		if(encoding.equalsIgnoreCase("B")) {
 			//Base64 encoding
 			byte[] bytes = Base64.decode(text.getBytes("UTF-8"));
 			return new String(bytes, charset);
+		}
+
+		if(encoding.equalsIgnoreCase("Q")) {
+			StringBuffer decoded = new StringBuffer();
+			int offset = 0;
+			while(offset < text.length()) {
+				char c = text.charAt(offset);
+				if(c == '=') {
+					byte[] value = Hex.decode(text.substring(offset + 1, offset + 3));
+					decoded.append(charset.decode(ByteBuffer.wrap(value)));
+					offset += 3;
+				} else {
+					decoded.append(c);
+					offset++;
+				}
+			}
+
+			return decoded.toString();
 		}
 
 		Logger.warning(this, "Freemail doesn't support encoding: " + encoding);
