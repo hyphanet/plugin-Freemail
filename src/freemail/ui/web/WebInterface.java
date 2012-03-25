@@ -73,6 +73,8 @@ public class WebInterface {
 		StaticToadlet staticToadlet = new StaticToadlet(pluginRespirator);
 		staticToadlet.handle(WebInterface.PATH + "/static/css/", "[a-zA-Z0-9]+\\.css",
 		                     "/freemail/ui/web/css/", "text/css");
+		staticToadlet.handle(WebInterface.PATH + "/static/images/svg/", "[a-zA-Z0-9]+\\.svg",
+		                     "/freemail/ui/web/images/svg/", "image/svg+xml");
 		registerInvisibleToadlet(staticToadlet, true, false);
 	}
 
