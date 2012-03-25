@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -38,6 +39,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.Enumeration;
+
+import org.bouncycastle.util.encoders.Base64;
 
 import freemail.imap.IMAPMessageFlags;
 import freemail.utils.Logger;
@@ -385,6 +388,110 @@ public class MailMessage {
 
 		Logger.minor(this, "No format matched for date " + date);
 		return null;
+	}
+
+	/**
+	 * Checks if the header has an encoded word starting at offset. If an encoded word is found it
+	 * is returned without the =? and ?= markers
+	 * (i.e. &lt;charset&gt;?&lt;encoding&gt;?&lt;encoded-text&gt;)
+	 */
+	private String getEncodedWord(String header, int offset) {
+		assert (header != null);
+		assert (header.length() > offset) : "length=" + header.length() + ", offset=" + offset;
+		assert (offset >= 0);
+
+		if(!header.substring(offset, offset + "=?".length()).equals("=?")) {
+			//It makes no sense to call the function if this is the case
+			Logger.warning(this, "Offset didn't point to =? in isEncodedWord");
+			assert false : "Offset didn't point to =? in isEncodedWord";
+			return null;
+		}
+
+		int charsetEnd = header.indexOf("?", offset + "=?".length());
+		if(charsetEnd == -1) {
+			return null;
+		}
+
+		int encodingEnd = header.indexOf("?", charsetEnd + "?".length());
+		if(encodingEnd == -1) {
+			return null;
+		}
+
+		int wordEnd = header.indexOf("?=", encodingEnd + "?".length());
+		if(wordEnd == -1) {
+			return null;
+		}
+
+		String word = header.substring(offset + 2, wordEnd);
+		Logger.debug(this, "Found possible encoded word: " + word);
+
+		//75 - 4 since we removed the =? and ?= (75 is the limit from RFC2047)
+		if(word.length() > (71)) {
+			Logger.debug(this, "Found possible encoded word but it was too long");
+			return null;
+		}
+		if(word.contains(" ")) {
+			Logger.debug(this, "Found possible encoded word but it contained spaces");
+			return null;
+		}
+
+		return word;
+	}
+
+	private String decodeMIMEEncodedWord(String charset, String encoding, String text)
+			throws UnsupportedEncodingException {
+
+		if(encoding.equalsIgnoreCase("B")) {
+			//Base64 encoding
+			byte[] bytes = Base64.decode(text.getBytes("UTF-8"));
+			return new String(bytes, charset);
+		}
+
+		Logger.warning(this, "Freemail doesn't support encoding: " + encoding);
+		throw new UnsupportedEncodingException(
+				"MIME header encoding " + encoding + " not supported");
+	}
+
+	/**
+	 * Returns the subject of this message after decoding it, or {@code null} if the subject header
+	 * is missing.
+	 * @return the subject of this message after decoding it
+	 * @throws UnsupportedEncodingException if the encoding used in the subject isn't unsupported
+	 */
+	public String getSubject() throws UnsupportedEncodingException {
+		String rawSubject = getFirstHeader("Subject");
+		if(rawSubject == null) {
+			return null;
+		}
+
+		StringBuffer subject = new StringBuffer();
+
+		int offset = 0;
+		while(offset < rawSubject.length()) {
+			//First, copy anything that we know isn't an encoded word
+			int index = rawSubject.indexOf("=?", offset);
+			if(index == -1) {
+				subject.append(rawSubject.substring(offset));
+				break;
+			}
+			subject.append(rawSubject.substring(offset, index));
+			offset = index;
+
+			//Check if we have an encoded word
+			String word = getEncodedWord(rawSubject, offset);
+			if(word == null) {
+				subject.append("=?");
+				offset += "=?".length();
+				continue;
+			}
+			offset += word.length() + "=??=".length();
+
+			//Decode the encoded word
+			String[] parts = word.split("\\?");
+			subject.append(decodeMIMEEncodedWord(parts[0], parts[1], parts[2]));
+		}
+
+		return subject.toString();
 	}
 
 	/**
