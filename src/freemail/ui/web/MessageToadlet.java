@@ -133,24 +133,16 @@ public class MessageToadlet extends WebPage {
 			return;
 		}
 
-		HTMLNode toPara = headerBox.addChild("p");
-		toPara.addChild("strong", "To:");
-		toPara.addChild("#", " " + message.getFirstHeader("to"));
-
 		HTMLNode fromPara = headerBox.addChild("p");
 		fromPara.addChild("strong", "From:");
 		fromPara.addChild("#", " " + message.getFirstHeader("from"));
 
-		if(message.getFirstHeader("cc") != null) {
-			HTMLNode ccPara = headerBox.addChild("p");
-			ccPara.addChild("strong", "CC:");
-			ccPara.addChild("#", " " + message.getFirstHeader("cc"));
-		}
-
-		if(message.getFirstHeader("bcc") != null) {
-			HTMLNode bccPara = headerBox.addChild("p");
-			bccPara.addChild("strong", "BCC:");
-			bccPara.addChild("#", " " + message.getFirstHeader("bcc"));
+		for(String header : new String[] {"To", "CC", "BCC"}) {
+			for(String recipient : message.getHeadersAsArray(header)) {
+				HTMLNode toPara = headerBox.addChild("p");
+				toPara.addChild("strong", header + ":");
+				toPara.addChild("#", " " + recipient);
+			}
 		}
 
 		HTMLNode subjectPara = headerBox.addChild("p");
