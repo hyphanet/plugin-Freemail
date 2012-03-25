@@ -194,7 +194,9 @@
 	     code to follow. Useful for e.g. checking new commits. -->
 	<target name="checkstyle">
 		<cs:checkstyle config="checkstyle.xml">
-			<fileset dir="${src}" includes="**/*.java"/>
+			<fileset dir="${src}" includes="**/*.java">
+				<exclude name="org/**"/>
+			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
