@@ -21,6 +21,7 @@
 package freemail.ui.web;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -148,7 +149,12 @@ public class MessageToadlet extends WebPage {
 		HTMLNode subjectPara = headerBox.addChild("p");
 		subjectPara.addChild("strong", "Subject:");
 
-		String subject = message.getFirstHeader("Subject");
+		String subject;
+		try {
+			subject = message.getSubject();
+		} catch (UnsupportedEncodingException e) {
+			subject = message.getFirstHeader("subject");
+		}
 		if((subject == null) || (subject.equals(""))) {
 			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}

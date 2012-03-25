@@ -21,6 +21,7 @@
 package freemail.ui.web;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -228,7 +229,12 @@ public class InboxToadlet extends WebPage {
 		if(!read) {
 			title = title.addChild("strong");
 		}
-		String subject = msg.getFirstHeader("Subject");
+		String subject;
+		try {
+			subject = msg.getSubject();
+		} catch (UnsupportedEncodingException e) {
+			subject = msg.getFirstHeader("subject");
+		}
 		if((subject == null) || (subject.equals(""))) {
 			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}

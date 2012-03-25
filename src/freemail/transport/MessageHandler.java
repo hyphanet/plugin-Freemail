@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -374,7 +375,13 @@ public class MessageHandler {
 
 			MailMessage msg = new MailMessage(message, 0);
 			msg.readHeaders();
-			subject = msg.getFirstHeader("Subject");
+			String s;
+			try {
+				s = msg.getSubject();
+			} catch (UnsupportedEncodingException e) {
+				s = msg.getFirstHeader("subject");
+			}
+			subject = s;
 			Logger.debug(this, "Read subject: " + subject);
 		}
 
