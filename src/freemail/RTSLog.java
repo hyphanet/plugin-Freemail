@@ -45,18 +45,18 @@ public class RTSLog {
 			this.logfile.put("birth", birth);
 		}
 	}
-	
+
 	public int getPasses(String day) {
 		if (this.isBeforeBirth(day)) return Integer.MAX_VALUE;
-		
+
 		String val = this.logfile.get(PASSES+day);
-		
+
 		if (val == null)
 			return 0;
 		else
 			return Integer.parseInt(val);
 	}
-	
+
 	private boolean isBeforeBirth(String daystr) {
 		Date day = DateStringFactory.dateFromKeyString(daystr);
 		String birth_s = this.logfile.get("birth");
@@ -74,26 +74,26 @@ public class RTSLog {
 				this.logfile.put("birth", birth_s);
 			}
 		}
-		
+
 		if (day.before(birth)) return true;
 		return false;
 	}
-	
+
 	public void incPasses(String day) {
 		int passes = this.getPasses(day);
 		passes++;
-		
+
 		this.logfile.put(PASSES+day, Integer.toString(passes));
 	}
-	
+
 	public void pruneBefore(Date keepafter) {
 		Set<String> props = this.logfile.listProps();
 		Vector<String> hitlist = new Vector<String>();
-		
+
 		Iterator<String> i = props.iterator();
 		while (i.hasNext()) {
 			String cur = i.next();
-			
+
 			String datestr;
 			if (cur.startsWith(PASSES)) {
 				datestr = cur.substring(PASSES.length());
@@ -102,7 +102,7 @@ public class RTSLog {
 			} else {
 				continue;
 			}
-			
+
 			Date logdate = DateStringFactory.dateFromKeyString(datestr);
 			if (logdate == null) {
 				// couldn't parse the date... hmm
@@ -111,15 +111,15 @@ public class RTSLog {
 				hitlist.add(cur);
 			}
 		}
-		
+
 		Enumeration<String> e = hitlist.elements();
 		while (e.hasMoreElements()) {
 			String victim = e.nextElement();
-			
+
 			this.logfile.remove(victim);
 		}
 	}
-	
+
 	public String getSlots(String day) {
 		String slots = this.logfile.get(SLOTS+day);
 		if (slots == null) {
@@ -128,11 +128,11 @@ public class RTSLog {
 			return slots;
 		}
 	}
-	
+
 	public void putSlots(String day, String slots) {
 		this.logfile.put(SLOTS+day, slots);
 	}
-	
+
 	public int getAndIncUnprocNextId() {
 		String nid = this.logfile.get(UNPROC_NEXTID);
 		int retval;
@@ -141,9 +141,9 @@ public class RTSLog {
 		} else {
 			retval = Integer.parseInt(nid);
 		}
-		
+
 		this.logfile.put(UNPROC_NEXTID, Integer.toString(retval + 1));
-		
+
 		return retval;
 	}
 }

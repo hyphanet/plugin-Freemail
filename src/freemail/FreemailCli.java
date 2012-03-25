@@ -30,7 +30,7 @@ public class FreemailCli extends Freemail {
 	public FreemailCli(String cfgfile) throws IOException {
 		super(cfgfile);
 	}
-	
+
 	public static void main(String[] args) {
 		String action = "";
 		String username = null;
@@ -45,7 +45,7 @@ public class FreemailCli extends Freemail {
 					System.out.println("Usage: --newaccount <account name>");
 					return;
 				}
-				
+
 				username = args[i];
 			} else if (args[i].equals("--passwd") || args[i].equals("--password")) {
 				action = "--passwd";
@@ -77,8 +77,8 @@ public class FreemailCli extends Freemail {
 				return;
 			}
 		}
-		
-		
+
+
 		FreemailCli freemail;
 		try {
 			freemail = new FreemailCli(cfgfile);
@@ -87,7 +87,7 @@ public class FreemailCli extends Freemail {
 			return;
 		}
 		freemail.startFcp();
-		
+
 		if (action.equals("--newaccount")) {
 			//FIXME: Support adding new OwnIdentities
 			System.out.println("Account creation is only supported through WoT for now");

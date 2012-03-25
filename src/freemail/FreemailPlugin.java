@@ -52,15 +52,15 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private final static ScheduledThreadPoolExecutor defaultExecutor =
+	private static final ScheduledThreadPoolExecutor defaultExecutor =
 			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail executor thread"));
-	private final static ScheduledThreadPoolExecutor senderExecutor =
+	private static final ScheduledThreadPoolExecutor senderExecutor =
 			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail sender thread"));
 
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
 	private WoTConnection wotConnection = null;
-	
+
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
 
@@ -84,12 +84,12 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		senderExecutor.setKeepAliveTime(1, TimeUnit.HOURS);
 		senderExecutor.allowCoreThreadTimeOut(true);
 	}
-	
+
 	@Override
 	public String getVersion() {
 		return Version.getVersionString();
 	}
-	
+
 	@Override
 	public void runPlugin(PluginRespirator pr) {
 		long start = System.nanoTime();

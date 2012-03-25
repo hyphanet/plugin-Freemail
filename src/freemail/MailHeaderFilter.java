@@ -46,33 +46,33 @@ class MailHeaderFilter {
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
 	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
-	
+
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 		gmt = TimeZone.getTimeZone("GMT");
 		sdf.setTimeZone(gmt);
 	}
-	
+
 	public MailHeaderFilter(BufferedReader rdr) {
 		this.reader = rdr;
 		this.buffer = new StringBuffer();
 		this.foundEnd = false;
 	}
-	
+
 	public String readHeader() throws IOException {
 		String retval = null;
-		
+
 		while (retval == null) {
 			if (this.foundEnd) {
 				return this.flush();
 			}
-			
+
 			String line = this.reader.readLine();
 			if (line == null) {
-				Logger.error(this,"Warning - reached end of message file before reaching end of headers! This shouldn't happen!");
+				Logger.error(this, "Warning - reached end of message file before reaching end of headers! This shouldn't happen!");
 				throw new IOException("Header filter reached end of message file before reaching end of headers");
 			}
-			
+
 			if (line.length() == 0) {
 				// end of the headers
 				this.foundEnd = true;
@@ -87,32 +87,32 @@ class MailHeaderFilter {
 		}
 		return retval;
 	}
-	
+
 	// this is called once a header is in the buffer
 	// if the header is invalid or filtered out entirely,
 	// return null. Otherwise return the filtered header.
 	private String flush() {
 		if (this.buffer.length() == 0) return null;
-		
+
 		String[] bits = this.buffer.toString().split(": ", 2);
 		this.buffer.delete(0, this.buffer.length());
-		
+
 		// invalid header - ditch it.
 		if (bits.length < 2) return null;
-		
+
 		bits[1] = this.filterHeader(bits[0], bits[1]);
 		if (bits[1] == null) return null;
-		
+
 		return bits[0]+": "+bits[1];
 	}
-	
+
 	private String filterHeader(String name, String val) {
 		// Whitelist filter
 		if (name.equalsIgnoreCase("Date")) {
 			// the norm is to put the sender's local time here, with the sender's local time offset
 			// at the end. Rather than giving away what time zone we're in, parse the date in
 			// and return it as a GMT time.
-			
+
 			Date d = null;
 			try {
 				synchronized(sdf) {
@@ -120,14 +120,14 @@ class MailHeaderFilter {
 				}
 			} catch (ParseException pe) {
 				// ...the compiler whinges unless we catch this exception...
-				Logger.normal(this,"Warning: couldn't parse date: "+val+" (caught exception)");
+				Logger.normal(this, "Warning: couldn't parse date: "+val+" (caught exception)");
 				return null;
 			}
 			// but the docs don't say that it throws it, but says that it return null
 			// http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html#parse(java.lang.String, java.text.ParsePosition)
 			if (d == null) {
 				// invalid date - ditch the header
-				Logger.normal(this,"Warning: couldn't parse date: "+val+" (got null)");
+				Logger.normal(this, "Warning: couldn't parse date: "+val+" (got null)");
 				return null;
 			}
 			String strDate;
@@ -151,7 +151,7 @@ class MailHeaderFilter {
 					// useful than dropping it, since the mail client will be looking for the unmangled header.
 					return "<"+m.group(1)+"@freemail>";
 				}
-				
+
 			}
 		} else if (name.equalsIgnoreCase("From")) {
 			return val;

@@ -41,14 +41,14 @@ public abstract class SlotManager {
 	private final SlotSaveCallback cb;
 	private final Object userdata;
 	private int pollAhead;
-	
+
 	protected SlotManager(SlotSaveCallback cb, Object userdata, String slotlist) {
 		this.slots = new Vector<Slot>();
 		this.cb = cb;
 		this.userdata = userdata;
 		this.nextSlotNum = 0;
 		this.pollAhead = DEFAULT_POLL_AHEAD;
-		
+
 		String parts[] = slotlist.split(",");
 		int i;
 		for (i = 0; i < parts.length; i++) {
@@ -59,21 +59,21 @@ public abstract class SlotManager {
 				s.time_added = Long.parseLong(parts2[1]);
 			else
 				s.time_added = -1;
-			
+
 			this.slots.add(s);
 		}
 	}
-	
+
 	/** Set the number of slots to poll after the last free one
 	 */
 	public void setPollAhead(int pa) {
 		this.pollAhead = pa;
 	}
-	
+
 	public void incPollAhead() {
 		++pollAhead;
 	}
-	
+
 	/** Mark the last given slot as used
 	 */
 	public synchronized void slotUsed() {
@@ -123,10 +123,10 @@ public abstract class SlotManager {
 		}
 		this.saveSlots();
 	}
-	
+
 	private void saveSlots() {
 		StringBuffer buf = new StringBuffer();
-		
+
 		Enumeration<Slot> e = this.slots.elements();
 		boolean first = true;
 		while (e.hasMoreElements()) {
@@ -139,14 +139,14 @@ public abstract class SlotManager {
 		}
 		this.cb.saveSlots(buf.toString(), this.userdata);
 	}
-	
+
 	/** Method provided by subclasses to return the next slot given any slot
 	 */
 	protected abstract String incSlot(String slot);
-	
+
 	public synchronized String getNextSlot() {
 		String retval = null;
-		
+
 		boolean tryAgain = true;
 		while (tryAgain) {
 			tryAgain = false;
@@ -174,11 +174,11 @@ public abstract class SlotManager {
 				}
 			}
 		}
-		
+
 		this.nextSlotNum++;
 		return retval;
 	}
-	
+
 	private static class Slot {
 		String slot;
 		long time_added;

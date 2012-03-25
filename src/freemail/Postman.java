@@ -41,23 +41,23 @@ public abstract class Postman {
 
 	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException {
 		MailMessage newmsg = mb.createMessage();
-		
+
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
-		
+
 		newmsg.readHeaders(brdr);
-		
+
 		// add our own headers
 		// received and date
 		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
-		
+
 		// validate the from header - or headers. There could be several.
 		String[] froms = newmsg.getHeadersAsArray("From");
-		
+
 		int i;
 		boolean first = true;
 		for (i = 0; i < froms.length; i++) {
 			EmailAddress addr = new EmailAddress(froms[i]);
-			
+
 			if (first) {
 				if (!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", froms[i]);
@@ -72,31 +72,31 @@ public abstract class Postman {
 			}
 			first = false;
 		}
-		
-		
+
+
 		PrintStream ps = newmsg.writeHeadersAndGetStream();
-		
+
 		String line;
-		while ( (line = brdr.readLine()) != null) {
+		while ((line = brdr.readLine()) != null) {
 			ps.println(line);
 		}
-		
+
 		newmsg.commit();
 		brdr.close();
 	}
-	
+
 	public static boolean bounceMessage(File origmsg, MessageBank mb, String errmsg) {
 		return bounceMessage(origmsg, mb, errmsg, false);
 	}
-	
+
 	public static boolean bounceMessage(File origmsg, MessageBank mb, String errmsg, boolean isFreemailFormat) {
 		MailMessage bmsg = null;
 		try {
 			bmsg = mb.createMessage();
-			
+
 			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
 			Date currentDate = new Date();
-			
+
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");
 			bmsg.addHeader("Subject", "Undeliverable Freemail");
 			String origFrom = extractFromAddress(origmsg, isFreemailFormat);
@@ -116,9 +116,9 @@ public abstract class Postman {
 				boundary += (char)(rnd.nextInt(25) + (int)'a');
 			}
 			bmsg.addHeader("Content-Type", "Multipart/Mixed; boundary=\""+boundary+"\"");
-			
+
 			PrintStream ps = bmsg.writeHeadersAndGetStream();
-			
+
 			ps.println("--"+boundary);
 			ps.println("Content-Type: text/plain");
 			ps.println("Content-Disposition: inline");
@@ -133,17 +133,17 @@ public abstract class Postman {
 			ps.println("Content-Type: message/rfc822;");
 			ps.println("Content-Disposition: inline");
 			ps.println("");
-			
+
 			BufferedReader br = new BufferedReader(new FileReader(origmsg));
-			
+
 			String line;
 			if (isFreemailFormat) {
-				while ( (line = br.readLine()) != null) {
+				while ((line = br.readLine()) != null) {
 					if (line.length() == 0) break;
 				}
 			}
-			
-			while ( (line = br.readLine()) != null) {
+
+			while ((line = br.readLine()) != null) {
 				if (line.indexOf(boundary) > 0) {
 					// The random boundary string appears in the
 					// message! What are the odds!?
@@ -154,7 +154,7 @@ public abstract class Postman {
 				}
 				ps.println(line);
 			}
-			
+
 			br.close();
 			ps.println("--"+boundary);
 			bmsg.commit();
@@ -164,19 +164,19 @@ public abstract class Postman {
 		}
 		return true;
 	}
-	
+
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(msg));
-			
+
 			String line;
 			if (isFreemailFormat) {
-				while ( (line = br.readLine()) != null) {
+				while ((line = br.readLine()) != null) {
 					if (line.length() == 0) break;
 				}
 			}
-			
-			while ( (line = br.readLine()) != null) {
+
+			while ((line = br.readLine()) != null) {
 				if (line.length() == 0) return null;
 				String[] parts = line.split(": ", 2);
 				if (parts.length < 2) continue;
@@ -190,6 +190,6 @@ public abstract class Postman {
 		}
 		return null;
 	}
-	
+
 	public abstract boolean validateFrom(EmailAddress from);
 }

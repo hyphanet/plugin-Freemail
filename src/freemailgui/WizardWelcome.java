@@ -33,15 +33,15 @@ public class WizardWelcome extends JPanel {
 
 	public WizardWelcome(ResourceBundle bundle) {
 		super();
-		
+
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		
+
 		JLabel welcomelabel = new JLabel(bundle.getString("welcome"), SwingConstants.CENTER);
 		welcomelabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 		this.add(welcomelabel);
-		
-		this.add(Box.createRigidArea(new Dimension(0,15)));
-		
+
+		this.add(Box.createRigidArea(new Dimension(0, 15)));
+
 		JLabel introlabel = new JLabel(bundle.getString("intro"));
 		introlabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 		this.add(introlabel);

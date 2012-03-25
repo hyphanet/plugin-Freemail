@@ -58,7 +58,7 @@ public class LineReadingInputStream extends FilterInputStream implements LineRea
 				if(ctr == 0) return null;
 				return new String(buf, 0, ctr, utf ? "UTF-8" : "ISO-8859-1");
 			}
-			// REDFLAG this is definitely safe with the above charsets, it may not be safe with some wierd ones. 
+			// REDFLAG this is definitely safe with the above charsets, it may not be safe with some wierd ones.
 			if(x == (int)'\n') {
 				if(ctr == 0) return "";
 				if(buf[ctr-1] == '\r') ctr--;
@@ -73,7 +73,7 @@ public class LineReadingInputStream extends FilterInputStream implements LineRea
 			buf[ctr++] = (byte)x;
 		}
 	}
-	
+
 	public int getLastBytesRead() {
 		return this.lastBytesRead;
 	}

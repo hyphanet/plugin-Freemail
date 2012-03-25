@@ -29,10 +29,10 @@ public class SMTPCommand {
 		boolean in_quotes = false;
 		Vector<String> tmp_args = new Vector<String>();
 		StringBuffer buf = new StringBuffer("");
-		
+
 		for (int i = 0; i < line.length(); i++) {
 			char c = line.charAt(i);
-			
+
 			switch (c) {
 				case ' ':
 					if (in_quotes) {
@@ -59,7 +59,7 @@ public class SMTPCommand {
 		String tmpcmd = tmp_args.remove(0);
 		this.command = tmpcmd.toLowerCase();
 		this.args = new String[tmp_args.size()];
-		
+
 		for (int i = 0; i < tmp_args.size(); i++) {
 			this.args[i] = tmp_args.get(i);
 		}

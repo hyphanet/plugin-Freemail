@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="Freemail" default="dist" basedir=".">
+<project name="Freemail" default="dist" basedir="." xmlns:cs="antlib:com.puppycrawl.tools.checkstyle">
 	<property name="override" location="override.properties" />
 	<property file="${override}"/>
 	<property file="build.properties"/>
@@ -141,7 +141,7 @@
 		<delete dir="${test.run}"/>
 	</target>
 
-	<target name="dist" depends="compile, unit">
+	<target name="dist" depends="compile, unit, checkstyle-auto">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
@@ -175,5 +175,27 @@
 	<target name="distclean" depends="cleaner" description="Delete everything and restore to the original state.">
 		<delete dir="${deps}"/>
 		<delete dir="${override}"/>
+	</target>
+
+	<!-- Checkstyle target that is run each build. Should run a
+	     config that normally doesn't produce any warnings. -->
+	<target name="checkstyle-auto" unless="${checkstyle.skip}">
+		<cs:checkstyle config="checkstyle_auto.xml">
+			<fileset dir="${src}" includes="**/*.java">
+				<exclude name="org/**"/>
+			</fileset>
+			<fileset dir="${test}" includes="**/*.java"/>
+			<formatter type="plain"/>
+		</cs:checkstyle>
+	</target>
+
+	<!-- Checkstyle run with the full config, i.e. what we would like the
+	     code to follow. Useful for e.g. checking new commits. -->
+	<target name="checkstyle">
+		<cs:checkstyle config="checkstyle.xml">
+			<fileset dir="${src}" includes="**/*.java"/>
+			<fileset dir="${test}" includes="**/*.java"/>
+			<formatter type="plain"/>
+		</cs:checkstyle>
 	</target>
 </project>

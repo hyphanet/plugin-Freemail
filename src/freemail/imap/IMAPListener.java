@@ -32,18 +32,18 @@ import freemail.config.Configurator;
 import freemail.config.ConfigClient;
 import freemail.utils.Logger;
 
-public class IMAPListener extends ServerListener implements Runnable,ConfigClient {
+public class IMAPListener extends ServerListener implements Runnable, ConfigClient {
 	private static final int LISTENPORT = 3143;
 	private String bindaddress;
 	private int bindport;
 	private final AccountManager accountManager;
-	
+
 	public IMAPListener(AccountManager accMgr, Configurator cfg) {
 		accountManager = accMgr;
 		cfg.register(Configurator.IMAP_BIND_ADDRESS, this, "127.0.0.1");
 		cfg.register(Configurator.IMAP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
-	
+
 	@Override
 	public void setConfigProp(String key, String val) {
 		if (key.equalsIgnoreCase(Configurator.IMAP_BIND_ADDRESS)) {
@@ -52,13 +52,13 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 			this.bindport = Integer.parseInt(val);
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		try {
 			this.realrun();
 		} catch (IOException ioe) {
-			Logger.error(this,"Error in IMAP server - "+ioe.getMessage(), ioe);
+			Logger.error(this, "Error in IMAP server - "+ioe.getMessage(), ioe);
 		}
 	}
 
@@ -70,14 +70,14 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 				IMAPHandler newcli = new IMAPHandler(accountManager, sock.accept());
 				Thread newthread = new Thread(newcli);
 				newthread.setDaemon(true);
- 				newthread.start();
- 				addHandler(newcli, newthread);
+				newthread.start();
+				addHandler(newcli, newthread);
 			} catch (SocketTimeoutException ste) {
-				
+
 			} catch (IOException ioe) {
-				
+
 			}
-			
+
 			reapHandlers();
 		}
 	}

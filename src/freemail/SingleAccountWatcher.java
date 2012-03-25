@@ -49,34 +49,34 @@ public class SingleAccountWatcher implements Runnable {
 		this.account = acc;
 		this.freemail = freemail;
 		this.mailsite_last_upload = 0;
-		
+
 		rtsdir = new File(account.getAccountDir(), RTS_DIR);
-		
+
 		String rtskey=account.getProps().get("rtskey");
 
 		if(rtskey==null) {
-			Logger.error(this,"Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
+			Logger.error(this, "Your accprops file is missing the rtskey entry. This means it is broken, you will not be able to receive new contact requests.");
 		}
 
 		this.rtsf = new RTSFetcher("KSK@"+rtskey+"-", rtsdir, account);
-		
+
 		//this.mf = new MailFetcher(this.mb, inbound_dir, Freemail.getFCPConnection());
-		
+
 		// temporary info message until there's a nicer UI :)
 		String freemailDomain=account.getDomain();
 		if(freemailDomain!=null) {
-			Logger.normal(this,"Secure Freemail address: <anything>@"+freemailDomain);
+			Logger.normal(this, "Secure Freemail address: <anything>@"+freemailDomain);
 		} else {
 			Logger.error(this, "You do not have a freemail address USK. This account is really broken.");
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		while (!stopping) {
 			try {
 				long start = System.currentTimeMillis();
-				
+
 				// is it time we inserted the mailsite?
 				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
 					int editionHint = 0;
@@ -129,9 +129,9 @@ public class SingleAccountWatcher implements Runnable {
 				if(stopping) {
 					break;
 				}
-			
+
 				long runtime = System.currentTimeMillis() - start;
-				
+
 				if (MIN_POLL_DURATION - runtime > 0) {
 					Thread.sleep(MIN_POLL_DURATION - runtime);
 				}

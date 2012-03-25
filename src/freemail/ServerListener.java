@@ -28,12 +28,12 @@ public abstract class ServerListener {
 	protected ServerSocket sock;
 	private final ArrayList<ServerHandler> handlers;
 	private final ArrayList<Thread> handlerThreads;
-	
+
 	protected ServerListener() {
 		handlers = new ArrayList<ServerHandler>();
 		handlerThreads = new ArrayList<Thread>();
 	}
-	
+
 	/**
 	 * Terminate the run method
 	 */
@@ -41,7 +41,7 @@ public abstract class ServerListener {
 		try {
 			if (sock != null) sock.close();
 		} catch (IOException ioe) {
-			
+
 		}
 		// kill all our handlers too
 		synchronized(handlers) {
@@ -51,7 +51,7 @@ public abstract class ServerListener {
 			}
 		}
 	}
-	
+
 	/**
 	 * Wait for all our client threads to terminate
 	 */
@@ -63,19 +63,19 @@ public abstract class ServerListener {
 					t.join();
 					t = null;
 				} catch (InterruptedException ie) {
-					
+
 				}
 			}
 		}
 	}
-	
+
 	protected void addHandler(ServerHandler hdlr, Thread thrd) {
 		synchronized(handlers) {
 			handlers.add(hdlr);
 		}
 		handlerThreads.add(thrd);
 	}
-	
+
 	protected void reapHandlers() {
 		// clean up dead handlers...
 		synchronized(handlers) {
@@ -86,7 +86,7 @@ public abstract class ServerListener {
 				}
 			}
 		}
-		
+
 		// ...and threads...
 		for (Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
 			Thread t = i.next();

@@ -35,34 +35,34 @@ public class MailSite {
 	MailSite(PropsFile a) {
 		this.accprops = a;
 	}
-	
+
 	private String getMailPage() {
 		StringBuffer buf = new StringBuffer();
-		
+
 		String rtsksk = this.accprops.get("rtskey");
 		if (rtsksk == null) {
-			Logger.error(this,"Can't insert mailsite - missing RTS KSK");
+			Logger.error(this, "Can't insert mailsite - missing RTS KSK");
 			return null;
 		}
 		buf.append("rtsksk=").append(rtsksk).append("\r\n");
-		
+
 		String keymodulus = this.accprops.get("asymkey.modulus");
 		if (keymodulus == null) {
-			Logger.error(this,"Can't insert mailsite - missing asymmetric crypto key modulus");
+			Logger.error(this, "Can't insert mailsite - missing asymmetric crypto key modulus");
 			return null;
 		}
 		buf.append("asymkey.modulus=").append(keymodulus).append("\r\n");
-		
+
 		String key_pubexponent = this.accprops.get("asymkey.pubexponent");
 		if (key_pubexponent == null) {
-			Logger.error(this,"Can't insert mailsite - missing asymmetric crypto key public exponent");
+			Logger.error(this, "Can't insert mailsite - missing asymmetric crypto key public exponent");
 			return null;
 		}
 		buf.append("asymkey.pubexponent=").append(key_pubexponent).append("\r\n");
-		
+
 		return buf.toString();
 	}
-	
+
 	public int publish(int minslot) throws InterruptedException {
 		byte[] mailpage;
 		String mailsite_s = this.getMailPage();
@@ -74,23 +74,23 @@ public class MailSite {
 		} catch (UnsupportedEncodingException use) {
 			mailpage = mailsite_s.getBytes();
 		}
-		
+
 		String key = this.accprops.get("mailsite.privkey");
 		if (key == null) return -1;
-		
+
 		HighLevelFCPClient cli = new HighLevelFCPClient();
-		
+
 		int actualslot = -1;
 		try {
 			actualslot = cli.slotInsert(mailpage, key, minslot, "/"+MAILPAGE);
 		} catch (ConnectionTerminatedException cte) {
 			return -1;
 		}
-		
+
 		if (actualslot < 0) return -1;
-		
+
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
-		
+
 		return actualslot;
 	}
 }

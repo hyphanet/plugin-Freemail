@@ -108,7 +108,7 @@ public class AddAccountToadlet extends WebPage {
 		confirmPassword.addChild("input", new String[] {"type",     "name"},
 		                                  new String[] {"password", "passwordVerification"});
 
-		addAccountForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "submit", FreemailL10n.getString("Freemail.AddAccountToadlet.submit") });
+		addAccountForm.addChild("input", new String[] {"type", "name", "value"}, new String[] {"submit", "submit", FreemailL10n.getString("Freemail.AddAccountToadlet.submit")});
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}

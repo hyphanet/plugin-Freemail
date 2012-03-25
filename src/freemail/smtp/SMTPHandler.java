@@ -58,12 +58,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	private final BufferedReader bufrdr;
 	private FreemailAccount account;
 	public static final String MY_HOSTNAME = "localhost";
-	
+
 	private final AccountManager accountmanager;
 	private final IdentityMatcher identityMatcher;
-	
+
 	private Vector<Identity> to;
-	
+
 	public SMTPHandler(AccountManager accMgr, Socket client, IdentityMatcher identityMatcher) throws IOException {
 		super(client);
 		accountmanager = accMgr;
@@ -72,17 +72,17 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.ps = new PrintStream(this.os);
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		this.identityMatcher = identityMatcher;
-		
+
 		this.to = new Vector<Identity>();
 	}
-	
+
 	@Override
 	public void run() {
 		this.sendWelcome();
-		
+
 		String line;
 		try {
-			while ( !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while (!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
 					//Logger.normal(this,line);
@@ -91,17 +91,17 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 					Logger.debug(this, "Parsing failed, line was: " + line);
 					continue;
 				}
-				
+
 				Logger.debug(this, "Received: " + line);
 				this.dispatch(msg);
 			}
-		
+
 			this.client.close();
 		} catch (IOException ioe) {
-			
+
 		}
 	}
-	
+
 	private void dispatch(SMTPCommand cmd) {
 		if (cmd.command.equals("helo")) {
 			this.handle_helo(cmd);
@@ -126,39 +126,39 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("502 Unimplemented\r\n");
 		}
 	}
-	
+
 	private void handle_helo(SMTPCommand cmd) {
 		this.ps.print("250 "+MY_HOSTNAME+"\r\n");
 	}
-	
+
 	private void handle_ehlo(SMTPCommand cmd) {
 		this.ps.print("250-"+MY_HOSTNAME+"\r\n");
 		this.ps.print("250 AUTH LOGIN PLAIN \r\n");
 	}
-	
+
 	private void handle_quit(SMTPCommand cmd) {
 		this.ps.print("221 "+MY_HOSTNAME+"\r\n");
 		try {
 			this.client.close();
 		} catch (IOException ioe) {
-			
+
 		}
 	}
-	
+
 	private void handle_turn(SMTPCommand cmd) {
 		this.ps.print("502 No\r\n");
 	}
-	
+
 	private void handle_auth(SMTPCommand cmd) {
 		String uname;
 		String password;
-		
+
 		if (cmd.args.length == 0) {
 			this.ps.print("504 No auth type given\r\n");
 			return;
 		} else if (cmd.args[0].equalsIgnoreCase("login")) {
 			this.ps.print("334 "+new String(Base64.encode("Username:".getBytes()))+"\r\n");
-			
+
 			String b64username;
 			String b64password;
 			try {
@@ -167,7 +167,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 			if (b64username == null) return;
-			
+
 			this.ps.print("334 "+new String(Base64.encode("Password:".getBytes()))+"\r\n");
 			try {
 				b64password = this.bufrdr.readLine();
@@ -175,12 +175,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 			if (b64password == null) return;
-                        
+
 			uname = new String(Base64.decode(b64username.getBytes()));
 			password = new String(Base64.decode(b64password.getBytes()));
 		} else if (cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
-			
+
 			if (cmd.args.length > 1) {
 				b64creds = cmd.args[1];
 			} else {
@@ -192,12 +192,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 					return;
 				}
 			}
-			
+
 			String creds_plain = new String(Base64.decode(b64creds.getBytes()));
 			String[] creds = creds_plain.split("\0");
-			
+
 			if (creds.length < 2) return;
-			
+
 			// most documents seem to reckon you send the
 			// username twice. Some think only once.
 			// This will work either way.
@@ -211,7 +211,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("504 Auth type unimplemented - weren't you listening?\r\n");
 			return;
 		}
-		
+
 		if(uname.contains("@") && uname.endsWith(".freemail")) {
 			//Extract the base32 identity string and convert it to base64
 			uname = uname.substring(uname.indexOf("@") + 1,
@@ -231,7 +231,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("535 Authentication failed\r\n");
 		}
 	}
-	
+
 	private void handle_mail(SMTPCommand cmd) {
 		if (this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
@@ -239,33 +239,33 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 
 		this.to.clear();
-		
+
 		// we don't really care.
 		this.ps.print("250 OK\r\n");
 	}
-	
+
 	private void handle_rcpt(SMTPCommand cmd) {
 		if (cmd.args.length < 1) {
 			this.ps.print("504 Insufficient arguments\r\n");
 			return;
 		}
-		
+
 		if (this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
-		
+
 		String allargs = new String();
 		for (int i = 0; i < cmd.args.length; i++) {
 		    allargs += cmd.args[i];
 		}
-		
+
 		String[] parts = allargs.split(":", 2);
 		if (parts.length < 2) {
 			this.ps.print("504 Can't understand that syntax\r\n");
 			return;
 		}
-		
+
 		String address = parts[1];
 		if(address.startsWith("<") && address.endsWith(">")) {
 			address = address.substring(1, address.length() - 1);
@@ -286,40 +286,40 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("550 No such user\r\n");
 			return;
 		}
-		
+
 		this.to.add(matches.get(address).get(0));
-		
+
 		this.ps.print("250 OK\r\n");
 	}
-	
+
 	private void handle_data(SMTPCommand cmd) {
 		if (this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
-		
+
 		if (this.to.size() == 0) {
 			this.ps.print("503 RCPT first\r\n");
 			return;
 		}
-		
+
 		File tempfile = null;
 		try {
 			tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
 			PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile));
-			
+
 			this.ps.print("354 Go crazy\r\n");
-			
+
 			String line;
 			boolean done = false;
-			while ( (line = this.bufrdr.readLine()) != null) {
+			while ((line = this.bufrdr.readLine()) != null) {
 				if (line.equals(".")) {
 					done = true;
 					break;
 				}
 				pw.print(line+"\r\n");
 			}
-			
+
 			pw.close();
 			if (!done) {
 				// connection closed before the message was
@@ -327,7 +327,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				tempfile.delete();
 				return;
 			}
-			
+
 			MessageHandler messageSender = account.getMessageHandler();
 			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
 			try {
@@ -335,7 +335,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			} finally {
 				data.free();
 			}
-			
+
 			this.ps.print("250 So be it\r\n");
 		} catch (IOException ioe) {
 			this.ps.print("452 Can't store message\r\n");
@@ -345,12 +345,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 		}
 	}
-	
+
 	private void handle_rset(SMTPCommand cmd) {
 		this.to.clear();
 		this.ps.print("250 Reset\r\n");
 	}
-	
+
 	private void sendWelcome() {
 		this.ps.print("220 "+MY_HOSTNAME+" ready\r\n");
 	}

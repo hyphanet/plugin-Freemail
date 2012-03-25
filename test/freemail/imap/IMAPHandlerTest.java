@@ -330,8 +330,8 @@ public class IMAPHandlerTest extends IMAPTestBase {
 
 		try {
 			runSimpleTest(commands, expectedResponse);
-			fail("String literals without ending linebreak appear to work, fix this " +
-			     "test so regressions will cause the test to fail");
+			fail("String literals without ending linebreak appear to work, fix this "
+					+ "test so regressions will cause the test to fail");
 		} catch(ComparisonFailure e) {
 			/*
 			 * A test failure is expected at the moment since the bug hasn't

@@ -35,13 +35,13 @@ import java.util.Hashtable;
 
 public class PropsFile {
 	// substitute static methods for constructor
-	
+
 	private static final Hashtable<String, PropsFile> propsList=new Hashtable<String, PropsFile>();
-	
+
 	private static int reapCounter = 0;
 	/// We go through the list and remove stale entries once in this many times a PropsFile is created
 	private static final int reapEvery = 20;
-	
+
 	public static synchronized PropsFile createPropsFile(File f, boolean stopAtBlank) {
 		if (reapCounter == reapEvery) {
 			reapOld();
@@ -49,11 +49,11 @@ public class PropsFile {
 		} else {
 			++reapCounter;
 		}
-		
+
 		String fn=f.getPath();
 
 		PropsFile pf=propsList.get(fn);
-		
+
 		if(pf!=null) {
 			return pf;
 		} else {
@@ -66,12 +66,12 @@ public class PropsFile {
 	public static PropsFile createPropsFile(File f) {
 		return createPropsFile(f, false);
 	}
-	
+
 	public static void reapOld() {
 		Logger.debug(PropsFile.class, "Cleaning up stale PropsFiles");
-		
+
 		Iterator<Map.Entry<String, PropsFile>> i = propsList.entrySet().iterator();
-		
+
 		while (i.hasNext()) {
 			Map.Entry<String, PropsFile> entry = i.next();
 			File f = new File(entry.getKey());
@@ -95,7 +95,7 @@ public class PropsFile {
 	private PropsFile(File f, boolean stopAtBlank) {
 		this.file = f;
 		this.data = null;
-		
+
 		if (f.exists()) {
 			try {
 				this.bufrdr = this.read(stopAtBlank);
@@ -105,22 +105,22 @@ public class PropsFile {
 		this.commentPrefix = null;
 		this.header = null;
 	}
-	
+
 	public void setCommentPrefix(String cp) {
 		this.commentPrefix = cp;
 	}
-	
+
 	public void setHeader(String hdr) {
 		this.header = hdr;
 	}
-	
+
 	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
 		this.data = new HashMap<String, String>();
-		
+
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
-		
+
 		String line = null;
-		while ( (line = br.readLine()) != null) {
+		while ((line = br.readLine()) != null) {
 			if (this.commentPrefix != null && line.startsWith(this.commentPrefix)) {
 				continue;
 			}
@@ -131,15 +131,15 @@ public class PropsFile {
 			if (parts.length < 2) continue;
 			this.data.put(parts[0], parts[1]);
 		}
-		
+
 		br.close();
 		return null;
 	}
-	
+
 	public BufferedReader getReader() {
 		return this.bufrdr;
 	}
-	
+
 	public void closeReader() {
 		if (this.bufrdr == null) return;
 		try {
@@ -147,7 +147,7 @@ public class PropsFile {
 		} catch (IOException ioe) {
 		}
 	}
-	
+
 	private synchronized void write() throws IOException {
 		File parentDir = file.getParentFile();
 		if(parentDir != null && !parentDir.exists()) {
@@ -158,32 +158,32 @@ public class PropsFile {
 		}
 
 		PrintWriter pw = new PrintWriter(new FileOutputStream(this.file));
-		
+
 		if (this.header != null) pw.println(this.header);
-		
+
 		Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
 		while (i.hasNext()) {
 			Map.Entry<String, String> e = i.next();
 			String key = e.getKey();
 			String val = e.getValue();
-			
+
 			pw.println(key+"="+val);
 		}
-		
+
 		pw.close();
 	}
-	
+
 	public String get(String key) {
 		if (this.data == null) return null;
-		
+
 		return this.data.get(key);
 	}
-	
+
 	public boolean put(String key, String val) {
 		if (this.data == null) {
 			this.data = new HashMap<String, String>();
 		}
-		
+
 		Object o = this.data.put(key, val);
 		if (o == null || !o.equals(val)) {
 			try {
@@ -195,19 +195,19 @@ public class PropsFile {
 		}
 		return true;
 	}
-	
+
 	public boolean put(String key, long val) {
 		return this.put(key, Long.toString(val));
 	}
-	
+
 	public boolean exists() {
 		return this.file.exists();
 	}
-	
+
 	public Set<String> listProps() {
 		return this.data.keySet();
 	}
-	
+
 	public boolean remove(String key) {
 		if (this.data.containsKey(key)) {
 			this.data.remove(key);
@@ -220,7 +220,7 @@ public class PropsFile {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		return file.getPath();

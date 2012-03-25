@@ -60,11 +60,11 @@ public class Configurator {
 		head.append("# The Freemail community cannot provide support"+ls);
 		head.append("# to people who have broken Freemail as a result"+ls);
 		head.append("# of editing this file.");
-		
+
 		this.props.setHeader(head.toString());
 		this.callbacks = new HashMap<String, ConfigClient>();
 	}
-	
+
 	/**
 	 * Returns the value of the specified configuration key, or null if the key has not been set
 	 * @param key the key whose value should be returned
@@ -79,7 +79,7 @@ public class Configurator {
 		if(old != null) {
 			Logger.warning(this, "Replacing previous callback for " + key);
 		}
-		
+
 		String val = this.props.get(key);
 		if (val == null) {
 			val = defaultval;
@@ -87,10 +87,10 @@ public class Configurator {
 		}
 		cb.setConfigProp(key, val);
 	}
-	
+
 	public void set(String key, String val) {
 		this.props.put(key, val);
-		
+
 		ConfigClient cb = this.callbacks.get(key);
 		if (cb == null) return;
 		cb.setConfigProp(key, val);

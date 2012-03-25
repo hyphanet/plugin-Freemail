@@ -63,9 +63,9 @@ import freenet.support.io.FileBucket;
  * the inbox of the account that is specified during construction.
  */
 public class MessageHandler {
-	private final static String INDEX_NAME = "index";
-	private final static long RESEND_TIME = 24 * 60 * 60 * 1000;
-	private final static String MSG_LOG_NAME = "log";
+	private static final String INDEX_NAME = "index";
+	private static final long RESEND_TIME = 24 * 60 * 60 * 1000;
+	private static final String MSG_LOG_NAME = "log";
 
 	/**
 	 * Holds the static portions of the keys used in the index file. The values that are stored per
@@ -542,11 +542,11 @@ public class MessageHandler {
 			try {
 				isDupe = msgLog.isPresent(id);
 			} catch (IOException ioe) {
-				Logger.error(this,"Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.", ioe);
+				Logger.error(this, "Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.", ioe);
 				return false;
 			}
 			if(isDupe) {
-				Logger.normal(this,"Got a message, but we've already logged that message ID as received. Discarding.");
+				Logger.normal(this, "Got a message, but we've already logged that message ID as received. Discarding.");
 				return true;
 			}
 
@@ -560,7 +560,7 @@ public class MessageHandler {
 				msgLog.add(id, null);
 			} catch(IOException e) {
 				// how should we handle this? Remove the message from the inbox again?
-				Logger.error(this,"warning: failed to write log file!", e);
+				Logger.error(this, "warning: failed to write log file!", e);
 			}
 
 			return true;
@@ -572,8 +572,8 @@ public class MessageHandler {
 				return true;
 			}
 
-			Logger.debug(this, "Marking as spoofed since subdomain doesn't match. Was: " + address.getSubDomain() +
-					" Expected: " + remoteId);
+			Logger.debug(this, "Marking as spoofed since subdomain doesn't match. Was: "
+					+ address.getSubDomain() + " Expected: " + remoteId);
 			return false;
 		}
 	}

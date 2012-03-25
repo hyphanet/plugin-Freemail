@@ -414,10 +414,11 @@ class Channel {
 		}
 
 		//Build the header of the inserted message
-		Bucket messageHeader = new ArrayBucket(
-				("messagetype=message\r\n" +
-				"id=" + messageId + "\r\n" +
-				"\r\n").getBytes());
+		String header =
+			"messagetype=message\r\n"
+			+ "id=" + messageId + "\r\n"
+			+ "\r\n";
+		Bucket messageHeader = new ArrayBucket(header.getBytes());
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
@@ -856,7 +857,7 @@ class Channel {
 
 			String remoteId;
 			synchronized(channelProps) {
-				 remoteId = channelProps.get(PropsKeys.REMOTE_ID);
+				remoteId = channelProps.get(PropsKeys.REMOTE_ID);
 			}
 			if(remoteId == null) {
 				/* FIXME: Make sure the channel is deleted, e.g. by setting TIMEOUT to 0 */
@@ -1214,7 +1215,7 @@ class Channel {
 			id = Long.parseLong(s_id);
 		} catch (NumberFormatException nfe) {
 			/* FIXME: Id doesn't have to be an integer */
-			Logger.error(this,"Got a message with an invalid (non-integer) id. Discarding.");
+			Logger.error(this, "Got a message with an invalid (non-integer) id. Discarding.");
 			msgprops.closeReader();
 			return true;
 		}
@@ -1231,7 +1232,7 @@ class Channel {
 
 		BufferedReader br = msgprops.getReader();
 		if (br == null) {
-			Logger.error(this,"Got an invalid message. Discarding.");
+			Logger.error(this, "Got an invalid message. Discarding.");
 			msgprops.closeReader();
 			return true;
 		}
@@ -1272,10 +1273,11 @@ class Channel {
 			}
 
 			//Build the header of the inserted message
-			Bucket bucket = new ArrayBucket(
-					("messagetype=ack\r\n" +
-							"id=" + ackId + "\r\n" +
-					"\r\n").getBytes());
+			String header =
+				"messagetype=ack\r\n"
+				+ "id=" + ackId + "\r\n"
+				+ "\r\n";
+			Bucket bucket = new ArrayBucket(header.getBytes());
 
 			boolean inserted;
 			try {

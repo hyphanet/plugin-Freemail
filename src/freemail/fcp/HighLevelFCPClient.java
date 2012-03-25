@@ -40,11 +40,11 @@ public class HighLevelFCPClient implements FCPClient {
 
 	private FCPMessage donemsg;
 	private final Object donemsgLock = new Object();
-	
+
 	public HighLevelFCPClient() {
 		this.conn = Freemail.getFCPConnection();
 	}
-	
+
 	// It's up to the client to delete this File once they're
 	// done with it
 	public synchronized File fetch(String key) throws ConnectionTerminatedException,
@@ -65,7 +65,7 @@ public class HighLevelFCPClient implements FCPClient {
 					this.conn.doRequest(this, msg);
 					break;
 				} catch (NoNodeConnectionException nnce) {
-					Logger.error(this,"Warning - no connection to node. Waiting...");
+					Logger.error(this, "Warning - no connection to node. Waiting...");
 					Thread.sleep(10000);
 				} catch (FCPBadFileException bfe) {
 					// won't be thrown since this is a get,
@@ -85,7 +85,7 @@ public class HighLevelFCPClient implements FCPClient {
 			reply = this.donemsg;
 			this.donemsg = null;
 		}
-		
+
 		if (reply.getType().equalsIgnoreCase("AllData")) {
 			return reply.getData();
 		} else if (reply.getType().equalsIgnoreCase("GetFailed")) {
@@ -102,7 +102,7 @@ public class HighLevelFCPClient implements FCPClient {
 			throw FCPException.create(reply);
 		}
 	}
-	
+
 	public synchronized SSKKeyPair makeSSK() throws ConnectionTerminatedException,
 	                                                InterruptedException {
 		FCPMessage msg = this.conn.getMessage("GenerateSSK");
@@ -117,7 +117,7 @@ public class HighLevelFCPClient implements FCPClient {
 					this.conn.doRequest(this, msg);
 					break;
 				} catch (NoNodeConnectionException nnce) {
-					Logger.error(this,"Warning - no connection to node. Waiting...");
+					Logger.error(this, "Warning - no connection to node. Waiting...");
 					Thread.sleep(5000);
 				} catch (FCPBadFileException bfe) {
 					// won't be thrown since no data
@@ -137,10 +137,10 @@ public class HighLevelFCPClient implements FCPClient {
 			reply = this.donemsg;
 			this.donemsg = null;
 		}
-		
+
 		if (reply.getType().equalsIgnoreCase("SSKKeypair")) {
 			SSKKeyPair retval = new SSKKeyPair();
-			
+
 			retval.privkey = reply.headers.get("InsertURI");
 			retval.pubkey = reply.headers.get("RequestURI");
 			return retval;
@@ -148,7 +148,7 @@ public class HighLevelFCPClient implements FCPClient {
 			return null;
 		}
 	}
-	
+
 	public synchronized FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
 	                                                                                   ConnectionTerminatedException,
 	                                                                                   FCPException,
@@ -157,7 +157,7 @@ public class HighLevelFCPClient implements FCPClient {
 		msg.headers.put("URI", key);
 		msg.headers.put("Persistence", "connection");
 		msg.setData(data);
-		
+
 		FCPMessage reply;
 		synchronized(donemsgLock) {
 			assert (this.donemsg == null);
@@ -170,7 +170,7 @@ public class HighLevelFCPClient implements FCPClient {
 					startedAt = System.currentTimeMillis();
 					break;
 				} catch (NoNodeConnectionException nnce) {
-					Logger.error(this,"Warning - no connection to node. Waiting...");
+					Logger.error(this, "Warning - no connection to node. Waiting...");
 					Thread.sleep(5000);
 				}
 			}
@@ -195,7 +195,7 @@ public class HighLevelFCPClient implements FCPClient {
 			reply = this.donemsg;
 			this.donemsg = null;
 		}
-		
+
 		if (reply.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
 		} else if(reply.getType().equalsIgnoreCase("PutFailed")) {
@@ -204,7 +204,7 @@ public class HighLevelFCPClient implements FCPClient {
 			throw FCPException.create(reply);
 		}
 	}
-	
+
 	public int SlotInsert(File data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException,
 	                                                                                    InterruptedException {
 		int slot = minslot;
@@ -218,14 +218,14 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 		}
 		while (carryon) {
-			Logger.debug(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
-			
+			Logger.debug(this, "trying slotinsert to "+basekey+"-"+slot+suffix);
+
 			try {
 				fis = new FileInputStream(data);
 			} catch (FileNotFoundException fnfe) {
 				return -1;
 			}
-			
+
 			FCPPutFailedException emsg;
 			try {
 				emsg = this.put(fis, basekey+"-"+slot+suffix);
@@ -236,20 +236,20 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				Logger.debug(this,"insert of "+basekey+"-"+slot+suffix+" successful");
+				Logger.debug(this, "insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
-				Logger.debug(this,"collision");
+				Logger.debug(this, "collision");
 			} else {
-				Logger.error(this,"Slot insert failed, error code is "+emsg.errorcode);
+				Logger.error(this, "Slot insert failed, error code is "+emsg.errorcode);
 				// try again later
 				return -1;
 			}
 		}
 		return -1;
 	}
-	
+
 	public int slotInsert(byte[] data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException,
 	                                                                                      InterruptedException {
 		int slot = minslot;
@@ -263,10 +263,10 @@ public class HighLevelFCPClient implements FCPClient {
 			}
 		}
 		while (carryon) {
-			Logger.debug(this,"trying slotinsert to "+basekey+"-"+slot+suffix);
-			
+			Logger.debug(this, "trying slotinsert to "+basekey+"-"+slot+suffix);
+
 			bis = new ByteArrayInputStream(data);
-			
+
 			FCPPutFailedException emsg;
 			try {
 				emsg = this.put(bis, basekey+"-"+slot+suffix);
@@ -277,25 +277,25 @@ public class HighLevelFCPClient implements FCPClient {
 				return -1;
 			}
 			if (emsg == null) {
-				Logger.debug(this,"insert of "+basekey+"-"+slot+suffix+" successful");
+				Logger.debug(this, "insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
 			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
-				Logger.debug(this,"collision");
+				Logger.debug(this, "collision");
 			} else {
-				Logger.error(this,"Slot insert failed, error code is "+emsg.errorcode);
+				Logger.error(this, "Slot insert failed, error code is "+emsg.errorcode);
 				// try again later
 				return -1;
 			}
 		}
 		return -1;
 	}
-	
+
 	@Override
 	public void requestStatus(FCPMessage msg) {
-		
+
 	}
-	
+
 	@Override
 	public void requestFinished(FCPMessage msg) {
 		synchronized (donemsgLock) {
