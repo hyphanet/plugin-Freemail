@@ -103,6 +103,7 @@
 			<fileset dir="${src}">
 				<include name="freemail/l10n/*.l10n" />
 				<include name="freemail/ui/web/css/*.css" />
+				<include name="freemail/ui/web/images/" />
 			</fileset>
 		</copy>
 	</target>
