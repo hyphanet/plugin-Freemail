@@ -798,9 +798,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 						}
 					}
 				}
-				mmsg.closeStream();
 			} catch (IOException ioe) {
 				return false;
+			} finally {
+				mmsg.closeStream();
 			}
 			return true;
 		}
@@ -851,9 +852,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					while ((line = mmsg.readLine()) != null) {
 						buf.append(line+"\r\n");
 					}
-					mmsg.closeStream();
 				} catch (IOException ioe) {
 					// just return whatever we got
+				} finally {
+					mmsg.closeStream();
 				}
 			}
 

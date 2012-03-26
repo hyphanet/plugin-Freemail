@@ -288,19 +288,22 @@ public class NewMessageToadlet extends WebPage {
 
 		StringBuilder body = new StringBuilder();
 
-		//First we have to read past the header
-		String line = msg.readLine();
-		while((line != null) && (!line.equals(""))) {
-			line = msg.readLine();
-		}
+		try {
+			//First we have to read past the header
+			String line = msg.readLine();
+			while((line != null) && (!line.equals(""))) {
+				line = msg.readLine();
+			}
 
-		//Now add the actual message content
-		line = msg.readLine();
-		while(line != null) {
-			body.append(">" + line + "\r\n");
+			//Now add the actual message content
 			line = msg.readLine();
+			while(line != null) {
+				body.append(">" + line + "\r\n");
+				line = msg.readLine();
+			}
+		} finally {
+			msg.closeStream();
 		}
-		msg.closeStream();
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,

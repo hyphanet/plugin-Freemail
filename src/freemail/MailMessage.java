@@ -344,6 +344,8 @@ public class MailMessage {
 		} catch (IOException ioe) {
 			msg.cancel();
 			return false;
+		} finally {
+			closeStream();
 		}
 
 		msg.flags = this.flags;

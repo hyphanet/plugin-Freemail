@@ -186,6 +186,8 @@ public class MessageToadlet extends WebPage {
 			HTMLNode errorBox = addErrorbox(messageContents, "Couldn't read message");
 			errorBox.addChild("p", "Couldn't read the message: " + e);
 			return;
+		} finally {
+			message.closeStream();
 		}
 
 		Iterator<String> lineIterator = lines.iterator();
