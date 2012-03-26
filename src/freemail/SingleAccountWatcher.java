@@ -108,7 +108,7 @@ public class SingleAccountWatcher implements Runnable {
 
 					MailSite ms = new MailSite(account.getProps());
 					int edition = ms.publish(editionHint);
-					if (edition > 0) {
+					if (edition >= 0) {
 						this.mailsite_last_upload = System.currentTimeMillis();
 						if(wotConnection != null) {
 							try {
