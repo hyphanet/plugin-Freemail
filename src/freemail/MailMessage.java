@@ -365,7 +365,10 @@ public class MailMessage {
 		File newfile = new File(this.file.getParentFile(), newname);
 
 		if(this.file.renameTo(newfile)) {
+			Logger.debug(this, "Message moved from " + file + " to " + newfile);
 			this.file = newfile;
+		} else {
+			Logger.error(this, "Rename failed (from " + file + " to " + newfile + ")");
 		}
 	}
 
