@@ -33,8 +33,9 @@ import freemail.utils.Logger;
 public class HighLevelFCPClient implements FCPClient {
 	private static final int FCP_TOO_MANY_PATH_COMPONENTS = 11;
 	private static final int FCP_PERMANANT_REDIRECT = 27;
-	// wait 10 minutes before giving up on inserts
-	private static final int PUT_TIMEOUT = 10 * 60 * 1000;
+	// wait 1 hour before giving up on inserts
+	// TODO: Remove this unless it really is a bug in fred
+	private static final int PUT_TIMEOUT = 1 * 60 * 60 * 1000;
 
 	private FCPConnection conn;
 
