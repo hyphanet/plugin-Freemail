@@ -159,6 +159,11 @@ public class MessageHandler {
 
 					String identifier = f.getName();
 
+					//Skip log and index
+					if(identifier.equals(INDEX_NAME) || identifier.equals(MSG_LOG_NAME)) {
+						continue;
+					}
+
 					String rawMsgNum;
 					PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
 					synchronized (props) {
