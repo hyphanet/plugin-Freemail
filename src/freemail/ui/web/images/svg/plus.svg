@@ -57,22 +57,22 @@
      id="layer1"
      transform="translate(-342.84375,-323.78125)">
     <path
-       style="fill:#09df0a;fill-opacity:1;stroke:#000000;stroke-width:15;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 470.34375,344.36206 0,158.83838 c 0,7.24677 -12.265,13.08081 -27.5,13.08081 -15.235,0 -27.5,-5.83404 -27.5,-13.08081 l 0,-158.83838 c 0,-7.24677 12.265,-13.08081 27.5,-13.08081 15.235,0 27.5,5.83404 27.5,13.08081 z"
+       style="fill:#09df0a;fill-opacity:1;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       d="m 472.84375,342.21559 0,163.1313 c 0,7.44263 -13.38,13.43435 -30,13.43435 -16.62,0 -30,-5.99172 -30,-13.43435 l 0,-163.1313 c 0,-7.44263 13.38,-13.43435 30,-13.43435 16.62,0 30,5.99172 30,13.43435 z"
        id="rect3755-4-3"
        inkscape:connector-curvature="0" />
     <path
-       style="fill:#09df0a;fill-opacity:1;stroke:#000000;stroke-width:15;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       d="m 363.42456,396.28125 158.83838,0 c 7.24677,0 13.08081,12.265 13.08081,27.5 0,15.235 -5.83404,27.5 -13.08081,27.5 l -158.83838,0 c -7.24677,0 -13.08081,-12.265 -13.08081,-27.5 0,-15.235 5.83404,-27.5 13.08081,-27.5 z"
+       style="fill:#09df0a;fill-opacity:1;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       d="m 361.27809,393.78125 163.1313,0 c 7.44263,0 13.43435,13.38 13.43435,30 0,16.62 -5.99172,30 -13.43435,30 l -163.1313,0 c -7.44263,0 -13.43435,-13.38 -13.43435,-30 0,-16.62 5.99172,-30 13.43435,-30 z"
        id="rect3755-4-0"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="sssssss" />
     <rect
        style="fill:#09df0a;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5038"
-       width="40"
+       width="50"
        height="80"
-       x="422.84375"
+       x="417.84375"
        y="383.78125"
        rx="0"
        ry="0" />

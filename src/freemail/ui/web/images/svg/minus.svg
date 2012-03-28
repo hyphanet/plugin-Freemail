@@ -57,13 +57,13 @@
      id="layer1"
      transform="translate(-74.28125,-192.375)">
     <rect
-       style="fill:#e90909;fill-opacity:1;stroke:#000000;stroke-width:15;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:#e90909;fill-opacity:1;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect3755-4"
-       width="185"
-       height="55"
-       x="81.78125"
-       y="264.875"
-       ry="27.5"
-       rx="13.080808" />
+       width="190"
+       height="60"
+       x="79.28125"
+       y="262.375"
+       ry="30"
+       rx="13.434342" />
   </g>
 </svg>
