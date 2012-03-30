@@ -537,7 +537,7 @@ public class MessageHandler {
 			File rcptOutbox = new File(outbox, remoteId);
 
 			File message = new File(rcptOutbox, "" + id);
-			if(!message.delete()) {
+			if(message.exists() && !message.delete()) {
 				Logger.error(this, "Couldn't delete " + message);
 			}
 
