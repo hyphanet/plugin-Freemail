@@ -132,7 +132,7 @@
 				<pathelement path="${test.lib}"/>
 			</classpath>
 			<assertions><enable/></assertions>
-			<formatter type="plain" usefile="false"/>
+			<formatter type="brief" usefile="false"/>
 			<batchtest>
 				<fileset dir="${build-test}">
 					<include name="**/*Test.class"/>
