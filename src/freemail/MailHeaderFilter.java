@@ -173,6 +173,7 @@ class MailHeaderFilter {
 		} else if (name.equalsIgnoreCase("In-Reply-To")) {
 			return val;
 		} else {
+			Logger.minor(this, "Dropping header " + name + " because it isn't on the whitelist");
 			return null;
 		}
 	}
