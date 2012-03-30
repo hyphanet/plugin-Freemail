@@ -364,19 +364,16 @@ public class InboxToadlet extends WebPage {
 		}
 
 		private <T extends Comparable<T>> int compare(T o1, T o2) {
-			if(o1 == null) {
-				if(o2 == null) {
-					return 0; //Equal
-				} else {
-					return -1; //Sort non-null before null
-				}
-			} else {
-				if(o2 == null) {
-					return 1; //Sort non-null before null
-				} else {
-					return o1.compareTo(o2);
-				}
+			if(o1 == null && o2 == null) {
+				return 0;
 			}
+
+			//Sort non-null before null
+			if(o1 == null || o2 == null) {
+				return (o1 == null) ? -1 : 1;
+			}
+
+			return o1.compareTo(o2);
 		}
 	}
 }
