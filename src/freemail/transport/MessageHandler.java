@@ -537,8 +537,13 @@ public class MessageHandler {
 			File rcptOutbox = new File(outbox, remoteId);
 
 			File message = new File(rcptOutbox, "" + id);
-			if(message.exists() && !message.delete()) {
-				Logger.error(this, "Couldn't delete " + message);
+			if(message.exists()) {
+				Logger.minor(this, "Received ack, deleting message file: " + message);
+				if(!message.delete()) {
+					Logger.error(this, "Couldn't delete " + message);
+				}
+			} else {
+				Logger.minor(this, "Received ack but message file doesn't exits: " + message);
 			}
 
 			deleteIndexEntries(rcptOutbox, Long.toString(id));
