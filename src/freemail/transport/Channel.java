@@ -168,7 +168,12 @@ class Channel {
 			if(rawTimeout != null) {
 				try {
 					long timeout = Long.parseLong(rawTimeout);
-					if(timeout < (System.currentTimeMillis() - CHANNEL_TIMEOUT)) {
+
+					long left = timeout + CHANNEL_TIMEOUT - System.currentTimeMillis();
+					Logger.debug(this, "Time left until timeout: " + left + "ms (read only in "
+							+ (left - CHANNEL_TIMEOUT) + "ms)");
+
+					if(left < 0) {
 						Logger.debug(this, "Channel has timed out");
 						throw new ChannelTimedOutException();
 					}
