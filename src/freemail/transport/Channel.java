@@ -1139,7 +1139,12 @@ class Channel {
 			assert (channelPrivateKey.matches("^SSK@\\S{42,44},\\S{42,44},\\S{7}/$")) : "Malformed channel key: " + channelPrivateKey;
 			assert (initiatorSlot != null);
 			assert (responderSlot != null);
-			assert (timeout > System.currentTimeMillis());
+
+			//Allow sending the RTS 1 day into the read-only period. This shouldn't happen, but
+			//shouldn't cause any problems either so allow plenty of time to avoid false positives
+			if(System.currentTimeMillis() > (timeout + (24 * 60 * 60 * 1000))) {
+				Logger.warning(this, "Building RTS when channel is read only");
+			}
 
 			StringBuffer rtsMessage = new StringBuffer();
 			rtsMessage.append(RTSKeys.MAILSITE + "=" + senderMailsiteKey + "\r\n");
