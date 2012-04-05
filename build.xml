@@ -15,7 +15,7 @@
 	<property name="version.src" value="freemail/Version.java"/>
 	<property name="version.build" value="freemail/Version.class"/>
 
-	<property name="bcdist" value="lcrypto-jdk14-138"/>
+	<property name="bcdist" value="lcrypto-jdk14-147"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
 
 	<exec executable="git"
