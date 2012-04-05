@@ -853,7 +853,15 @@ class Channel {
 					responderSlot = generateRandomSlot();
 				}
 
-				timeout = System.currentTimeMillis() + CHANNEL_TIMEOUT;
+				String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+				try {
+					timeout = Long.parseLong(rawTimeout);
+				} catch(NumberFormatException e) {
+					if(rawTimeout != null) {
+						Logger.error(this, "Illegal value in timeout field: " + rawTimeout);
+					}
+					timeout = System.currentTimeMillis() + CHANNEL_TIMEOUT;
+				}
 
 				channelProps.put(PropsKeys.PUBLIC_KEY, publicKey);
 				channelProps.put(PropsKeys.PRIVATE_KEY, privateKey);
