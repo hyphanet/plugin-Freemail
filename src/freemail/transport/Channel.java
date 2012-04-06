@@ -1143,7 +1143,10 @@ class Channel {
 			//Allow sending the RTS 1 day into the read-only period. This shouldn't happen, but
 			//shouldn't cause any problems either so allow plenty of time to avoid false positives
 			if(System.currentTimeMillis() > (timeout + (24 * 60 * 60 * 1000))) {
-				Logger.warning(this, "Building RTS when channel is read only");
+				Logger.warning(this, "Building RTS when channel is past final timeout ("
+						+ "read only=" + timeout
+						+ ", final timeout=" + (timeout + CHANNEL_TIMEOUT)
+						+ ", current time=" + System.currentTimeMillis() + ")");
 			}
 
 			StringBuffer rtsMessage = new StringBuffer();
