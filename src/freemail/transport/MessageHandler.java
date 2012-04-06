@@ -477,6 +477,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
+			Logger.debug(this, "Rescheduling sender task in " + retryIn + "ms");
 			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
 			tasks.put(identifier, senderExecutor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
