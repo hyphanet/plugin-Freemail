@@ -96,9 +96,8 @@ public class SingleAccountWatcher implements Runnable {
 					}
 
 					//And from the account file
-					String hint = account.getProps().get("mailsite.slot");
 					try {
-						int slot = Integer.parseInt(hint);
+						int slot = Integer.parseInt(account.getProps().get("mailsite.slot"));
 						if(slot > editionHint) {
 							editionHint = slot;
 						}
