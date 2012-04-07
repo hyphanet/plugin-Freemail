@@ -79,7 +79,7 @@ public class SingleAccountWatcher implements Runnable {
 
 				// is it time we inserted the mailsite?
 				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
-					int editionHint = 0;
+					int editionHint = 1;
 
 					//Try to get the edition from WoT
 					WoTConnection wotConnection = freemail.getWotConnection();
