@@ -560,8 +560,13 @@ public class MessageHandler {
 		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
 			File rcptOutbox = new File(outbox, remoteId);
 			if(!rcptOutbox.exists()) {
-				rcptOutbox.mkdirs();
+				if(!rcptOutbox.mkdirs()) {
+					Logger.error(this, "Couldn't create recipient outbox (" + rcptOutbox
+							+ "), so can't handle incoming message");
+					return false;
+				}
 			}
+
 			MessageLog msgLog = new MessageLog(new File(rcptOutbox, MSG_LOG_NAME));
 			boolean isDupe;
 			try {
