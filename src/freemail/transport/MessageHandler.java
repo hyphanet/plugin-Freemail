@@ -560,7 +560,7 @@ public class MessageHandler {
 		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
 			File rcptOutbox = new File(outbox, remoteId);
 			if(!rcptOutbox.exists()) {
-				rcptOutbox.mkdir();
+				rcptOutbox.mkdirs();
 			}
 			MessageLog msgLog = new MessageLog(new File(rcptOutbox, MSG_LOG_NAME));
 			boolean isDupe;
