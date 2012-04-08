@@ -87,7 +87,16 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 		Timer pageGeneration = Timer.start();
 		makeWebPagePost(uri, req, ctx, page);
-		pageGeneration.log(this, 1, TimeUnit.SECONDS, "Time spent serving post request");
+
+		long timeout = 1;
+		TimeUnit unit = TimeUnit.SECONDS;
+		if(this instanceof AddAccountToadlet) {
+			//Override time threshold since account creation is known to be slow
+			//FIXME: Fix account creation instead of hiding the warning
+			timeout = 5;
+			unit = TimeUnit.MINUTES;
+		}
+		pageGeneration.log(this, timeout, unit, "Time spent serving post request");
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {
