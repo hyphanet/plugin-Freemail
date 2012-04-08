@@ -106,7 +106,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
 
-		runTime.log(this, "Time spent in runPlugin()");
+		runTime.log(this, 1, TimeUnit.SECONDS, "Time spent in runPlugin()");
 	}
 
 	public static ScheduledExecutorService getExecutor(TaskType type) {
@@ -182,11 +182,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		Timer webUITermination = Timer.start();
 		webInterface.terminate();
-		webUITermination.log(this, "Time spent terminating web interface");
+		webUITermination.log(this, 1, TimeUnit.SECONDS, "Time spent terminating web interface");
 
 		Timer normalTermination = Timer.start();
 		super.terminate();
-		normalTermination.log(this, "Time spent in normal termination");
+		normalTermination.log(this, 1, TimeUnit.SECONDS, "Time spent in normal termination");
 
 		Timer executorTermination = Timer.start();
 		try {
@@ -195,7 +195,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		} catch(InterruptedException e) {
 			Logger.minor(this, "Thread was interrupted while waiting for excutors to terminate.");
 		}
-		executorTermination.log(this, "Time spent waiting for executor termination");
+		executorTermination.log(this, 1, TimeUnit.SECONDS, "Time spent waiting for executor termination");
 	}
 
 	@Override

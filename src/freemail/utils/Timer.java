@@ -20,6 +20,8 @@
 
 package freemail.utils;
 
+import java.util.concurrent.TimeUnit;
+
 public final class Timer {
 	private final long startTime;
 
@@ -44,5 +46,25 @@ public final class Timer {
 	public void log(Object o, String message) {
 		long time = getTime();
 		Logger.minor(o, message + ": " + time + "ns");
+	}
+
+	public void log(Class<?> c, long warningThreshold, TimeUnit unit, String message) {
+		long time = getTime();
+
+		if(time < unit.toNanos(warningThreshold)) {
+			Logger.minor(c, message + ": " + time + "ns");
+		} else {
+			Logger.warning(c, message + ": " + time + "ns");
+		}
+	}
+
+	public void log(Object o, long warningThreshold, TimeUnit unit, String message) {
+		long time = getTime();
+
+		if(time < unit.toNanos(warningThreshold)) {
+			Logger.minor(o, message + ": " + time + "ns");
+		} else {
+			Logger.warning(o, message + ": " + time + "ns");
+		}
 	}
 }

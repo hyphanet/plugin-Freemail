@@ -509,7 +509,7 @@ class Channel {
 				try {
 					Timer messageInsert = Timer.start();
 					fcpMessage = fcpClient.put(messageStream, insertKey);
-					messageInsert.log(this, "Time spent inserting message");
+					messageInsert.log(this, 1, TimeUnit.HOURS, "Time spent inserting message");
 				} catch(FCPBadFileException e) {
 					Logger.error(this, "Caugth FCPBadFileException while inserting message", e);
 					return false;

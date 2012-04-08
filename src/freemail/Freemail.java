@@ -24,6 +24,7 @@ package freemail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import freemail.fcp.FCPConnection;
 import freemail.fcp.FCPContext;
@@ -162,14 +163,14 @@ public abstract class Freemail implements ConfigClient {
 	public void terminate() {
 		Timer accountManagerTermination = Timer.start();
 		accountManager.terminate();
-		accountManagerTermination.log(this, "Time spent killing account manager");
+		accountManagerTermination.log(this, 1, TimeUnit.SECONDS, "Time spent killing account manager");
 
 		Timer threadTermination = Timer.start();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
 		fcpconn.kill();
-		threadTermination.log(this, "Time spent killing other threads");
+		threadTermination.log(this, 1, TimeUnit.SECONDS, "Time spent killing other threads");
 
 		// now clean up all the threads
 		boolean cleanedUp = false;
@@ -190,7 +191,7 @@ public abstract class Freemail implements ConfigClient {
 					fcpThread.join();
 					fcpThread = null;
 				}
-				threadJoin.log(this, "Time spent joining other threads");
+				threadJoin.log(this, 1, TimeUnit.SECONDS, "Time spent joining other threads");
 			} catch (InterruptedException ie) {
 
 			}

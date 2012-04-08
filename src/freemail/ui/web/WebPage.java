@@ -22,6 +22,7 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import freemail.l10n.FreemailL10n;
 import freemail.utils.Timer;
@@ -63,7 +64,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 		Timer pageGeneration = Timer.start();
 		makeWebPageGet(uri, req, ctx, page);
-		pageGeneration.log(this, "Time spent serving get request");
+		pageGeneration.log(this, 1, TimeUnit.SECONDS, "Time spent serving get request");
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -86,7 +87,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 		Timer pageGeneration = Timer.start();
 		makeWebPagePost(uri, req, ctx, page);
-		pageGeneration.log(this, "Time spent serving post request");
+		pageGeneration.log(this, 1, TimeUnit.SECONDS, "Time spent serving post request");
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {
