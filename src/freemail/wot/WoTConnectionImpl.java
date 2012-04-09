@@ -29,6 +29,7 @@ import java.util.Set;
 
 import freemail.utils.Logger;
 import freemail.utils.SimpleFieldSetFactory;
+import freemail.utils.Timer;
 import freenet.pluginmanager.FredPluginTalker;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
@@ -222,10 +223,10 @@ class WoTConnectionImpl implements WoTConnection {
 
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
-		long start;
+		Timer requestTimer;
 		synchronized(pluginTalker) {
 			synchronized(replyLock) {
-				start = System.nanoTime();
+				requestTimer = Timer.start();
 
 				assert (reply == null) : "Reply was " + reply;
 				reply = null;
@@ -245,8 +246,7 @@ class WoTConnectionImpl implements WoTConnection {
 
 			}
 		}
-		long end = System.nanoTime();
-		Logger.minor(this, "WoT request (" + msg.sfs.get("Message") + ") took " + (end - start) + "ns");
+		requestTimer.log(this, "Time spent waiting for WoT request " + msg.sfs.get("Message"));
 
 		String replyType = retValue.sfs.get("Message");
 		for(String expectedMessageType : expectedMessageTypes) {

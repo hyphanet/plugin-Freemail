@@ -30,6 +30,7 @@ import freemail.fcp.FCPContext;
 import freemail.imap.IMAPListener;
 import freemail.smtp.SMTPListener;
 import freemail.utils.Logger;
+import freemail.utils.Timer;
 import freemail.wot.WoTConnection;
 import freemail.config.ConfigClient;
 import freemail.config.Configurator;
@@ -159,24 +160,22 @@ public abstract class Freemail implements ConfigClient {
 	}
 
 	public void terminate() {
-		long start = System.nanoTime();
+		Timer accountManagerTermination = Timer.start();
 		accountManager.terminate();
-		long end = System.nanoTime();
-		Logger.minor(this, "Spent " + (end - start) + "ns killing account manager");
+		accountManagerTermination.log(this, "Time spent killing account manager");
 
-		start = System.nanoTime();
+		Timer threadTermination = Timer.start();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
 		fcpconn.kill();
-		end = System.nanoTime();
-		Logger.minor(this, "Spent " + (end - start) + "ns killing other threads");
+		threadTermination.log(this, "Time spent killing other threads");
 
 		// now clean up all the threads
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				start = System.nanoTime();
+				Timer threadJoin = Timer.start();
 				if (smtpThread != null) {
 					smtpThread.join();
 					smtpl.joinClientThreads();
@@ -191,8 +190,7 @@ public abstract class Freemail implements ConfigClient {
 					fcpThread.join();
 					fcpThread = null;
 				}
-				end = System.nanoTime();
-				Logger.minor(this, "Spent " + (end - start) + "ns joining other threads");
+				threadJoin.log(this, "Time spent joining other threads");
 			} catch (InterruptedException ie) {
 
 			}

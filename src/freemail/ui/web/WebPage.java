@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import freemail.l10n.FreemailL10n;
-import freemail.utils.Logger;
+import freemail.utils.Timer;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -61,10 +61,9 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		page.addCustomStyleSheet(StaticToadlet.getPath() + "/css/freemail.css");
 
-		long start = System.nanoTime();
+		Timer pageGeneration = Timer.start();
 		makeWebPageGet(uri, req, ctx, page);
-		long time = ((System.nanoTime() - start) / 1000) / 1000;
-		Logger.minor(this, "Page generation (get) took " + time  + " ms");
+		pageGeneration.log(this, "Time spent serving get request");
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -85,10 +84,9 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		PageNode page = pageMaker.getPageNode("Freemail", ctx);
 		page.addCustomStyleSheet(StaticToadlet.getPath() + "/css/freemail.css");
 
-		long start = System.nanoTime();
+		Timer pageGeneration = Timer.start();
 		makeWebPagePost(uri, req, ctx, page);
-		long time = ((System.nanoTime() - start) / 1000) / 1000;
-		Logger.minor(this, "Page generation (post) took " + time  + " ms");
+		pageGeneration.log(this, "Time spent serving post request");
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {

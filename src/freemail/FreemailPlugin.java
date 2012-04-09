@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import freemail.l10n.FreemailL10n;
 import freemail.ui.web.WebInterface;
 import freemail.utils.Logger;
+import freemail.utils.Timer;
 import freemail.wot.OwnIdentity;
 import freemail.wot.WoTConnection;
 import freemail.wot.WoTConnections;
@@ -92,7 +93,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 	@Override
 	public void runPlugin(PluginRespirator pr) {
-		long start = System.nanoTime();
+		Timer runTime = Timer.start();
 
 		pluginRespirator = pr;
 
@@ -105,8 +106,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		webInterface = new WebInterface(pr.getToadletContainer(), pr, this);
 
-		long end = System.nanoTime();
-		Logger.minor(this, "Spent " + (end - start) + "ns in runPlugin()");
+		runTime.log(this, "Time spent in runPlugin()");
 	}
 
 	public static ScheduledExecutorService getExecutor(TaskType type) {
@@ -180,25 +180,22 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		defaultExecutor.shutdownNow();
 		senderExecutor.shutdownNow();
 
-		long start = System.nanoTime();
+		Timer webUITermination = Timer.start();
 		webInterface.terminate();
-		long end = System.nanoTime();
-		Logger.minor(this, "Web interface terminated (in " + (end - start) + "ns), proceeding with normal termination");
+		webUITermination.log(this, "Time spent terminating web interface");
 
-		start = System.nanoTime();
+		Timer normalTermination = Timer.start();
 		super.terminate();
-		end = System.nanoTime();
-		Logger.minor(this, "Normal termination took " + (end - start) + "ns");
+		normalTermination.log(this, "Time spent in normal termination");
 
-		start = System.nanoTime();
+		Timer executorTermination = Timer.start();
 		try {
 			defaultExecutor.awaitTermination(1, TimeUnit.HOURS);
 			senderExecutor.awaitTermination(1, TimeUnit.HOURS);
 		} catch(InterruptedException e) {
 			Logger.minor(this, "Thread was interrupted while waiting for excutors to terminate.");
 		}
-		end = System.nanoTime();
-		Logger.minor(this, "Spent " + (end - start) + "ns waiting for executors to terminate");
+		executorTermination.log(this, "Time spent waiting for executor termination");
 	}
 
 	@Override

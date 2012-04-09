@@ -70,6 +70,7 @@ import freemail.fcp.SSKKeyPair;
 import freemail.utils.DateStringFactory;
 import freemail.utils.Logger;
 import freemail.utils.PropsFile;
+import freemail.utils.Timer;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
 import freemail.wot.WoTProperties;
@@ -506,10 +507,9 @@ class Channel {
 				Logger.debug(this, "Inserting data to " + insertKey);
 				FCPPutFailedException fcpMessage;
 				try {
-					long start = System.nanoTime();
+					Timer messageInsert = Timer.start();
 					fcpMessage = fcpClient.put(messageStream, insertKey);
-					long end = System.nanoTime();
-					Logger.minor(this, "Message insert took " + (end - start) + "ns");
+					messageInsert.log(this, "Time spent inserting message");
 				} catch(FCPBadFileException e) {
 					Logger.error(this, "Caugth FCPBadFileException while inserting message", e);
 					return false;
