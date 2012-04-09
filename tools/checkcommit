@@ -42,13 +42,13 @@ PARENT=`git describe "$COMMIT"^`
 #Checkout the parent of the target
 git checkout "$PARENT" &> /dev/null
 set +e
-ant checkstyle |& grep "\[cs:checkstyle\] " &> .checkcommit.prev
+ant checkstyle |& grep "\[cs:checkstyle\] " | tail -n +2 &> .checkcommit.prev
 set -e
 
 #Checkout the target
 git checkout "$TARGET" &> /dev/null
 set +e
-ant checkstyle |& grep "\[cs:checkstyle\] " &> .checkcommit.cur
+ant checkstyle |& grep "\[cs:checkstyle\] " | tail -n +2 &> .checkcommit.cur
 set -e
 
 #Count differences
