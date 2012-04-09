@@ -523,6 +523,7 @@ public class MessageHandler {
 
 	private class AckCallback extends Postman implements ChannelEventCallback {
 		private final String remoteId;
+		private final MessageLog msgLog;
 
 		private AckCallback(String remoteId) {
 			assert (remoteId != null);
@@ -531,6 +532,17 @@ public class MessageHandler {
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}
+
+			File rcptOutbox = new File(outbox, remoteId);
+			if(!rcptOutbox.exists()) {
+				if(!rcptOutbox.mkdirs()) {
+					//Will throw IOException when the message log is used later
+					Logger.error(this, "Couldn't create recipient outbox (" + rcptOutbox
+							+ "), so can't handle incoming message");
+				}
+			}
+
+			msgLog = new MessageLog(new File(rcptOutbox, MSG_LOG_NAME));
 		}
 
 		@Override
@@ -558,39 +570,31 @@ public class MessageHandler {
 
 		@Override
 		public boolean handleMessage(Channel channel, BufferedReader message, long id) {
-			File rcptOutbox = new File(outbox, remoteId);
-			if(!rcptOutbox.exists()) {
-				if(!rcptOutbox.mkdirs()) {
-					Logger.error(this, "Couldn't create recipient outbox (" + rcptOutbox
-							+ "), so can't handle incoming message");
+			synchronized (msgLog) {
+				boolean isDupe;
+				try {
+					isDupe = msgLog.isPresent(id);
+				} catch (IOException ioe) {
+					Logger.error(this, "Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.", ioe);
 					return false;
 				}
-			}
+				if(isDupe) {
+					Logger.normal(this, "Got a message, but we've already logged that message ID as received. Discarding.");
+					return true;
+				}
 
-			MessageLog msgLog = new MessageLog(new File(rcptOutbox, MSG_LOG_NAME));
-			boolean isDupe;
-			try {
-				isDupe = msgLog.isPresent(id);
-			} catch (IOException ioe) {
-				Logger.error(this, "Couldn't read logfile, so don't know whether received message is a duplicate or not. Leaving in the queue to try later.", ioe);
-				return false;
-			}
-			if(isDupe) {
-				Logger.normal(this, "Got a message, but we've already logged that message ID as received. Discarding.");
-				return true;
-			}
-
-			try {
-				storeMessage(message, freemailAccount.getMessageBank());
-			} catch(IOException e) {
-				return false;
-			}
-			Logger.normal(this, "You've got mail!");
-			try {
-				msgLog.add(id, null);
-			} catch(IOException e) {
-				// how should we handle this? Remove the message from the inbox again?
-				Logger.error(this, "warning: failed to write log file!", e);
+				try {
+					storeMessage(message, freemailAccount.getMessageBank());
+				} catch(IOException e) {
+					return false;
+				}
+				Logger.normal(this, "You've got mail!");
+				try {
+					msgLog.add(id, null);
+				} catch(IOException e) {
+					// how should we handle this? Remove the message from the inbox again?
+					Logger.error(this, "warning: failed to write log file!", e);
+				}
 			}
 
 			return true;
