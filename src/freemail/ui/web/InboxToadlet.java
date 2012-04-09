@@ -351,16 +351,27 @@ public class InboxToadlet extends WebPage {
 				msg1 = temp;
 			}
 
+			int result;
 			if(field == SortField.DATE) {
 				Date msg1Date = msg0.getDate();
 				Date msg2Date = msg1.getDate();
 
-				return compare(msg1Date, msg2Date);
+				result = compare(msg1Date, msg2Date);
+			} else {
+				String msg0Header = msg0.getFirstHeader(field.name);
+				String msg1Header = msg1.getFirstHeader(field.name);
+
+				result = compare(msg0Header, msg1Header);
 			}
 
-			String msg0Header = msg0.getFirstHeader(field.name);
-			String msg1Header = msg1.getFirstHeader(field.name);
-			return compare(msg0Header, msg1Header);
+			if(result == 0) {
+				//If the sort key is equal, use the id to compare since we can't return 0 for messages
+				//that aren't really the same. This is because e.g. TreeSet (which is used above)
+				//assumes that the comparison is consistent with equals.
+				return msg1.getUID() - msg0.getUID();
+			}
+
+			return result;
 		}
 
 		private <T extends Comparable<T>> int compare(T o1, T o2) {
