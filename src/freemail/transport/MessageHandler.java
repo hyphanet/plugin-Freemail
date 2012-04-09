@@ -593,7 +593,7 @@ public class MessageHandler {
 					msgLog.add(id, null);
 				} catch(IOException e) {
 					// how should we handle this? Remove the message from the inbox again?
-					Logger.error(this, "warning: failed to write log file!", e);
+					Logger.error(this, "Failed to write to the log file. This can lead to duplicate messages", e);
 				}
 			}
 
