@@ -61,7 +61,7 @@ if [[ ! $QUIET ]]; then
 	#TODO: Remove the initial +
 	diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+"
 	set -e
-	echo "$ADDED warnings added, $REMOVED removed"
+	echo "`git describe`: $ADDED warnings added, $REMOVED removed"
 fi
 
 #Cleanup
