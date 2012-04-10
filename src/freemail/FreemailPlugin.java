@@ -100,7 +100,11 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		updateFileFormat();
 
 		startFcp();
+
+		Timer workers = Timer.start();
 		startWorkers();
+		workers.log(this, 1, TimeUnit.SECONDS, "Time spent starting workers");
+
 		startServers(true);
 		startIdentityFetch(pr, getAccountManager());
 
