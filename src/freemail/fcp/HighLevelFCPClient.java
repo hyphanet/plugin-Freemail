@@ -26,6 +26,9 @@ import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import freemail.Freemail;
 import freemail.utils.Logger;
@@ -33,14 +36,10 @@ import freemail.utils.Logger;
 public class HighLevelFCPClient implements FCPClient {
 	private static final int FCP_TOO_MANY_PATH_COMPONENTS = 11;
 	private static final int FCP_PERMANANT_REDIRECT = 27;
-	// wait 1 hour before giving up on inserts
-	// TODO: Remove this unless it really is a bug in fred
-	private static final int PUT_TIMEOUT = 1 * 60 * 60 * 1000;
 
 	private FCPConnection conn;
 
-	private FCPMessage donemsg;
-	private final Object donemsgLock = new Object();
+	private final List<FCPMessage> doneMsgs = new LinkedList<FCPMessage>();
 
 	public HighLevelFCPClient() {
 		this.conn = Freemail.getFCPConnection();
@@ -48,43 +47,33 @@ public class HighLevelFCPClient implements FCPClient {
 
 	// It's up to the client to delete this File once they're
 	// done with it
-	public synchronized File fetch(String key) throws ConnectionTerminatedException,
-	                                                  FCPFetchException, FCPException,
-	                                                  InterruptedException {
+	public File fetch(String key) throws ConnectionTerminatedException, FCPFetchException, FCPException,
+	                                     InterruptedException {
 		FCPMessage msg = this.conn.getMessage("ClientGet");
 		msg.headers.put("URI", key);
 		msg.headers.put("ReturnType", "direct");
 		msg.headers.put("Persistence", "connection");
 
+		while (true) {
+			try {
+				this.conn.doRequest(this, msg);
+				break;
+			} catch (NoNodeConnectionException nnce) {
+				Logger.error(this, "Warning - no connection to node. Waiting...");
+				Thread.sleep(10000);
+			} catch (FCPBadFileException bfe) {
+				// won't be thrown since this is a get,
+				// but keep the compiler happy
+			}
+		}
+
 		FCPMessage reply;
-		synchronized(donemsgLock) {
-			assert (this.donemsg == null);
-			this.donemsg = null;
-
-			while (true) {
-				try {
-					this.conn.doRequest(this, msg);
-					break;
-				} catch (NoNodeConnectionException nnce) {
-					Logger.error(this, "Warning - no connection to node. Waiting...");
-					Thread.sleep(10000);
-				} catch (FCPBadFileException bfe) {
-					// won't be thrown since this is a get,
-					// but keep the compiler happy
-				}
-			}
-
-			while (this.donemsg == null) {
-				try {
-					donemsgLock.wait();
-				} catch (InterruptedException ie) {
-					Logger.debug(this, "HighLevelFCPClient interrupted in fetch, stopping");
-					conn.cancelRequest(msg);
-					throw ie;
-				}
-			}
-			reply = this.donemsg;
-			this.donemsg = null;
+		try {
+			reply = getReply(msg.getId());
+		} catch(InterruptedException e) {
+			Logger.debug(this, "HighLevelFCPClient interrupted in fetch, stopping");
+			conn.cancelRequest(msg);
+			throw e;
 		}
 
 		if (reply.getType().equalsIgnoreCase("AllData")) {
@@ -104,39 +93,45 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 
-	public synchronized SSKKeyPair makeSSK() throws ConnectionTerminatedException,
-	                                                InterruptedException {
+	private FCPMessage getReply(String identifier) throws InterruptedException {
+		synchronized (doneMsgs) {
+			while(true) {
+				Iterator<FCPMessage> it = doneMsgs.iterator();
+				while(it.hasNext()) {
+					FCPMessage msg = it.next();
+					if(identifier.equals(msg.getId())) {
+						it.remove();
+						return msg;
+					}
+				}
+
+				doneMsgs.wait();
+			}
+		}
+	}
+
+	public SSKKeyPair makeSSK() throws ConnectionTerminatedException, InterruptedException {
 		FCPMessage msg = this.conn.getMessage("GenerateSSK");
 
+		while (true) {
+			try {
+				this.conn.doRequest(this, msg);
+				break;
+			} catch (NoNodeConnectionException nnce) {
+				Logger.error(this, "Warning - no connection to node. Waiting...");
+				Thread.sleep(5000);
+			} catch (FCPBadFileException bfe) {
+				// won't be thrown since no data
+			}
+		}
+
 		FCPMessage reply;
-		synchronized(donemsgLock) {
-			assert (this.donemsg == null);
-			this.donemsg = null;
-
-			while (true) {
-				try {
-					this.conn.doRequest(this, msg);
-					break;
-				} catch (NoNodeConnectionException nnce) {
-					Logger.error(this, "Warning - no connection to node. Waiting...");
-					Thread.sleep(5000);
-				} catch (FCPBadFileException bfe) {
-					// won't be thrown since no data
-				}
-			}
-
-			while (this.donemsg == null) {
-				try {
-					donemsgLock.wait();
-				} catch (InterruptedException ie) {
-					Logger.debug(this, "HighLevelFCPClient interrupted in makeSSK, stopping");
-					conn.cancelRequest(msg);
-					throw ie;
-				}
-			}
-
-			reply = this.donemsg;
-			this.donemsg = null;
+		try {
+			reply = getReply(msg.getId());
+		} catch(InterruptedException e) {
+			Logger.debug(this, "HighLevelFCPClient interrupted in makeSSK, stopping");
+			conn.cancelRequest(msg);
+			throw e;
 		}
 
 		if (reply.getType().equalsIgnoreCase("SSKKeypair")) {
@@ -150,51 +145,31 @@ public class HighLevelFCPClient implements FCPClient {
 		}
 	}
 
-	public synchronized FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
-	                                                                                   ConnectionTerminatedException,
-	                                                                                   FCPException,
-	                                                                                   InterruptedException {
+	public FCPPutFailedException put(InputStream data, String key) throws FCPBadFileException,
+	                                                                      ConnectionTerminatedException,
+	                                                                      FCPException, InterruptedException {
 		FCPMessage msg = this.conn.getMessage("ClientPut");
 		msg.headers.put("URI", key);
 		msg.headers.put("Persistence", "connection");
 		msg.setData(data);
 
+		while (true) {
+			try {
+				this.conn.doRequest(this, msg);
+				break;
+			} catch (NoNodeConnectionException nnce) {
+				Logger.error(this, "Warning - no connection to node. Waiting...");
+				Thread.sleep(5000);
+			}
+		}
+
 		FCPMessage reply;
-		synchronized(donemsgLock) {
-			assert (this.donemsg == null);
-			this.donemsg = null;
-
-			long startedAt = 0;
-			while (true) {
-				try {
-					this.conn.doRequest(this, msg);
-					startedAt = System.currentTimeMillis();
-					break;
-				} catch (NoNodeConnectionException nnce) {
-					Logger.error(this, "Warning - no connection to node. Waiting...");
-					Thread.sleep(5000);
-				}
-			}
-
-			while (this.donemsg == null) {
-				if (System.currentTimeMillis() > startedAt + PUT_TIMEOUT) {
-					Logger.error(this, "Put timed out after "+PUT_TIMEOUT+"ms. That's not good!");
-					// 'cancel' the request, otherwise we'll leak memory
-					this.conn.cancelRequest(msg);
-
-					return new FCPPutFailedException(FCPPutFailedException.TIMEOUT, false);
-				}
-				try {
-					donemsgLock.wait(30000);
-				} catch (InterruptedException ie) {
-					Logger.debug(this, "HighLevelFCPClient interrupted in put, stopping");
-					conn.cancelRequest(msg);
-					throw ie;
-				}
-			}
-
-			reply = this.donemsg;
-			this.donemsg = null;
+		try {
+			reply = getReply(msg.getId());
+		} catch(InterruptedException e) {
+			Logger.debug(this, "HighLevelFCPClient interrupted in put, stopping");
+			conn.cancelRequest(msg);
+			throw e;
 		}
 
 		if (reply.getType().equalsIgnoreCase("PutSuccessful")) {
@@ -299,10 +274,9 @@ public class HighLevelFCPClient implements FCPClient {
 
 	@Override
 	public void requestFinished(FCPMessage msg) {
-		synchronized (donemsgLock) {
-			assert (donemsg == null);
-			this.donemsg = msg;
-			donemsgLock.notifyAll();
+		synchronized(doneMsgs) {
+			doneMsgs.add(msg);
+			doneMsgs.notifyAll();
 		}
 	}
 }
