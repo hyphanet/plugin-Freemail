@@ -20,17 +20,26 @@
 
 package freemail.utils;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public final class Timer {
 	private final long startTime;
+	private final boolean isSubTimer;
 
-	private Timer() {
+	private final List<Timer> subTimers = new LinkedList<Timer>();
+
+	private String logMessage;
+	private boolean logAtWarning = false;
+
+	private Timer(boolean isSubTimer) {
 		startTime = System.nanoTime();
+		this.isSubTimer = isSubTimer;
 	}
 
 	public static Timer start() {
-		return new Timer();
+		return new Timer(false);
 	}
 
 	public long getTime() {
@@ -40,31 +49,81 @@ public final class Timer {
 
 	public void log(Class<?> c, String message) {
 		long time = getTime();
-		Logger.minor(c, message + ": " + time + "ns");
+		logMessage = message + ": " + time + "ns";
+
+		if(!isSubTimer) {
+			log(c);
+		}
 	}
 
 	public void log(Object o, String message) {
 		long time = getTime();
-		Logger.minor(o, message + ": " + time + "ns");
+		logMessage = message + ": " + time + "ns";
+
+		if(!isSubTimer) {
+			log(o);
+		}
 	}
 
 	public void log(Class<?> c, long warningThreshold, TimeUnit unit, String message) {
 		long time = getTime();
+		logMessage = message + ": " + time + "ns";
 
-		if(time < unit.toNanos(warningThreshold)) {
-			Logger.minor(c, message + ": " + time + "ns");
-		} else {
-			Logger.warning(c, message + ": " + time + "ns");
+		if(time >= unit.toNanos(warningThreshold)) {
+			logAtWarning = true;
+		}
+
+		if(!isSubTimer) {
+			log(c);
 		}
 	}
 
 	public void log(Object o, long warningThreshold, TimeUnit unit, String message) {
 		long time = getTime();
+		logMessage = message + ": " + time + "ns";
 
-		if(time < unit.toNanos(warningThreshold)) {
-			Logger.minor(o, message + ": " + time + "ns");
+		if(time >= unit.toNanos(warningThreshold)) {
+			logAtWarning = true;
+		}
+
+		if(!isSubTimer) {
+			log(o);
+		}
+	}
+
+	public Timer startSubTimer() {
+		Timer t = new Timer(true);
+		subTimers.add(t);
+		return t;
+	}
+
+	private void log(Class<?> c) {
+		for(Timer t : subTimers) {
+			if(logAtWarning) {
+				t.logAtWarning = true;
+			}
+			t.log(c);
+		}
+
+		if(logAtWarning) {
+			Logger.warning(c, logMessage);
 		} else {
-			Logger.warning(o, message + ": " + time + "ns");
+			Logger.minor(c, logMessage);
+		}
+	}
+
+	private void log(Object o) {
+		for(Timer t : subTimers) {
+			if(logAtWarning) {
+				t.logAtWarning = true;
+			}
+			t.log(o);
+		}
+
+		if(logAtWarning) {
+			Logger.warning(o, logMessage);
+		} else {
+			Logger.minor(o, logMessage);
 		}
 	}
 }
