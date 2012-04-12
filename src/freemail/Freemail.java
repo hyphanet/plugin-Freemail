@@ -161,11 +161,13 @@ public abstract class Freemail implements ConfigClient {
 	}
 
 	public void terminate() {
-		Timer accountManagerTermination = Timer.start();
+		Timer terminateTimer = Timer.start();
+
+		Timer accountManagerTermination = terminateTimer.startSubTimer();
 		accountManager.terminate();
 		accountManagerTermination.log(this, 1, TimeUnit.SECONDS, "Time spent killing account manager");
 
-		Timer threadTermination = Timer.start();
+		Timer threadTermination = terminateTimer.startSubTimer();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
@@ -176,7 +178,7 @@ public abstract class Freemail implements ConfigClient {
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				Timer threadJoin = Timer.start();
+				Timer threadJoin = terminateTimer.startSubTimer();
 				if (smtpThread != null) {
 					smtpThread.join();
 					smtpl.joinClientThreads();
@@ -197,6 +199,8 @@ public abstract class Freemail implements ConfigClient {
 			}
 			cleanedUp = true;
 		}
+
+		terminateTimer.log(this, 1, TimeUnit.SECONDS, "Time spent in Freemail.terminate()");
 	}
 }
 

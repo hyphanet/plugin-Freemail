@@ -101,7 +101,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 		startFcp();
 
-		Timer workers = Timer.start();
+		Timer workers = runTime.startSubTimer();
 		startWorkers();
 		workers.log(this, 1, TimeUnit.SECONDS, "Time spent starting workers");
 
@@ -180,19 +180,21 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 	@Override
 	public void terminate() {
+		Timer terminateTimer = Timer.start();
+
 		Logger.minor(this, "terminate() called");
 		defaultExecutor.shutdownNow();
 		senderExecutor.shutdownNow();
 
-		Timer webUITermination = Timer.start();
+		Timer webUITermination = terminateTimer.startSubTimer();
 		webInterface.terminate();
 		webUITermination.log(this, 1, TimeUnit.SECONDS, "Time spent terminating web interface");
 
-		Timer normalTermination = Timer.start();
+		Timer normalTermination = terminateTimer.startSubTimer();
 		super.terminate();
 		normalTermination.log(this, 1, TimeUnit.SECONDS, "Time spent in normal termination");
 
-		Timer executorTermination = Timer.start();
+		Timer executorTermination = terminateTimer.startSubTimer();
 		try {
 			defaultExecutor.awaitTermination(1, TimeUnit.HOURS);
 			senderExecutor.awaitTermination(1, TimeUnit.HOURS);
@@ -200,6 +202,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 			Logger.minor(this, "Thread was interrupted while waiting for excutors to terminate.");
 		}
 		executorTermination.log(this, 1, TimeUnit.SECONDS, "Time spent waiting for executor termination");
+
+		terminateTimer.log(this, 1, TimeUnit.SECONDS, "Time spent terminating plugin");
 	}
 
 	@Override
