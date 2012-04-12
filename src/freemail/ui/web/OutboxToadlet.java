@@ -22,12 +22,15 @@ package freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import freemail.AccountManager;
 import freemail.FreemailAccount;
 import freemail.FreemailPlugin;
 import freemail.l10n.FreemailL10n;
 import freemail.transport.MessageHandler.OutboxMessage;
+import freemail.utils.Timer;
 import freemail.wot.Identity;
 import freemail.wot.WoTConnection;
 import freenet.clients.http.PageNode;
@@ -52,6 +55,8 @@ public class OutboxToadlet extends WebPage {
 
 	@Override
 	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+		Timer outboxTimer = Timer.start();
+
 		String identity = sessionManager.useSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 
@@ -65,7 +70,13 @@ public class OutboxToadlet extends WebPage {
 		header.addChild("th", FreemailL10n.getString("Freemail.OutboxToadlet.lastSendTime"));
 
 		WoTConnection wotConnection = freemailPlugin.getWotConnection();
-		for(OutboxMessage message : account.getMessageHandler().listOutboxMessages()) {
+
+		Timer messageRead = outboxTimer.startSubTimer();
+		List<OutboxMessage> messages = account.getMessageHandler().listOutboxMessages();
+		messageRead.log(this, 1, TimeUnit.SECONDS, "Time spent reading outbox messages");
+
+		Timer messageListing = outboxTimer.startSubTimer();
+		for(OutboxMessage message : messages) {
 			HTMLNode row = messageTable.addChild("tr");
 
 			String recipient;
@@ -97,8 +108,11 @@ public class OutboxToadlet extends WebPage {
 			row.addChild("td", firstSendTime);
 			row.addChild("td", lastSendTime);
 		}
+		messageListing.log(this, "Time spent adding messages to page");
 
 		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+
+		outboxTimer.log(this, 1, TimeUnit.SECONDS, "Time spent generating outbox page");
 	}
 
 	@Override
