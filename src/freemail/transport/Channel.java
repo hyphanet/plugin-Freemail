@@ -182,10 +182,6 @@ class Channel {
 					Logger.error(this, "Illegal value in " + PropsKeys.TIMEOUT + " field, assuming timed out: " + rawTimeout);
 					throw new ChannelTimedOutException();
 				}
-			} else {
-				//If the value doesn't exist it is probably because we haven't sent the RTS yet
-				Logger.debug(this, "Adding timeout=Long.MAX_VALUE to channel props");
-				channelProps.put(PropsKeys.TIMEOUT, Long.MAX_VALUE);
 			}
 		}
 
