@@ -582,6 +582,10 @@ class Channel {
 	boolean canSendMessages() {
 		synchronized(channelProps) {
 			String rawTimeout = channelProps.get(PropsKeys.TIMEOUT);
+			if(rawTimeout == null) {
+				//RTS hasn't been sent yet
+				return true;
+			}
 
 			long timeout;
 			try {
