@@ -60,6 +60,9 @@ class WoTConnectionImpl implements WoTConnection {
 		if(response == null) {
 			return null;
 		}
+		if(!"OwnIdentities".equals(response.sfs.get("Message"))) {
+			return null;
+		}
 
 		final List<OwnIdentity> ownIdentities = new LinkedList<OwnIdentity>();
 		for(int count = 0;; count++) {
@@ -112,6 +115,9 @@ class WoTConnectionImpl implements WoTConnection {
 		if(response == null) {
 			return null;
 		}
+		if(!"Identities".equals(response.sfs.get("Message"))) {
+			return null;
+		}
 
 		final Set<Identity> identities = new HashSet<Identity>();
 		for(int count = 0;; count++) {
@@ -150,6 +156,9 @@ class WoTConnectionImpl implements WoTConnection {
 		if(response == null) {
 			return null;
 		}
+		if(!"Identity".equals(response.sfs.get("Message"))) {
+			return null;
+		}
 
 		String requestURI = response.sfs.get("RequestURI");
 		assert(requestURI != null);
@@ -178,7 +187,10 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Value", value);
 
 		Message response = sendBlocking(new Message(sfs, null), "PropertyAdded");
-		return response != null;
+		if(response == null) {
+			return false;
+		}
+		return "PropertyAdded".equals(response.sfs.get("Message"));
 	}
 
 	@Override
