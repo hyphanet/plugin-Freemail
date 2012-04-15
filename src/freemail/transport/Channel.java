@@ -872,6 +872,13 @@ class Channel {
 				channelProps.put(PropsKeys.TIMEOUT, "" + timeout);
 			}
 
+			//Check the timeout. If the channel is already in
+			//read-only mode there is no need to resend the RTS
+			if(timeout < System.currentTimeMillis()) {
+				Logger.debug(this, "Channel in read-only mode, won't resend RTS");
+				return;
+			}
+
 			//Get mailsite key from WoT
 			WoTConnection wotConnection = freemail.getWotConnection();
 			if(wotConnection == null) {
