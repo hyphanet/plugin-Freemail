@@ -166,6 +166,6 @@
 
 	<target name="distclean" depends="cleaner" description="Delete everything and restore to the original state.">
 		<delete dir="${deps}"/>
-		<delete dir="${override}"/>
+		<delete file="${override}"/>
 	</target>
 </project>
