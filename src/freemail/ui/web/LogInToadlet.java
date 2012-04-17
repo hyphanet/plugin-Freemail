@@ -59,7 +59,7 @@ public class LogInToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && !pluginRespirator.getSessionManager("Freemail").sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && !sessionManager.sessionExists(ctx);
 	}
 
 	@Override
