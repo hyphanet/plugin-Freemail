@@ -50,7 +50,7 @@ public class HomeToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return true;
+		return ctx.isAllowedFullAccess();
 	}
 
 	@Override

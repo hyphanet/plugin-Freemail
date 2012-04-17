@@ -395,7 +395,7 @@ public class NewMessageToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && sessionManager.sessionExists(ctx);
 	}
 
 	@Override
