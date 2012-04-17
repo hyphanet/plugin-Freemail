@@ -54,6 +54,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	abstract boolean requiresValidSession();
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		if(requiresFullAccess() && !ctx.isAllowedFullAccess()) {
+			writeTemporaryRedirect(ctx, "This page requires full access", "/");
+			return;
+		}
+
 		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
 			writeTemporaryRedirect(ctx, "This page requires a valid session", LogInToadlet.getPath());
 			return;
@@ -68,6 +73,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	}
 
 	public final void handleMethodPOST(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+		if(requiresFullAccess() && !ctx.isAllowedFullAccess()) {
+			writeTemporaryRedirect(ctx, "This page requires full access", "/");
+			return;
+		}
+
 		//Check the form password
 		String formPassword = pluginRespirator.getNode().clientCore.formPassword;
 		String pass = req.getPartAsStringFailsafe("formPassword", formPassword.length());
@@ -97,6 +107,10 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 			unit = TimeUnit.MINUTES;
 		}
 		pageGeneration.log(this, timeout, unit, "Time spent serving post request");
+	}
+
+	boolean requiresFullAccess() {
+		return true;
 	}
 
 	static HTMLNode addInfobox(HTMLNode parent, String title) {
