@@ -214,11 +214,6 @@ public class MessageToadlet extends WebPage {
 	}
 
 	@Override
-	public boolean isEnabled(ToadletContext ctx) {
-		return sessionManager.sessionExists(ctx);
-	}
-
-	@Override
 	public String path() {
 		return PATH;
 	}

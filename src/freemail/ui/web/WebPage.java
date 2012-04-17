@@ -109,6 +109,14 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		pageGeneration.log(this, timeout, unit, "Time spent serving post request");
 	}
 
+	@Override
+	public boolean isEnabled(ToadletContext ctx) {
+		//Implement this in the superclass so pages that don't appear
+		//in the menu won't have to
+		throw new UnsupportedOperationException(
+				"Web pages that appear in the menu must override isEnabled(ToadletContext ctx)");
+	}
+
 	boolean requiresFullAccess() {
 		return true;
 	}

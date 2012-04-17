@@ -45,11 +45,6 @@ public class StaticToadlet extends WebPage {
 	}
 
 	@Override
-	public boolean isEnabled(ToadletContext ctx) {
-		return true;
-	}
-
-	@Override
 	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		String path = uri.getPath();
 
