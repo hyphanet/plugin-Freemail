@@ -34,7 +34,7 @@ import org.freenetproject.freemail.utils.Logger;
 
 
 public class IMAPListener extends ServerListener implements Runnable, ConfigClient {
-	private static final int LISTENPORT = 3143;
+	private static final int LISTENPORT = 4143;
 	private String bindaddress;
 	private int bindport;
 	private final AccountManager accountManager;

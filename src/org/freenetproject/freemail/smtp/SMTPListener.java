@@ -35,7 +35,7 @@ import org.freenetproject.freemail.wot.IdentityMatcher;
 
 
 public class SMTPListener extends ServerListener implements Runnable, ConfigClient {
-	private static final int LISTENPORT = 3025;
+	private static final int LISTENPORT = 4025;
 	private String bindaddress;
 	private int bindport;
 	private final AccountManager accountManager;
