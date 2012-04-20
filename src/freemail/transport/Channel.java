@@ -744,7 +744,7 @@ class Channel {
 
 					boolean success;
 					synchronized(channelProps) {
-						success = channelProps.put("status", "cts-received");
+						success = channelProps.put(PropsKeys.SENDER_STATE, "cts-received");
 					}
 
 					if(success) {
