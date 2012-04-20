@@ -27,9 +27,10 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
-import freemail.Freemail;
-import freemail.FreemailAccount;
-import freemail.utils.PropsFile;
+import org.freenetproject.freemail.Freemail;
+import org.freenetproject.freemail.FreemailAccount;
+import org.freenetproject.freemail.utils.PropsFile;
+
 
 public class ConfigurableAccountManager extends NullAccountManager {
 	private final Map<String, File> accountDirs;

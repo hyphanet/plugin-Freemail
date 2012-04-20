@@ -12,8 +12,8 @@
 	<property name="build-test" location="build-test"/>
 	<property name="dist" location="dist"/>
 	<property name="deps" location="deps"/>
-	<property name="version.src" value="freemail/Version.java"/>
-	<property name="version.build" value="freemail/Version.class"/>
+	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
+	<property name="version.build" value="org/freenetproject/freemail/Version.class"/>
 
 	<property name="bcdist" value="lcrypto-jdk15on-147"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
@@ -95,9 +95,9 @@
 	       <!-- Copy l10n and css -->
 		<copy todir="${build}">
 			<fileset dir="${src}">
-				<include name="freemail/l10n/*.l10n" />
-				<include name="freemail/ui/web/css/*.css" />
-				<include name="freemail/ui/web/images/" />
+				<include name="org/freenetproject/freemail/l10n/*.l10n" />
+				<include name="org/freenetproject/freemail/ui/web/css/*.css" />
+				<include name="org/freenetproject/freemail/ui/web/images/" />
 			</fileset>
 		</copy>
 	</target>
@@ -140,8 +140,8 @@
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
-				<attribute name="Main-Class" value="freemail.FreemailCli"/>
-				<attribute name="Plugin-Main-Class" value="freemail.FreemailPlugin"/>
+				<attribute name="Main-Class" value="org.freenetproject.freemail.FreemailCli"/>
+				<attribute name="Plugin-Main-Class" value="org.freenetproject.freemail.FreemailPlugin"/>
 				<attribute name="Built-By" value="${user.name}"/>
 				<section name="common">
 					<attribute name="Implementation-Title" value="Freemail"/>
@@ -177,7 +177,7 @@
 	<target name="checkstyle-auto" unless="${checkstyle.skip}">
 		<cs:checkstyle config="checkstyle_auto.xml">
 			<fileset dir="${src}" includes="**/*.java">
-				<exclude name="org/**"/>
+				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
 			<formatter type="plain"/>
@@ -189,7 +189,7 @@
 	<target name="checkstyle">
 		<cs:checkstyle config="checkstyle.xml">
 			<fileset dir="${src}" includes="**/*.java">
-				<exclude name="org/**"/>
+				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
 			<formatter type="plain"/>

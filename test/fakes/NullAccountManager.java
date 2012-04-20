@@ -22,10 +22,11 @@ package fakes;
 import java.io.File;
 import java.util.List;
 
-import freemail.AccountManager;
-import freemail.Freemail;
-import freemail.FreemailAccount;
-import freemail.wot.OwnIdentity;
+import org.freenetproject.freemail.AccountManager;
+import org.freenetproject.freemail.Freemail;
+import org.freenetproject.freemail.FreemailAccount;
+import org.freenetproject.freemail.wot.OwnIdentity;
+
 
 public class NullAccountManager extends AccountManager {
 	public NullAccountManager(File datadir, Freemail freemail) {
