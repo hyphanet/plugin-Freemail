@@ -36,7 +36,7 @@ public class Version {
 	public static final String GIT_REVISION = "@custom@";
 
 	public static String getVersionString() {
-		if(VERSION.equals("v" + GIT_REVISION)) {
+		if(GIT_REVISION.equals("v" + VERSION)) {
 			//Presumably because this is a proper release,
 			//so don't include the redundant git info
 			return VERSION;
