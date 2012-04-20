@@ -163,7 +163,7 @@ public class FCPMessage {
 		buf.append("\r\n");
 
 		if (this.messagetype.equalsIgnoreCase("ClientHello")) {
-			buf.append("Name=freemail\r\n");
+			buf.append("Name=freemail-wot\r\n");
 			buf.append("ExpectedVersion=2.0\r\n");
 		}
 
