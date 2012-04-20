@@ -189,6 +189,7 @@ public class NewMessageToadlet extends WebPage {
 			recipients.put(address, recipient);
 		}
 
+		Timer identityMatching = sendMessageTimer.startSubTimer();
 		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
 		Map<String, List<Identity>> matches;
 		try {
@@ -200,6 +201,7 @@ public class NewMessageToadlet extends WebPage {
 			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (WoT not loaded)");
 			return;
 		}
+		identityMatching.log(this, "Time spent matching identities");
 
 		//Check if there were any unknown or ambiguous identities
 		List<String> failedRecipients = new LinkedList<String>();
