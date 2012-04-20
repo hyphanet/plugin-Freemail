@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.FreemailAccount;
@@ -45,6 +46,7 @@ import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.support.MessageBankTools;
 import org.freenetproject.freemail.utils.Logger;
+import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
 import org.freenetproject.freemail.wot.WoTConnection;
@@ -168,6 +170,7 @@ public class NewMessageToadlet extends WebPage {
 
 	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		//FIXME: Consider how to handle duplicate recipients
+		Timer sendMessageTimer = Timer.start();
 
 		Map<String, String> recipients = new HashMap<String, String>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
@@ -194,6 +197,7 @@ public class NewMessageToadlet extends WebPage {
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
 			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (WoT not loaded)");
 			return;
 		}
 
@@ -218,6 +222,7 @@ public class NewMessageToadlet extends WebPage {
 			}
 
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (with failed recipient)");
 			return;
 		}
 
@@ -264,6 +269,8 @@ public class NewMessageToadlet extends WebPage {
 		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueued"));
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+
+		sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message");
 	}
 
 	private void createReply(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
