@@ -732,7 +732,8 @@ public class OutboundContact {
 				continue;
 			}
 			
-			Logger.normal(this,"Inserting message to "+key);
+			Logger.normal(this,"Inserting message");
+			Logger.debug(this,"Insert key is "+key);
 			FCPPutFailedException err;
 			try {
 				err = fcpcli.put(fis, key);
@@ -744,14 +745,16 @@ public class OutboundContact {
 				continue;
 			}
 			if (err == null) {
-				Logger.normal(this,"Successfully inserted "+key);
+				Logger.normal(this,"Successfully inserted message");
+				Logger.debug(this,"Insert key was "+key);
 				if (msg.first_send_time < 0)
 					msg.first_send_time = System.currentTimeMillis();
 				msg.last_send_time = System.currentTimeMillis();
 				msg.saveProps();
 			} else if (err.errorcode == FCPPutFailedException.COLLISION) {
 				msg.slot = popNextSlot();
-				Logger.error(this, "Insert collided! Assigned new slot: "+msg.slot);
+				Logger.error(this, "Insert collided! Assigned new slot");
+				Logger.debug(this, "New slot is "+msg.slot);
 				msg.saveProps();
 			} else if (msg.added_time + FAIL_DELAY < System.currentTimeMillis()) {
 				Logger.normal(this,"Giving up on a message - been trying to send for too long. Bouncing.");
@@ -761,12 +764,13 @@ public class OutboundContact {
 					msg.delete();
 				}
 			} else {
-				Logger.normal(this,"Failed to insert "+key+" (error code "+err.errorcode+") will try again soon.");
+				Logger.normal(this,"Failed to insert message (error code "+err.errorcode+") will try again soon.");
 				if(err.errorcode==FCPPutFailedException.COLLISION) {
-					Logger.error(this,"Failed to insert "+key+" will try again soon. (Collision, this shouldn't happen)");
+					Logger.error(this,"Failed to insert message, will try again soon. (Collision, this shouldn't happen)");
 				} else {
-					Logger.normal(this,"Failed to insert "+key+" will try again soon. Error: "+err.errorcode);
+					Logger.normal(this,"Failed to insert message, will try again soon. Error: "+err.errorcode);
 				}
+				Logger.debug(this,"Insert key was " + key);
 			}
 
 			if (System.nanoTime() > (start + (timeout * 1000 * 1000))) {
@@ -797,7 +801,8 @@ public class OutboundContact {
 			
 			key += "ack-"+msg.uid;
 			
-			Logger.minor(this,"Looking for message ack on "+key);
+			Logger.minor(this,"Looking for message ack");
+			Logger.debug(this,"Ack key is "+key);
 			
 			try {
 				File ack = fcpcli.fetch(key);
@@ -809,7 +814,8 @@ public class OutboundContact {
 				// delete initial slot for forward secrecy
 				this.contactfile.remove("initialslot");
 			} catch (FCPFetchException fe) {
-				Logger.minor(this,"Failed to receive ack on "+key+" ("+fe.getMessage()+")");
+				Logger.minor(this,"Failed to receive ack ("+fe.getMessage()+")");
+				Logger.debug(this,"Ack key was "+key);
 				if (!fe.isNetworkError()) {
 					if (System.currentTimeMillis() > msg.first_send_time + FAIL_DELAY) {
 						// give up and bounce the message
@@ -836,7 +842,8 @@ public class OutboundContact {
 					}
 				}
 			} catch (FCPException e) {
-				Logger.error(this, "Unknown error while fetching ack on key " + key + ": " + e);
+				Logger.error(this, "Unknown error while fetching ack: " + e);
+				Logger.debug(this, "Key was key " + key);
 				//Don't check the timeout here so we get at least one proper fetch attempt if this
 				//is a temporary problem
 			}
