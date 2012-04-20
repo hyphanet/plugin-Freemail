@@ -258,7 +258,7 @@ class Channel {
 				channelProps.put(PropsKeys.SEND_SLOT, rtsProps.get(RTSKeys.RESPONDER_SLOT));
 			}
 
-			channelProps.put(PropsKeys.TIMEOUT, rtsProps.get("timeout"));
+			channelProps.put(PropsKeys.TIMEOUT, rtsProps.get(RTSKeys.TIMEOUT));
 			channelProps.put(PropsKeys.RECIPIENT_STATE, "rts-received");
 		}
 
