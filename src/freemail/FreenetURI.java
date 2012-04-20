@@ -31,8 +31,8 @@ public class FreenetURI {
 	private static final String SSK_HASH_REGEX = BASE64_REGEXP + "{42,44}";
 	private static final String SSK_KEY_REGEX = SSK_HASH_REGEX;
 	private static final String SSK_EXTRA_REGEX = BASE64_REGEXP + "{7}";
-	private static final String SSK_REGEX = "SSK@" + SSK_HASH_REGEX + "," + SSK_KEY_REGEX + "," + SSK_EXTRA_REGEX;
-	private static final String USK_REGEX = "USK@" + SSK_HASH_REGEX + "," + SSK_KEY_REGEX + "," + SSK_EXTRA_REGEX;
+	private static final String SSK_REGEX = "(freenet:)?SSK@" + SSK_HASH_REGEX + "," + SSK_KEY_REGEX + "," + SSK_EXTRA_REGEX;
+	private static final String USK_REGEX = "(freenet:)?USK@" + SSK_HASH_REGEX + "," + SSK_KEY_REGEX + "," + SSK_EXTRA_REGEX;
 	private static final String USK_SITENAME_REGEX = "\\w+";
 	private static final String USK_EDITION_REGEX = "-?[0-9]+";
 

@@ -39,6 +39,14 @@ public class FreenetURITest extends TestCase {
 		validSSKs.add("SSK@" + KEY_BODY + "/testsite-1/");
 		validSSKs.add("SSK@" + KEY_BODY + "/testsite/file");
 		validSSKs.add("SSK@" + KEY_BODY + "/testsite-1/file");
+		validSSKs.add("freenet:SSK@" + KEY_BODY);
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/");
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/testsite");
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/testsite-1");
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/testsite/");
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/testsite-1/");
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/testsite/file");
+		validSSKs.add("freenet:SSK@" + KEY_BODY + "/testsite-1/file");
 
 		validUSKs.add("USK@" + KEY_BODY);
 		validUSKs.add("USK@" + KEY_BODY + "/");
@@ -49,6 +57,15 @@ public class FreenetURITest extends TestCase {
 		validUSKs.add("USK@" + KEY_BODY + "/testsite/-1");
 		validUSKs.add("USK@" + KEY_BODY + "/testsite/-1/");
 		validUSKs.add("USK@" + KEY_BODY + "/testsite/-1/file");
+		validUSKs.add("freenet:USK@" + KEY_BODY);
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/1");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/1/");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/1/file");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/-1");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/-1/");
+		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/-1/file");
 	}
 
 	public void testCheckSSK() {
