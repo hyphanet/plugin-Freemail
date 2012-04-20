@@ -176,29 +176,25 @@ public abstract class Freemail implements ConfigClient {
 		threadTermination.log(this, 1, TimeUnit.SECONDS, "Time spent killing other threads");
 
 		// now clean up all the threads
-		boolean cleanedUp = false;
-		while (!cleanedUp) {
-			try {
-				Timer threadJoin = terminateTimer.startSubTimer();
-				if (smtpThread != null) {
-					smtpThread.join();
-					smtpl.joinClientThreads();
-					smtpThread = null;
-				}
-				if (imapThread != null) {
-					imapThread.join();
-					imapl.joinClientThreads();
-					imapThread = null;
-				}
-				if (fcpThread != null) {
-					fcpThread.join();
-					fcpThread = null;
-				}
-				threadJoin.log(this, 1, TimeUnit.SECONDS, "Time spent joining other threads");
-			} catch (InterruptedException ie) {
-
+		try {
+			Timer threadJoin = terminateTimer.startSubTimer();
+			if (smtpThread != null) {
+				smtpThread.join();
+				smtpl.joinClientThreads();
+				smtpThread = null;
 			}
-			cleanedUp = true;
+			if (imapThread != null) {
+				imapThread.join();
+				imapl.joinClientThreads();
+				imapThread = null;
+			}
+			if (fcpThread != null) {
+				fcpThread.join();
+				fcpThread = null;
+			}
+			threadJoin.log(this, 1, TimeUnit.SECONDS, "Time spent joining other threads");
+		} catch (InterruptedException ie) {
+
 		}
 
 		terminateTimer.log(this, 1, TimeUnit.SECONDS, "Time spent in Freemail.terminate()");
