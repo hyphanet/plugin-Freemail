@@ -172,6 +172,7 @@ public class NewMessageToadlet extends WebPage {
 		//FIXME: Consider how to handle duplicate recipients
 		Timer sendMessageTimer = Timer.start();
 
+		Timer recipientHandling = sendMessageTimer.startSubTimer();
 		Map<String, String> recipients = new HashMap<String, String>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
 			String recipient = getBucketAsString(req.getPart("to" + i));
@@ -188,6 +189,7 @@ public class NewMessageToadlet extends WebPage {
 
 			recipients.put(address, recipient);
 		}
+		recipientHandling.log(this, "Time spent handling " + recipients.size() + " recipients");
 
 		Timer identityMatching = sendMessageTimer.startSubTimer();
 		IdentityMatcher messageSender = new IdentityMatcher(wotConnection);
