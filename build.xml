@@ -91,12 +91,6 @@
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
-		<copy todir="${build}/freemailgui/text">
-			<fileset dir="${src}/freemailgui/text" />
-		</copy>
-		<copy todir="${build}/freemailgui/images">
-			<fileset dir="${src}/freemailgui/images" />
-	       </copy>
 
 	       <!-- Copy l10n and css -->
 		<copy todir="${build}">
