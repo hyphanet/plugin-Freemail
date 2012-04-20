@@ -1,0 +1,50 @@
+Changes in version 0.1.1 - 2012-04-30
+  o Security fixes:
+    - Log message fetch and insert keys at debug instead of normal/erorr. If a
+      collision collision occured the new slot would be logged at error, which
+      would break the forward secrecy of the slot system until the log was
+      deleted. This would enable an attacker with access to the log files to
+      retrive messages from Freenet.
+
+  o Bugfixes:
+    - Folders deleted using a mail client are now deleted properly
+    - Fixes a crash that could occur if a mail client connected while Freemail
+      was shutting down
+    - The startup message now shows the correct licence (GPL)
+    - Fixes a bug where certain email addresses would cause received messages to
+      be empty
+    - Fixes a race condition which could lead to Freemail hanging
+    - Don't delete CC headers from a message before sending
+    - Always print a log message when Freemail isn't connected to the node
+    - IMAP: Remove extra space that was printed in a fetch response without a range
+    - IMAP: Fix error message when the end of a range was invalid
+    - IMAP: Handle strange sequence number ranges
+    - IMAP: Remove \* from permanent flags since they were not stored
+    - IMAP: Fix append with two or more flags
+    - IMAP: Reply with error if the append length couldn't be parsed
+    - Fix various locking issues
+    - Don't log the recently failed fetch result as an error
+
+  o Improvements:
+    - Improve the explanations on the create account page
+    - Only resend the RTS once per two days instead of once per message in the
+      outbox per two days, reducing resource usage for unacked messages
+    - Send messages in the order they will be received, improving performance
+      when sending a large amount of messages
+    - Alternate between sending and receving, stopping sending/receiving a large
+      number of messages from blocking other operations
+
+  o Build improvements:
+    - Compile for Java 1.6
+    - Include git describe output in version
+    - Enable warnings when building
+    - Make Ant and Eclipse output files to the same location (build/)
+
+  o Code changes:
+    - Add unit tests for various classes (mostly IMAP)
+    - Improve errors returned/thrown by HighLevelFCPClient
+    - Add type parameters to all code
+    - Add missing @Override annotations
+    - Throw AssertionError in some cases that should be impossible
+    - Use constants for config file keys
+    - Respond to interrupts in the FCP code
