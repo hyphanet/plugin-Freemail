@@ -110,7 +110,8 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			}
 			String key = basekey+slot;
 			
-			Logger.minor(this,"Attempting to fetch mail on key "+key);
+			Logger.minor(this,"Attempting to fetch mail");
+			Logger.debug(this,"Fetch key is "+key);
 			File msg = null;
 			try {
 				msg = fcpcli.fetch(key);
