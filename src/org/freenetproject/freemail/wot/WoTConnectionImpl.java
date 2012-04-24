@@ -259,7 +259,8 @@ class WoTConnectionImpl implements WoTConnection {
 
 			}
 		}
-		requestTimer.log(this, "Time spent waiting for WoT request " + msg.sfs.get("Message"));
+		requestTimer.log(this, "Time spent waiting for WoT request " + msg.sfs.get("Message") + " (reply was "
+				+ retValue.sfs.get("Message") + ")");
 
 		String replyType = retValue.sfs.get("Message");
 		for(String expectedMessageType : expectedMessageTypes) {
