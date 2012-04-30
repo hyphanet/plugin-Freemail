@@ -69,7 +69,7 @@ public class MailSite {
 		return buf.toString();
 	}
 	
-	public int publish() {
+	public int publish() throws InterruptedException {
 		byte[] mailpage;
 		String mailsite_s = this.getMailPage();
 		if (mailsite_s == null) {
@@ -116,7 +116,7 @@ public class MailSite {
 		return actualslot;
 	}
 	
-	public boolean insertAlias(String alias) {
+	public boolean insertAlias(String alias) throws InterruptedException {
 		String targetKey = this.accprops.get("mailsite.pubkey");
 		if (targetKey == null) return false;
 		FreenetURI furi;
@@ -138,6 +138,7 @@ public class MailSite {
 			err = cli.put(bis, "KSK@"+alias+ALIAS_SUFFIX);
 		} catch (FCPBadFileException bfe) {
 				// impossible
+			throw new AssertionError();
 		} catch (ConnectionTerminatedException cte) {
 			return false;
 		} catch (FCPException e) {

@@ -32,6 +32,10 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 import java.io.PrintWriter;
 
 import freemail.utils.EmailAddress;
@@ -94,9 +98,17 @@ public class OutboundContact {
 	// If we last fetched the mailsite longer than this number of milliseconds
     // ago, re-fetch it.
 	private static final long MAILSITE_CACHE_TIME = 60 * 60 * 1000;
+
+	/**
+	 * Used to store the index of the next ack we should check. This is done so we won't start from
+	 * the beginning if we stopped due to a timeout, but instead start where we left of.
+	 */
+	//FIXME: This behaves badly when the outbox changes
+	private int nextAckIndex = 0;
 	
 	public OutboundContact(FreemailAccount acc, EmailAddress a) throws BadFreemailAddressException, IOException,
-	                                                           OutboundContactFatalException, ConnectionTerminatedException {
+	                                                           OutboundContactFatalException, ConnectionTerminatedException,
+	                                                           InterruptedException {
 		this.address = a;
 		
 		this.account = acc;
@@ -163,7 +175,7 @@ public class OutboundContact {
 		}
 	}
 	
-	public void checkCTS() throws OutboundContactFatalException, ConnectionTerminatedException {
+	public void checkCTS() throws ConnectionTerminatedException, InterruptedException {
 		String status = this.contactfile.get("status");
 		if (status == null) {
 			this.init();
@@ -211,7 +223,7 @@ public class OutboundContact {
 		}
 	}
 	
-	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException {
+	private SSKKeyPair getCommKeyPair() throws ConnectionTerminatedException, InterruptedException {
 		SSKKeyPair ssk = new SSKKeyPair();
 		
 		ssk.pubkey = this.contactfile.get("commssk.pubkey");
@@ -231,7 +243,7 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException {
+	private SSKKeyPair getAckKeyPair() throws ConnectionTerminatedException, InterruptedException {
 		SSKKeyPair ssk = new SSKKeyPair();
 		
 		ssk.pubkey = this.contactfile.get("ackssk.pubkey");
@@ -249,7 +261,7 @@ public class OutboundContact {
 		return ssk;
 	}
 	
-	private RSAKeyParameters getPubKey() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private RSAKeyParameters getPubKey() throws ConnectionTerminatedException, InterruptedException {
 		String mod_str = this.contactfile.get("asymkey.modulus");
 		String exp_str = this.contactfile.get("asymkey.pubexponent");
 		
@@ -268,7 +280,7 @@ public class OutboundContact {
 		return new RSAKeyParameters(false, new BigInteger(mod_str, 32), new BigInteger(exp_str, 32));
 	}
 	
-	private String getRtsKsk() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private String getRtsKsk() throws ConnectionTerminatedException, InterruptedException {
 		String rtsksk = this.contactfile.get("rtsksk");
 		
 		if (rtsksk == null) {
@@ -287,20 +299,17 @@ public class OutboundContact {
 	 * for message 3. If there are no messages in transit, returns the next slot on which a message will be inserted.
 	 */
 	private String getCurrentLowestSlot() {
-		QueuedMessage[] queue = getSendQueue();
-		int messageWithLowestUid = 0;
+		Set<QueuedMessage> queue = getSendQueue(null);
 		int lowestUid = Integer.MAX_VALUE;
-		// queue.length == 0 doesn't necessarily imply there's anything
-		// in the queue - the array can contain null values (due to the
-		// sucky way in which getSendQueue() works by returning an array)
-		for (int i = 0; i < queue.length; i++) {
-			if (queue[i] == null) continue;
-			if (queue[i].uid < lowestUid) {
-				messageWithLowestUid = i;
-				lowestUid = queue[i].uid;
+		String lowestSlot = null;
+
+		for (QueuedMessage msg : queue) {
+			if (msg.uid < lowestUid) {
+				lowestUid = msg.uid;
+				lowestSlot = msg.slot;
 			}
 		}
-		if (lowestUid < Integer.MAX_VALUE) return queue[messageWithLowestUid].slot;
+		if (lowestUid < Integer.MAX_VALUE) return lowestSlot;
 
 		// No messages in the queue, so the current lowest slot is the
 		// next slot we'll insert a message to.
@@ -351,7 +360,7 @@ public class OutboundContact {
 	 *
 	 * @return true for success
 	 */
-	private boolean init() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private boolean init() throws ConnectionTerminatedException, InterruptedException {
 		Logger.normal(this, "Initialising Outbound Contact "+address.toString());
 		
 		// try to fetch get all necessary info. will fetch mailsite / generate new keys if necessary
@@ -479,7 +488,8 @@ public class OutboundContact {
 	}
 	
 	// fetch the redirect (assumes that this is a KSK address)
-	private String fetchKSKRedirect(String key) throws OutboundContactFatalException, ConnectionTerminatedException {
+	private String fetchKSKRedirect(String key) throws OutboundContactFatalException, ConnectionTerminatedException,
+	                                                   InterruptedException {
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 		
 		Logger.normal(this,"Attempting to fetch mailsite redirect "+key);
@@ -505,6 +515,7 @@ public class OutboundContact {
 			br = new BufferedReader(new FileReader(result));
 		} catch (FileNotFoundException fnfe) {
 			// impossible
+			throw new AssertionError();
 		}
 		
 		String addr;
@@ -520,7 +531,7 @@ public class OutboundContact {
 		return addr;
 	}
 	
-	private boolean fetchMailSite() throws OutboundContactFatalException, ConnectionTerminatedException {
+	private boolean fetchMailSite() throws ConnectionTerminatedException, InterruptedException {
 		String lastFetchedStr = this.contactfile.get("lastfetched");
 		long lastFetched = 0;
 		if (lastFetchedStr != null) {
@@ -654,20 +665,17 @@ public class OutboundContact {
 		return false;
 	}
 	
-	public void doComm() {
+	public void doComm(long timeout) throws InterruptedException {
 		try {
-			this.sendQueued();
-			this.pollAcks();
+			this.sendQueued(timeout / 2);
+			this.pollAcks(timeout / 2);
 			this.checkCTS();
-		} catch (OutboundContactFatalException fe) {
-			Logger.error(this, "Fatal exception on outbound contact: "+fe.getMessage()+". This contact in invalid.");
-			// TODO: probably bounce all the messages and delete the contact.
 		} catch (ConnectionTerminatedException cte) {
 			// just exit
 		}
 	}
 	
-	private void sendQueued() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void sendQueued(long timeout) throws ConnectionTerminatedException, InterruptedException {
 		boolean ready;
 		String ctstatus = this.contactfile.get("status");
 		if (ctstatus == null) ctstatus = "notsent";
@@ -679,20 +687,22 @@ public class OutboundContact {
 		
 		HighLevelFCPClient fcpcli = null;
 		
-		QueuedMessage[] msgs = this.getSendQueue();
+		/* We sort the messages by uid since this is the order the other side will
+		 * attempt to fetch the messages. Using the same order improves performance
+		 * when sending a lot of messages. */
+		Set<QueuedMessage> msgs = this.getSendQueue(new MessageUidComparator());
 		
-		int i;
-		for (i = 0; i < msgs.length; i++) {
-			if (msgs[i] == null) continue;
-			if (msgs[i].last_send_time > 0) continue;
+		long start = System.nanoTime();
+		for (QueuedMessage msg : msgs) {
+			if (msg.last_send_time > 0) continue;
 			
 			if (!ready) {
-				if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
-					if (Postman.bounceMessage(msgs[i].getMessageFile(), account.getMessageBank(),
+				if (msg.added_time + FAIL_DELAY < System.currentTimeMillis()) {
+					if (Postman.bounceMessage(msg.getMessageFile(), account.getMessageBank(),
 							"Freemail has been trying to establish a communication channel with this party for too long "
 							+"without success. Check that the Freemail address is valid, and that the recipient still runs "
 							+"Freemail on at least a semi-regular basis.", true)) {
-						msgs[i].delete();
+						msg.delete();
 					}
 				}
 				continue;
@@ -707,22 +717,23 @@ public class OutboundContact {
 				continue;
 			}
 			
-			if(msgs[i].slot==null) {
+			if(msg.slot==null) {
 				Logger.normal(this,"Index file does not contain slot name for this message, the mail cannot be sent this way.");
 				Logger.debug(this,"Filename is "+contactfile.toString());
 				continue;
 			}
 			
-			key += msgs[i].slot;
+			key += msg.slot;
 			
 			FileInputStream fis;
 			try {
-				fis = new FileInputStream(msgs[i].file);
+				fis = new FileInputStream(msg.file);
 			} catch (FileNotFoundException fnfe) {
 				continue;
 			}
 			
-			Logger.normal(this,"Inserting message to "+key);
+			Logger.normal(this,"Inserting message");
+			Logger.debug(this,"Insert key is "+key);
 			FCPPutFailedException err;
 			try {
 				err = fcpcli.put(fis, key);
@@ -734,41 +745,51 @@ public class OutboundContact {
 				continue;
 			}
 			if (err == null) {
-				Logger.normal(this,"Successfully inserted "+key);
-				if (msgs[i].first_send_time < 0)
-					msgs[i].first_send_time = System.currentTimeMillis();
-				msgs[i].last_send_time = System.currentTimeMillis();
-				msgs[i].saveProps();
+				Logger.normal(this,"Successfully inserted message");
+				Logger.debug(this,"Insert key was "+key);
+				if (msg.first_send_time < 0)
+					msg.first_send_time = System.currentTimeMillis();
+				msg.last_send_time = System.currentTimeMillis();
+				msg.saveProps();
 			} else if (err.errorcode == FCPPutFailedException.COLLISION) {
-				msgs[i].slot = popNextSlot();
-				Logger.error(this, "Insert collided! Assigned new slot: "+msgs[i].slot);
-				msgs[i].saveProps();
-			} else if (msgs[i].added_time + FAIL_DELAY < System.currentTimeMillis()) {
+				msg.slot = popNextSlot();
+				Logger.error(this, "Insert collided! Assigned new slot");
+				Logger.debug(this, "New slot is "+msg.slot);
+				msg.saveProps();
+			} else if (msg.added_time + FAIL_DELAY < System.currentTimeMillis()) {
 				Logger.normal(this,"Giving up on a message - been trying to send for too long. Bouncing.");
-				if (Postman.bounceMessage(msgs[i].getMessageFile(), account.getMessageBank(),
+				if (Postman.bounceMessage(msg.getMessageFile(), account.getMessageBank(),
 						"Freemail has been trying to deliver this message for too long without success. "
 						+"This is likley to be due to a poor connection to Freenet. Check your Freenet node.", true)) {
-					msgs[i].delete();
+					msg.delete();
 				}
 			} else {
-				Logger.normal(this,"Failed to insert "+key+" (error code "+err.errorcode+") will try again soon.");
+				Logger.normal(this,"Failed to insert message (error code "+err.errorcode+") will try again soon.");
 				if(err.errorcode==FCPPutFailedException.COLLISION) {
-					Logger.error(this,"Failed to insert "+key+" will try again soon. (Collision, this shouldn't happen)");
+					Logger.error(this,"Failed to insert message, will try again soon. (Collision, this shouldn't happen)");
 				} else {
-					Logger.normal(this,"Failed to insert "+key+" will try again soon. Error: "+err.errorcode);
+					Logger.normal(this,"Failed to insert message, will try again soon. Error: "+err.errorcode);
 				}
+				Logger.debug(this,"Insert key was " + key);
+			}
+
+			if (System.nanoTime() > (start + (timeout * 1000 * 1000))) {
+				Logger.debug(this, "Stopping message sending due to timeout");
+				break;
 			}
 		}
 	}
 	
-	private void pollAcks() throws ConnectionTerminatedException, OutboundContactFatalException {
+	private void pollAcks(long timeout) throws ConnectionTerminatedException, InterruptedException {
 		HighLevelFCPClient fcpcli = null;
-		QueuedMessage[] msgs = this.getSendQueue();
+		Set<QueuedMessage> msgs = this.getSendQueue(null);
 		
-		int i;
-		for (i = 0; i < msgs.length; i++) {
-			if (msgs[i] == null) continue;
-			if (msgs[i].first_send_time < 0) continue;
+		Logger.debug(this, "Starting from ack index " + nextAckIndex);
+		long start = System.nanoTime();
+		int ackIndex = 0;
+		for (QueuedMessage msg : msgs) {
+			if (ackIndex++ < nextAckIndex) continue;
+			if (msg.first_send_time < 0) continue;
 			
 			if (fcpcli == null) fcpcli = new HighLevelFCPClient();
 			
@@ -778,52 +799,80 @@ public class OutboundContact {
 				continue;
 			}
 			
-			key += "ack-"+msgs[i].uid;
+			key += "ack-"+msg.uid;
 			
-			Logger.minor(this,"Looking for message ack on "+key);
+			Logger.minor(this,"Looking for message ack");
+			Logger.debug(this,"Ack key is "+key);
 			
 			try {
 				File ack = fcpcli.fetch(key);
-				Logger.normal(this,"Ack received for message "+msgs[i].uid+" on contact "+this.address.domain+". Now that's a job well done.");
+				Logger.normal(this,"Ack received for message "+msg.uid+" on contact "+this.address.domain+". Now that's a job well done.");
 				ack.delete();
-				msgs[i].delete();
+				msg.delete();
 				// treat the ACK as a CTS too
 				this.contactfile.put("status", "cts-received");
 				// delete initial slot for forward secrecy
 				this.contactfile.remove("initialslot");
 			} catch (FCPFetchException fe) {
-				Logger.minor(this,"Failed to receive ack on "+key+" ("+fe.getMessage()+")");
+				Logger.minor(this,"Failed to receive ack ("+fe.getMessage()+")");
+				Logger.debug(this,"Ack key was "+key);
 				if (!fe.isNetworkError()) {
-					if (System.currentTimeMillis() > msgs[i].first_send_time + FAIL_DELAY) {
+					if (System.currentTimeMillis() > msg.first_send_time + FAIL_DELAY) {
 						// give up and bounce the message
-						File m = msgs[i].getMessageFile();
+						File m = msg.getMessageFile();
 						
 						Postman.bounceMessage(m, account.getMessageBank(),
 								"Freemail has been trying for too long to deliver this message, and has received no acknowledgement. "
 								+"It is possible that the recipient has not run Freemail since you sent the message. "
 								+"If you believe this is likely, try resending the message.", true);
 						Logger.normal(this,"Giving up on message - been trying for too long.");
-						msgs[i].delete();
-					} else if (System.currentTimeMillis() > msgs[i].last_send_time + RTS_RETRANSMIT_DELAY) {
+						msg.delete();
+					} else if (System.currentTimeMillis() > msg.last_send_time + RTS_RETRANSMIT_DELAY) {
 						Logger.normal(this, "Resending RTS for contact");
 						init();
-						// bit of a fudge - this won't actually be the last send time, since we won't re-send messages at all now,
-						// it will be the last time the RTS was sent.
-						msgs[i].last_send_time = System.currentTimeMillis();
-						msgs[i].saveProps();
+
+						// bit of a fudge - this won't actually be the last send time, since we won't
+						// re-send messages at all now, it will be the last time the RTS was sent.
+						// Hack: We update the time for all the messages that have been sent since
+						// we only want to resend the RTS once, not once per message
+						for(QueuedMessage message : msgs) {
+							message.last_send_time = System.currentTimeMillis();
+							message.saveProps();
+						}
 					}
 				}
 			} catch (FCPException e) {
-				Logger.error(this, "Unknown error while fetching ack on key " + key + ": " + e);
+				Logger.error(this, "Unknown error while fetching ack: " + e);
+				Logger.debug(this, "Key was key " + key);
 				//Don't check the timeout here so we get at least one proper fetch attempt if this
 				//is a temporary problem
 			}
+
+			if(System.nanoTime() > start + (timeout * 1000 * 1000)) {
+				Logger.debug(this, "Stopping ack fetching due to timeout");
+				break;
+			}
+		}
+
+		nextAckIndex = ackIndex;
+		if(nextAckIndex >= msgs.size()) {
+			nextAckIndex = 0;
 		}
 	}
 	
-	private QueuedMessage[] getSendQueue() {
+	/**
+	 * Returns the send queue for this contact.
+	 * @param comparator the Comparator used to sort the queue. If null, the queue will be unsorted.
+	 * @return the send queue for this contact
+	 */
+	private Set<QueuedMessage> getSendQueue(Comparator<? super QueuedMessage> comparator) {
 		File[] files = ctoutbox.listFiles();
-		QueuedMessage[] msgs = new QueuedMessage[files.length];
+		Set<QueuedMessage> msgs;
+		if(comparator == null) {
+			msgs = new HashSet<QueuedMessage>();
+		} else {
+			msgs = new TreeSet<QueuedMessage>(comparator);
+		}
 		
 		int i;
 		for (i = 0; i < files.length; i++) {
@@ -836,11 +885,10 @@ public class OutboundContact {
 				// how did that get there? just delete it
 				Logger.normal(this,"Found spurious file in send queue: '"+files[i].getName()+"' - deleting.");
 				files[i].delete();
-				msgs[i] = null;
 				continue;
 			}
 			
-			msgs[i] = new QueuedMessage(uid);
+			msgs.add(new QueuedMessage(uid));
 		}
 		
 		return msgs;
@@ -912,6 +960,13 @@ public class OutboundContact {
 			this.index.remove(this.uid+".last_send_time");
 			
 			return this.file.delete();
+		}
+	}
+
+	private class MessageUidComparator implements Comparator<QueuedMessage> {
+		@Override
+		public int compare(QueuedMessage msg1, QueuedMessage msg2) {
+			return msg1.uid - msg2.uid;
 		}
 	}
 }

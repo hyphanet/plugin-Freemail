@@ -22,9 +22,7 @@
 package freemail;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.io.PrintStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -55,10 +53,7 @@ import freemail.utils.EmailAddress;
 import freemail.utils.Logger;
 
 public class AccountManager {
-	// this really doesn't matter a great deal
-	public static final String NIMDIR = "nim";
-	
-	private static final String ACCOUNT_FILE = "accprops";
+	static final String ACCOUNT_FILE = "accprops";
 	private static final int RTS_KEY_LENGTH = 32;
 	
 	private static final int ASYM_KEY_MODULUS_LENGTH = 4096;
@@ -71,7 +66,7 @@ public class AccountManager {
 	// We keep FreemailAccount objects for all the accounts in this instance of Freemail - they need to be in memory
 	// anyway since there's SingleAccountWatcher thread running for each of them anyway - and we return the same object
 	// each time a request is made for a given account.
-	private Map/*<String, FreemailAccount>*/ accounts = new HashMap();
+	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
 	
 	private final File datadir;
 	
@@ -108,13 +103,13 @@ public class AccountManager {
 	
 	public FreemailAccount getAccount(String username) {
 		synchronized(accounts) {
-			return (FreemailAccount)accounts.get(username);
+			return accounts.get(username);
 		}
 	}
 	
-	public List/*<FreemailAccount>*/ getAllAccounts() {
+	public List<FreemailAccount> getAllAccounts() {
 		synchronized(accounts) {
-			return new LinkedList(accounts.values());
+			return new LinkedList<FreemailAccount>(accounts.values());
 		}
 	}
 
@@ -139,7 +134,8 @@ public class AccountManager {
 		return validateChars(username, "@\'\"\\/,:%()+ ");
 	}
 	
-	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException {
+	public FreemailAccount createAccount(String username) throws IOException,IllegalArgumentException,
+	                                                             InterruptedException {
 		String invalid=validateUsername(username);
 		if(!invalid.equals("")) {
 			throw new IllegalArgumentException("The username may not contain the character '"+invalid+"'");
@@ -160,28 +156,7 @@ public class AccountManager {
 		return account;
 	}
 	
-	public void setupNIM(String username) throws IOException {
-		File accountdir = new File(datadir, username);
-		
-		File contacts_dir = new File(accountdir, SingleAccountWatcher.CONTACTS_DIR);
-		if (!contacts_dir.exists()) {
-			if (!contacts_dir.mkdir()) throw new IOException("Failed to create contacts directory");
-		}
-		
-		File nimdir = new File(contacts_dir, NIMDIR);
-		if (!nimdir.exists()) {
-			if (!nimdir.mkdir()) throw new IOException("Failed to create nim directory");
-		}
-		
-		File keyfile = new File(nimdir, NIMContact.KEYFILE);
-		PrintWriter pw = new PrintWriter(new FileOutputStream(keyfile));
-		
-		pw.println(MessageSender.NIM_KEY_PREFIX + username + "-");
-		
-		pw.close();
-	}
-	
-	public static void changePassword(FreemailAccount account, String newpassword) throws Exception {
+	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
 		
 		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
@@ -202,7 +177,7 @@ public class AccountManager {
 		return accfile;
 	}
 	
-	private static PropsFile newAccountFile(File accdir) {
+	private static PropsFile newAccountFile(File accdir) throws InterruptedException {
 		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
 		
 		if (accdir.exists() && !accfile.exists()) {
@@ -248,7 +223,7 @@ public class AccountManager {
 		return new RSAKeyParameters(true, new BigInteger(mod_str, 32), new BigInteger(privexp_str, 32));
 	}
 	
-	private static void initAccFile(PropsFile accfile) {
+	private static void initAccFile(PropsFile accfile) throws InterruptedException {
 		try {
 			Logger.normal(AccountManager.class,"Generating mailsite keys...");
 			HighLevelFCPClient fcpcli = new HighLevelFCPClient();
@@ -366,7 +341,7 @@ public class AccountManager {
 		
 		FreemailAccount account = null;
 		synchronized(accounts) {
-			account = (FreemailAccount)accounts.get(username);
+			account = accounts.get(username);
 		}
 		if (account == null) return null;
 		

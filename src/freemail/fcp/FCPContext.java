@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import freemail.config.ConfigClient;
+import freemail.config.Configurator;
 
 public class FCPContext implements ConfigClient {
 	private String hostname;
@@ -32,10 +33,11 @@ public class FCPContext implements ConfigClient {
 		return new Socket(this.hostname, this.port);
 	}
 	
+	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase("fcp_host")) {
+		if (key.equalsIgnoreCase(Configurator.FCP_HOST)) {
 			hostname = val;
-		} else if (key.equalsIgnoreCase("fcp_port")) {
+		} else if (key.equalsIgnoreCase(Configurator.FCP_PORT)) {
 			try {
 				port = Integer.parseInt(val);
 			} catch (NumberFormatException nfe) {

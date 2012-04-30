@@ -95,13 +95,6 @@ public class EmailAddress {
 		return true;
 	}
 	
-	public boolean is_nim_address() {
-		if (!this.is_freemail_address()) {
-			return false;
-		}
-		return this.getSubDomain().equalsIgnoreCase("nim");
-	}
-	
 	public boolean is_ssk_address() {
 		if (!this.is_freemail_address()) return false;
 		String key;
@@ -137,6 +130,7 @@ public class EmailAddress {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return this.user+"@"+this.domain;
 	}

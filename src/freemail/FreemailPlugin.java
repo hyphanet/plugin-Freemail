@@ -25,13 +25,13 @@ package freemail;
 
 import java.io.IOException;
 
+import freemail.config.Configurator;
 import freenet.clients.http.PageNode;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginHTTP;
 import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
-import freenet.pluginmanager.PluginHTTPException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -46,19 +46,22 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		super(CFGFILE);
 	}
 	
+	@Override
 	public String getVersion() {
 		return Version.getVersionString();
 	}
 	
+	@Override
 	public void runPlugin(PluginRespirator pr) {
 		pluginResp = pr;
 		
-		startFcp(true);
+		startFcp();
 		startWorkers(true);
 		startServers(true);
 	}
 
-	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
+	@Override
+	public String handleHTTPGet(HTTPRequest request) {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -89,15 +92,15 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 				"The username and password you select will be used both for sending and receiving " +
 				"email, and the username will also be the name of the new account. For receiving email " +
 				"the server is " + getIMAPServerAddress() + " and the port is " +
-				configurator.get("imap_bind_port") + ". For sending the values are " +
-				getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
+				configurator.get(Configurator.IMAP_BIND_PORT) + ". For sending the values are " +
+				getSMTPServerAddress() + " and " + configurator.get(Configurator.SMTP_BIND_PORT)
 				+ " respectively.");
 
 		HTMLNode shortnameHelp = contentNode.addChild("div", "class", "infobox");
 		shortnameHelp.addChild("div", "class", "infobox-header", "Short address");
 		HTMLNode shortnameContent = shortnameHelp.addChild("div", "class", "infobox-content");
 		shortnameContent.addChild("p",
-				"The short address is a shorter and more convenient form of your new email address." +
+				"The short address is a shorter and more convenient form of your new email address. " +
 				"If you select a short address domain you will get an additional email address " +
 				"that looks like this: <anything>@<short address>.freemail");
 		shortnameContent.addChild("p",
@@ -107,7 +110,8 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return pageNode.generate();
 	}
 
-	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
+	@Override
+	public String handleHTTPPost(HTTPRequest request) {
 		PageNode page = pluginResp.getPageMaker().getPageNode("Freemail plugin", false, null);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -146,9 +150,23 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 					text.addChild("#", "You now need to configure your email client to send and receive email through "
 							+ "Freemail using IMAP and SMTP. For IMAP the server is "
 							+ getIMAPServerAddress() + " and the port is " +
-							configurator.get("imap_bind_port") + ". For SMTP the values are " +
-							getSMTPServerAddress() + " and " + configurator.get("smtp_bind_port")
+							configurator.get(Configurator.IMAP_BIND_PORT) + ". For SMTP the values are " +
+							getSMTPServerAddress() + " and " + configurator.get(Configurator.SMTP_BIND_PORT)
 							+ " respectively.");
+					text.addChild("br");
+					text.addChild("br");
+
+					String longAddress = newAccount.getUsername() + "@" +
+							AccountManager.getFreemailDomain(newAccount.getProps()).toLowerCase();
+					if (shortAddressWorked) {
+						text.addChild("#", "Your new addresses are:");
+						text.addChild("br");
+						text.addChild("#", longAddress);
+						text.addChild("br");
+						text.addChild("#", newAccount.getUsername() + "@" + domain + ".freemail");
+					} else {
+						text.addChild("#", "Your new address is " + longAddress);
+					}
 				} catch (IOException ioe) {
 					HTMLNode errorBox = contentNode.addChild("div", "class", "infobox infobox-error");
 					errorBox.addChild("div", "class", "infobox-header", "IO Error"); 
@@ -173,16 +191,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 		return pageNode.generate();
 	}
 
-	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
-		return null;
-	}
-
+	@Override
 	public long getRealVersion() {
 		return Version.BUILD_NO;
 	}
 
 	private String getIMAPServerAddress() {
-		String address = configurator.get("imap_bind_address");
+		String address = configurator.get(Configurator.IMAP_BIND_ADDRESS);
 
 		if("0.0.0.0".equals(address)) {
 			address = "127.0.0.1";
@@ -192,7 +207,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginHT
 	}
 
 	private String getSMTPServerAddress() {
-		String address = configurator.get("smtp_bind_address");
+		String address = configurator.get(Configurator.SMTP_BIND_ADDRESS);
 
 		if("0.0.0.0".equals(address)) {
 			address = "127.0.0.1";

@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.InterruptedException;
+import java.util.HashMap;
+import java.util.Map;
 
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
@@ -39,13 +41,21 @@ public class SingleAccountWatcher implements Runnable {
 	public static final String INBOUND_DIR = "inbound";
 	public static final String OUTBOUND_DIR = "outbound";
 	private static final int MIN_POLL_DURATION = 60000; // in milliseconds
+
+	//The timeouts for fetch and send. To avoid wasting time sleeping in the
+	//run() loop, these should be >= MIN_POLL_DURATION. The main function of
+	//these timeouts is to prevent sending/receiving large amounts of messages
+	//from blocking other contacts and tasks.
+	private static final long FETCH_TIMEOUT = 10 * MIN_POLL_DURATION;
+	private static final long SEND_TIMEOUT = 2 * 10 * MIN_POLL_DURATION;
+
 	private static final int MAILSITE_UPLOAD_INTERVAL = 60 * 60 * 1000;
-	private final NIMFetcher nf;
 	private final RTSFetcher rtsf;
 	private long mailsite_last_upload;
 	private final File obctdir;
 	private final File ibctdir;
 	private final FreemailAccount account;
+	private final Map<File, OutboundContact> obContacts = new HashMap<File, OutboundContact>();
 
 	SingleAccountWatcher(FreemailAccount acc) {
 		this.account = acc;
@@ -61,13 +71,6 @@ public class SingleAccountWatcher implements Runnable {
 		
 		if (!this.ibctdir.exists()) {
 			this.ibctdir.mkdir();
-		}
-		
-		File nimdir = new File(contacts_dir, AccountManager.NIMDIR);
-		if (nimdir.exists()) {
-			this.nf = new NIMFetcher(account.getMessageBank(), nimdir);
-		} else {
-			this.nf = null;
 		}
 		
 		String rtskey=account.getProps().get("rtskey");
@@ -101,6 +104,7 @@ public class SingleAccountWatcher implements Runnable {
 		}
 	}
 	
+	@Override
 	public void run() {
 		while (!stopping) {
 			try {
@@ -123,17 +127,18 @@ public class SingleAccountWatcher implements Runnable {
 					int i;
 					for (i = 0; i < obcontacts.length; i++) {
 						try {
-							OutboundContact obct = new OutboundContact(account, obcontacts[i]);
-							obct.doComm();
+							OutboundContact obct = obContacts.get(obcontacts[i]);
+							if(obct == null) {
+								obct = new OutboundContact(account, obcontacts[i]);
+								obContacts.put(obcontacts[i], obct);
+							}
+							obct.doComm(SEND_TIMEOUT);
 						} catch (IOException ioe) {
 							Logger.error(this, "Failed to create outbound contact - not sending mail");
 						}
 					}
 				}
 				Logger.debug(this, "polling rts");
-				if (this.nf != null) {
-					nf.fetch();
-				}
 				this.rtsf.poll();
 				if(stopping) {
 					break;
@@ -149,7 +154,7 @@ public class SingleAccountWatcher implements Runnable {
 						
 						InboundContact ibct = new InboundContact(this.ibctdir, ibcontacts[i].getName());
 						
-						ibct.fetch(account.getMessageBank());
+						ibct.fetch(account.getMessageBank(), FETCH_TIMEOUT);
 					}
 				}
 				if(stopping) {
@@ -159,13 +164,14 @@ public class SingleAccountWatcher implements Runnable {
 				long runtime = System.currentTimeMillis() - start;
 				
 				if (MIN_POLL_DURATION - runtime > 0) {
-					try {
-						Thread.sleep(MIN_POLL_DURATION - runtime);
-					} catch (InterruptedException ie) {
-					}
+					Thread.sleep(MIN_POLL_DURATION - runtime);
 				}
 			} catch (ConnectionTerminatedException cte) {
 
+			} catch (InterruptedException ie) {
+				Logger.debug(this, "SingleAccountWatcher interrupted, stopping");
+				kill();
+				break;
 			}
 		}
 	}
@@ -179,6 +185,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private static class outboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a base32 encoded filename
+		@Override
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z2-7]+");
 		}
@@ -186,6 +193,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private static class inboundContactFilenameFilter implements FilenameFilter {
 		// check that each dir is a freenet key
+		@Override
 		public boolean accept(File dir, String name ) {
 			return name.matches("[A-Za-z0-9~-]+,[A-Za-z0-9~-]+,[A-Za-z0-9~-]+");
 		}

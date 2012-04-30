@@ -87,12 +87,12 @@ public class RTSLog {
 	}
 	
 	public void pruneBefore(Date keepafter) {
-		Set props = this.logfile.listProps();
-		Vector hitlist = new Vector();
+		Set<String> props = this.logfile.listProps();
+		Vector<String> hitlist = new Vector<String>();
 		
-		Iterator i = props.iterator();
+		Iterator<String> i = props.iterator();
 		while (i.hasNext()) {
-			String cur = (String)i.next();
+			String cur = i.next();
 			
 			String datestr;
 			if (cur.startsWith(PASSES)) {
@@ -112,9 +112,9 @@ public class RTSLog {
 			}
 		}
 		
-		Enumeration e = hitlist.elements();
+		Enumeration<String> e = hitlist.elements();
 		while (e.hasMoreElements()) {
-			String victim = (String) e.nextElement();
+			String victim = e.nextElement();
 			
 			this.logfile.remove(victim);
 		}

@@ -29,9 +29,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.Enumeration;
 
-import freemail.fcp.HighLevelFCPClient;
 import freemail.utils.EmailAddress;
-import freemail.utils.DateStringFactory;
 import freemail.fcp.ConnectionTerminatedException;
 import freemail.utils.Logger;
 
@@ -43,7 +41,6 @@ public class MessageSender implements Runnable {
 
 	public static final String OUTBOX_DIR = "outbox";
 	private static final int MIN_RUN_TIME = 60000;
-	public static final String NIM_KEY_PREFIX = "KSK@freemail-nim-";
 	private static final int MAX_TRIES = 10;
 	private final AccountManager accountManager;
 	private Thread senderthread = null;
@@ -53,12 +50,12 @@ public class MessageSender implements Runnable {
 		accountManager = accMgr;
 	}
 	
-	public void sendMessage(FreemailAccount fromAccount, Vector to, File msg) throws IOException {
+	public void sendMessage(FreemailAccount fromAccount, Vector<EmailAddress> to, File msg) throws IOException {
 		File outbox = new File(fromAccount.getAccountDir(), OUTBOX_DIR);
 		
-		Enumeration e = to.elements();
+		Enumeration<EmailAddress> e = to.elements();
 		while (e.hasMoreElements()) {
-			EmailAddress email = (EmailAddress) e.nextElement();
+			EmailAddress email = e.nextElement();
 			
 			this.copyToOutbox(msg, outbox, email.user + "@" + email.domain);
 		}
@@ -97,16 +94,17 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
+	@Override
 	public void run() {
 		this.senderthread = Thread.currentThread();
 		while (!stopping) {
 			long start = System.currentTimeMillis();
 			
 			// iterate through users
-			Iterator i = accountManager.getAllAccounts().iterator();
+			Iterator<FreemailAccount> i = accountManager.getAllAccounts().iterator();
 			while (i.hasNext()) {
 				if(stopping) break;
-				FreemailAccount acc = (FreemailAccount)i.next();
+				FreemailAccount acc = i.next();
 				
 				File outbox = new File(acc.getAccountDir(), OUTBOX_DIR);
 				if (!outbox.exists()) outbox.mkdir();
@@ -114,6 +112,10 @@ public class MessageSender implements Runnable {
 				try {
 					this.sendDir(acc, outbox);
 				} catch (ConnectionTerminatedException cte) {
+					return;
+				} catch (InterruptedException e) {
+					Logger.debug(this, "Sender thread interrupted, stopping");
+					kill();
 					return;
 				}
 			}
@@ -137,7 +139,8 @@ public class MessageSender implements Runnable {
 		if (senderthread != null) senderthread.interrupt();
 	}
 	
-	private void sendDir(FreemailAccount fromAccount, File dir) throws ConnectionTerminatedException {
+	private void sendDir(FreemailAccount fromAccount, File dir) throws ConnectionTerminatedException,
+	                                                                   InterruptedException {
 		if (dir == null) return;
 		File[] files = dir.listFiles();
 		for (int i = 0; i < files.length; i++) {
@@ -148,7 +151,8 @@ public class MessageSender implements Runnable {
 		}
 	}
 	
-	private void sendSingle(FreemailAccount fromAccount, File msg) throws ConnectionTerminatedException {
+	private void sendSingle(FreemailAccount fromAccount, File msg) throws ConnectionTerminatedException,
+	                                                                      InterruptedException {
 		String parts[] = msg.getName().split(ATTR_SEP_CHAR, 3);
 		EmailAddress addr;
 		int tries;
@@ -166,35 +170,24 @@ public class MessageSender implements Runnable {
 			return;
 		}
 		
-		if (addr.is_nim_address()) {
-			HighLevelFCPClient cli = new HighLevelFCPClient();
-			
-			try {
-				if (cli.SlotInsert(msg, NIM_KEY_PREFIX+addr.user+"-"+DateStringFactory.getKeyString(), 1, "") > -1) {
+		if (this.sendSecure(fromAccount, addr, msg)) {
+			msg.delete();
+		} else {
+			tries++;
+			if (tries > MAX_TRIES) {
+				if (Postman.bounceMessage(msg, fromAccount.getMessageBank(),
+						"Tried too many times to deliver this message, but it doesn't apear that this address even exists. "
+								+"If you're sure that it does, check your Freenet connection.")) {
 					msg.delete();
 				}
-			} catch (ConnectionTerminatedException cte) {
-				// just don't delete the message
-			}
-		} else {
-			if (this.sendSecure(fromAccount, addr, msg)) {
-				msg.delete();
 			} else {
-				tries++;
-				if (tries > MAX_TRIES) {
-					if (Postman.bounceMessage(msg, fromAccount.getMessageBank(),
-							"Tried too many times to deliver this message, but it doesn't apear that this address even exists. "
-							+"If you're sure that it does, check your Freenet connection.")) {
-						msg.delete();
-					}
-				} else {
-					this.moveToOutbox(msg, tries, parts[2], msg.getParentFile());
-				}
+				this.moveToOutbox(msg, tries, parts[2], msg.getParentFile());
 			}
 		}
 	}
 	
-	private boolean sendSecure(FreemailAccount fromAccount, EmailAddress addr, File msg) throws ConnectionTerminatedException {
+	private boolean sendSecure(FreemailAccount fromAccount, EmailAddress addr, File msg) throws ConnectionTerminatedException,
+	                                                                                            InterruptedException {
 		Logger.normal(this,"sending secure");
 		OutboundContact ct;
 		try {

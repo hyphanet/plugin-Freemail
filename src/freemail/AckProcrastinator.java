@@ -72,6 +72,7 @@ public class AckProcrastinator implements Runnable {
 		}
 	}
 
+	@Override
 	public void run() {
 		runThread = Thread.currentThread();
 		while (!stopping) {
@@ -122,6 +123,10 @@ public class AckProcrastinator implements Runnable {
 						return;
 					} catch (FCPException e) {
 						Logger.error(this, "Unknown error while inserting ack: " + e);
+					} catch (InterruptedException e) {
+						Logger.debug(this, "AckProcrastinator was interrupted, stopping");
+						kill();
+						return;
 					}
 				}
 			}

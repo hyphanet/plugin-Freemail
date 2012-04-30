@@ -38,14 +38,14 @@ public class MailMessage {
 	private File file;
 	private OutputStream os;
 	private PrintStream ps;
-	private final Vector headers;
+	private final Vector<MailMessageHeader> headers;
 	private BufferedReader brdr;
 	private int msg_seqnum=0;
 	public IMAPMessageFlags flags;
 	
 	MailMessage(File f, int msg_seqnum) {
 		this.file = f;
-		this.headers = new Vector();
+		this.headers = new Vector<MailMessageHeader>();
 		this.msg_seqnum=msg_seqnum;
 		
 		// initialize flags from filename
@@ -69,10 +69,10 @@ public class MailMessage {
 	
 	// get the first header of a given name
 	public String getFirstHeader(String name) {
-		Enumeration e = this.headers.elements();
+		Enumeration<MailMessageHeader> e = this.headers.elements();
 		
 		while (e.hasMoreElements()) {
-			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			MailMessageHeader h = e.nextElement();
 			
 			if (h.name.equalsIgnoreCase(name)) {
 				return h.val;
@@ -85,10 +85,10 @@ public class MailMessage {
 	public String getHeaders(String name) {
 		StringBuffer buf = new StringBuffer("");
 		
-		Enumeration e = this.headers.elements();
+		Enumeration<MailMessageHeader> e = this.headers.elements();
 		
 		while (e.hasMoreElements()) {
-			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			MailMessageHeader h = e.nextElement();
 			
 			if (h.name.equalsIgnoreCase(name)) {
 				buf.append(h.name);
@@ -102,12 +102,12 @@ public class MailMessage {
 	}
 	
 	public String[] getHeadersAsArray(String name) {
-		Vector hdrs = new Vector();
+		Vector<String> hdrs = new Vector<String>();
 		
-		Enumeration e = this.headers.elements();
+		Enumeration<MailMessageHeader> e = this.headers.elements();
 		
 		while (e.hasMoreElements()) {
-			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			MailMessageHeader h = e.nextElement();
 			
 			if (h.name.equalsIgnoreCase(name)) {
 				hdrs.add(h.val);
@@ -116,11 +116,11 @@ public class MailMessage {
 		
 		String[] retval = new String[hdrs.size()];
 		
-		e = hdrs.elements();
+		Enumeration<String> headers = hdrs.elements();
 		
 		int i = 0;
-		while (e.hasMoreElements()) {
-			retval[i] = (String)e.nextElement();
+		while (headers.hasMoreElements()) {
+			retval[i] = headers.nextElement();
 			i++;
 		}
 		
@@ -131,7 +131,7 @@ public class MailMessage {
 		int i;
 		
 		for (i = 0; i < this.headers.size(); i++) {
-			MailMessageHeader h = (MailMessageHeader) this.headers.elementAt(i);
+			MailMessageHeader h = this.headers.elementAt(i);
 			
 			if (h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
 				this.headers.remove(i);
@@ -141,11 +141,11 @@ public class MailMessage {
 	}
 	
 	public String getAllHeadersAsString() {
-		Enumeration e = this.headers.elements();
+		Enumeration<MailMessageHeader> e = this.headers.elements();
 		StringBuffer buf = new StringBuffer();
 		
 		while (e.hasMoreElements()) {
-			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			MailMessageHeader h = e.nextElement();
 			
 			buf.append(h.name);
 			buf.append(": ");
@@ -160,10 +160,10 @@ public class MailMessage {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
 		
-		Enumeration e = this.headers.elements();
+		Enumeration<MailMessageHeader>  e = this.headers.elements();
 		
 		while (e.hasMoreElements()) {
-			MailMessageHeader h = (MailMessageHeader) e.nextElement();
+			MailMessageHeader h = e.nextElement();
 			
 			this.ps.println(h.name + ": " + h.val);
 		}

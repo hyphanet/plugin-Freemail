@@ -40,18 +40,20 @@ public class IMAPListener extends ServerListener implements Runnable,ConfigClien
 	
 	public IMAPListener(AccountManager accMgr, Configurator cfg) {
 		accountManager = accMgr;
-		cfg.register("imap_bind_address", this, "127.0.0.1");
-		cfg.register("imap_bind_port", this, Integer.toString(LISTENPORT));
+		cfg.register(Configurator.IMAP_BIND_ADDRESS, this, "127.0.0.1");
+		cfg.register(Configurator.IMAP_BIND_PORT, this, Integer.toString(LISTENPORT));
 	}
 	
+	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase("imap_bind_address")) {
+		if (key.equalsIgnoreCase(Configurator.IMAP_BIND_ADDRESS)) {
 			this.bindaddress = val;
-		} else if (key.equalsIgnoreCase("imap_bind_port")) {
+		} else if (key.equalsIgnoreCase(Configurator.IMAP_BIND_PORT)) {
 			this.bindport = Integer.parseInt(val);
 		}
 	}
 	
+	@Override
 	public void run() {
 		try {
 			this.realrun();

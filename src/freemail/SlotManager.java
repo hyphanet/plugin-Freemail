@@ -36,14 +36,14 @@ public abstract class SlotManager {
 	// 'slots' contains all unused slots, in order for which there is a
 	// higher slot that is used. If there are no such slots, it contains the
 	// first free slot
-	private Vector slots;
+	private Vector<Slot> slots;
 	private int nextSlotNum;
 	private final SlotSaveCallback cb;
 	private final Object userdata;
 	private int pollAhead;
 	
 	protected SlotManager(SlotSaveCallback cb, Object userdata, String slotlist) {
-		this.slots = new Vector();
+		this.slots = new Vector<Slot>();
 		this.cb = cb;
 		this.userdata = userdata;
 		this.nextSlotNum = 0;
@@ -83,7 +83,7 @@ public abstract class SlotManager {
 			// (If nextSlotNum is 0, this should rightfully throw
 			// an ArrayIndexOutOfBoundsException
 			this.nextSlotNum--;
-			Slot s = (Slot)this.slots.remove(this.nextSlotNum);
+			Slot s = this.slots.remove(this.nextSlotNum);
 			// additionally, if it was the last one, we need to push
 			// the next slot onto the end
 			if (this.nextSlotNum == this.slots.size()) {
@@ -98,7 +98,7 @@ public abstract class SlotManager {
 			// in the list
 			// note that this also modifies the previously last slot with a timestamp
 			int i;
-			Slot s = (Slot)this.slots.lastElement();
+			Slot s = this.slots.lastElement();
 			s.time_added = System.currentTimeMillis();
 			Slot s_new = new Slot();
 			s_new.slot = s.slot;
@@ -127,12 +127,12 @@ public abstract class SlotManager {
 	private void saveSlots() {
 		StringBuffer buf = new StringBuffer();
 		
-		Enumeration e = this.slots.elements();
+		Enumeration<Slot> e = this.slots.elements();
 		boolean first = true;
 		while (e.hasMoreElements()) {
 			if (!first) buf.append(",");
 			first = false;
-			Slot s = (Slot)e.nextElement();
+			Slot s = e.nextElement();
 			buf.append(s.slot);
 			if (s.time_added > 0)
 				buf.append("=").append(Long.toString(s.time_added));
@@ -155,7 +155,7 @@ public abstract class SlotManager {
 				retval = null;
 			} else if (this.nextSlotNum >= this.slots.size()) {
 				// we're into the unused slots. make one up.
-				Slot s = (Slot)this.slots.lastElement();
+				Slot s = this.slots.lastElement();
 				int i;
 				retval = s.slot;
 				for (i = this.slots.size(); i <= this.nextSlotNum; i++) {
@@ -163,7 +163,7 @@ public abstract class SlotManager {
 				}
 			} else {
 				// we're looking at an unused slot
-				Slot s = (Slot) this.slots.get(this.nextSlotNum);
+				Slot s = this.slots.get(this.nextSlotNum);
 				// is this one too old?
 				if (s.time_added > 0 && s.time_added < System.currentTimeMillis() - SLOT_LIFETIME && this.nextSlotNum != this.slots.size() - 1) {
 					// this slot is too old. Forget it.

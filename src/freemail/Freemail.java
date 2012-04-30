@@ -47,14 +47,14 @@ public abstract class Freemail implements ConfigClient {
 	protected static FCPConnection fcpconn = null;
 	
 	private Thread fcpThread;
-	private ArrayList /* of Thread */ singleAccountWatcherThreadList = new ArrayList();
+	private ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
 	private Thread messageSenderThread;
 	private Thread smtpThread;
 	private Thread ackInserterThread;
 	private Thread imapThread;
 	
 	private final AccountManager accountManager;
-	private final ArrayList singleAccountWatcherList = new ArrayList();
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
 	private final MessageSender sender;
 	private final SMTPListener smtpl;
 	private final AckProcrastinator ackinserter;
@@ -65,29 +65,29 @@ public abstract class Freemail implements ConfigClient {
 	protected Freemail(String cfgfile) throws IOException {
 		configurator = new Configurator(new File(cfgfile));
 		
-		configurator.register("loglevel", new Logger(), "normal|error");
+		configurator.register(Configurator.LOG_LEVEL, new Logger(), "normal|error");
 		
-		configurator.register("datadir", this, Freemail.DEFAULT_DATADIR);
+		configurator.register(Configurator.DATA_DIR, this, Freemail.DEFAULT_DATADIR);
 		if (!datadir.exists() && !datadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
-		configurator.register("globaldatadir", this, GLOBALDATADIR);
+		configurator.register(Configurator.GLOBAL_DATA_DIR, this, GLOBALDATADIR);
 		if (!globaldatadir.exists() && !globaldatadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
-		configurator.register("tempdir", this, Freemail.TEMPDIRNAME);
+		configurator.register(Configurator.TEMP_DIR, this, Freemail.TEMPDIRNAME);
 		if (!tempdir.exists() && !tempdir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
 		FCPContext fcpctx = new FCPContext();
-		configurator.register("fcp_host", fcpctx, "localhost");
-		configurator.register("fcp_port", fcpctx, "9481");
+		configurator.register(Configurator.FCP_HOST, fcpctx, "localhost");
+		configurator.register(Configurator.FCP_PORT, fcpctx, "9481");
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
@@ -116,17 +116,18 @@ public abstract class Freemail implements ConfigClient {
 		return accountManager;
 	}
 
+	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase("datadir")) {
+		if (key.equalsIgnoreCase(Configurator.DATA_DIR)) {
 			datadir = new File(val);
-		} else if (key.equalsIgnoreCase("tempdir")) {
+		} else if (key.equalsIgnoreCase(Configurator.TEMP_DIR)) {
 			tempdir = new File(val);
-		} else if (key.equalsIgnoreCase("globaldatadir")) {
+		} else if (key.equalsIgnoreCase(Configurator.GLOBAL_DATA_DIR)) {
 			globaldatadir = new File(val);
 		}
 	}
 	
-	protected void startFcp(boolean daemon) {
+	protected void startFcp() {
 		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
 		fcpThread.setDaemon(true);
 		fcpThread.start();
@@ -162,9 +163,9 @@ public abstract class Freemail implements ConfigClient {
 		System.out.println("");
 		
 		// start a SingleAccountWatcher for each account
-		Iterator i = accountManager.getAllAccounts().iterator();
+		Iterator<FreemailAccount> i = accountManager.getAllAccounts().iterator();
 		while (i.hasNext()) {
-			FreemailAccount acc = (FreemailAccount)i.next();
+			FreemailAccount acc = i.next();
 			
 			startWorker(acc, daemon);
 		}
@@ -181,29 +182,39 @@ public abstract class Freemail implements ConfigClient {
 	}
 	
 	public void terminate() {
-		Iterator it = singleAccountWatcherList.iterator();
+		long start = System.nanoTime();
+		Iterator<SingleAccountWatcher> it = singleAccountWatcherList.iterator();
 		while(it.hasNext()) {
-			((SingleAccountWatcher)it.next()).kill();
+			it.next().kill();
 			it.remove();
 		}
+		long end = System.nanoTime();
+		Logger.debug(this, "Spent " + (end - start) + "ns killing SingleAccountWatchers");
 
+		start = System.nanoTime();
 		sender.kill();
 		ackinserter.kill();
 		smtpl.kill();
 		imapl.kill();
 		// now kill the FCP thread - that's what all the other threads will be waiting on
 		fcpconn.kill();
+		end = System.nanoTime();
+		Logger.debug(this, "Spent " + (end - start) + "ns killing other threads");
 		
 		// now clean up all the threads
 		boolean cleanedUp = false;
 		while (!cleanedUp) {
 			try {
-				it = singleAccountWatcherThreadList.iterator();
+				start = System.nanoTime();
+				Iterator<Thread> threadIt = singleAccountWatcherThreadList.iterator();
 				while(it.hasNext()) {
-					((Thread)it.next()).join();
-					it.remove();
+					threadIt.next().join();
+					threadIt.remove();
 				}
+				end = System.nanoTime();
+				Logger.debug(this, "Spent " + (end - start) + "ns joining SingleAccountWatchers");
 				
+				start = System.nanoTime();
 				if (messageSenderThread != null) {
 					messageSenderThread.join();
 					messageSenderThread = null;
@@ -226,6 +237,8 @@ public abstract class Freemail implements ConfigClient {
 					fcpThread.join();
 					fcpThread = null;
 				}
+				end = System.nanoTime();
+				Logger.debug(this, "Spent " + (end - start) + "ns joining other threads");
 			} catch (InterruptedException ie) {
 				
 			}

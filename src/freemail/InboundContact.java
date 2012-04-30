@@ -71,7 +71,7 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		return this.ibct_props.get(key);
 	}
 	
-	public void fetch(MessageBank mb) {
+	public void fetch(MessageBank mb, long timeout) throws InterruptedException {
 		HighLevelFCPClient fcpcli = new HighLevelFCPClient();
 		
 		String slots = this.ibct_props.get("slots");
@@ -90,8 +90,15 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			// TODO: probably delete the contact. it's useless now.
 			return;
 		}
+
+		long start = System.nanoTime();
 		String slot;
 		while ( (slot = sm.getNextSlot()) != null) {
+			if(System.nanoTime() > (start + (timeout * 1000 * 1000))) {
+				Logger.debug(this, "Fetch timed out, will continue later");
+				break;
+			}
+
 			// the slot should be 52 characters long, since this is how long a 256 bit string ends up when base32 encoded.
 			// (the slots being base32 encoded SHA-256 checksums)
 			// TODO: remove this once the bug is ancient history, or if actually want to check the slots, do so in the SlotManagers.
@@ -103,7 +110,8 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 			}
 			String key = basekey+slot;
 			
-			Logger.minor(this,"Attempting to fetch mail on key "+key);
+			Logger.minor(this,"Attempting to fetch mail");
+			Logger.debug(this,"Fetch key is "+key);
 			File msg = null;
 			try {
 				msg = fcpcli.fetch(key);
@@ -198,11 +206,14 @@ public class InboundContact extends Postman implements SlotSaveCallback {
 		}
 	}
 	
+	@Override
 	public void saveSlots(String s, Object userdata) {
 		this.ibct_props.put("slots", s);
 	}
-	
-	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException {
+
+	@Override
+	public boolean validateFrom(EmailAddress from) throws IOException, ConnectionTerminatedException,
+	                                                      InterruptedException {
 		String sd = from.getSubDomain();
 		if (sd == null) {
 			// well that's definitely not valid. Piffle!
