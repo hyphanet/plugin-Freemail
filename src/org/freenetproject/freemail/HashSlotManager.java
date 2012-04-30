@@ -1,6 +1,6 @@
 /*
- * Utils.java
- * This file is part of Freemail, copyright (C) 2011 Martin Nyhus
+ * HashSlotManager.java
+ * This file is part of Freemail, copyright (C) 2006 Dave Baker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package utils;
+package org.freenetproject.freemail;
 
-import java.io.File;
+import org.archive.util.Base32;
 
-public class Utils {
-	/**
-	 * Deletes a File, including all its contents if it is a directory.
-	 * Prints the path of any Files that can't be deleted to System.out
-	 */
-	public static boolean delete(File file) {
-		if(!file.exists()) {
-			return true;
-		}
+import org.bouncycastle.crypto.digests.SHA256Digest;
 
-		if(!file.isDirectory()) {
-			if(!file.delete()) {
-				System.out.println("Failed to delete " + file);
-				return false;
-			}
-			return true;
-		}
+public class HashSlotManager extends SlotManager {
+	HashSlotManager(SlotSaveCallback cb, Object userdata, String slotlist) {
+		super(cb, userdata, slotlist);
+	}
 
-		for(File f : file.listFiles()) {
-			if(!delete(f)) {
-				return false;
-			}
-		}
+	@Override
+	protected String incSlot(String slot) {
+		byte[] buf = Base32.decode(slot);
+		SHA256Digest sha256 = new SHA256Digest();
+		sha256.update(buf, 0, buf.length);
+		sha256.doFinal(buf, 0);
 
-		return file.delete();
+		return Base32.encode(buf);
 	}
 }

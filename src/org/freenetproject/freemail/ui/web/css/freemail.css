@@ -1,0 +1,61 @@
+/* Hide the float container */
+div.content {
+	margin: 0em;
+	padding-top: 0em;
+	padding-right: 0em;
+	padding-left: 0em;
+	border: 0em;
+	width: 100%;
+
+	/* Add some padding so the status bar doesn't cover content */
+	padding-bottom: 2em;
+}
+
+/* Folder list */
+div.folderlist {
+	float: left;
+	margin-right: 1em;
+	padding-bottom: 2em;
+}
+
+div.folder > div.folder {
+	margin-left: 0.5em;
+}
+
+div.folder > p {
+	margin: 0.0em;
+	padding: 0.0em;
+}
+
+/* Inbox message list */
+div.messagelist {
+	float: left;
+	margin-left: 1em;
+	width: 70%;
+	padding-bottom: 2em;
+}
+
+/* Message page */
+div.message-headers > p {
+	margin: 0em;
+	padding: 0em;
+}
+
+div.message {
+	float: left;
+	margin-left: 1em;
+	width: 70%;
+	padding-bottom: 2em;
+}
+
+/* New message page */
+input.addRcpt {
+	border: none;
+	width: 1em;
+	height: 1em;
+}
+input.removeRcpt {
+	border: none;
+	width: 1em;
+	height: 1em;
+}

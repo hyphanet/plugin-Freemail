@@ -1,6 +1,7 @@
 /*
- * Utils.java
- * This file is part of Freemail, copyright (C) 2011 Martin Nyhus
+ * LineReader.java
+ * This file is part of Freemail
+ * Copyright (C) 2006 Matthew Toseland
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +18,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package utils;
+package org.freenetproject.freemail.support.io;
 
-import java.io.File;
+/*
+ * This file originates from the main Freenet distribution, originally in freenet.support.io
+ */
 
-public class Utils {
+import java.io.IOException;
+
+public interface LineReader {
+
 	/**
-	 * Deletes a File, including all its contents if it is a directory.
-	 * Prints the path of any Files that can't be deleted to System.out
+	 * Read a \n or \r\n terminated line of UTF-8 or ISO-8859-1.
 	 */
-	public static boolean delete(File file) {
-		if(!file.exists()) {
-			return true;
-		}
+	public String readLine(int maxLength, int bufferSize, boolean utf) throws IOException;
 
-		if(!file.isDirectory()) {
-			if(!file.delete()) {
-				System.out.println("Failed to delete " + file);
-				return false;
-			}
-			return true;
-		}
-
-		for(File f : file.listFiles()) {
-			if(!delete(f)) {
-				return false;
-			}
-		}
-
-		return file.delete();
-	}
 }

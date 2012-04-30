@@ -1,128 +1,212 @@
 \documentclass[12pt,a4paper]{article}
 \begin{document}
 \title{Freemail - Specification and Protocol Documentation}
-\date{July 2006}
+\date{May 2011}
 \maketitle
 
-This is a working draft of the Freemail specification. All parts of this document are subject to change.
+This is a working draft of the Freemail specification. All parts of this document are subject to
+change.
 
 \section{Introduction}
 \subsection{What is Freemail}
-Freemail is an email-like messaging system that transports all messages over Freenet 0.7 in order to achieve anonymity and censorship-resilience. Its protocol is designed to be as resistant as possible to attacks such as message floods and denial of service. Unlike traditional email, it makes it extremely difficult for others to discover what you have been communicating, who you have been communicating with, and even that you have been communicating at all.
+Freemail is an email-like messaging system that transports all messages over Freenet 0.7 in order to
+achieve anonymity and censorship-resilience. Its protocol is designed to be as resistant as possible
+to attacks such as message floods and denial of service. Unlike traditional email, it makes it
+extremely difficult for others to discover what you have been communicating, who you have been
+communicating with, and even that you have been communicating at all.
 
-Freemail uses IMAP and SMTP to interface with standard email clients, taking advantage of interfaces that people are already accustomed to.
+Freemail uses IMAP and SMTP to interface with standard email clients, taking advantage of interfaces
+that people are already accustomed to.
 
 \section{Channel Setup}
 \subsection{Mailsites}
-Before any communication occurs between a sender and a recipient (who, in accordance with cryptography tradition shall be called Alice and Bob, respectively), a channel is setup that is used between those two and only those two parties. This channel comprises a Freenet SSK keypair to which Alice has the private key and Bob has the public key. This permits one-way communication between those two parties - if communication the other way is required, a separate channel is used.
+Before any communication occurs between a sender and a recipient (who, in accordance with
+cryptography tradition shall be called Alice and Bob, respectively), a channel is setup that is used
+between those two and only those two parties. This channel comprises a Freenet SSK keypair to which
+both Alice and Bob has the private key, permitting two-way communication between those two parties.
 
-All Freemail users have an Freemail address, which one may give out to others in order to allow them to contact you. From this Freemail address, it is possible to derive a Freenet SSK URI. This is the user's 'mailsite'.
+All Freemail users have an Freemail address, which one may give out to others in order to allow them
+to contact you. From the Freemail address it is possible to derive an identity in the web of trust
+that can be used to find the user's 'mailsite'.
 
-A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this is the mailsite address encoded in base 32 - that is, a valid Freenet uri that points to the mailsite. The URI must be base 32 encoded in order to make the address case insensitive to maintain compatibility with traditional email clients. The string '.freemail' is appended to the whole address. An example Freemail address follows:
-
-bob@JRHXORDZIQZFIVDJ\-GBDHEVLDO43TATSCGJST\-C3CXJ5NHSTL6NM2HQ\-NDONNXG632COJFD\-ALBVKJ2HS5LLNQ3E\-OLKQOFKUKNCMG5F\-GYODBJBY\-VSYLPOVZ\-WMV3GOBRHGOLVMJ\-ZUSY3DOY2CY\-QKRIFBECQKF.freemail
-
-The base 32 encoded mailsite in this case is: LOwDyD2TTi0FrUcw70N\-B2e1lWOZyM~k4x4n\-knooBrJ0,5Rtyu\-kl6G-PqUE4L7\-Jl8aHqYaous\-fWfpbs9ubsI\-ccv4,AQABAAE
-
-(this is liable to change to make the addresses shorter)
-
-Once the mailsite address has been obtained from the Freemail address, the string 'mailpage' is appended to obtain the URI for the mailpage. This mailpage contains all information required to contact the owner. The format of a mailpage is a 'Props File', which is used repeatedly in Freemail as a trivial format for storing short pieces of information. See section \ref{PropsFile}.
+A Freemail address comprises an arbitrary text string, followed by an '@' character. Following this
+is the base32 encoded representation of the hash of the public key (the first part of an SSK is
+this value base64 encoded). The URI must be base 32 encoded in order to make the address case
+insensitive to maintain compatibility with traditional email clients. The string '.freemail' is
+appended to the whole address. For example, the identity \verb|D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc|
+has the Freemail address $<$anything$>$@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail
 
 \subsection{Mailpages}
+Once the full key for an identity has been obtained the mailpage can be located at
+USK@$<$key of the identity$>$/Freemail/$<$edition$>$/mailpage. The latest edition should be published
+through the Web of Trust plugin using the property Freemail.MailpageEdition. The format of a
+mailpage is a 'Props File', which is used repeatedly in Freemail as a trivial format for storing
+short pieces of information. See section \ref{PropsFile}.
 The following pieces of information are required in a mailpage:
 
-\begin{itemize}
-\item rtskey - This is an arbitrary string of alphanumeric characters which is used to derive a KSK that can be used to send data to the owner of the mailsite in order to establish a communication channel.
-\item asymkey.modulus - The modulus of the owner's RSA encryption key, as an integer in base 32.
-\item asymkey.pubexponent - The public exponent of the owner's RSA encryption key, as an integer in base 32.
-\end{itemize}
+\begin{description}
+\item[asymkey.modulus] The modulus of the owner's RSA encryption key, as an integer in base 32.
+\item[asymkey.pubexponent] The public exponent of the owner's RSA encryption key, as an integer in
+	base 32.
+\end{description}
 
 \subsection{RTS Messages}
-Once Alice has retrieved the recipient's mailpage, she sends an RTS message to Bob. This RTS message is, again, a props file, with the following keys:
+Once Alice has retrieved the recipient's mailpage, she sends an RTS message to Bob. This RTS message
+is, again, a props file, with the following keys:
 
-\begin{itemize}
-\item commssk - The public SSK URI to which messages will be inserted.
-\item ackssk - A fresh SSK private (insert) key that Bob will insert to in order to acknowledge his receipt of each message.
-\item messagetype - This should be 'rts', to indicate that this message is an RTS.
-\item to - The Freenet URI that appears encoded in Bob's Freemail address. This is necessary in order to prevent surreptitious forwarding to support the encryption explained later.
-\item mailsite - Alice's mailsite URI
-\item initialslot - 256 bits of random data, encoded in base32. Used to form the message slots on the commssk.
-\end{itemize}
+\begin{description}
+\item[messagetype] This should be 'rts', to indicate that this message is an RTS.
+\item[mailsite] The mailsite key of the sender
+\item[recipient] The WoT identity of the recipient
+\item[privkey] The private key of the channel
+\item[fetchslot] The initial slot the recipient should use for fetching messages
+\item[sendslot] The initial slot the recipient should use for sending messages
+\end{description}
 
-Following the last data item, there are two carriage-return-line-feeds, followed by Alice's signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included as raw bytes.
+Following the last data item, there are two carriage-return-line-feeds, followed by Alice's
+signature. This is the SHA-256 hash of the message RSA encrypted with Alice's private key, included
+as raw bytes.
 
-The final message comprises a randomly generated IV, followed by an AES session key, encrypted with Bob's public RSA key, followed by this message-signature combination encrypted with this session key. The encrypted session key must be precicely one RSA block of ciphertext. All bytes after this are part of the symmetrically encrypted message. The main message is encoded with a block size of 128 bits in CBC mode, with PKCS7 padding.
+The final message comprises a randomly generated IV, followed by an AES session key, encrypted with
+Bob's public RSA key, followed by this message-signature combination encrypted with this session
+key. The encrypted session key must be precicely one RSA block of ciphertext. All bytes after this
+are part of the symmetrically encrypted message. The main message is encoded with a block size of
+128 bits in CBC mode, with PKCS7 padding.
 
-It is the sender's responsibility to keep the private part of the 'commssk' key private. It is valid to assume that any message inserted on 'commssk' was written by Alice and intended for Bob, since only Alice has the private key and only they have the public key.
+It is both parties responsibility to keep the private key private. Since only the two parties
+involved have the private key, any message that was not inserted by Alice can be assumed to be from
+Bob and vice versa.
 
-The 'to' field is included to prevent surreptitious forwarding. That is, to prevent Bob from decrypting the message, leaving Alice's signature intact and encrypting it to someone else (say, Charlie), who would then be lead in to believing that Alice wished to communicate with him, which is fact not the case.
+The 'recipient' field is included to prevent surreptitious forwarding. That is, to prevent Bob from
+decrypting the message, leaving Alice's signature intact and encrypting it to someone else (say,
+Charlie), who would then be lead in to believing that Alice wished to communicate with him, which is
+fact not the case.
 
-This RTS message is then inserted to Freenet. The URI which it inserted to is derived from the 'rtskey' value in Bob's mailsite. The string, 'KSK@' is prepended a hyphen, the current date in the standard date format (see section \ref{standard_date}) is appended, followed by another hyphen and a slot number. The slot number should be set to the lowest integer starting from 1, that does not cause a collision.
+This RTS message is then inserted using the Web of Trust plugin to a key derived from the solution
+to a CAPTCHA the recipient inserted to Freenet and the sender solved.
 
-Alice then regularly polls the KSK she put as the value of 'ctsssk' until she retrieves a CTS message (see next section).
+Both Alice and Bob then regularly polls the initial slot they use for fetching messages for new
+messages or acknowledgements.
 
 \subsection{CTS Messages}
-When Bob receives an RTS message from Alice, he decrypts the message using his RSA private key. He then retrieves the mailsite advertised in the RTS message. Having done this, he reads the signature on the end and decrypts the signature with the public key he just retrieved from the mailsite. He then calculates a SHA-256 checksum of the message and checks that his checksum is identical to the one he has decrypted. If it is not, he must discard the message. This ensures that the message is really from Alice. He must then read the 'to' field and ensure that its value is identical to his mailsite URI. If it is not, he must discard the message. This ensures that he is the intended recipient of the message.
+When Bob receives an RTS message from Alice, he decrypts the message using his RSA private key. He
+then retrieves the mailsite advertised in the RTS message. Having done this, he reads the signature
+on the end and decrypts the signature with the public key he just retrieved from the mailsite. He
+then calculates a SHA-256 checksum of the message and checks that his checksum is identical to the
+one he has decrypted. If it is not, he must discard the message. This ensures that the message is
+really from Alice. He must then read the 'recipient' field and ensure that its value is identical to his
+mailsite URI. If it is not, he must discard the message. This ensures that he is the intended
+recipient of the message.
 
-Bob then records the value of the 'commssk' key so that he can poll this SSK for messages periodically.
+Bob then records the public and private key so that he can poll the key for new messages.
 
-Before doing so, Bob inserts some data to the value of 'ackssk', followed by the string 'cts'. That is, he inserts to "SSK@$<$long SSK key base$>$/cts". The data he inserts is irrelevant - the presence of the key is sufficient to prove to Alice that he has received the message. This completes Bob's part of the channel setup procedure.
+Before doing so, Bob inserts a props file containing messagetype=cts to the first availiable slot.
+This completes Bob's part of the channel setup procedure.
 
-Alice should check periodically for the insertion of this CTS message. If it does not arrive, Alice should re-send the RTS message. The client may try several times before declaring the message undeliverable.
+Alice should check periodically for the insertion of this CTS message. If it does not arrive, Alice
+should re-send the RTS message. The client may try several times before declaring the message
+undeliverable.
 
 \section{Message Exchange}
 \subsection{The Messages}
-Once Bob has inserted this CTS message, he begins polling for messages on keys derived from the value of the 'commssk' key which he obtained from the RTS message. These keys are the value of 'commssk' a 256 bit base32 encoded hash appended. The hash is initially the value of 'initialslot' in the RTS message. Each subsequent slot's hash is the SHA-256 digest of the previous slot's hash, forming a seqence of message slots. This hash sequence gives forward security, provided that clients destroy values of the hash, and 'initialslot' once they have been used. Alice should insert a new message to the first slot to which inserting does not causes a collision. Formulaically, Bob first polls the key:
+Messages are inserted to a key derived from the 'privkey' field and one of the initial slots. The
+party that sends the RTS, the initiator, uses the fetchslot for inserting messages and the sendslot
+for receiving messages, while the recipient uses the slots for the opposite purpose. The full key
+used for inserting messages is then SSK@$<$privkey$>$/$<$role$>$-$<$slot$>$, where role is i for the initiator
+and r for the recipient. The slot is initially the value indicated in the RTS. Each subsequent
+slot is the SHA-256 digest of the previous slot, forming a seqence of message slots. This hash
+sequence gives forward security, provided that clients destroy values of the slots, and the inital
+slot once they have been used. Alice should insert a new message to the first slot to which
+inserting does not causes a collision. Formulaically, Bob first polls the key:
 
-SSK@$<$SSK key base$>$/$<$initialslot$>$
+SSK@$<$SSK key base$>$/i-$<$fetchslot$>$
 
 Once Bob has successfully retrieved this key, he begins to periodically request the key:
 
-SSK@$<$SSK key base$>$/$<$H(initialslot)$>$
+SSK@$<$SSK key base$>$/i-$<$H(fetchslot)$>$
 
-It is recommended that clients poll several messages ahead rather than just the immediately next message, since simulations suggest that it is possible for single keys not to be retrievable in this kind of circumstance. So for example, once Bob has sent his CTS messages, he should start polling for the keys: \\
+It is recommended that clients poll several messages ahead rather than just the immediately next
+message, since simulations suggest that it is possible for single keys not to be retrievable in this
+kind of circumstance. So for example, once Bob has sent his CTS messages, he should start polling
+for the keys: \\
 \\
-SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-1 \\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/i-$<$fetch slot$>$ \\
 \\
-SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-2 \\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/i-$<$H(fetch slot)$>$ \\
 \\
 and \\
-SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-3
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/i-$<$H(H(fetch slot))$>$
 
-Alice can insert a message to the lowest numbered key of this pattern that does not cause a collision whenever she chooses. These comprise a number of properties (in the same way as a props file) followed by a double carriage-return-line-feed. Following this is the standard MIME mail messages. No signing or encryption is used here, since at this stage it is achieved inside Freenet by virtue of only Alice and Bob knowing the SSK upon which they communicate.
+Alice can insert a message to the lowest numbered key of this pattern that does not cause a
+collision whenever she chooses. These comprise a number of properties (in the same way as a props
+file) followed by a double carriage-return-line-feed. Following this is the standard MIME mail
+messages. No signing or encryption is used here, since at this stage it is achieved inside Freenet
+by virtue of only Alice and Bob knowing the SSK upon which they communicate.
 
-The only mandatory property is 'id' which may be any integer, but must uniquely identify the message from any other past or future message transported using the same 'commssk'. Bob must check this value and ensure that he has not already received this message id. If he has, he discards the message, but still acknowledges his receipt of it. All clients must ignore any unknown keys and begin reading the message only at the double line break in order that extra properties can be added in the future.
+The mandatory properties of the props file are 'id' and 'messagetype=message'. 'id' is a string that must
+uniquely identify the message from any other past or future message transported using the same
+channel. Bob must check this value and ensure that he has not already received this message id. If
+he has, he discards the message, but still acknowledges his receipt of it. All clients must ignore
+any unknown keys and begin reading the message only at the double line break in order that extra
+properties can be added in the future.
 
 \subsection{Message Acknowledgements}
-When Bob receives a message on the 'commssk', he reads it and passes it onto the user. He then inserts some data to the key 'ackssk' (which he obtains from the original RTS message) with 'ack-' and the value of 'id' from the message in question. For example, if Bob has just fetched a message from key: \\
+When Bobs client receives a message, it reads it and passes it onto Bob. He then
+inserts a propsfile to the next availiable slot with 'messagetype' set to ack, and 'id'
+set to a comma separated list of the 'id' values of the messages that should be acked.
+For example, if Bob has just fetched a message from key: \\
 \\
-SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/message-1 \\
+SSK@9GXtGxN4CEJD~8a\-307V6yzyhl8Gx5U\-YbWVDTEyUXH6o,gDWfr2CqVm\-
+DAeJurKF2iieM\-5AkjXstOl2V5j\-yuTHeo4,AQABAAE/$<$role$>$-$<$fetch slot$>$ \\
 \\
 With the contents: \\
 \\
 
 \fbox{\begin{minipage}[h]{400pt}
+messagetype=message \\
 id=657488664753 \\
 
 To: Bob Burton $<$bob@longkey.freemail$>$ \\
 From: Alice Andrews $<$alice@anotherlongkey.freemail$>$ \\
 Subject: Eve \\
 
-I think Eve from down the road might be trying to spy on us. I've never liked the looked of her, you know. It's always the quiet ones.
+I think Eve from down the road might be trying to spy on us. I've never liked the looked of her, you
+know. It's always the quiet ones.
 \end{minipage}} \\
 \\
 Then he might insert an acknowledgement to the key: \\
 \\
 \\
-SSK@AJoZbUvGkXlAJwI\-jdbu9BLPhpIXBu6\-w6nGwKYBnMfNLi,ACEgE1uUIzJdC\-Xcsz1yjgW45u\-Az-KuMrXBFYG\-U8maqc/ack-657488664753 \\
-\\
-The data that Bob publishes to this key is irrelevant - its mere existence in the network is sufficient to assert Bob's receipt of the message. If Alice has, for whatever reason, not received a CTS message from Bob, her receipt of a message ack should additionally be treated as receipt of a CTS message.
+SSK@AJoZbUvGkXlAJwI\-jdbu9BLPhpIXBu6\-w6nGwKYBnMfNLi,ACEgE1uUIzJdC\-
+Xcsz1yjgW45u\-Az-KuMrXBFYG\-U8maqc/$<$role$>$-$<$send slot$>$ \\
+
+With the content:\\
+
+\fbox{\begin{minipage}[h]{400pt}
+messagetype=ack\\
+id=657488664753
+\end{minipage}} \\
+
+If Alice has, for whatever reason, not received a
+CTS message from Bob, her receipt of a message ack should additionally be treated as receipt of a
+CTS message.
 
 \appendix
 
 \section{Props Files}
 \label{PropsFile}
-A props file is a sequence of keys and values. Keys and values are separated by a single equals sign ('=') and lines are separated by a carriage return and line feed ($\backslash$r$\backslash$n), with the exception that if the propsfile will only be read locally, it is permissable to use the line separator native to the local machine. For example, for props files that are never transmitted over the network, it is permissable to use just a line feed ($\backslash$n) to separate lines. It is recommended for simplicity, though not required, that the keys be lowercase and contain only alphanumeric characters. The keys must not contain the equals sign, as there is no mechanism for escaping equals signs. The value may contain equals signs and therefore parsers of this format must treat and equals signs after the first on any line as part of the value text.
+A props file is a sequence of keys and values. Keys and values are separated by a single equals sign
+('=') and lines are separated by a carriage return and line feed ($\backslash$r$\backslash$n), with
+the exception that if the propsfile will only be read locally, it is permissable to use the line
+separator native to the local machine. For example, for props files that are never transmitted over
+the network, it is permissable to use just a line feed ($\backslash$n) to separate lines. It is
+recommended for simplicity, though not required, that the keys be lowercase and contain only
+alphanumeric characters. The keys must not contain the equals sign, as there is no mechanism for
+escaping equals signs. The value may contain equals signs and therefore parsers of this format must
+treat and equals signs after the first on any line as part of the value text.
 
 An example of a propsfile is below: \\
 \\
@@ -132,9 +216,5 @@ age=39 \\
 occupation=Builder \\
 Pet's Name=Stevie the Sycophantic Squirrel \\
 \end{minipage}}
-
-\section{Standard Date Format}
-\label{standard_date}
-A date in the standard format is the four digit year, two digit month and two digit day of the month. That is, "yyyyMMdd" in Java's SimpleDateFormat class notation. This is used to encode the day upon which and Freenet KSK key is inserted. For the purposes of considering when a key is inserted, this should be done according to Universal Standard Time, and not any local timezone or daylight saving time.
 
 \end{document}

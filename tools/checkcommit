@@ -1,0 +1,78 @@
+#!/bin/bash
+set -e
+
+#Check arguments
+if [[ -n "$3" ]]; then
+	echo "USAGE: $0 [--quiet] [<commit>]"
+	echo "     --quiet  - suppress non-error messages"
+	echo "    <commit>  - the commit that should be checked, see gitrevisions(7)"
+	echo "                defaults to the currently checked out commit"
+	exit 1
+fi
+
+if [[ "$1" == "--quiet" ]]; then
+	QUIET="true"
+	shift 1
+fi
+
+COMMIT=$1
+if [[ -z "$COMMIT" ]]; then
+	COMMIT=`git describe`
+fi
+
+#Save the current branch / commit
+ORIG=`git branch | grep '*' | cut -d" " -f2-`
+if [[ $ORIG == "(no branch)" ]]; then
+	ORIG=`git describe`
+fi
+
+#TODO: Check the state of the tree and index
+if [ -a .checkcommit.prev ]; then
+	echo ".checkcommit.prev exists, won't overwrite"
+	exit 1;
+fi
+if [ -a .checkcommit.cur ]; then
+	echo ".checkcommit.cur exists, won't overwrite"
+	exit 1;
+fi
+
+TARGET=`git describe "$COMMIT"`
+PARENT=`git describe "$COMMIT"^`
+
+#Checkout the parent of the target
+git checkout "$PARENT" &> /dev/null
+set +e
+ant checkstyle |& grep "\[cs:checkstyle\] " | tail -n +2 &> .checkcommit.prev
+set -e
+
+#Checkout the target
+git checkout "$TARGET" &> /dev/null
+set +e
+ant checkstyle |& grep "\[cs:checkstyle\] " | tail -n +2 &> .checkcommit.cur
+set -e
+
+#Count differences
+ADDED=`diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+" | wc -l`
+REMOVED=`diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^-" | wc -l`
+
+if [[ ! $QUIET ]]; then
+	#Print any new warnings and the count
+	set +e
+	#TODO: Remove the initial +
+	diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+"
+	set -e
+	echo "`git describe`: $ADDED warnings added, $REMOVED removed"
+fi
+
+#Cleanup
+rm .checkcommit.prev .checkcommit.cur
+
+#Checkout original branch
+git checkout "$ORIG" &> /dev/null
+
+#Exit with failure if warnings were added
+if [[ $ADDED == "0" ]]; then
+	exit 0
+else
+	exit 1
+fi

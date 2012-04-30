@@ -1,6 +1,6 @@
 /*
- * Utils.java
- * This file is part of Freemail, copyright (C) 2011 Martin Nyhus
+ * SlotSaveCallback.java
+ * This file is part of Freemail, copyright (C) 2006 Dave Baker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package utils;
+package org.freenetproject.freemail;
 
-import java.io.File;
-
-public class Utils {
-	/**
-	 * Deletes a File, including all its contents if it is a directory.
-	 * Prints the path of any Files that can't be deleted to System.out
-	 */
-	public static boolean delete(File file) {
-		if(!file.exists()) {
-			return true;
-		}
-
-		if(!file.isDirectory()) {
-			if(!file.delete()) {
-				System.out.println("Failed to delete " + file);
-				return false;
-			}
-			return true;
-		}
-
-		for(File f : file.listFiles()) {
-			if(!delete(f)) {
-				return false;
-			}
-		}
-
-		return file.delete();
-	}
+public interface SlotSaveCallback {
+	public void saveSlots(String slots, Object userdata);
 }

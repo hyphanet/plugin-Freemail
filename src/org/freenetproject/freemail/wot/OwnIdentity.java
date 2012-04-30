@@ -1,6 +1,7 @@
 /*
- * Utils.java
- * This file is part of Freemail, copyright (C) 2011 Martin Nyhus
+ * OwnIdentity.java
+ * This file is part of Freemail
+ * Copyright (C) 2011 Martin Nyhus
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +18,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package utils;
+package org.freenetproject.freemail.wot;
 
-import java.io.File;
+public class OwnIdentity extends Identity {
+	private final String insertURI;
 
-public class Utils {
-	/**
-	 * Deletes a File, including all its contents if it is a directory.
-	 * Prints the path of any Files that can't be deleted to System.out
-	 */
-	public static boolean delete(File file) {
-		if(!file.exists()) {
-			return true;
-		}
+	public OwnIdentity(String identityID, String requestURI, String insertURI, String nickname) {
+		super(identityID, requestURI, nickname);
 
-		if(!file.isDirectory()) {
-			if(!file.delete()) {
-				System.out.println("Failed to delete " + file);
-				return false;
-			}
-			return true;
-		}
+		this.insertURI = insertURI;
+	}
 
-		for(File f : file.listFiles()) {
-			if(!delete(f)) {
-				return false;
-			}
-		}
+	public String getInsertURI() {
+		return insertURI;
+	}
 
-		return file.delete();
+	@Override
+	public String toString() {
+		return "OwnIdentity " + getIdentityID();
 	}
 }

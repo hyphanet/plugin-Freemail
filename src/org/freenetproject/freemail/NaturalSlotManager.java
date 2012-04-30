@@ -1,6 +1,6 @@
 /*
- * Utils.java
- * This file is part of Freemail, copyright (C) 2011 Martin Nyhus
+ * NaturalSlotManager.java
+ * This file is part of Freemail, copyright (C) 2006 Dave Baker
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,34 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package utils;
+package org.freenetproject.freemail;
 
-import java.io.File;
+public class NaturalSlotManager extends SlotManager {
+	NaturalSlotManager(SlotSaveCallback cb, Object userdata, String slotlist) {
+		super(cb, userdata, slotlist);
+	}
 
-public class Utils {
-	/**
-	 * Deletes a File, including all its contents if it is a directory.
-	 * Prints the path of any Files that can't be deleted to System.out
-	 */
-	public static boolean delete(File file) {
-		if(!file.exists()) {
-			return true;
-		}
+	@Override
+	protected String incSlot(String slot) {
+		int s = Integer.parseInt(slot);
 
-		if(!file.isDirectory()) {
-			if(!file.delete()) {
-				System.out.println("Failed to delete " + file);
-				return false;
-			}
-			return true;
-		}
+		s++;
+		return Integer.toString(s);
+	}
 
-		for(File f : file.listFiles()) {
-			if(!delete(f)) {
-				return false;
-			}
-		}
+	public int getNextSlotNat() {
+		String slot = super.getNextSlot();
 
-		return file.delete();
+		if (slot == null) return -1;
+
+		return Integer.parseInt(slot);
 	}
 }
