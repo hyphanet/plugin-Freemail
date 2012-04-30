@@ -1,3 +1,11 @@
+Changes from version 0.1.1 to version 0.2 - 2012-04-30
+  This version introduces the new identity management based on WoT as well as
+  the new web interface that includes a simple webmail client. Due to the
+  change in identity management this version is not compatible with earlier
+  versions and uses a new address format as well as a new default directory. In
+  addition to this the Bouncycastle version has been bumped from 1.38 to 1.47,
+  as well as numerous other changes.
+
 Changes in version 0.1.1 - 2012-04-30
   o Security fixes:
     - Log message fetch and insert keys at debug instead of normal/erorr. If a
