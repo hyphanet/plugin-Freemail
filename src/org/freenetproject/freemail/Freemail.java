@@ -38,7 +38,7 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 
 public abstract class Freemail implements ConfigClient {
-	private static final String BASEDIR = "Freemail";
+	private static final String BASEDIR = "freemail-wot";
 	private static final String TEMPDIRNAME = BASEDIR + "/temp";
 	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
 	protected static final String CFGFILE = BASEDIR + "/globalconfig";
