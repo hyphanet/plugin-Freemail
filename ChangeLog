@@ -1,10 +1,10 @@
 Changes in version 0.1.1 - 2012-04-30
   o Security fixes:
-    - Log message fetch and insert keys at debug instead of normal/erorr. If a
-      collision collision occured the new slot would be logged at error, which
+    - Log message fetch and insert keys at debug instead of normal/error. If a
+      collision occurred the new slot would be logged at error, which
       would break the forward secrecy of the slot system until the log was
       deleted. This would enable an attacker with access to the log files to
-      retrive messages from Freenet.
+      retrieve messages from Freenet.
 
   o Bugfixes:
     - Folders deleted using a mail client are now deleted properly
@@ -31,7 +31,7 @@ Changes in version 0.1.1 - 2012-04-30
       outbox per two days, reducing resource usage for unacked messages
     - Send messages in the order they will be received, improving performance
       when sending a large amount of messages
-    - Alternate between sending and receving, stopping sending/receiving a large
+    - Alternate between sending and receiving, stopping sending/receiving a large
       number of messages from blocking other operations
 
   o Build improvements:
