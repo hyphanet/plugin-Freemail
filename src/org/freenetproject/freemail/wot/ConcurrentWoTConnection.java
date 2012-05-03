@@ -68,4 +68,10 @@ public class ConcurrentWoTConnection implements WoTConnection {
 		WoTConnectionImpl wotConnection = new WoTConnectionImpl(pluginRespirator);
 		return wotConnection.getProperty(identity, key);
 	}
+
+	@Override
+	public boolean setContext(String identity, String context) throws PluginNotFoundException {
+		WoTConnectionImpl wotConnection = new WoTConnectionImpl(pluginRespirator);
+		return wotConnection.setContext(identity, context);
+	}
 }

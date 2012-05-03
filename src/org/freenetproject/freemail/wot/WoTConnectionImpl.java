@@ -227,6 +227,27 @@ class WoTConnectionImpl implements WoTConnection {
 		}
 	}
 
+	@Override
+	public boolean setContext(String identity, String context) {
+		if(identity == null) {
+			throw new NullPointerException("Parameter identity must not be null");
+		}
+		if(context == null) {
+			throw new NullPointerException("Parameter context must not be null");
+		}
+
+		SimpleFieldSet sfs = new SimpleFieldSet(true);
+		sfs.putOverwrite("Message", "AddContext");
+		sfs.putOverwrite("Identity", identity);
+		sfs.putOverwrite("Context", context);
+
+		Message response = sendBlocking(new Message(sfs, null), "ContextAdded");
+		if(response == null) {
+			return false;
+		}
+		return "ContextAdded".equals(response.sfs.get("Message"));
+	}
+
 	private Message sendBlocking(final Message msg, String expectedMessageType) {
 		return sendBlocking(msg, Collections.singleton(expectedMessageType));
 	}
