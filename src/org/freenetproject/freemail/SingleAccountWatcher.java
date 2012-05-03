@@ -45,6 +45,7 @@ public class SingleAccountWatcher implements Runnable {
 	private final FreemailAccount account;
 	private final Freemail freemail;
 	private final File rtsdir;
+	private boolean hasSetWoTContext;
 
 	SingleAccountWatcher(FreemailAccount acc, Freemail freemail) {
 		this.account = acc;
@@ -80,6 +81,7 @@ public class SingleAccountWatcher implements Runnable {
 				WoTConnection wotConnection = freemail.getWotConnection();
 
 				insertMailsite(wotConnection);
+				setWoTContext(wotConnection);
 
 				if(stopping) {
 					break;
@@ -147,6 +149,25 @@ public class SingleAccountWatcher implements Runnable {
 					}
 				}
 			}
+		}
+	}
+
+	private void setWoTContext(WoTConnection wotConnection) {
+		if(hasSetWoTContext) {
+			return;
+		}
+		if(wotConnection == null) {
+			return;
+		}
+
+		try {
+			if(!wotConnection.setContext(account.getIdentity(), WoTProperties.CONTEXT)) {
+				Logger.error(this, "Setting WoT context failed");
+			} else {
+				hasSetWoTContext = true;
+			}
+		} catch (PluginNotFoundException e) {
+			Logger.normal(this, "WoT plugin not loaded, can't set Freemail context");
 		}
 	}
 
