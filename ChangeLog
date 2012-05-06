@@ -1,3 +1,7 @@
+Changes from version 0.2 to version 0.2.1
+  o Improvements
+    - Don't print copyright statement to stdout when running as a plugin
+
 Changes from version 0.1.1 to version 0.2 - 2012-04-30
   This version introduces the new identity management based on WoT as well as
   the new web interface that includes a simple webmail client. Due to the

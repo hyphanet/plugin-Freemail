@@ -134,10 +134,6 @@ public abstract class Freemail implements ConfigClient {
 	}
 
 	protected void startWorkers() {
-		System.out.println("This is Freemail version "+Version.getVersionString());
-		System.out.println("Freemail is released under the terms of the GNU General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
-		System.out.println("");
-
 		//Start account watchers, channel tasks etc.
 		accountManager.startTasks();
 	}
