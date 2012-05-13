@@ -23,9 +23,11 @@ package org.freenetproject.freemail;
 
 import java.io.File;
 import java.lang.InterruptedException;
+import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.utils.Logger;
+import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTProperties;
 
@@ -114,6 +116,7 @@ public class SingleAccountWatcher implements Runnable {
 
 			//Try to get the edition from WoT
 			if(wotConnection != null) {
+				Timer propertyRead = Timer.start();
 				try {
 					String hint = wotConnection.getProperty(
 							account.getIdentity(), WoTProperties.MAILSITE_EDITION);
@@ -123,6 +126,7 @@ public class SingleAccountWatcher implements Runnable {
 				} catch (NumberFormatException e) {
 					//Same as above, so ignore this too
 				}
+				propertyRead.log(this, 1, TimeUnit.HOURS, "Time spent getting mailsite property");
 			}
 
 			//And from the account file
@@ -140,6 +144,7 @@ public class SingleAccountWatcher implements Runnable {
 			if (edition >= 0) {
 				this.mailsite_last_upload = System.currentTimeMillis();
 				if(wotConnection != null) {
+					Timer propertyUpdate = Timer.start();
 					try {
 						wotConnection.setProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION, "" + edition);
 					} catch(PluginNotFoundException e) {
@@ -147,6 +152,7 @@ public class SingleAccountWatcher implements Runnable {
 						//change very often anyway
 						Logger.normal(this, "WoT plugin not loaded, can't save mailsite edition");
 					}
+					propertyUpdate.log(this, 1, TimeUnit.HOURS, "Time spent setting mailsite property");
 				}
 			}
 		}
@@ -160,6 +166,7 @@ public class SingleAccountWatcher implements Runnable {
 			return;
 		}
 
+		Timer contextWrite = Timer.start();
 		try {
 			if(!wotConnection.setContext(account.getIdentity(), WoTProperties.CONTEXT)) {
 				Logger.error(this, "Setting WoT context failed");
@@ -169,6 +176,7 @@ public class SingleAccountWatcher implements Runnable {
 		} catch (PluginNotFoundException e) {
 			Logger.normal(this, "WoT plugin not loaded, can't set Freemail context");
 		}
+		contextWrite.log(this, 1, TimeUnit.HOURS, "Time spent adding WoT context");
 	}
 
 	/**
