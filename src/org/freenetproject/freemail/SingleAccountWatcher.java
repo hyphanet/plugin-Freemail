@@ -140,7 +140,9 @@ public class SingleAccountWatcher implements Runnable {
 			}
 
 			MailSite ms = new MailSite(account.getProps());
+			Timer mailsiteInsert = Timer.start();
 			int edition = ms.publish(editionHint);
+			mailsiteInsert.log(this, 1, TimeUnit.HOURS, "Time spent inserting mailsite");
 			if (edition >= 0) {
 				this.mailsite_last_upload = System.currentTimeMillis();
 				if(wotConnection != null) {
