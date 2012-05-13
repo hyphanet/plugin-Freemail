@@ -109,8 +109,14 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Message", "GetIdentitiesByScore");
 		sfs.putOverwrite("Truster", trusterId);
 		sfs.putOverwrite("Selection", selection.value);
-		sfs.putOverwrite("Context", "");
 		sfs.put("WantTrustValues", false);
+
+		/*
+		 * The Freemail context wasn't added prior to 0.2.1, so for a while after 0.2.1 we need to
+		 * support recipients without the Freemail context.
+		 * FIXME: Restrict this to Freemail context a few months after 0.2.1 has become mandatory
+		 */
+		sfs.putOverwrite("Context", "");
 
 		Message response = sendBlocking(new Message(sfs, null), "Identities");
 		if(response == null) {
