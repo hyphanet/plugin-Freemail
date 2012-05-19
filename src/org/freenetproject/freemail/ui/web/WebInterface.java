@@ -49,7 +49,7 @@ public class WebInterface {
 		this.pluginRespirator = pluginRespirator;
 
 		//Register our menu
-		pluginRespirator.getPageMaker().addNavigationCategory(HomeToadlet.getPath(), FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
+		pluginRespirator.getPageMaker().addNavigationCategory(InboxToadlet.getPath(), FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
 
 		//Register the toadlets that should be visible in the menu
 		HomeToadlet homeToadlet = new HomeToadlet(pluginRespirator);
