@@ -120,7 +120,7 @@ public class LogInToadlet extends WebPage {
 		}
 
 		sessionManager.createSession(accountManager.getAccount(identity).getIdentity(), ctx);
-		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", HomeToadlet.getPath());
+		writeTemporaryRedirect(ctx, "Login successful, redirecting to inbox", InboxToadlet.getPath());
 	}
 
 	@Override
