@@ -119,7 +119,7 @@ public class LogInToadlet extends WebPage {
 			return;
 		}
 
-		pluginRespirator.getSessionManager("Freemail").createSession(accountManager.getAccount(identity).getIdentity(), ctx);
+		sessionManager.createSession(accountManager.getAccount(identity).getIdentity(), ctx);
 		writeTemporaryRedirect(ctx, "Login successful, redirecting to home page", HomeToadlet.getPath());
 	}
 
