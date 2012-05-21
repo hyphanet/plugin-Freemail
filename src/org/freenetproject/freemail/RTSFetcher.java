@@ -406,48 +406,51 @@ public class RTSFetcher implements SlotSaveCallback {
 		// first n bytes will be an encrypted RSA block containting the
 		// AES IV and Key. Read that.
 		byte[] encrypted_params = new byte[deccipher.getInputBlockSize()];
-		FileInputStream fis = new FileInputStream(rtsmessage);
 		int read = 0;
-
-		while (read < encrypted_params.length) {
-			read += fis.read(encrypted_params, read, encrypted_params.length - read);
-			if (read < 0) break;
-		}
-
-		if (read < 0) {
-			throw new InvalidCipherTextException("RTS Message too short");
-		}
-
-		byte[] aes_iv_and_key = deccipher.processBlock(encrypted_params, 0, encrypted_params.length);
-
-		KeyParameter kp = new KeyParameter(aes_iv_and_key, aescipher.getBlockSize(), aes_iv_and_key.length - aescipher.getBlockSize());
-		ParametersWithIV kpiv = new ParametersWithIV(kp, aes_iv_and_key, 0, aescipher.getBlockSize());
+		FileInputStream fis = new FileInputStream(rtsmessage);
 		try {
-			aescipher.init(false, kpiv);
-		} catch (IllegalArgumentException iae) {
-			throw new InvalidCipherTextException(iae.getMessage());
+			while (read < encrypted_params.length) {
+				read += fis.read(encrypted_params, read, encrypted_params.length - read);
+				if (read < 0) break;
+			}
+
+			if (read < 0) {
+				fis.close();
+				throw new InvalidCipherTextException("RTS Message too short");
+			}
+
+			byte[] aes_iv_and_key = deccipher.processBlock(encrypted_params, 0, encrypted_params.length);
+
+			KeyParameter kp = new KeyParameter(aes_iv_and_key, aescipher.getBlockSize(), aes_iv_and_key.length - aescipher.getBlockSize());
+			ParametersWithIV kpiv = new ParametersWithIV(kp, aes_iv_and_key, 0, aescipher.getBlockSize());
+			try {
+				aescipher.init(false, kpiv);
+			} catch (IllegalArgumentException iae) {
+				fis.close();
+				throw new InvalidCipherTextException(iae.getMessage());
+			}
+
+			byte[] plaintext = new byte[aescipher.getOutputSize((int)rtsmessage.length() - read)];
+
+			int ptbytes = 0;
+			while (read < rtsmessage.length()) {
+				byte[] buf = new byte[(int)rtsmessage.length() - read];
+
+				int thisread = fis.read(buf, 0, (int)rtsmessage.length() - read);
+				ptbytes += aescipher.processBytes(buf, 0, thisread, plaintext, ptbytes);
+				read += thisread;
+			}
+
+			try {
+				aescipher.doFinal(plaintext, ptbytes);
+			} catch (DataLengthException dle) {
+				throw new InvalidCipherTextException(dle.getMessage());
+			}
+
+			return plaintext;
+		} finally {
+			fis.close();
 		}
-
-		byte[] plaintext = new byte[aescipher.getOutputSize((int)rtsmessage.length() - read)];
-
-		int ptbytes = 0;
-		while (read < rtsmessage.length()) {
-			byte[] buf = new byte[(int)rtsmessage.length() - read];
-
-			int thisread = fis.read(buf, 0, (int)rtsmessage.length() - read);
-			ptbytes += aescipher.processBytes(buf, 0, thisread, plaintext, ptbytes);
-			read += thisread;
-		}
-
-		fis.close();
-
-		try {
-			aescipher.doFinal(plaintext, ptbytes);
-		} catch (DataLengthException dle) {
-			throw new InvalidCipherTextException(dle.getMessage());
-		}
-
-		return plaintext;
 	}
 
 	/*
