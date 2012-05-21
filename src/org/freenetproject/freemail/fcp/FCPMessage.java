@@ -57,6 +57,9 @@ public class FCPMessage {
 		this.outData = null;
 
 		this.messagetype = null;
+
+		//r isn't closed since LineReadingInputStream would close is
+		@SuppressWarnings("resource")
 		LineReader r = new LineReadingInputStream(is);
 
 		String line;
