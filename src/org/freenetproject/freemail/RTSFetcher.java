@@ -235,12 +235,14 @@ public class RTSFetcher implements SlotSaveCallback {
 		File rtsfile = null;
 		byte[] their_encrypted_sig;
 		int messagebytes = 0;
+		LineReadingInputStream lis = null;
+		PrintStream ps = null;
 		try {
 			rtsfile = File.createTempFile("rtstmp", "tmp", Freemail.getTempDir());
 
 			ByteArrayInputStream bis = new ByteArrayInputStream(plaintext);
-			LineReadingInputStream lis = new LineReadingInputStream(bis);
-			PrintStream ps = new PrintStream(new FileOutputStream(rtsfile));
+			lis = new LineReadingInputStream(bis);
+			ps = new PrintStream(new FileOutputStream(rtsfile));
 
 			String line;
 			while (true) {
@@ -258,8 +260,6 @@ public class RTSFetcher implements SlotSaveCallback {
 
 				ps.println(line);
 			}
-
-			ps.close();
 
 			if (line == null) {
 				// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
@@ -283,13 +283,22 @@ public class RTSFetcher implements SlotSaveCallback {
 				if (read <= 0) break;
 				totalread += read;
 			}
-
-			bis.close();
 		} catch (IOException ioe) {
 			Logger.normal(this, "IO error whilst handling RTS message. "+ioe.getMessage());
 			ioe.printStackTrace();
 			if (rtsfile != null) rtsfile.delete();
 			return false;
+		} finally {
+			if(ps != null) {
+				ps.close();
+			}
+			if(lis != null) {
+				try {
+					lis.close();
+				} catch (IOException e) {
+					Logger.error(this, "Caugth IOException while closing input", e);
+				}
+			}
 		}
 
 		PropsFile rtsprops = PropsFile.createPropsFile(rtsfile);
