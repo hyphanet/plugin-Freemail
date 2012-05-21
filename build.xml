@@ -80,6 +80,7 @@
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
 			</classpath>
+			<compilerarg value="-Xlint"/>
 		</javac>
 
 		<!-- Bundle the whole lot together, unless anyone whinges.
