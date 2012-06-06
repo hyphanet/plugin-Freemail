@@ -218,8 +218,16 @@ public class InboxToadlet extends WebPage {
 
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
-		HTMLNode message = parent.addChild("tr", "class", "message");
-		boolean read = msg.flags.get("\\seen");
+		String msgClass = "message";
+		if(!msg.flags.get("\\Seen")) {
+			msgClass += " message-unread";
+		}
+		if(msg.flags.get("\\Recent")) {
+			msgClass += " message-recent";
+			msg.flags.set("\\Recent", false);
+			msg.storeFlags();
+		}
+		HTMLNode message = parent.addChild("tr", "class", msgClass);
 
 		HTMLNode checkBox = message.addChild("td");
 		checkBox.addChild("input", new String[] {"type",     "name"},
@@ -227,9 +235,6 @@ public class InboxToadlet extends WebPage {
 
 		String messageLink = MessageToadlet.getMessagePath(folderName, messageNum);
 		HTMLNode title = message.addChild("td", "class", "title");
-		if(!read) {
-			title = title.addChild("strong");
-		}
 		String subject;
 		try {
 			subject = msg.getSubject();
@@ -242,15 +247,9 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		if(!read) {
-			author = author.addChild("strong");
-		}
 		author.addChild("#", msg.getFirstHeader("From"));
 
 		HTMLNode date = message.addChild("td", "class", "date");
-		if(!read) {
-			date = date.addChild("strong");
-		}
 
 		Date msgDate = msg.getDate();
 		if(msgDate != null) {
