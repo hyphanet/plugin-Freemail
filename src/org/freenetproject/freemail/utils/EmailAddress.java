@@ -144,4 +144,17 @@ public class EmailAddress {
 	public String toLongString() {
 		return this.realname + " <"+this.user+"@"+this.domain+">";
 	}
+
+	/**
+	 * Removes illegal characters from localPart and returns the result
+	 * @param localPart the local part that should be cleaned
+	 * @return localPart without any illegal characters
+	 */
+	public static String cleanLocalPart(String localPart) {
+		if(localPart == null) {
+			throw new NullPointerException("Parameter localPart was null");
+		}
+
+		return localPart.replaceAll("[^A-Za-z0-9!#$%&'*+\\-/=?^_`{|}~]", "");
+	}
 }
