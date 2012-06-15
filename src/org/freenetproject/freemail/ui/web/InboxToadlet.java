@@ -154,7 +154,12 @@ public class InboxToadlet extends WebPage {
 	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		String identity = sessionManager.useSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
-		String folderName = req.getParam("folder", "inbox");
+
+		String folderName = req.getPartAsStringFailsafe("folder", 1000);
+		Logger.debug(this, "Folder name in request: " + folderName);
+		if(folderName.equals("")) {
+			folderName = "inbox";
+		}
 		MessageBank messageBank = getMessageBank(account, folderName);
 
 		Set<MailMessage> selectedMessages = new HashSet<MailMessage>();
