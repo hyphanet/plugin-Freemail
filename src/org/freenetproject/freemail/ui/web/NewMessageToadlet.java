@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -61,9 +62,11 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
+import freenet.support.io.Closer;
 
 public class NewMessageToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/NewMessage";
+	private static final String SEND_COPY_FOLDER = "Sent";
 
 	private final WoTConnection wotConnection;
 	private final Freemail freemail;
@@ -168,6 +171,36 @@ public class NewMessageToadlet extends WebPage {
 		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
 	}
 
+	private boolean copyMessageToSentFolder(Bucket message, MessageBank parentMb) {
+		MessageBank target = parentMb.makeSubFolder(SEND_COPY_FOLDER);
+		if(target == null) {
+			target = parentMb.getSubFolder(SEND_COPY_FOLDER);
+		}
+
+		//If target still is null it couldn't be created
+		if(target == null) {
+			return false;
+		}
+
+		//Write a copy of the message
+		MailMessage msg = target.createMessage();
+		PrintStream ps = null;
+		try {
+			ps = msg.getRawStream();
+			BucketTools.copyTo(message, ps, message.size());
+		} catch (IOException e) {
+			Logger.error(this, "Caugth exception while copying message to sent folder", e);
+			Closer.close(ps);
+			msg.cancel();
+			return false;
+		}
+
+		Closer.close(ps);
+		msg.commit();
+
+		return true;
+	}
+
 	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		//FIXME: Consider how to handle duplicate recipients
 		Timer sendMessageTimer = Timer.start();
@@ -262,6 +295,8 @@ public class NewMessageToadlet extends WebPage {
 			assert (identityList.size() == 1);
 			identities.add(identityList.get(0));
 		}
+
+		copyMessageToSentFolder(message, account.getMessageBank());
 
 		account.getMessageHandler().sendMessage(identities, message);
 		message.free();
