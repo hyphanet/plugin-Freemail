@@ -53,6 +53,7 @@ import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/Inbox";
+	private static final String TRASH_FOLDER = "Trash";
 
 	private final AccountManager accountManager;
 
@@ -182,7 +183,27 @@ public class InboxToadlet extends WebPage {
 				message.copyTo(destination.createMessage());
 				message.delete();
 			} else if(!req.getPartAsString("delete", 100).equals("")) {
-				message.delete();
+				if(folderName.equals("inbox." + TRASH_FOLDER)) {
+					Logger.debug(this, "Deleting [" + message + "]");
+					message.delete();
+				} else {
+					Logger.debug(this, "Moving [" + message + "] to trash");
+
+					MessageBank inbox = account.getMessageBank();
+					MessageBank target = inbox.makeSubFolder(TRASH_FOLDER);
+					if(target == null) {
+						target = inbox.getSubFolder(TRASH_FOLDER);
+					}
+
+					//If target still is null it couldn't be created
+					if(target != null) {
+						message.copyTo(target.createMessage());
+						message.delete();
+					} else {
+						//TODO: Show an error message
+						Logger.error(this, "Couldn't create folder " + TRASH_FOLDER);
+					}
+				}
 			}
 		}
 
