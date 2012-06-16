@@ -211,7 +211,9 @@ public class MessageBank {
 	 * @return the created subfolder, or {@code null}
 	 */
 	public synchronized MessageBank makeSubFolder(String name) {
-		if (!name.matches("[\\w\\s_]*")) return null;
+		if (!name.matches("[\\w\\s_]*")) {
+			throw new IllegalArgumentException("Illegal folder name: " + name);
+		}
 
 		File targetdir = new File(this.dir, name);
 
