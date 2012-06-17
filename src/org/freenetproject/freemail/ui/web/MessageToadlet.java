@@ -47,8 +47,8 @@ public class MessageToadlet extends WebPage {
 
 	private final AccountManager accountManager;
 
-	MessageToadlet(AccountManager accountManager, PluginRespirator pluginRespirator) {
-		super(pluginRespirator);
+	MessageToadlet(AccountManager accountManager, PluginRespirator pluginRespirator, LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 		this.accountManager = accountManager;
 	}
 
@@ -62,7 +62,7 @@ public class MessageToadlet extends WebPage {
 		//Add the list of folders
 		HTMLNode folderList = container.addChild("div", "class", "folderlist");
 
-		String identity = sessionManager.useSession(ctx).getUserID();
+		String identity = loginManager.getSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 		MessageBank topLevelMessageBank = account.getMessageBank();
 		addMessageBank(folderList, topLevelMessageBank, "inbox");

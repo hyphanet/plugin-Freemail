@@ -30,8 +30,8 @@ import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.HTTPRequest;
 
 public class LogOutToadlet extends WebPage {
-	public LogOutToadlet(PluginRespirator pluginRespirator) {
-		super(pluginRespirator);
+	public LogOutToadlet(PluginRespirator pluginRespirator, LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 	}
 
 	@Override
@@ -41,12 +41,12 @@ public class LogOutToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && loginManager.sessionExists(ctx);
 	}
 
 	@Override
 	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		sessionManager.deleteSession(ctx);
+		loginManager.deleteSession(ctx);
 		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", LogInToadlet.getPath());
 	}
 

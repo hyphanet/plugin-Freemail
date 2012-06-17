@@ -71,8 +71,9 @@ public class NewMessageToadlet extends WebPage {
 	private final WoTConnection wotConnection;
 	private final Freemail freemail;
 
-	NewMessageToadlet(WoTConnection wotConnection, Freemail freemail, PluginRespirator pluginRespirator) {
-		super(pluginRespirator);
+	NewMessageToadlet(WoTConnection wotConnection, Freemail freemail, PluginRespirator pluginRespirator,
+	                  LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 		this.wotConnection = wotConnection;
 		this.freemail = freemail;
 	}
@@ -87,7 +88,7 @@ public class NewMessageToadlet extends WebPage {
 		if(!recipient.equals("")) {
 			Identity identity;
 			try {
-				identity = wotConnection.getIdentity(recipient, sessionManager.useSession(ctx).getUserID());
+				identity = wotConnection.getIdentity(recipient, loginManager.getSession(ctx).getUserID());
 			} catch(PluginNotFoundException e) {
 				addWoTNotLoadedMessage(contentNode);
 				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
@@ -229,7 +230,7 @@ public class NewMessageToadlet extends WebPage {
 		Map<String, List<Identity>> matches;
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
-			matches = messageSender.matchIdentities(recipients.keySet(), sessionManager.useSession(ctx).getUserID(), methods);
+			matches = messageSender.matchIdentities(recipients.keySet(), loginManager.getSession(ctx).getUserID(), methods);
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
 			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
@@ -267,7 +268,7 @@ public class NewMessageToadlet extends WebPage {
 		StringBuilder header = new StringBuilder();
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
 		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-		FreemailAccount account = freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
+		FreemailAccount account = freemail.getAccountManager().getAccount(loginManager.getSession(ctx).getUserID());
 
 		//TODO: Check for newlines etc.
 		for(String recipient : recipients.values()) {
@@ -437,12 +438,12 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private FreemailAccount getFreemailAccount(ToadletContext ctx) {
-		return freemail.getAccountManager().getAccount(sessionManager.useSession(ctx).getUserID());
+		return freemail.getAccountManager().getAccount(loginManager.getSession(ctx).getUserID());
 	}
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && loginManager.sessionExists(ctx);
 	}
 
 	@Override

@@ -57,8 +57,8 @@ public class InboxToadlet extends WebPage {
 
 	private final AccountManager accountManager;
 
-	InboxToadlet(AccountManager accountManager, PluginRespirator pluginRespirator) {
-		super(pluginRespirator);
+	InboxToadlet(AccountManager accountManager, PluginRespirator pluginRespirator, LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 		this.accountManager = accountManager;
 	}
 
@@ -72,7 +72,7 @@ public class InboxToadlet extends WebPage {
 		//Add the list of folders
 		HTMLNode folderList = container.addChild("div", "class", "folderlist");
 
-		String identity = sessionManager.useSession(ctx).getUserID();
+		String identity = loginManager.getSession(ctx).getUserID();
 
 		//FIXME: Handle invalid sessions (account will be null)
 		FreemailAccount account = accountManager.getAccount(identity);
@@ -153,7 +153,7 @@ public class InboxToadlet extends WebPage {
 	@Override
 	@SuppressWarnings("deprecation")
 	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		String identity = sessionManager.useSession(ctx).getUserID();
+		String identity = loginManager.getSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 
 		String folderName = req.getPartAsStringFailsafe("folder", 1000);
@@ -310,7 +310,7 @@ public class InboxToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && loginManager.sessionExists(ctx);
 	}
 
 	@Override

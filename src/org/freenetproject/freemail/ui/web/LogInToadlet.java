@@ -43,8 +43,8 @@ public class LogInToadlet extends WebPage {
 
 	private final AccountManager accountManager;
 
-	public LogInToadlet(PluginRespirator pluginRespirator, AccountManager accountManager) {
-		super(pluginRespirator);
+	public LogInToadlet(PluginRespirator pluginRespirator, AccountManager accountManager, LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 
 		this.accountManager = accountManager;
 	}
@@ -60,7 +60,7 @@ public class LogInToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && !sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && !loginManager.sessionExists(ctx);
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class LogInToadlet extends WebPage {
 			return;
 		}
 
-		sessionManager.createSession(accountManager.getAccount(identity).getIdentity(), ctx);
+		loginManager.createSession(ctx, accountManager.getAccount(identity));
 		writeTemporaryRedirect(ctx, "Login successful, redirecting to inbox", InboxToadlet.getPath());
 	}
 
