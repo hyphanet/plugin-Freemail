@@ -47,7 +47,8 @@ public class WebInterface {
 	public WebInterface(ToadletContainer container, PluginRespirator pluginRespirator, FreemailPlugin freemail) {
 		this.container = container;
 		this.pluginRespirator = pluginRespirator;
-		LoginManager loginManager = new LoginManager(pluginRespirator.getSessionManager(COOKIE_NAMESPACE));
+		LoginManager loginManager = new LoginManager(freemail.getAccountManager(),
+		                                             pluginRespirator.getSessionManager(COOKIE_NAMESPACE));
 
 		//Register our menu
 		pluginRespirator.getPageMaker().addNavigationCategory(InboxToadlet.getPath(), FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
