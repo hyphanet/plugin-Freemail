@@ -434,7 +434,7 @@ public class MessageHandler {
 
 		@Override
 		public void run() {
-			Logger.debug(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getIdentity() + " running");
+			Logger.minor(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getIdentity() + " running");
 
 			long retryIn;
 			long lastSendTime;
@@ -477,7 +477,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			Logger.debug(this, "Rescheduling sender task in " + retryIn + "ms");
+			Logger.minor(this, "Rescheduling sender task in " + retryIn + "ms");
 			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
 			tasks.put(identifier, senderExecutor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}

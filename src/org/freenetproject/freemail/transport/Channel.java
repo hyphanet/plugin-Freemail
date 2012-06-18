@@ -466,7 +466,7 @@ class Channel {
 
 			if(privateKey == null) {
 				/* Most likely because we tried sending the message before sending the RTS */
-				Logger.debug(this, "Can't insert, missing private key");
+				Logger.minor(this, "Can't insert, missing private key");
 				return false;
 			}
 			if(sendCode == null) {
@@ -500,7 +500,8 @@ class Channel {
 			InputStream messageStream = null;
 			try {
 				messageStream = message.getInputStream();
-				Logger.debug(this, "Inserting data to " + insertKey);
+				Logger.minor(this, "Inserting data");
+				Logger.debug(this, "Insert key is " + insertKey);
 				FCPPutFailedException fcpMessage;
 				try {
 					Timer messageInsert = Timer.start();
@@ -519,7 +520,7 @@ class Channel {
 				}
 
 				if(fcpMessage == null) {
-					Logger.debug(this, "Insert successful");
+					Logger.minor(this, "Insert successful");
 
 					synchronized (channelProps) {
 						if(!channelProps.remove(prefix + PropsKeys.MSG_SLOT)) {
@@ -550,7 +551,7 @@ class Channel {
 				}
 
 				/* TODO: Log at a higher level for more serious errors */
-				Logger.debug(this, "Insert failed, error code " + fcpMessage.errorcode);
+				Logger.minor(this, "Insert failed, error code " + fcpMessage.errorcode);
 				return false;
 			} finally {
 				Closer.close(messageStream);
