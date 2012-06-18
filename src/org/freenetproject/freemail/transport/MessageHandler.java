@@ -48,6 +48,7 @@ import org.freenetproject.freemail.transport.Channel.ChannelEventCallback;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
+import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 
 import freenet.support.Base64;
@@ -453,7 +454,9 @@ public class MessageHandler {
 			if(retryIn <= 0) {
 				boolean inserted;
 				try {
+					Timer insertTimer = Timer.start();
 					inserted = sendMessage();
+					insertTimer.log(this, 1, TimeUnit.HOURS, "Total time spent sending message");
 				} catch (InterruptedException e) {
 					Logger.debug(this, "SenderTask interrupted, quitting");
 					return;
