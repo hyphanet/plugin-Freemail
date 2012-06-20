@@ -1,6 +1,27 @@
 Changes from version 0.2 to version 0.2.1
-  o Improvements
+  o Improvements:
     - Don't print copyright statement to stdout when running as a plugin
+    - Add a Freemail context to WoT ids. This will be used for filtering users
+      once it has been deployed for some time.
+    - Change default page from HomeToadlet to InboxToadlet
+    - Remove illegal characters from email address when creating a new
+      account
+    - Replace <strong> tags with CSS for unread messages in the inbox view
+    - Store a copy of sent messages in the Sent folder
+    - Fix deletion of messages from folders other than the inbox
+    - Move messages to Trash folder instead of deleting
+    - Autologin if there is only one account
+
+  o Build improvements:
+    - Compile unit tests using Java 1.6
+    - Add -Xlint argument when building the version file
+    - Add --verbose flag to checkcommit
+
+  o Code changes:
+    - More logging of time spent in various parts of the code
+    - Close resources in some exceptional cases
+    - Added some JavaDoc to MailMessage and MessageBank
+    - Change log level to minor for some messages when inserting data
 
 Changes from version 0.1.1 to version 0.2 - 2012-04-30
   This version introduces the new identity management based on WoT as well as
