@@ -1,4 +1,4 @@
-Changes from version 0.2 to version 0.2.1
+Changes from version 0.2 to version 0.2.1 - 2012-06-21
   o Improvements:
     - Don't print copyright statement to stdout when running as a plugin
     - Add a Freemail context to WoT ids. This will be used for filtering users
