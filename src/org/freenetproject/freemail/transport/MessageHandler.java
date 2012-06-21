@@ -48,6 +48,7 @@ import org.freenetproject.freemail.transport.Channel.ChannelEventCallback;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
+import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 
 import freenet.support.Base64;
@@ -434,7 +435,7 @@ public class MessageHandler {
 
 		@Override
 		public void run() {
-			Logger.debug(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getIdentity() + " running");
+			Logger.minor(this, "SenderTask for message " + identifier + " on account " + freemailAccount.getIdentity() + " running");
 
 			long retryIn;
 			long lastSendTime;
@@ -453,7 +454,9 @@ public class MessageHandler {
 			if(retryIn <= 0) {
 				boolean inserted;
 				try {
+					Timer insertTimer = Timer.start();
 					inserted = sendMessage();
+					insertTimer.log(this, 1, TimeUnit.HOURS, "Total time spent sending message");
 				} catch (InterruptedException e) {
 					Logger.debug(this, "SenderTask interrupted, quitting");
 					return;
@@ -477,7 +480,7 @@ public class MessageHandler {
 			}
 
 			//Schedule again when the resend is due
-			Logger.debug(this, "Rescheduling sender task in " + retryIn + "ms");
+			Logger.minor(this, "Rescheduling sender task in " + retryIn + "ms");
 			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
 			tasks.put(identifier, senderExecutor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}

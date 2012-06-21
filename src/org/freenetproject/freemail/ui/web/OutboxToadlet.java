@@ -48,8 +48,9 @@ public class OutboxToadlet extends WebPage {
 	private final AccountManager accountManager;
 	private final FreemailPlugin freemailPlugin;
 
-	OutboxToadlet(PluginRespirator pluginRespirator, AccountManager accountManager, FreemailPlugin freemailPlugin) {
-		super(pluginRespirator);
+	OutboxToadlet(PluginRespirator pluginRespirator, AccountManager accountManager, FreemailPlugin freemailPlugin,
+	              LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 		this.accountManager = accountManager;
 		this.freemailPlugin = freemailPlugin;
 	}
@@ -58,7 +59,7 @@ public class OutboxToadlet extends WebPage {
 	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
 		Timer outboxTimer = Timer.start();
 
-		String identity = sessionManager.useSession(ctx).getUserID();
+		String identity = loginManager.getSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 
 		HTMLNode messageTable = page.content.addChild("table");
@@ -123,7 +124,7 @@ public class OutboxToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && loginManager.sessionExists(ctx);
 	}
 
 	@Override

@@ -23,9 +23,11 @@ package org.freenetproject.freemail;
 
 import java.io.File;
 import java.lang.InterruptedException;
+import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.utils.Logger;
+import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTProperties;
 
@@ -45,6 +47,7 @@ public class SingleAccountWatcher implements Runnable {
 	private final FreemailAccount account;
 	private final Freemail freemail;
 	private final File rtsdir;
+	private boolean hasSetWoTContext;
 
 	SingleAccountWatcher(FreemailAccount acc, Freemail freemail) {
 		this.account = acc;
@@ -77,50 +80,11 @@ public class SingleAccountWatcher implements Runnable {
 		while (!stopping) {
 			try {
 				long start = System.currentTimeMillis();
+				WoTConnection wotConnection = freemail.getWotConnection();
 
-				// is it time we inserted the mailsite?
-				if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
-					int editionHint = 1;
+				insertMailsite(wotConnection);
+				setWoTContext(wotConnection);
 
-					//Try to get the edition from WoT
-					WoTConnection wotConnection = freemail.getWotConnection();
-					if(wotConnection != null) {
-						try {
-							String hint = wotConnection.getProperty(
-									account.getIdentity(), WoTProperties.MAILSITE_EDITION);
-							editionHint = Integer.parseInt(hint);
-						} catch (PluginNotFoundException e) {
-							//Only means that we can't get the hint from WoT so ignore it
-						} catch (NumberFormatException e) {
-							//Same as above, so ignore this too
-						}
-					}
-
-					//And from the account file
-					try {
-						int slot = Integer.parseInt(account.getProps().get("mailsite.slot"));
-						if(slot > editionHint) {
-							editionHint = slot;
-						}
-					} catch (NumberFormatException e) {
-						//Same as for the WoT approach
-					}
-
-					MailSite ms = new MailSite(account.getProps());
-					int edition = ms.publish(editionHint);
-					if (edition >= 0) {
-						this.mailsite_last_upload = System.currentTimeMillis();
-						if(wotConnection != null) {
-							try {
-								wotConnection.setProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION, "" + edition);
-							} catch(PluginNotFoundException e) {
-								//In most cases this doesn't matter since the edition doesn't
-								//change very often anyway
-								Logger.normal(this, "WoT plugin not loaded, can't save mailsite edition");
-							}
-						}
-					}
-				}
 				if(stopping) {
 					break;
 				}
@@ -143,6 +107,78 @@ public class SingleAccountWatcher implements Runnable {
 				break;
 			}
 		}
+	}
+
+	private void insertMailsite(WoTConnection wotConnection) throws InterruptedException {
+		// is it time we inserted the mailsite?
+		if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
+			int editionHint = 1;
+
+			//Try to get the edition from WoT
+			if(wotConnection != null) {
+				Timer propertyRead = Timer.start();
+				try {
+					String hint = wotConnection.getProperty(
+							account.getIdentity(), WoTProperties.MAILSITE_EDITION);
+					editionHint = Integer.parseInt(hint);
+				} catch (PluginNotFoundException e) {
+					//Only means that we can't get the hint from WoT so ignore it
+				} catch (NumberFormatException e) {
+					//Same as above, so ignore this too
+				}
+				propertyRead.log(this, 1, TimeUnit.HOURS, "Time spent getting mailsite property");
+			}
+
+			//And from the account file
+			try {
+				int slot = Integer.parseInt(account.getProps().get("mailsite.slot"));
+				if(slot > editionHint) {
+					editionHint = slot;
+				}
+			} catch (NumberFormatException e) {
+				//Same as for the WoT approach
+			}
+
+			MailSite ms = new MailSite(account.getProps());
+			Timer mailsiteInsert = Timer.start();
+			int edition = ms.publish(editionHint);
+			mailsiteInsert.log(this, 1, TimeUnit.HOURS, "Time spent inserting mailsite");
+			if (edition >= 0) {
+				this.mailsite_last_upload = System.currentTimeMillis();
+				if(wotConnection != null) {
+					Timer propertyUpdate = Timer.start();
+					try {
+						wotConnection.setProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION, "" + edition);
+					} catch(PluginNotFoundException e) {
+						//In most cases this doesn't matter since the edition doesn't
+						//change very often anyway
+						Logger.normal(this, "WoT plugin not loaded, can't save mailsite edition");
+					}
+					propertyUpdate.log(this, 1, TimeUnit.HOURS, "Time spent setting mailsite property");
+				}
+			}
+		}
+	}
+
+	private void setWoTContext(WoTConnection wotConnection) {
+		if(hasSetWoTContext) {
+			return;
+		}
+		if(wotConnection == null) {
+			return;
+		}
+
+		Timer contextWrite = Timer.start();
+		try {
+			if(!wotConnection.setContext(account.getIdentity(), WoTProperties.CONTEXT)) {
+				Logger.error(this, "Setting WoT context failed");
+			} else {
+				hasSetWoTContext = true;
+			}
+		} catch (PluginNotFoundException e) {
+			Logger.normal(this, "WoT plugin not loaded, can't set Freemail context");
+		}
+		contextWrite.log(this, 1, TimeUnit.HOURS, "Time spent adding WoT context");
 	}
 
 	/**

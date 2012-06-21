@@ -49,8 +49,9 @@ public class AddAccountToadlet extends WebPage {
 	private final WoTConnection wotConnection;
 	private final AccountManager accountManager;
 
-	AddAccountToadlet(PluginRespirator pluginRespirator, WoTConnection wotConnection, AccountManager accountManager) {
-		super(pluginRespirator);
+	AddAccountToadlet(PluginRespirator pluginRespirator, WoTConnection wotConnection, AccountManager accountManager,
+	                  LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 
 		this.wotConnection = wotConnection;
 		this.accountManager = accountManager;

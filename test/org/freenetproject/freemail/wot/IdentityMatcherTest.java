@@ -122,5 +122,10 @@ public class IdentityMatcherTest extends TestCase {
 		public String getProperty(String identityID, String key) {
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public boolean setContext(String identity, String context) {
+			throw new UnsupportedOperationException();
+		}
 	}
 }

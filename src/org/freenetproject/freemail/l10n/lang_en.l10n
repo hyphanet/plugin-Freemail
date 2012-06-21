@@ -1,7 +1,5 @@
 Freemail.Menu.Name=Freemail
 Freemail.Menu.Title=Freemail
-Freemail.HomeToadlet.name=Home
-Freemail.HomeToadlet.title=Home
 Freemail.LogoutToadlet.title=Logout
 Freemail.LogoutToadlet.name=Logout
 Freemail.InboxToadlet.title=Inbox
@@ -21,8 +19,6 @@ Freemail.AddAccountToadlet.password=Password:
 Freemail.AddAccountToadlet.confirmPassword=Confirm password:
 Freemail.AddAccountToadlet.noIdentitiesTitle=No identities without an account
 Freemail.AddAccountToadlet.noIdentities=All your identities already have Freemail accounts. You can create more identities using the WoT plugin
-Freemail.HomeToadlet.welcomeTitle=Welcome to Freemail
-Freemail.HomeToadlet.welcome=Freemail is an email-like messaging system that uses the Web of Trust plugin.
 Freemail.InboxToadlet.delete=Delete
 Freemail.InboxToadlet.move=Move
 Freemail.InboxToadlet.subject=Subject

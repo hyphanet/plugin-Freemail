@@ -184,6 +184,13 @@ public class MessageBank {
 		return msgs;
 	}
 
+	/**
+	 * Returns the subfolder with the given name, or {@code null} if it doesn't
+	 * exist
+	 *
+	 * @param name the name of the subfolder
+	 * @return the subfolder with the given name
+	 */
 	public MessageBank getSubFolder(String name) {
 		if (!name.matches("[\\w\\s_]*")) return null;
 
@@ -195,8 +202,18 @@ public class MessageBank {
 		return new MessageBank(targetdir, topLevel == null ? this : topLevel);
 	}
 
+	/**
+	 * Creates a subfolder with the given name if it doesn't exist. The
+	 * subfolder is returned if it was created, and {@code null} is returned
+	 * if it already existed or if it couldn't be created.
+	 *
+	 * @param name the name of the subfolder to create
+	 * @return the created subfolder, or {@code null}
+	 */
 	public synchronized MessageBank makeSubFolder(String name) {
-		if (!name.matches("[\\w\\s_]*")) return null;
+		if (!name.matches("[\\w\\s_]*")) {
+			throw new IllegalArgumentException("Illegal folder name: " + name);
+		}
 
 		File targetdir = new File(this.dir, name);
 

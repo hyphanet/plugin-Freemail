@@ -40,8 +40,8 @@ public class StaticToadlet extends WebPage {
 
 	private final List<Mapping> requests = new CopyOnWriteArrayList<Mapping>();
 
-	StaticToadlet(PluginRespirator pluginRespirator) {
-		super(pluginRespirator);
+	StaticToadlet(PluginRespirator pluginRespirator, LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 	}
 
 	@Override

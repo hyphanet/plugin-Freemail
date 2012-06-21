@@ -87,4 +87,12 @@ public interface WoTConnection {
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
 	public String getProperty(String identity, String key) throws PluginNotFoundException;
+
+	/**
+	 * Sets the context {@code context} for the given identity, returning {@code true} if the
+	 * context was successfully set and {@code false} otherwise.
+	 * @param identity the identity whose context should be set
+	 * @param context the context that should be set
+	 */
+	public boolean setContext(String identity, String context) throws PluginNotFoundException;
 }

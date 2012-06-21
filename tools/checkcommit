@@ -3,15 +3,19 @@ set -e
 
 #Check arguments
 if [[ -n "$3" ]]; then
-	echo "USAGE: $0 [--quiet] [<commit>]"
-	echo "     --quiet  - suppress non-error messages"
-	echo "    <commit>  - the commit that should be checked, see gitrevisions(7)"
-	echo "                defaults to the currently checked out commit"
+	echo "USAGE: $0 [--quiet|--verbose] [<commit>]"
+	echo "     --quiet    - suppress non-error messages"
+	echo "     --verbose  - print added/removed count even when no warnings are added"
+	echo "    <commit>    - the commit that should be checked, see gitrevisions(7)"
+	echo "                  defaults to the currently checked out commit"
 	exit 1
 fi
 
 if [[ "$1" == "--quiet" ]]; then
 	QUIET="true"
+	shift 1
+elif [[ "$1" == "--verbose" ]]; then
+	VERBOSE="true"
 	shift 1
 fi
 
@@ -56,12 +60,14 @@ ADDED=`diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+" | wc -
 REMOVED=`diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^-" | wc -l`
 
 if [[ ! $QUIET ]]; then
-	#Print any new warnings and the count
-	set +e
-	#TODO: Remove the initial +
-	diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+"
-	set -e
-	echo "`git describe`: $ADDED warnings added, $REMOVED removed"
+	if [[ $ADDED -gt 0 || $VERBOSE ]]; then
+		#Print any new warnings and the count
+		set +e
+		#TODO: Remove the initial +
+		diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+"
+		set -e
+		echo "`git describe`: $ADDED warnings added, $REMOVED removed"
+	fi
 fi
 
 #Cleanup

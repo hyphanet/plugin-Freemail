@@ -53,11 +53,12 @@ import freenet.support.api.HTTPRequest;
 
 public class InboxToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/Inbox";
+	private static final String TRASH_FOLDER = "Trash";
 
 	private final AccountManager accountManager;
 
-	InboxToadlet(AccountManager accountManager, PluginRespirator pluginRespirator) {
-		super(pluginRespirator);
+	InboxToadlet(AccountManager accountManager, PluginRespirator pluginRespirator, LoginManager loginManager) {
+		super(pluginRespirator, loginManager);
 		this.accountManager = accountManager;
 	}
 
@@ -71,7 +72,7 @@ public class InboxToadlet extends WebPage {
 		//Add the list of folders
 		HTMLNode folderList = container.addChild("div", "class", "folderlist");
 
-		String identity = sessionManager.useSession(ctx).getUserID();
+		String identity = loginManager.getSession(ctx).getUserID();
 
 		//FIXME: Handle invalid sessions (account will be null)
 		FreemailAccount account = accountManager.getAccount(identity);
@@ -152,9 +153,14 @@ public class InboxToadlet extends WebPage {
 	@Override
 	@SuppressWarnings("deprecation")
 	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		String identity = sessionManager.useSession(ctx).getUserID();
+		String identity = loginManager.getSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
-		String folderName = req.getParam("folder", "inbox");
+
+		String folderName = req.getPartAsStringFailsafe("folder", 1000);
+		Logger.debug(this, "Folder name in request: " + folderName);
+		if(folderName.equals("")) {
+			folderName = "inbox";
+		}
 		MessageBank messageBank = getMessageBank(account, folderName);
 
 		Set<MailMessage> selectedMessages = new HashSet<MailMessage>();
@@ -177,7 +183,27 @@ public class InboxToadlet extends WebPage {
 				message.copyTo(destination.createMessage());
 				message.delete();
 			} else if(!req.getPartAsString("delete", 100).equals("")) {
-				message.delete();
+				if(folderName.equals("inbox." + TRASH_FOLDER)) {
+					Logger.debug(this, "Deleting [" + message + "]");
+					message.delete();
+				} else {
+					Logger.debug(this, "Moving [" + message + "] to trash");
+
+					MessageBank inbox = account.getMessageBank();
+					MessageBank target = inbox.makeSubFolder(TRASH_FOLDER);
+					if(target == null) {
+						target = inbox.getSubFolder(TRASH_FOLDER);
+					}
+
+					//If target still is null it couldn't be created
+					if(target != null) {
+						message.copyTo(target.createMessage());
+						message.delete();
+					} else {
+						//TODO: Show an error message
+						Logger.error(this, "Couldn't create folder " + TRASH_FOLDER);
+					}
+				}
 			}
 		}
 
@@ -218,8 +244,16 @@ public class InboxToadlet extends WebPage {
 
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
-		HTMLNode message = parent.addChild("tr", "class", "message");
-		boolean read = msg.flags.get("\\seen");
+		String msgClass = "message";
+		if(!msg.flags.get("\\Seen")) {
+			msgClass += " message-unread";
+		}
+		if(msg.flags.get("\\Recent")) {
+			msgClass += " message-recent";
+			msg.flags.set("\\Recent", false);
+			msg.storeFlags();
+		}
+		HTMLNode message = parent.addChild("tr", "class", msgClass);
 
 		HTMLNode checkBox = message.addChild("td");
 		checkBox.addChild("input", new String[] {"type",     "name"},
@@ -227,9 +261,6 @@ public class InboxToadlet extends WebPage {
 
 		String messageLink = MessageToadlet.getMessagePath(folderName, messageNum);
 		HTMLNode title = message.addChild("td", "class", "title");
-		if(!read) {
-			title = title.addChild("strong");
-		}
 		String subject;
 		try {
 			subject = msg.getSubject();
@@ -242,15 +273,9 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		if(!read) {
-			author = author.addChild("strong");
-		}
 		author.addChild("#", msg.getFirstHeader("From"));
 
 		HTMLNode date = message.addChild("td", "class", "date");
-		if(!read) {
-			date = date.addChild("strong");
-		}
 
 		Date msgDate = msg.getDate();
 		if(msgDate != null) {
@@ -285,7 +310,7 @@ public class InboxToadlet extends WebPage {
 
 	@Override
 	public boolean isEnabled(ToadletContext ctx) {
-		return ctx.isAllowedFullAccess() && sessionManager.sessionExists(ctx);
+		return ctx.isAllowedFullAccess() && loginManager.sessionExists(ctx);
 	}
 
 	@Override

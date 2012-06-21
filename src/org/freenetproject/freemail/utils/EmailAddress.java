@@ -34,6 +34,16 @@ public class EmailAddress {
 	public String domain;
 
 	public EmailAddress(String address) {
+		if(address.matches("[^\\u0000-\\u007F]")) {
+			throw new IllegalArgumentException("Address contains 8bit character");
+		}
+		if(address.matches("[\\u0000-\\u001F]")) {
+			throw new IllegalArgumentException("Address contains ASCII control character");
+		}
+		if(address.matches("[\\u007F]")) {
+			throw new IllegalArgumentException("Address contains ASCII DEL control character");
+		}
+
 		this.realname = null;
 		this.user = null;
 		this.domain = null;
@@ -133,5 +143,18 @@ public class EmailAddress {
 
 	public String toLongString() {
 		return this.realname + " <"+this.user+"@"+this.domain+">";
+	}
+
+	/**
+	 * Removes illegal characters from localPart and returns the result
+	 * @param localPart the local part that should be cleaned
+	 * @return localPart without any illegal characters
+	 */
+	public static String cleanLocalPart(String localPart) {
+		if(localPart == null) {
+			throw new NullPointerException("Parameter localPart was null");
+		}
+
+		return localPart.replaceAll("[^A-Za-z0-9!#$%&'*+\\-/=?^_`{|}~]", "");
 	}
 }

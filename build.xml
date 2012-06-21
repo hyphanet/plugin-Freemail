@@ -80,6 +80,7 @@
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
 			</classpath>
+			<compilerarg value="-Xlint"/>
 		</javac>
 
 		<!-- Bundle the whole lot together, unless anyone whinges.
@@ -104,7 +105,7 @@
 
 	<target name="unit-build" depends="compile" unless="${test.skip}">
 		<mkdir dir="${build-test}"/>
-		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.5" target="1.5">
+		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.6" target="1.6">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${build}"/>

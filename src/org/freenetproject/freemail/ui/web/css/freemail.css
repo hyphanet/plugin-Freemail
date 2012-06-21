@@ -35,6 +35,10 @@ div.messagelist {
 	padding-bottom: 2em;
 }
 
+tr.message-unread > td {
+    font-weight: bold;
+}
+
 /* Message page */
 div.message-headers > p {
 	margin: 0em;

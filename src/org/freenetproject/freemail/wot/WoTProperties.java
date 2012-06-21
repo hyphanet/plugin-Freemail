@@ -22,6 +22,7 @@ package org.freenetproject.freemail.wot;
 
 public final class WoTProperties {
 	public static final String MAILSITE_EDITION = "Freemail.mailsite";
+	public static final String CONTEXT = "Freemail";
 
 	private WoTProperties() {
 		//This class is not for instantiation

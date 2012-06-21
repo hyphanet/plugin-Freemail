@@ -30,7 +30,6 @@ import org.freenetproject.freemail.utils.Timer;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
-import freenet.clients.http.SessionManager;
 import freenet.clients.http.Toadlet;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -41,12 +40,12 @@ import freenet.support.api.HTTPRequest;
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
 	final PluginRespirator pluginRespirator;
-	final SessionManager sessionManager;
+	final LoginManager loginManager;
 
-	WebPage(PluginRespirator pluginRespirator) {
+	WebPage(PluginRespirator pluginRespirator, LoginManager loginManager) {
 		super(null);
 		this.pageMaker = pluginRespirator.getPageMaker();
-		this.sessionManager = pluginRespirator.getSessionManager(WebInterface.COOKIE_NAMESPACE);
+		this.loginManager = loginManager;
 		this.pluginRespirator = pluginRespirator;
 	}
 
@@ -60,7 +59,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 			return;
 		}
 
-		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
+		if(requiresValidSession() && !loginManager.sessionExists(ctx)) {
 			writeTemporaryRedirect(ctx, "This page requires a valid session", LogInToadlet.getPath());
 			return;
 		}
@@ -88,7 +87,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 			return;
 		}
 
-		if(requiresValidSession() && !sessionManager.sessionExists(ctx)) {
+		if(requiresValidSession() && !loginManager.sessionExists(ctx)) {
 			writeTemporaryRedirect(ctx, "This page requires a valid session", LogInToadlet.getPath());
 			return;
 		}

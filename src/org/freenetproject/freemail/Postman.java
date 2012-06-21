@@ -33,6 +33,8 @@ import java.io.IOException;
 
 import org.freenetproject.freemail.utils.EmailAddress;
 
+import freenet.support.Logger;
+
 
 /** A postman is any class that delivers mail to an inbox. Simple,
  *  if not politically correct.
@@ -167,8 +169,9 @@ public abstract class Postman {
 	}
 
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
+		BufferedReader br = null;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(msg));
+			br = new BufferedReader(new FileReader(msg));
 
 			String line;
 			if (isFreemailFormat) {
@@ -182,12 +185,18 @@ public abstract class Postman {
 				String[] parts = line.split(": ", 2);
 				if (parts.length < 2) continue;
 				if (parts[0].equalsIgnoreCase("From")) {
-					br.close();
 					return parts[1];
 				}
 			}
-			br.close();
 		} catch (IOException ioe) {
+		} finally {
+			if(br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					Logger.error(Postman.class, "Caugth IOException while closing " + br, e);
+				}
+			}
 		}
 		return null;
 	}

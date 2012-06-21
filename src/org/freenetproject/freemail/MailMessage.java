@@ -224,6 +224,13 @@ public class MailMessage {
 		return this.ps;
 	}
 
+	/**
+	 * Returns a {@code PrintStream} to the backing file. The returned stream
+	 * must be closed by the caller before commit() is called.
+	 *
+	 * @return a {@code PrintStream} to the backing file
+	 * @throws FileNotFoundException if the backing file doesn't exist
+	 */
 	public PrintStream getRawStream() throws FileNotFoundException {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
