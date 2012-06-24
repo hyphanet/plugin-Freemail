@@ -100,7 +100,7 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), "");
+		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), Collections.<String>emptyList());
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -124,8 +124,9 @@ public class NewMessageToadlet extends WebPage {
 		Logger.debug(this, "Found " + recipients.size() + " recipients");
 
 		String subject = getBucketAsString(req.getPart("subject"));
-		String inReplyTo = getBucketAsString(req.getPart("inReplyTo"));
 		Bucket body = req.getPart("message-text");
+
+		List<String> extraHeaders = readExtraHeaders(req);
 
 		//Because the button is an image we get x/y coordinates as addRcpt.x and addRcpt.y
 		if(req.isPartSet("addRcpt.x") && req.isPartSet("addRcpt.y")) {
@@ -136,7 +137,7 @@ public class NewMessageToadlet extends WebPage {
 			HTMLNode contentNode = page.content;
 
 			HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-			addMessageForm(messageBox, ctx, recipients, subject, body, inReplyTo);
+			addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
@@ -152,7 +153,7 @@ public class NewMessageToadlet extends WebPage {
 				HTMLNode contentNode = page.content;
 
 				HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-				addMessageForm(messageBox, ctx, recipients, subject, body, inReplyTo);
+				addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
 				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 				return;
@@ -279,6 +280,16 @@ public class NewMessageToadlet extends WebPage {
 		header.append("Date: " + sdf.format(new Date()) + "\r\n");
 		header.append("From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ">\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
+
+		//Add extra headers from request. Very little checking is done here since we want flexibility, and anything
+		//that can be added here could also be sent using the SMTP server, so security should not be an issue.
+		List<String> extraHeaders = readExtraHeaders(req);
+		for(String extraHeader : extraHeaders) {
+			if(extraHeader.matches("[^\\u0000-\\u007F]")) {
+				throw new IllegalArgumentException("Header contains 8bit character(s)");
+			}
+			header.append(extraHeader);
+		}
 		header.append("\r\n");
 
 		Bucket messageHeader = new ArrayBucket(header.toString().getBytes("UTF-8"));
@@ -327,7 +338,6 @@ public class NewMessageToadlet extends WebPage {
 		msg.readHeaders();
 
 		String recipient = msg.getFirstHeader("From");
-		String inReplyTo = msg.getFirstHeader("message-id");
 
 		String subject = msg.getFirstHeader("Subject");
 		if(!subject.toLowerCase().startsWith("re: ")) {
@@ -353,23 +363,37 @@ public class NewMessageToadlet extends WebPage {
 			msg.closeStream();
 		}
 
+		List<String> extraHeaders = readExtraHeaders(req);
+		extraHeaders.add("In-Reply-To: " + msg.getFirstHeader("message-id"));
+
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,
-		               bucketFromString(body.toString()), inReplyTo);
+		               bucketFromString(body.toString()), extraHeaders);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject, Bucket body, String inReplyTo) {
+	/**
+	 * @param headers Contains a list of headers that should be added to the final message
+	 */
+	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject,
+	                            Bucket body, List<String> headers) {
 		assert (parent != null);
 		assert (ctx != null);
 		assert (recipients != null);
 		assert (subject != null);
 		assert (body != null);
+		assert (headers != null);
 
 		HTMLNode messageForm = ctx.addFormChild(parent, path(), "newMessage");
-		messageForm.addChild("input", new String[] {"type",   "name",      "value"},
-		                              new String[] {"hidden", "inReplyTo", inReplyTo});
+
+		//Add the extra headers as hidden fields
+		int i = 0;
+		for(String header : headers) {
+			messageForm.addChild("input", new String[] {"type",   "name",            "value"},
+			                              new String[] {"hidden", "extraHeader" + i, header});
+			i++;
+		}
 
 		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
 
@@ -474,5 +498,19 @@ public class NewMessageToadlet extends WebPage {
 
 	private Bucket bucketFromString(String data) {
 		return new ArrayBucket(data.getBytes());
+	}
+
+	private List<String> readExtraHeaders(HTTPRequest req) {
+		List<String> extraHeaders = new LinkedList<String>();
+		for(int i = 0;; i++) {
+			String header = getBucketAsString(req.getPart("extraHeader" + i));
+			if(header == null) {
+				break;
+			}
+
+			extraHeaders.add(header);
+		}
+
+		return extraHeaders;
 	}
 }
