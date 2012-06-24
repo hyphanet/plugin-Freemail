@@ -96,9 +96,6 @@ public class EmailAddress {
 		}
 	}
 
-	public EmailAddress() {
-	}
-
 	public boolean is_freemail_address() {
 		if (this.domain == null) return false;
 		if (!this.domain.endsWith(".freemail")) return false;
