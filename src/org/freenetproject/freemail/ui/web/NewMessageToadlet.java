@@ -361,6 +361,8 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject, Bucket body, String inReplyTo) {
+		assert (parent != null);
+		assert (ctx != null);
 		assert (recipients != null);
 		assert (subject != null);
 		assert (body != null);
