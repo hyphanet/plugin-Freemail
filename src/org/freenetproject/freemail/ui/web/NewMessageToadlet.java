@@ -408,6 +408,11 @@ public class NewMessageToadlet extends WebPage {
 		                              new String[] {"submit", "sendMessage", sendText});
 	}
 
+	/**
+	 * Returns the contents of the {@code Bucket} as a {@code String}.
+	 * @param b the bucket to read
+	 * @return the contents of the {@code Bucket} as a {@code String}
+	 */
 	private String getBucketAsString(Bucket b) {
 		InputStream is;
 		try {
