@@ -409,11 +409,16 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	/**
-	 * Returns the contents of the {@code Bucket} as a {@code String}.
+	 * Returns the contents of the {@code Bucket} as a {@code String}. {@code null} is returned if b is {@code null} or
+	 * if the JVM doesn't support the UTF-8 encoding.
 	 * @param b the bucket to read
 	 * @return the contents of the {@code Bucket} as a {@code String}
 	 */
 	private String getBucketAsString(Bucket b) {
+		if(b == null) {
+			return null;
+		}
+
 		InputStream is;
 		try {
 			is = b.getInputStream();
