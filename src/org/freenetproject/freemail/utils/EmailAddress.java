@@ -34,13 +34,13 @@ public class EmailAddress {
 	public String domain;
 
 	public EmailAddress(String address) {
-		if(address.matches("[^\\u0000-\\u007F]")) {
+		if(address.matches(".*[^\\u0000-\\u007F]+.*")) {
 			throw new IllegalArgumentException("Address contains 8bit character");
 		}
-		if(address.matches("[\\u0000-\\u001F]")) {
+		if(address.matches(".*[\\u0000-\\u001F]+.*")) {
 			throw new IllegalArgumentException("Address contains ASCII control character");
 		}
-		if(address.matches("[\\u007F]")) {
+		if(address.matches(".*[\\u007F]+.*")) {
 			throw new IllegalArgumentException("Address contains ASCII DEL control character");
 		}
 
