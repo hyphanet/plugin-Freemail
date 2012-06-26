@@ -29,8 +29,6 @@ import java.util.List;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.imap.IMAPHandler;
 
-import junit.framework.ComparisonFailure;
-
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 
@@ -330,23 +328,6 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* BYE");
 		expectedResponse.add("0003 OK Bye");
 
-		try {
-			runSimpleTest(commands, expectedResponse);
-			fail("String literals without ending linebreak appear to work, fix this "
-					+ "test so regressions will cause the test to fail");
-		} catch(ComparisonFailure e) {
-			/*
-			 * A test failure is expected at the moment since the bug hasn't
-			 * been fixed yet. Check that the expected and actual values don't
-			 * change and print a warning.
-			 */
-			final String expected = "* BYE";
-			final String actual = "0004 NO Sorry - not implemented";
-
-			assertEquals(expected, e.getExpected());
-			assertEquals(actual, e.getActual());
-
-			System.err.println("testLiteralWithoutEndingLinebreak: Expected failure");
-		}
+		runSimpleTest(commands, expectedResponse);
 	}
 }
