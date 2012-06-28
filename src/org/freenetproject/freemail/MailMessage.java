@@ -34,9 +34,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
@@ -152,7 +154,7 @@ public class MailMessage {
 		return true;
 	}
 
-	public String[] getHeadersAsArray(String name) {
+	public List<String> getHeadersAsArray(String name) {
 		Vector<String> hdrs = new Vector<String>();
 
 		Enumeration<MailMessageHeader> e = this.headers.elements();
@@ -175,7 +177,7 @@ public class MailMessage {
 			i++;
 		}
 
-		return retval;
+		return Arrays.asList(retval);
 	}
 
 	public void removeHeader(String name, String val) {

@@ -23,6 +23,7 @@ package org.freenetproject.freemail;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.io.File;
@@ -54,24 +55,23 @@ public abstract class Postman {
 		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
 
 		// validate the from header - or headers. There could be several.
-		String[] froms = newmsg.getHeadersAsArray("From");
+		List<String> froms = newmsg.getHeadersAsArray("From");
 
-		int i;
 		boolean first = true;
-		for (i = 0; i < froms.length; i++) {
-			EmailAddress addr = new EmailAddress(froms[i]);
+		for (String from : froms) {
+			EmailAddress addr = new EmailAddress(from);
 
 			if (first) {
 				if (!this.validateFrom(addr)) {
-					newmsg.removeHeader("From", froms[i]);
-					EmailAddress e = new EmailAddress(froms[i]);
+					newmsg.removeHeader("From", from);
+					EmailAddress e = new EmailAddress(from);
 					if (e.realname == null) e.realname = "";
 					e.realname = "**SPOOFED** "+e.realname;
 					e.realname = e.realname.trim();
 					newmsg.addHeader("From", e.toLongString());
 				}
 			} else {
-				newmsg.removeHeader("From", froms[i]);
+				newmsg.removeHeader("From", from);
 			}
 			first = false;
 		}
