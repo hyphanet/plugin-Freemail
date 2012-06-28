@@ -37,6 +37,14 @@
 		<property name="message" value="Line has whitespace before end of array initializer"/>
 	</module>
 
+	<module name="RegexpSingleline">
+		<!-- Only matches one line initializers -->
+		<property name="format" value="(if|for|while)\s+\("/>
+		<property name="minimum" value="0"/>
+		<property name="maximum" value="0"/>
+		<property name="message" value="Whitespace between for/if/while and ("/>
+	</module>
+
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
 		<module name="AvoidStarImport"/>
