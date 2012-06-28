@@ -34,15 +34,15 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
-import java.util.Enumeration;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -62,7 +62,7 @@ public class MailMessage {
 	private File file;
 	private OutputStream os;
 	private PrintStream ps;
-	private final Vector<MailMessageHeader> headers;
+	private final List<MailMessageHeader> headers;
 	private BufferedReader brdr;
 	private int msg_seqnum = 0;
 	public IMAPMessageFlags flags;
@@ -94,13 +94,9 @@ public class MailMessage {
 
 	// get the first header of a given name
 	public String getFirstHeader(String name) {
-		Enumeration<MailMessageHeader> e = this.headers.elements();
-
-		while(e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			if(h.name.equalsIgnoreCase(name)) {
-				return h.val;
+		for(MailMessageHeader header : headers) {
+			if(header.name.equalsIgnoreCase(name)) {
+				return header.val;
 			}
 		}
 
@@ -110,15 +106,11 @@ public class MailMessage {
 	public String getHeaders(String name) {
 		StringBuffer buf = new StringBuffer("");
 
-		Enumeration<MailMessageHeader> e = this.headers.elements();
-
-		while(e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			if(h.name.equalsIgnoreCase(name)) {
-				buf.append(h.name);
+		for(MailMessageHeader header : headers) {
+			if(header.name.equalsIgnoreCase(name)) {
+				buf.append(header.name);
 				buf.append(": ");
-				buf.append(h.val);
+				buf.append(header.val);
 				buf.append("\r\n");
 			}
 		}
@@ -155,54 +147,34 @@ public class MailMessage {
 	}
 
 	public List<String> getHeadersAsArray(String name) {
-		Vector<String> hdrs = new Vector<String>();
+		List<String> matches = new LinkedList<String>();
 
-		Enumeration<MailMessageHeader> e = this.headers.elements();
-
-		while(e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			if(h.name.equalsIgnoreCase(name)) {
-				hdrs.add(h.val);
+		for(MailMessageHeader header : headers) {
+			if(header.name.equalsIgnoreCase(name)) {
+				matches.add(header.val);
 			}
 		}
 
-		String[] retval = new String[hdrs.size()];
-
-		Enumeration<String> headers = hdrs.elements();
-
-		int i = 0;
-		while(headers.hasMoreElements()) {
-			retval[i] = headers.nextElement();
-			i++;
-		}
-
-		return Arrays.asList(retval);
+		return matches;
 	}
 
 	public void removeHeader(String name, String val) {
-		int i;
-
-		for(i = 0; i < this.headers.size(); i++) {
-			MailMessageHeader h = this.headers.elementAt(i);
-
-			if(h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
-				this.headers.remove(i);
-				i--;
+		Iterator<MailMessageHeader> headerIt = headers.iterator();
+		while(headerIt.hasNext()) {
+			MailMessageHeader header = headerIt.next();
+			if(header.name.equalsIgnoreCase(name) && header.val.equalsIgnoreCase(val)) {
+				headerIt.remove();
 			}
 		}
 	}
 
 	public String getAllHeadersAsString() {
-		Enumeration<MailMessageHeader> e = this.headers.elements();
 		StringBuffer buf = new StringBuffer();
 
-		while(e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			buf.append(h.name);
+		for(MailMessageHeader header : headers) {
+			buf.append(header.name);
 			buf.append(": ");
-			buf.append(h.val);
+			buf.append(header.val);
 			buf.append("\r\n");
 		}
 
@@ -213,12 +185,8 @@ public class MailMessage {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
 
-		Enumeration<MailMessageHeader>  e = this.headers.elements();
-
-		while(e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			this.ps.println(h.name + ": " + h.val);
+		for(MailMessageHeader header : headers) {
+			this.ps.println(header.name + ": " + header.val);
 		}
 
 		this.ps.println("");
