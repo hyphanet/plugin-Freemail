@@ -55,7 +55,7 @@ public abstract class Postman {
 		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
 
 		// validate the from header - or headers. There could be several.
-		List<String> froms = newmsg.getHeadersAsArray("From");
+		List<String> froms = newmsg.getHeadersByName("From");
 
 		boolean first = true;
 		for(String from : froms) {

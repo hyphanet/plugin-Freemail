@@ -146,7 +146,12 @@ public class MailMessage {
 		return true;
 	}
 
-	public List<String> getHeadersAsArray(String name) {
+	/**
+	 * Returns a list of the values of all headers with the given name.
+	 * @param name the name of the headers to return
+	 * @return a list of the values of all headers with the given name
+	 */
+	public List<String> getHeadersByName(String name) {
 		List<String> matches = new LinkedList<String>();
 
 		for(MailMessageHeader header : headers) {

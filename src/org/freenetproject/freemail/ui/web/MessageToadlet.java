@@ -140,7 +140,7 @@ public class MessageToadlet extends WebPage {
 		fromPara.addChild("#", " " + message.getFirstHeader("from"));
 
 		for(String header : new String[] {"To", "CC", "BCC"}) {
-			for(String recipient : message.getHeadersAsArray(header)) {
+			for(String recipient : message.getHeadersByName(header)) {
 				HTMLNode toPara = headerBox.addChild("p");
 				toPara.addChild("strong", header + ":");
 				toPara.addChild("#", " " + recipient);
