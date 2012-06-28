@@ -83,7 +83,7 @@ public class Configurator {
 		}
 
 		String val = this.props.get(key);
-		if (val == null) {
+		if(val == null) {
 			val = defaultval;
 			props.put(key, val);
 		}
@@ -94,7 +94,7 @@ public class Configurator {
 		this.props.put(key, val);
 
 		ConfigClient cb = this.callbacks.get(key);
-		if (cb == null) return;
+		if(cb == null) return;
 		cb.setConfigProp(key, val);
 	}
 }

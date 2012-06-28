@@ -77,7 +77,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	@Override
 	public void run() {
-		while (!stopping) {
+		while(!stopping) {
 			try {
 				long start = System.currentTimeMillis();
 				WoTConnection wotConnection = freemail.getWotConnection();
@@ -96,7 +96,7 @@ public class SingleAccountWatcher implements Runnable {
 
 				long runtime = System.currentTimeMillis() - start;
 
-				if (MIN_POLL_DURATION - runtime > 0) {
+				if(MIN_POLL_DURATION - runtime > 0) {
 					Thread.sleep(MIN_POLL_DURATION - runtime);
 				}
 			} catch (ConnectionTerminatedException cte) {
@@ -111,7 +111,7 @@ public class SingleAccountWatcher implements Runnable {
 
 	private void insertMailsite(WoTConnection wotConnection) throws InterruptedException {
 		// is it time we inserted the mailsite?
-		if (System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
+		if(System.currentTimeMillis() > this.mailsite_last_upload + MAILSITE_UPLOAD_INTERVAL) {
 			int editionHint = 1;
 
 			//Try to get the edition from WoT
@@ -143,7 +143,7 @@ public class SingleAccountWatcher implements Runnable {
 			Timer mailsiteInsert = Timer.start();
 			int edition = ms.publish(editionHint);
 			mailsiteInsert.log(this, 1, TimeUnit.HOURS, "Time spent inserting mailsite");
-			if (edition >= 0) {
+			if(edition >= 0) {
 				this.mailsite_last_upload = System.currentTimeMillis();
 				if(wotConnection != null) {
 					Timer propertyUpdate = Timer.start();

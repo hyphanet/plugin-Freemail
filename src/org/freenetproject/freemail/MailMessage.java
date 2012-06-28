@@ -64,7 +64,7 @@ public class MailMessage {
 	private PrintStream ps;
 	private final Vector<MailMessageHeader> headers;
 	private BufferedReader brdr;
-	private int msg_seqnum=0;
+	private int msg_seqnum = 0;
 	public IMAPMessageFlags flags;
 	private static final Random messageIdRandom = new Random();
 
@@ -75,11 +75,11 @@ public class MailMessage {
 
 		// initialize flags from filename
 		String[] parts = f.getName().split(",");
-		if (parts.length < 2 && !f.getName().endsWith(",")) {
+		if(parts.length < 2 && !f.getName().endsWith(",")) {
 			// treat it as a new message
 			this.flags = new IMAPMessageFlags();
 			this.flags.set("\\Recent", true);
-		} else if (parts.length < 2) {
+		} else if(parts.length < 2) {
 			// just doesn't have any flags set
 			this.flags = new IMAPMessageFlags();
 		} else {
@@ -96,10 +96,10 @@ public class MailMessage {
 	public String getFirstHeader(String name) {
 		Enumeration<MailMessageHeader> e = this.headers.elements();
 
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
 
-			if (h.name.equalsIgnoreCase(name)) {
+			if(h.name.equalsIgnoreCase(name)) {
 				return h.val;
 			}
 		}
@@ -112,10 +112,10 @@ public class MailMessage {
 
 		Enumeration<MailMessageHeader> e = this.headers.elements();
 
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
 
-			if (h.name.equalsIgnoreCase(name)) {
+			if(h.name.equalsIgnoreCase(name)) {
 				buf.append(h.name);
 				buf.append(": ");
 				buf.append(h.val);
@@ -159,10 +159,10 @@ public class MailMessage {
 
 		Enumeration<MailMessageHeader> e = this.headers.elements();
 
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
 
-			if (h.name.equalsIgnoreCase(name)) {
+			if(h.name.equalsIgnoreCase(name)) {
 				hdrs.add(h.val);
 			}
 		}
@@ -172,7 +172,7 @@ public class MailMessage {
 		Enumeration<String> headers = hdrs.elements();
 
 		int i = 0;
-		while (headers.hasMoreElements()) {
+		while(headers.hasMoreElements()) {
 			retval[i] = headers.nextElement();
 			i++;
 		}
@@ -183,10 +183,10 @@ public class MailMessage {
 	public void removeHeader(String name, String val) {
 		int i;
 
-		for (i = 0; i < this.headers.size(); i++) {
+		for(i = 0; i < this.headers.size(); i++) {
 			MailMessageHeader h = this.headers.elementAt(i);
 
-			if (h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
+			if(h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
 				this.headers.remove(i);
 				i--;
 			}
@@ -197,7 +197,7 @@ public class MailMessage {
 		Enumeration<MailMessageHeader> e = this.headers.elements();
 		StringBuffer buf = new StringBuffer();
 
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
 
 			buf.append(h.name);
@@ -215,7 +215,7 @@ public class MailMessage {
 
 		Enumeration<MailMessageHeader>  e = this.headers.elements();
 
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			MailMessageHeader h = e.nextElement();
 
 			this.ps.println(h.name + ": " + h.val);
@@ -266,33 +266,33 @@ public class MailMessage {
 	}
 
 	public void readHeaders(BufferedReader bufrdr) throws IOException {
-		if (this.headers.size() > 0) return;
+		if(this.headers.size() > 0) return;
 
 		String line;
 		String[] parts = null;
-		while ((line = bufrdr.readLine()) != null) {
-			if (line.length() == 0) {
-				if (parts != null)
+		while((line = bufrdr.readLine()) != null) {
+			if(line.length() == 0) {
+				if(parts != null)
 					this.addHeader(parts[0], parts[1]);
 				parts = null;
 				break;
-			} else if (line.startsWith(" ") || line.startsWith("\t")) {
+			} else if(line.startsWith(" ") || line.startsWith("\t")) {
 				// continuation of previous line
-				if (parts == null || parts[1] == null)
+				if(parts == null || parts[1] == null)
 					continue;
 				parts[1] += " "+line.trim();
 			} else {
-				if (parts != null)
+				if(parts != null)
 					this.addHeader(parts[0], parts[1]);
 				parts = null;
 				parts = line.split(": ", 2);
 
-				if (parts.length < 2)
+				if(parts.length < 2)
 					parts = null;
 			}
 		}
 
-		if (parts != null) {
+		if(parts != null) {
 			this.addHeader(parts[0], parts[1]);
 		}
 	}
@@ -315,7 +315,7 @@ public class MailMessage {
 		long counter = 0;
 		String line;
 
-		while ((line = br.readLine()) != null) {
+		while((line = br.readLine()) != null) {
 			counter += line.getBytes().length;
 			counter += "\r\n".getBytes().length;
 		}
@@ -326,7 +326,7 @@ public class MailMessage {
 
 	public void closeStream() {
 		try {
-			if (this.brdr != null) this.brdr.close();
+			if(this.brdr != null) this.brdr.close();
 		} catch (IOException ioe) {
 
 		}
@@ -334,7 +334,7 @@ public class MailMessage {
 	}
 
 	public String readLine() throws IOException {
-		if (this.brdr == null) {
+		if(this.brdr == null) {
 			this.brdr = new BufferedReader(new FileReader(this.file));
 		}
 
@@ -346,7 +346,7 @@ public class MailMessage {
 		String line;
 		try {
 			PrintStream copyps = msg.getRawStream();
-			while ((line = this.readLine()) != null) {
+			while((line = this.readLine()) != null) {
 				copyps.println(line);
 			}
 			msg.commit();

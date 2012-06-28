@@ -58,14 +58,14 @@ public abstract class Postman {
 		List<String> froms = newmsg.getHeadersAsArray("From");
 
 		boolean first = true;
-		for (String from : froms) {
+		for(String from : froms) {
 			EmailAddress addr = new EmailAddress(from);
 
-			if (first) {
-				if (!this.validateFrom(addr)) {
+			if(first) {
+				if(!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", from);
 					EmailAddress e = new EmailAddress(from);
-					if (e.realname == null) e.realname = "";
+					if(e.realname == null) e.realname = "";
 					e.realname = "**SPOOFED** "+e.realname;
 					e.realname = e.realname.trim();
 					newmsg.addHeader("From", e.toLongString());
@@ -80,7 +80,7 @@ public abstract class Postman {
 		PrintStream ps = newmsg.writeHeadersAndGetStream();
 
 		String line;
-		while ((line = brdr.readLine()) != null) {
+		while((line = brdr.readLine()) != null) {
 			ps.println(line);
 		}
 
@@ -103,7 +103,7 @@ public abstract class Postman {
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");
 			bmsg.addHeader("Subject", "Undeliverable Freemail");
 			String origFrom = extractFromAddress(origmsg, isFreemailFormat);
-			if (origFrom != null) {
+			if(origFrom != null) {
 				bmsg.addHeader("To", origFrom);
 
 				//FIXME: We should add a message id even if we don't get the from address
@@ -115,7 +115,7 @@ public abstract class Postman {
 			String boundary="boundary-";
 			Random rnd = new Random();
 			int i;
-			for (i = 0; i < BOUNDARY_LENGTH; i++) {
+			for(i = 0; i < BOUNDARY_LENGTH; i++) {
 				boundary += (char)(rnd.nextInt(25) + (int)'a');
 			}
 			bmsg.addHeader("Content-Type", "Multipart/Mixed; boundary=\""+boundary+"\"");
@@ -140,14 +140,14 @@ public abstract class Postman {
 			BufferedReader br = new BufferedReader(new FileReader(origmsg));
 
 			String line;
-			if (isFreemailFormat) {
-				while ((line = br.readLine()) != null) {
-					if (line.length() == 0) break;
+			if(isFreemailFormat) {
+				while((line = br.readLine()) != null) {
+					if(line.length() == 0) break;
 				}
 			}
 
-			while ((line = br.readLine()) != null) {
-				if (line.indexOf(boundary) > 0) {
+			while((line = br.readLine()) != null) {
+				if(line.indexOf(boundary) > 0) {
 					// The random boundary string appears in the
 					// message! What are the odds!?
 					// try again
@@ -162,7 +162,7 @@ public abstract class Postman {
 			ps.println("--"+boundary);
 			bmsg.commit();
 		} catch (IOException ioe) {
-			if (bmsg != null) bmsg.cancel();
+			if(bmsg != null) bmsg.cancel();
 			return false;
 		}
 		return true;
@@ -174,17 +174,17 @@ public abstract class Postman {
 			br = new BufferedReader(new FileReader(msg));
 
 			String line;
-			if (isFreemailFormat) {
-				while ((line = br.readLine()) != null) {
-					if (line.length() == 0) break;
+			if(isFreemailFormat) {
+				while((line = br.readLine()) != null) {
+					if(line.length() == 0) break;
 				}
 			}
 
-			while ((line = br.readLine()) != null) {
-				if (line.length() == 0) return null;
+			while((line = br.readLine()) != null) {
+				if(line.length() == 0) return null;
 				String[] parts = line.split(": ", 2);
-				if (parts.length < 2) continue;
-				if (parts[0].equalsIgnoreCase("From")) {
+				if(parts.length < 2) continue;
+				if(parts[0].equalsIgnoreCase("From")) {
 					return parts[1];
 				}
 			}

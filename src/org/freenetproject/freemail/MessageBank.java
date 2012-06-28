@@ -54,7 +54,7 @@ public class MessageBank {
 	public MessageBank(FreemailAccount account) {
 		this.dir = new File(account.getAccountDir(), MESSAGES_DIR);
 
-		if (!this.dir.exists()) {
+		if(!this.dir.exists()) {
 			this.dir.mkdir();
 		}
 
@@ -100,7 +100,7 @@ public class MessageBank {
 	public String getFolderFlagsString() {
 		StringBuffer retval = new StringBuffer("(");
 
-		if (this.listSubFolders().length > 0) {
+		if(this.listSubFolders().length > 0) {
 			retval.append("\\HasChildren");
 		} else {
 			retval.append("\\HasNoChildren");
@@ -113,13 +113,13 @@ public class MessageBank {
 	public synchronized boolean delete() {
 		File[] files = this.dir.listFiles();
 
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().equals(".")) continue;
-			if (files[i].getName().equals("..")) continue;
+		for(int i = 0; i < files.length; i++) {
+			if(files[i].getName().equals(".")) continue;
+			if(files[i].getName().equals("..")) continue;
 
 			// this method should will fail if there are directories
 			// here. It should never be called if this is the case.
-			if (!files[i].delete()) return false;
+			if(!files[i].delete()) return false;
 		}
 
 		return this.dir.delete();
@@ -132,14 +132,14 @@ public class MessageBank {
 			do {
 				newfile = new File(this.dir, Long.toString(newid));
 				newid++;
-			} while (!newfile.createNewFile());
+			} while(!newfile.createNewFile());
 		} catch (IOException ioe) {
 			newfile = null;
 		}
 
 		this.writeNextId(newid);
 
-		if (newfile != null) {
+		if(newfile != null) {
 			MailMessage newmsg = new MailMessage(newfile, 0);
 			return newmsg;
 		}
@@ -155,8 +155,8 @@ public class MessageBank {
 		TreeMap<Integer, MailMessage> msgs = new TreeMap<Integer, MailMessage>();
 
 		int seq=1;
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].isDirectory()) continue;
+		for(int i = 0; i < files.length; i++) {
+			if(files[i].isDirectory()) continue;
 
 			MailMessage msg = new MailMessage(files[i], seq++);
 
@@ -173,8 +173,8 @@ public class MessageBank {
 
 		MailMessage[] msgs = new MailMessage[files.length];
 
-		for (int i = 0; i < files.length; i++) {
-			//if (files[i].getName().startsWith(".")) continue;
+		for(int i = 0; i < files.length; i++) {
+			//if(files[i].getName().startsWith(".")) continue;
 
 			MailMessage msg = new MailMessage(files[i], i+1);
 
@@ -192,10 +192,10 @@ public class MessageBank {
 	 * @return the subfolder with the given name
 	 */
 	public MessageBank getSubFolder(String name) {
-		if (!name.matches("[\\w\\s_]*")) return null;
+		if(!name.matches("[\\w\\s_]*")) return null;
 
 		File targetdir = new File(this.dir, name);
-		if (!targetdir.exists()) {
+		if(!targetdir.exists()) {
 			return null;
 		}
 
@@ -211,7 +211,7 @@ public class MessageBank {
 	 * @return the created subfolder, or {@code null}
 	 */
 	public synchronized MessageBank makeSubFolder(String name) {
-		if (!name.matches("[\\w\\s_]*")) {
+		if(!name.matches("[\\w\\s_]*")) {
 			throw new IllegalArgumentException("Illegal folder name: " + name);
 		}
 
@@ -219,7 +219,7 @@ public class MessageBank {
 
 		//Check for a ghost directory left by old versions of Freemail
 		File ghostdir = new File(this.dir, "."+name);
-		if (ghostdir.exists()) {
+		if(ghostdir.exists()) {
 			File[] files = ghostdir.listFiles();
 			for(int i = 0; i < files.length; i++) {
 				files[i].delete();
@@ -227,11 +227,11 @@ public class MessageBank {
 			ghostdir.delete();
 		}
 
-		if (targetdir.exists()) {
+		if(targetdir.exists()) {
 			return null;
 		}
 
-		if (targetdir.mkdir()) {
+		if(targetdir.mkdir()) {
 			return new MessageBank(targetdir, topLevel == null ? this : topLevel);
 		}
 		return null;
@@ -241,10 +241,10 @@ public class MessageBank {
 		File[] files = this.dir.listFiles();
 		Vector<File> subfolders = new Vector<File>();
 
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().startsWith(".")) continue;
+		for(int i = 0; i < files.length; i++) {
+			if(files[i].getName().startsWith(".")) continue;
 
-			if (files[i].isDirectory()) {
+			if(files[i].isDirectory()) {
 				subfolders.add(files[i]);
 			}
 		}
@@ -253,7 +253,7 @@ public class MessageBank {
 
 		Enumeration<File> e = subfolders.elements();
 		int i = 0;
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			retval[i] = new MessageBank(e.nextElement(), topLevel == null ? this : topLevel);
 			i++;
 		}
@@ -299,7 +299,7 @@ public class MessageBank {
 
 			// make sure the old nextid file doesn't contain a
 			// value greater than our one
-			if (this.nextId() <= newid) {
+			if(this.nextId() <= newid) {
 				File main_nid_file = new File(this.dir, NIDFILE);
 				main_nid_file.delete();
 				nidfile.renameTo(main_nid_file);
@@ -358,8 +358,8 @@ public class MessageBank {
 	private static class MessageFileNameFilter implements FilenameFilter {
 		@Override
 		public boolean accept(File dir, String name) {
-			if (name.startsWith(".")) return false;
-			if (!name.matches("[0-9]+(,.*)?")) return false;
+			if(name.startsWith(".")) return false;
+			if(!name.matches("[0-9]+(,.*)?")) return false;
 			return true;
 		}
 	}

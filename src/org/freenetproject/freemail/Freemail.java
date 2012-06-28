@@ -64,13 +64,13 @@ public abstract class Freemail implements ConfigClient {
 		Logger.registerConfig(configurator);
 
 		configurator.register(Configurator.DATA_DIR, this, Freemail.DEFAULT_DATADIR);
-		if (!datadir.exists() && !datadir.mkdirs()) {
+		if(!datadir.exists() && !datadir.mkdirs()) {
 			Logger.error(this, "Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 
 		configurator.register(Configurator.TEMP_DIR, this, Freemail.TEMPDIRNAME);
-		if (!tempdir.exists() && !tempdir.mkdirs()) {
+		if(!tempdir.exists() && !tempdir.mkdirs()) {
 			Logger.error(this, "Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
@@ -105,9 +105,9 @@ public abstract class Freemail implements ConfigClient {
 
 	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase(Configurator.DATA_DIR)) {
+		if(key.equalsIgnoreCase(Configurator.DATA_DIR)) {
 			datadir = new File(val);
-		} else if (key.equalsIgnoreCase(Configurator.TEMP_DIR)) {
+		} else if(key.equalsIgnoreCase(Configurator.TEMP_DIR)) {
 			tempdir = new File(val);
 		}
 	}
@@ -174,7 +174,7 @@ public abstract class Freemail implements ConfigClient {
 		// now clean up all the threads
 		try {
 			Timer smtpThreadJoin = terminateTimer.startSubTimer();
-			if (smtpThread != null) {
+			if(smtpThread != null) {
 				smtpThread.join();
 				smtpl.joinClientThreads();
 				smtpThread = null;
@@ -182,7 +182,7 @@ public abstract class Freemail implements ConfigClient {
 			smtpThreadJoin.log(this, 1, TimeUnit.SECONDS, "Time spent joining SMTP thread");
 
 			Timer imapThreadJoin = terminateTimer.startSubTimer();
-			if (imapThread != null) {
+			if(imapThread != null) {
 				imapThread.join();
 				imapl.joinClientThreads();
 				imapThread = null;
@@ -190,7 +190,7 @@ public abstract class Freemail implements ConfigClient {
 			imapThreadJoin.log(this, 1, TimeUnit.SECONDS, "Time spent joining IMAP thread");
 
 			Timer fcpThreadJoin = terminateTimer.startSubTimer();
-			if (fcpThread != null) {
+			if(fcpThread != null) {
 				fcpThread.join();
 				fcpThread = null;
 			}

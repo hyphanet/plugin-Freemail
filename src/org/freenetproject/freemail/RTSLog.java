@@ -41,18 +41,18 @@ public class RTSLog {
 
 	public RTSLog(File f) {
 		this.logfile = PropsFile.createPropsFile(f);
-		if (!this.logfile.exists()) {
+		if(!this.logfile.exists()) {
 			String birth = DateStringFactory.getOffsetKeyString(0);
 			this.logfile.put("birth", birth);
 		}
 	}
 
 	public int getPasses(String day) {
-		if (this.isBeforeBirth(day)) return Integer.MAX_VALUE;
+		if(this.isBeforeBirth(day)) return Integer.MAX_VALUE;
 
 		String val = this.logfile.get(PASSES+day);
 
-		if (val == null)
+		if(val == null)
 			return 0;
 		else
 			return Integer.parseInt(val);
@@ -62,13 +62,13 @@ public class RTSLog {
 		Date day = DateStringFactory.dateFromKeyString(daystr);
 		String birth_s = this.logfile.get("birth");
 		Date birth;
-		if (birth_s == null) {
+		if(birth_s == null) {
 			birth = new Date();
 			birth_s = DateStringFactory.getOffsetKeyString(0);
 			this.logfile.put("birth", birth_s);
 		} else {
 			birth = DateStringFactory.dateFromKeyString(birth_s);
-			if (birth.after(new Date())) {
+			if(birth.after(new Date())) {
 				Logger.error(this, "RTS log was created in the future! Resetting to now");
 				birth = new Date();
 				birth_s = DateStringFactory.getOffsetKeyString(0);
@@ -76,7 +76,7 @@ public class RTSLog {
 			}
 		}
 
-		if (day.before(birth)) return true;
+		if(day.before(birth)) return true;
 		return false;
 	}
 
@@ -92,29 +92,29 @@ public class RTSLog {
 		Vector<String> hitlist = new Vector<String>();
 
 		Iterator<String> i = props.iterator();
-		while (i.hasNext()) {
+		while(i.hasNext()) {
 			String cur = i.next();
 
 			String datestr;
-			if (cur.startsWith(PASSES)) {
+			if(cur.startsWith(PASSES)) {
 				datestr = cur.substring(PASSES.length());
-			} else if (cur.startsWith(SLOTS)) {
+			} else if(cur.startsWith(SLOTS)) {
 				datestr = cur.substring(SLOTS.length());
 			} else {
 				continue;
 			}
 
 			Date logdate = DateStringFactory.dateFromKeyString(datestr);
-			if (logdate == null) {
+			if(logdate == null) {
 				// couldn't parse the date... hmm
 				hitlist.add(cur);
-			} else if (logdate.before(keepafter)) {
+			} else if(logdate.before(keepafter)) {
 				hitlist.add(cur);
 			}
 		}
 
 		Enumeration<String> e = hitlist.elements();
-		while (e.hasMoreElements()) {
+		while(e.hasMoreElements()) {
 			String victim = e.nextElement();
 
 			this.logfile.remove(victim);
@@ -123,7 +123,7 @@ public class RTSLog {
 
 	public String getSlots(String day) {
 		String slots = this.logfile.get(SLOTS+day);
-		if (slots == null) {
+		if(slots == null) {
 			return "1";
 		} else {
 			return slots;
@@ -137,7 +137,7 @@ public class RTSLog {
 	public int getAndIncUnprocNextId() {
 		String nid = this.logfile.get(UNPROC_NEXTID);
 		int retval;
-		if (nid == null) {
+		if(nid == null) {
 			retval = 1;
 		} else {
 			retval = Integer.parseInt(nid);

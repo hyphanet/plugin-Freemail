@@ -32,14 +32,14 @@ public class FCPException extends Exception {
 	FCPException(FCPMessage msg) {
 		//Read the error code
 		String code = msg.headers.get("Code");
-		if (code != null)
+		if(code != null)
 			this.errorcode = Integer.parseInt(code);
 		else
 			this.errorcode = 0;
 
 		//Read the fatal field
 		String fatal = msg.headers.get("Fatal");
-		if (fatal != null)
+		if(fatal != null)
 			this.isFatal = (fatal.equalsIgnoreCase("true"));
 		else
 			this.isFatal = false;

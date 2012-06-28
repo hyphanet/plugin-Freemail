@@ -75,7 +75,7 @@ public class AccountManager {
 
 	public AccountManager(File _datadir, Freemail freemail) {
 		datadir = _datadir;
-		if (!datadir.exists()) {
+		if(!datadir.exists()) {
 			datadir.mkdir();
 		}
 
@@ -87,7 +87,7 @@ public class AccountManager {
 			}
 
 			PropsFile accFile = getAccountFile(accountDir);
-			if (accFile == null) {
+			if(accFile == null) {
 				Logger.error(this, "Couldn't initialise account from directory '"+accountDir.getName()+"' - ignoring.");
 				continue;
 			}
@@ -147,7 +147,7 @@ public class AccountManager {
 	private static PropsFile getAccountFile(File accdir) {
 		PropsFile accfile = PropsFile.createPropsFile(new File(accdir, ACCOUNT_FILE));
 
-		if (!accdir.exists() || !accfile.exists()) {
+		if(!accdir.exists() || !accfile.exists()) {
 			return null;
 		}
 
@@ -158,7 +158,7 @@ public class AccountManager {
 		String mod_str = props.get("asymkey.modulus");
 		String privexp_str = props.get("asymkey.privexponent");
 
-		if (mod_str == null || privexp_str == null) {
+		if(mod_str == null || privexp_str == null) {
 			Logger.error(AccountManager.class, "Couldn't get private key - account file corrupt?");
 			return null;
 		}
@@ -213,10 +213,10 @@ public class AccountManager {
 		synchronized(accounts) {
 			account = accounts.get(username);
 		}
-		if (account == null) return null;
+		if(account == null) return null;
 
 		String realmd5str = account.getProps().get("md5passwd");
-		if (realmd5str == null) return null;
+		if(realmd5str == null) return null;
 
 		MD5Digest md5 = new MD5Digest();
 		md5.update(password.getBytes(), 0, password.getBytes().length);
@@ -225,7 +225,7 @@ public class AccountManager {
 
 		String givenmd5str = new String(Hex.encode(givenmd5));
 
-		if (realmd5str.equals(givenmd5str)) {
+		if(realmd5str.equals(givenmd5str)) {
 			return account;
 		}
 		return null;

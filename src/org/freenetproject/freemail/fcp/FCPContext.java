@@ -36,9 +36,9 @@ public class FCPContext implements ConfigClient {
 
 	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase(Configurator.FCP_HOST)) {
+		if(key.equalsIgnoreCase(Configurator.FCP_HOST)) {
 			hostname = val;
-		} else if (key.equalsIgnoreCase(Configurator.FCP_PORT)) {
+		} else if(key.equalsIgnoreCase(Configurator.FCP_PORT)) {
 			try {
 				port = Integer.parseInt(val);
 			} catch (NumberFormatException nfe) {

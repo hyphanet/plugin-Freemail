@@ -35,7 +35,7 @@ public class NaturalSlotManager extends SlotManager {
 	public int getNextSlotNat() {
 		String slot = super.getNextSlot();
 
-		if (slot == null) return -1;
+		if(slot == null) return -1;
 
 		return Integer.parseInt(slot);
 	}
