@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IMAPAppendTest extends IMAPTestBase {
+public class IMAPAppendTest extends IMAPTestWithMessages {
 	private static final List<String> INITIAL_RESPONSES;
 	static {
 		List<String> backing = new LinkedList<String>();

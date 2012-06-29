@@ -32,7 +32,7 @@ import org.freenetproject.freemail.imap.IMAPHandler;
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 
-public class IMAPHandlerTest extends IMAPTestBase {
+public class IMAPHandlerTest extends IMAPTestWithMessages {
 	public void testIMAPGreeting() throws IOException {
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
