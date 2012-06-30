@@ -51,4 +51,58 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUidStoreWithoutFlags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testSimpleUidStore() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE 1 FLAGS \\Seen");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (UID 1 FLAGS (\\Seen))");
+		expectedResponse.add("0003 OK Store completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testAddMessageFlags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE 1 +FLAGS (\\Seen \\Flagged \\Answered");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (UID 1 FLAGS (\\Seen \\Answered \\Flagged))");
+		expectedResponse.add("0003 OK Store completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidStoreWithEmptySet() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE 11:12 +FLAGS (\\Seen \\Flagged \\Answered");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 OK Store completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
