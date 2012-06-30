@@ -56,23 +56,6 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchBodyPeek() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 1 (BODY.PEEK[])");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (BODY[] {32}");
-		expectedResponse.add("Subject: IMAP test message 0");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 1)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 	public void testFetchBodyStartRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
@@ -175,37 +158,6 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchSingleArg() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 10:* BODY.PEEK[]");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (BODY[] {32}");
-		expectedResponse.add("Subject: IMAP test message 9");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithOnlyUid() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 10:* UID");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 	public void testFetchWithOnlyUid() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
@@ -247,39 +199,6 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 10 FETCH (UID 10 FLAGS () BODY[]<0> {1}");
 		expectedResponse.add("S)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/*
-	 * In the sequence number range * is the highest sequence number in use and the order of the two
-	 * doesn't matter (i.e. 2:4 == 4:2), so 20:* should return the highest numbered message
-	 * (assuming * < 20).
-	 */
-	public void testSequenceNumberRangeWithFirstAboveMax() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 20:* (UID FLAGS)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10 FLAGS ())");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testSequenceNumberRangeWithWildcardFirst() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH *:10 (UID FLAGS)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10 FLAGS ())");
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
