@@ -255,4 +255,30 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUidFetchWithoutArguments() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidFetchWithoutDataItems() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH *:10");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
