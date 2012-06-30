@@ -416,8 +416,18 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				return;
 			}
 
-			from = msgs.get(from).getUID();
-			to = msgs.get(to).getUID();
+			for(MailMessage message : msgs.values()) {
+				if(message.getSeqNum() == to) {
+					to = message.getUID();
+					break;
+				}
+			}
+			for(MailMessage message : msgs.values()) {
+				if(message.getSeqNum() == from) {
+					from = message.getUID();
+					break;
+				}
+			}
 		}
 
 		//Swap if needed so from is always smaller or equal to to
