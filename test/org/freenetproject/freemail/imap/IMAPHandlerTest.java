@@ -76,17 +76,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands, INITIAL_RESPONSES);
 	}
 
 	/*
@@ -211,20 +201,13 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		commands.add("0005 SELECT INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("0004 OK Mailbox closed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
 		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 9 EXISTS");
+		expectedResponse.add("* 8 EXISTS");
 		expectedResponse.add("* 0 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
 		expectedResponse.add("0005 OK [READ-WRITE] Done");
@@ -240,19 +223,12 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		commands.add("0004 SELECT INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
 		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
+		expectedResponse.add("* 9 EXISTS");
 		expectedResponse.add("* 0 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
 		expectedResponse.add("0004 OK [READ-WRITE] Done");
@@ -269,14 +245,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		commands.add("0005 EXPUNGE");
 
 		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
 		expectedResponse.add("* 2 FETCH FLAGS (\\Seen \\Deleted)");
 		expectedResponse.add("0003 OK Store completed");

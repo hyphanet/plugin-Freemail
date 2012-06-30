@@ -20,25 +20,10 @@
 package org.freenetproject.freemail.imap;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class IMAPUidStoreTest extends IMAPTestWithMessages {
-	private static final List<String> INITIAL_RESPONSES;
-	static {
-		List<String> backing = new LinkedList<String>();
-		backing.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		backing.add("0001 OK Logged in");
-		backing.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		backing.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		backing.add("* 10 EXISTS");
-		backing.add("* 10 RECENT");
-		backing.add("* OK [UIDVALIDITY 1] Ok");
-		backing.add("0002 OK [READ-WRITE] Done");
-		INITIAL_RESPONSES = Collections.unmodifiableList(backing);
-	}
-
 	public void testUidStoreWithoutArguments() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");

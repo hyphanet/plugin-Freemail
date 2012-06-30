@@ -21,6 +21,9 @@
 package org.freenetproject.freemail.imap;
 
 import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
@@ -32,6 +35,20 @@ import fakes.ConfigurableAccountManager;
  * IMAP test template that adds messages to the inbox before running tests
  */
 public abstract class IMAPTestWithMessages extends IMAPTestBase {
+	protected static final List<String> INITIAL_RESPONSES;
+	static {
+		List<String> backing = new LinkedList<String>();
+		backing.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		backing.add("0001 OK Logged in");
+		backing.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
+		backing.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		backing.add("* 9 EXISTS");
+		backing.add("* 9 RECENT");
+		backing.add("* OK [UIDVALIDITY 1] Ok");
+		backing.add("0002 OK [READ-WRITE] Done");
+		INITIAL_RESPONSES = Collections.unmodifiableList(backing);
+	}
+
 	@Override
 	public void setUp() {
 		super.setUp();
@@ -50,5 +67,8 @@ public abstract class IMAPTestWithMessages extends IMAPTestBase {
 			}
 			m.commit();
 		}
+
+		//Delete message 5 so there will be a gap in the UIDs
+		account.getMessageBank().listMessages().get(5).delete();
 	}
 }

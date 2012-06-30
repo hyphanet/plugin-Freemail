@@ -20,25 +20,10 @@
 package org.freenetproject.freemail.imap;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class IMAPFetchTest extends IMAPTestWithMessages {
-	private static final List<String> INITIAL_RESPONSES;
-	static {
-		List<String> backing = new LinkedList<String>();
-		backing.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		backing.add("0001 OK Logged in");
-		backing.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		backing.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		backing.add("* 10 EXISTS");
-		backing.add("* 10 RECENT");
-		backing.add("* OK [UIDVALIDITY 1] Ok");
-		backing.add("0002 OK [READ-WRITE] Done");
-		INITIAL_RESPONSES = Collections.unmodifiableList(backing);
-	}
-
 	public void testFetchBodyPeek() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
@@ -107,11 +92,11 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 FETCH 10:* (UID)");
+		commands.add("0003 FETCH 9:* (UID)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10)");
+		expectedResponse.add("* 9 FETCH (UID 10)");
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -121,12 +106,12 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 FETCH 9:10 (UID)");
+		commands.add("0003 FETCH 8:9 (UID)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (UID 9)");
-		expectedResponse.add("* 10 FETCH (UID 10)");
+		expectedResponse.add("* 8 FETCH (UID 9)");
+		expectedResponse.add("* 9 FETCH (UID 10)");
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -162,11 +147,11 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
-		commands.add("0003 FETCH 10:* UID");
+		commands.add("0003 FETCH 9:* UID");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10)");
+		expectedResponse.add("* 9 FETCH (UID 10)");
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -176,11 +161,11 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
-		commands.add("0003 FETCH 10:* (BODY.PEEK[]");
+		commands.add("0003 FETCH 9:* (BODY.PEEK[]");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (BODY[] {32}");
+		expectedResponse.add("* 9 FETCH (BODY[] {32}");
 		expectedResponse.add("Subject: IMAP test message 9");
 		expectedResponse.add("");
 		expectedResponse.add(")");
@@ -193,11 +178,11 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
-		commands.add("0003 FETCH 10:* (UID FLAGS BODY.PEEK[]<0.1>)");
+		commands.add("0003 FETCH 9:* (UID FLAGS BODY.PEEK[]<0.1>)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10 FLAGS () BODY[]<0> {1}");
+		expectedResponse.add("* 9 FETCH (UID 10 FLAGS () BODY[]<0> {1}");
 		expectedResponse.add("S)");
 		expectedResponse.add("0003 OK Fetch completed");
 
@@ -208,11 +193,11 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
-		commands.add("0003 FETCH 10:* BODY.PEEK[]");
+		commands.add("0003 FETCH 9:* BODY.PEEK[]");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (BODY[] {32}");
+		expectedResponse.add("* 9 FETCH (BODY[] {32}");
 		expectedResponse.add("Subject: IMAP test message 9");
 		expectedResponse.add("");
 		expectedResponse.add(")");
@@ -244,11 +229,11 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
-		commands.add("0003 FETCH *:10 (UID FLAGS)");
+		commands.add("0003 FETCH *:9 (UID FLAGS)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 10 FETCH (UID 10 FLAGS ())");
+		expectedResponse.add("* 9 FETCH (UID 10 FLAGS ())");
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);

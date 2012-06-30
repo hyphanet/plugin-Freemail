@@ -20,25 +20,10 @@
 package org.freenetproject.freemail.imap;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class IMAPAppendTest extends IMAPTestWithMessages {
-	private static final List<String> INITIAL_RESPONSES;
-	static {
-		List<String> backing = new LinkedList<String>();
-		backing.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		backing.add("0001 OK Logged in");
-		backing.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		backing.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		backing.add("* 10 EXISTS");
-		backing.add("* 10 RECENT");
-		backing.add("* OK [UIDVALIDITY 1] Ok");
-		backing.add("0002 OK [READ-WRITE] Done");
-		INITIAL_RESPONSES = Collections.unmodifiableList(backing);
-	}
-
 	public void testBasicAppendFromSelectedState() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
@@ -51,8 +36,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("+ OK");
 		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 10 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 11 FETCH (FLAGS (\\Recent) UID 11)");
+		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Recent) UID 11)");
 		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -70,8 +55,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("+ OK");
 		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 10 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 11 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
+		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
 		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -93,8 +78,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("+ OK");
 		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 10 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 11 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
+		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
 		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -112,8 +97,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("+ OK");
 		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 10 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 11 FETCH (FLAGS (\\Seen \\Flagged \\Recent) UID 11)");
+		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Flagged \\Recent) UID 11)");
 		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
@@ -133,8 +118,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("+ OK");
 		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 10 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 11 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
+		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
 		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
