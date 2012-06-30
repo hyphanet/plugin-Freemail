@@ -203,4 +203,54 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testFetchSingleArg() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 FETCH 10:* BODY.PEEK[]");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 10 FETCH (BODY[] {32}");
+		expectedResponse.add("Subject: IMAP test message 9");
+		expectedResponse.add("");
+		expectedResponse.add(")");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	/*
+	 * In the sequence number range * is the highest sequence number in use and
+	 * the order of the two doesn't matter (i.e. 2:4 == 4:2), so 20:* should be
+	 * the same as 20:10 in this case which is illegal since the highest
+	 * message id is 10.
+	 */
+	public void testSequenceNumberRangeWithFirstAboveMax() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 FETCH 20:* (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testSequenceNumberRangeWithWildcardFirst() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 FETCH *:10 (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 10 FETCH (UID 10 FLAGS ())");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
