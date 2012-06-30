@@ -378,7 +378,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		String[] parts = msg.args[0].split(":");
 		if(parts[0].equals("*")) {
-			from = msgs.size();
+			if(uid) {
+				from = msgs.get(msgs.lastKey()).getUID();
+			} else {
+				from = msgs.size();
+			}
 		} else {
 			try {
 				from = Integer.parseInt(parts[0]);
@@ -391,7 +395,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		if(parts.length < 2) {
 			to = from;
 		} else if(parts[1].equals("*")) {
-			to = msgs.size();
+			if(uid) {
+				to = msgs.get(msgs.lastKey()).getUID();
+			} else {
+				to = msgs.size();
+			}
 		} else {
 			try {
 				to = Integer.parseInt(parts[1]);
