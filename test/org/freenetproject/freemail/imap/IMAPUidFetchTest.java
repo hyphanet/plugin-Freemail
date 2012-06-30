@@ -92,7 +92,7 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 	 * doesn't matter (i.e. 2:4 == 4:2), so 20:* should return the highest numbered message
 	 * (assuming * < 20).
 	 */
-	public void testSequenceNumberRangeWithFirstAboveMax() throws IOException {
+	public void testUidSequenceNumberRangeWithFirstAboveMax() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -106,7 +106,7 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSequenceNumberRangeWithWildcardFirst() throws IOException {
+	public void testUidSequenceNumberRangeWithWildcardFirst() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
