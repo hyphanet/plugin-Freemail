@@ -45,6 +45,12 @@ public class IMAPMessage {
 		}
 	}
 
+	IMAPMessage(String tag, String type, String[] args) {
+		this.tag = tag;
+		this.type = type;
+		this.args = args;
+	}
+
 	public static String[] doSplit(String in, char c1, char c2) {
 		char[] a1 = new char[1];
 		a1[0] = c1;

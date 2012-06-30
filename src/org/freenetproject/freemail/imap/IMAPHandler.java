@@ -348,6 +348,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handle_fetch(IMAPMessage msg) {
+		handleFetch(msg, false);
+	}
+
+	private void handleFetch(IMAPMessage msg, boolean uid) {
 		int from;
 		int to;
 
@@ -373,12 +377,17 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		String[] parts = msg.args[0].split(":");
-		try {
-			from = Integer.parseInt(parts[0]);
-		} catch (NumberFormatException nfe) {
-			this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
-			return;
+		if(parts[0].equals("*")) {
+			from = msgs.size();
+		} else {
+			try {
+				from = Integer.parseInt(parts[0]);
+			} catch (NumberFormatException nfe) {
+				this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
+				return;
+			}
 		}
+
 		if(parts.length < 2) {
 			to = from;
 		} else if(parts[1].equals("*")) {
@@ -392,38 +401,68 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 		}
 
-		if(from == 0 || to == 0 || from > msgs.size() || to > msgs.size()) {
-			this.reply(msg, "NO Invalid message ID");
-			return;
-		}
-
-		for(int i = 1; msgs.size() > 0; i++) {
-			Integer current = msgs.firstKey();
-			if(i < from) {
-				msgs = msgs.tailMap(new Integer(current.intValue()+1));
-				continue;
-			}
-			if(i > to) break;
-
-			if(!this.fetch_single(msgs.get(msgs.firstKey()), msg.args, 1, false)) {
-				this.reply(msg, "BAD Unknown attribute in list or unterminated list");
+		if(!uid) {
+			//Check message ids and convert them to UIDs
+			if(from == 0 || to == 0 || from > msgs.size() || to > msgs.size()) {
+				this.reply(msg, "NO Invalid message ID");
 				return;
 			}
 
-			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+			from = msgs.get(from).getUID();
+			to = msgs.get(to).getUID();
+		}
+
+		//Swap if needed so from is always smaller or equal to to
+		if(from > to) {
+			int temp = from;
+			from = to;
+			to = temp;
+		}
+
+		//Return the messages in the UID range. The continue and break
+		//statements work because the map is sorted on message ids which always
+		//means that the UIDs will be sorted too.
+		for(MailMessage message : msgs.values()) {
+			if(message.getUID() < from) {
+				continue;
+			}
+			if(message.getUID() > to) {
+				break;
+			}
+
+			if(!this.fetch_single(message, msg.args, 1, uid)) {
+				this.reply(msg, "BAD Unknown attribute in list or unterminated list");
+				return;
+			}
 		}
 
 		this.reply(msg, "OK Fetch completed");
 	}
 
 	private void handle_uid(IMAPMessage msg) {
-		int from;
-		int to;
+		if(msg.args == null || msg.args.length < 1) {
+			this.reply(msg, "BAD Not enough arguments to uid command");
+			return;
+		}
 
+		//Handle fetch in the new way
+		if(msg.args[0].equalsIgnoreCase("fetch")) {
+			String[] commandArgs = new String[msg.args.length - 1];
+			System.arraycopy(msg.args, 1, commandArgs, 0, commandArgs.length);
+			IMAPMessage command = new IMAPMessage(msg.tag, msg.args[0], commandArgs);
+
+			handleFetch(command, true);
+			return;
+		}
+
+		//And the rest in the old way for now
 		if(msg.args == null || msg.args.length < 3) {
 			this.reply(msg, "BAD Not enough arguments to uid command");
 			return;
 		}
+
+		int from;
+		int to;
 
 		if(!this.verify_auth(msg)) {
 			return;
@@ -437,9 +476,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 
 		if(msgs.size() == 0) {
-			if(msg.args[0].toLowerCase().equals("fetch")) {
-				this.reply(msg, "OK Fetch completed");
-			} else if(msg.args[0].toLowerCase().equals("store")) {
+			if(msg.args[0].toLowerCase().equals("store")) {
 				// hmm...?
 				this.reply(msg, "NO No such message");
 			}
@@ -488,25 +525,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		if(msg.args[0].equalsIgnoreCase("fetch")) {
-
-			Iterator<Integer> it=ts.iterator();
-
-			while(it.hasNext()) {
-				Integer curuid = it.next();
-
-				MailMessage mm=msgs.get(curuid);
-
-				if(mm!=null) {
-					if(!this.fetch_single(msgs.get(curuid), msg.args, 2, true)) {
-						this.reply(msg, "BAD Unknown attribute in list or unterminated list");
-						return;
-					}
-				}
-			}
-
-			this.reply(msg, "OK Fetch completed");
-		} else if(msg.args[0].equalsIgnoreCase("store")) {
+		if(msg.args[0].equalsIgnoreCase("store")) {
 			MailMessage[] targetmsgs = new MailMessage[ts.size()];
 
 			Iterator<Integer> it=ts.iterator();
