@@ -297,4 +297,49 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUidSearchForUndeleted() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID SEARCH UNDELETED");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
+		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	/*
+	 * This is meant to reproduce the behavior in bug 5399
+	 */
+	public void testThunderbirdPostDraftSaveSearch() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 uid SEARCH UNDELETED HEADER Message-ID 1234@address.freemail");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH");
+		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testSearchWithNoMatches() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 SEARCH DELETED UNDELETED");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH");
+		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
