@@ -1418,12 +1418,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		int offset = 0;
 		Map<Integer, MailMessage> messages = mb.listMessages();
 		while(offset < msg.args.length) {
-			//If it starts or ends with a paran, remove it
-			if(msg.args[offset].startsWith("(")) {
-				msg.args[offset] = msg.args[offset].substring(1);
-			}
-			if(msg.args[offset].endsWith(")")) {
-				msg.args[offset] = msg.args[offset].substring(0, msg.args[offset].length() - 1);
+			//If it starts or ends with a paran, fail
+			if(msg.args[offset].startsWith("(") || msg.args[offset].endsWith(")")) {
+				reply(msg, "NO Freemail doesn't support parentheses in search yet");
+				return;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("ALL")) {
