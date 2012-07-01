@@ -28,9 +28,11 @@ import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeSet;
 import java.lang.NumberFormatException;
@@ -134,6 +136,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			this.handleCopy(msg);
 		} else if(msg.type.equals("append")) {
 			this.handleAppend(msg);
+		} else if(msg.type.equals("search")) {
+			handleSearch(msg);
 		} else {
 			Logger.error(this, "Unknown IMAP command: " + msg.type);
 			this.reply(msg, "NO Sorry - not implemented");
@@ -463,13 +467,21 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		//Handle fetch in the new way
+		//Handle fetch and search in the new way
 		if(msg.args[0].equalsIgnoreCase("fetch")) {
 			String[] commandArgs = new String[msg.args.length - 1];
 			System.arraycopy(msg.args, 1, commandArgs, 0, commandArgs.length);
 			IMAPMessage command = new IMAPMessage(msg.tag, msg.args[0], commandArgs);
 
 			handleFetch(command, true);
+			return;
+		}
+		if(msg.args[0].equalsIgnoreCase("search")) {
+			String[] commandArgs = new String[msg.args.length - 1];
+			System.arraycopy(msg.args, 1, commandArgs, 0, commandArgs.length);
+			IMAPMessage command = new IMAPMessage(msg.tag, msg.args[0], commandArgs);
+
+			handleSearch(command, true);
 			return;
 		}
 
@@ -1376,6 +1388,154 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 		newmsg.storeFlags();
 		this.reply(msg, "OK APPEND completed");
+	}
+
+	private void handleSearch(IMAPMessage msg) {
+		handleSearch(msg, false);
+	}
+
+	private void handleSearch(IMAPMessage msg, boolean uid) {
+		if(!this.verifyAuth(msg)) {
+			return;
+		}
+
+		if(this.mb == null) {
+			this.reply(msg, "NO No mailbox selected");
+			return;
+		}
+
+		if(msg.args.length < 1) {
+			reply(msg, "BAD Missing arguments for SEARCH command");
+			return;
+		}
+
+		if(msg.args[0].equalsIgnoreCase("CHARSET")) {
+			reply(msg, "NO [BADCHARSET] Freemail doesn't support specifying CHARSET");
+			return;
+		}
+
+		//Index of the next search key
+		int offset = 0;
+		Map<Integer, MailMessage> messages = mb.listMessages();
+		while(offset < msg.args.length) {
+			//If it starts or ends with a paran, remove it
+			if(msg.args[offset].startsWith("(")) {
+				msg.args[offset] = msg.args[offset].substring(1);
+			}
+			if(msg.args[offset].endsWith(")")) {
+				msg.args[offset] = msg.args[offset].substring(0, msg.args[offset].length() - 1);
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("ALL")) {
+				//Matches all messages, so do nothing
+				offset++;
+				continue;
+			}
+
+			//Check the various flag state filters
+			if(msg.args[offset].equalsIgnoreCase("ANSWERED")) {
+				filterMessagesOnFlag(messages.values(), "\\Answered", true);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("DELETED")) {
+				filterMessagesOnFlag(messages.values(), "\\Deleted", true);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("FLAGGED")) {
+				filterMessagesOnFlag(messages.values(), "\\Flagged", true);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("RECENT")) {
+				filterMessagesOnFlag(messages.values(), "\\Recent", true);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("SEEN")) {
+				filterMessagesOnFlag(messages.values(), "\\Seen", true);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("UNANSWERED")) {
+				filterMessagesOnFlag(messages.values(), "\\Answered", false);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("UNDELETED")) {
+				filterMessagesOnFlag(messages.values(), "\\Deleted", false);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("UNFLAGGED")) {
+				filterMessagesOnFlag(messages.values(), "\\Flagged", false);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("UNSEEN")) {
+				filterMessagesOnFlag(messages.values(), "\\Seen", false);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("DRAFT")) {
+				filterMessagesOnFlag(messages.values(), "\\Draft", true);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("UNDRAFT")) {
+				filterMessagesOnFlag(messages.values(), "\\Draft", false);
+				offset++;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("KEYWORD")) {
+				filterMessagesOnFlag(messages.values(), msg.args[offset + 1], true);
+				offset += 2;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("UNKEYWORD")) {
+				filterMessagesOnFlag(messages.values(), msg.args[offset + 1], false);
+				offset += 2;
+				continue;
+			}
+
+			//For now we don't support any of the rest
+			reply(msg, "NO Criteria " + msg.args[offset] + " hasn't been implemented");
+			return;
+		}
+
+		//Handled all the criteria, so lets send the results back
+		StringBuilder reply = new StringBuilder("SEARCH");
+		for(MailMessage message : messages.values()) {
+			if(uid) {
+				reply.append(" " + message.getUID());
+			} else {
+				reply.append(" " + message.getSeqNum());
+			}
+		}
+		sendState(reply.toString());
+		reply(msg, "OK Search completed");
+	}
+
+	private void filterMessagesOnFlag(Collection<MailMessage> messages, String flag, boolean state) {
+		Iterator<MailMessage> it = messages.iterator();
+		while(it.hasNext()) {
+			if(it.next().flags.get(flag) != state) {
+				it.remove();
+			}
+		}
 	}
 
 	private String getEnvelope(MailMessage mmsg) {
