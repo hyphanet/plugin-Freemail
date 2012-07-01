@@ -1509,6 +1509,50 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				continue;
 			}
 
+			//Header searches
+			if(msg.args[offset].equalsIgnoreCase("BCC")) {
+				String searchString = msg.args[offset + 2];
+				filterMessagesOnHeader(messages.values(), "BCC", searchString);
+				offset += 2;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("CC")) {
+				String searchString = msg.args[offset + 1];
+				filterMessagesOnHeader(messages.values(), "CC", searchString);
+				offset += 2;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("FROM")) {
+				String searchString = msg.args[offset + 1];
+				filterMessagesOnHeader(messages.values(), "FROM", searchString);
+				offset += 2;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("SUBJECT")) {
+				String searchString = msg.args[offset + 1];
+				filterMessagesOnHeader(messages.values(), "SUBJECT", searchString);
+				offset += 2;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("TO")) {
+				String searchString = msg.args[offset + 1];
+				filterMessagesOnHeader(messages.values(), "TO", searchString);
+				offset += 2;
+				continue;
+			}
+
+			if(msg.args[offset].equalsIgnoreCase("HEADER")) {
+				String headerName = msg.args[offset + 1];
+				String searchString = msg.args[offset + 2];
+				filterMessagesOnHeader(messages.values(), headerName, searchString);
+				offset += 3;
+				continue;
+			}
+
 			//For now we don't support any of the rest
 			reply(msg, "NO Criteria " + msg.args[offset] + " hasn't been implemented");
 			return;
@@ -1531,6 +1575,22 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		Iterator<MailMessage> it = messages.iterator();
 		while(it.hasNext()) {
 			if(it.next().flags.get(flag) != state) {
+				it.remove();
+			}
+		}
+	}
+
+	private void filterMessagesOnHeader(Collection<MailMessage> messages, String headerName, String searchString) {
+		Iterator<MailMessage> it = messages.iterator();
+		while(it.hasNext()) {
+			boolean found = false;
+			for(String headerValue : it.next().getHeadersByName(headerName)) {
+				if(headerValue.toLowerCase().contains(searchString)) {
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
 				it.remove();
 			}
 		}
