@@ -97,50 +97,50 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	private void dispatch(IMAPMessage msg) {
 		Logger.debug(this, "Received: " + msg);
 		if(msg.type.equals("login")) {
-			this.handle_login(msg);
+			this.handleLogin(msg);
 		} else if(msg.type.equals("logout")) {
-			this.handle_logout(msg);
+			this.handleLogout(msg);
 		} else if(msg.type.equals("capability")) {
-			this.handle_capability(msg);
+			this.handleCapability(msg);
 		} else if(msg.type.equals("list")) {
-			this.handle_list(msg);
+			this.handleList(msg);
 		} else if(msg.type.equals("select")) {
-			this.handle_select(msg);
+			this.handleSelect(msg);
 		} else if(msg.type.equals("noop")) {
-			this.handle_noop(msg);
+			this.handleNoop(msg);
 		} else if(msg.type.equals("check")) {
-			this.handle_check(msg);
+			this.handleCheck(msg);
 		} else if(msg.type.equals("uid")) {
-			this.handle_uid(msg);
+			this.handleUid(msg);
 		} else if(msg.type.equals("fetch")) {
-			this.handle_fetch(msg);
+			this.handleFetch(msg);
 		} else if(msg.type.equals("store")) {
-			this.handle_store(msg);
+			this.handleStore(msg);
 		} else if(msg.type.equals("close")) {
-			this.handle_close(msg);
+			this.handleClose(msg);
 		} else if(msg.type.equals("expunge")) {
-			this.handle_expunge(msg);
+			this.handleExpunge(msg);
 		} else if(msg.type.equals("namespace")) {
-			this.handle_namespace(msg);
+			this.handleNamespace(msg);
 		} else if(msg.type.equals("lsub")) {
-			this.handle_lsub(msg);
+			this.handleLsub(msg);
 		} else if(msg.type.equals("status")) {
-			this.handle_status(msg);
+			this.handleStatus(msg);
 		} else if(msg.type.equals("create")) {
-			this.handle_create(msg);
+			this.handleCreate(msg);
 		} else if(msg.type.equals("delete")) {
-			this.handle_delete(msg);
+			this.handleDelete(msg);
 		} else if(msg.type.equals("copy")) {
-			this.handle_copy(msg);
+			this.handleCopy(msg);
 		} else if(msg.type.equals("append")) {
-			this.handle_append(msg);
+			this.handleAppend(msg);
 		} else {
 			Logger.error(this, "Unknown IMAP command: " + msg.type);
 			this.reply(msg, "NO Sorry - not implemented");
 		}
 	}
 
-	private void handle_login(IMAPMessage msg) {
+	private void handleLogin(IMAPMessage msg) {
 		if(msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "BAD Not enough arguments");
 			return;
@@ -171,7 +171,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_logout(IMAPMessage msg) {
+	private void handleLogout(IMAPMessage msg) {
 		this.sendState("BYE");
 		this.reply(msg, "OK Bye");
 		try {
@@ -181,21 +181,21 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_capability(IMAPMessage msg) {
+	private void handleCapability(IMAPMessage msg) {
 		this.sendState("CAPABILITY "+CAPABILITY);
 
 		this.reply(msg, "OK Capability completed");
 	}
 
-	private void handle_lsub(IMAPMessage msg) {
-		this.handle_list(msg);
+	private void handleLsub(IMAPMessage msg) {
+		this.handleList(msg);
 	}
 
-	private void handle_list(IMAPMessage msg) {
+	private void handleList(IMAPMessage msg) {
 		String refname;
 		String mbname;
 
-		if(!this.verify_auth(msg)) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -234,7 +234,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			mbname = mbname.replaceAll("%", "[^\\.]*");
 
 
-			this.list_matching_folders(this.inbox, mbname, replyprefix, "INBOX.");
+			this.listMatchingFolders(this.inbox, mbname, replyprefix, "INBOX.");
 
 			/// and send the inbox too, if it matches
 			if("INBOX".matches(mbname)) {
@@ -245,13 +245,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK "+replyprefix+" completed");
 	}
 
-	private void list_matching_folders(MessageBank folder, String pattern, String replyprefix, String folderpath) {
+	private void listMatchingFolders(MessageBank folder, String pattern, String replyprefix, String folderpath) {
 		MessageBank[] folders = folder.listSubFolders();
 
 		for(int i = 0; i < folders.length; i++) {
 			String fullpath = folderpath+folders[i].getName();
 
-			this.list_matching_folders(folders[i], pattern, replyprefix, fullpath+".");
+			this.listMatchingFolders(folders[i], pattern, replyprefix, fullpath+".");
 			if(fullpath.matches(pattern)) {
 				this.sendState(replyprefix+" "+folders[i].getFolderFlagsString()+" \".\" \""+fullpath+"\"");
 			}
@@ -278,10 +278,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return tempmb;
 	}
 
-	private void handle_select(IMAPMessage msg) {
+	private void handleSelect(IMAPMessage msg) {
 		String mbname;
 
-		if(!this.verify_auth(msg)) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -330,12 +330,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK [READ-WRITE] Done");
 	}
 
-	private void handle_noop(IMAPMessage msg) {
+	private void handleNoop(IMAPMessage msg) {
 		this.reply(msg, "OK NOOP completed");
 	}
 
-	private void handle_check(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleCheck(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -347,7 +347,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Check completed");
 	}
 
-	private void handle_fetch(IMAPMessage msg) {
+	private void handleFetch(IMAPMessage msg) {
 		handleFetch(msg, false);
 	}
 
@@ -355,7 +355,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		int from;
 		int to;
 
-		if(!this.verify_auth(msg)) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -448,7 +448,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				break;
 			}
 
-			if(!this.fetch_single(message, msg.args, 1, uid)) {
+			if(!this.fetchSingle(message, msg.args, 1, uid)) {
 				this.reply(msg, "BAD Unknown attribute in list or unterminated list");
 				return;
 			}
@@ -457,7 +457,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Fetch completed");
 	}
 
-	private void handle_uid(IMAPMessage msg) {
+	private void handleUid(IMAPMessage msg) {
 		if(msg.args == null || msg.args.length < 1) {
 			this.reply(msg, "BAD Not enough arguments to uid command");
 			return;
@@ -482,7 +482,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		int from;
 		int to;
 
-		if(!this.verify_auth(msg)) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -565,7 +565,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					}
 					targetmsgs=t;
 				}
-				this.do_store(msg.args, 2, targetmsgs, msg, true);
+				this.doStore(msg.args, 2, targetmsgs, msg, true);
 			}
 
 			this.reply(msg, "OK Store completed");
@@ -616,7 +616,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private boolean fetch_single(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
+	private boolean fetchSingle(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
 		String[] imap_args = args.clone();
 		this.ps.print("* "+msg.getSeqNum()+" FETCH (");
 
@@ -624,7 +624,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		if(!imap_args[firstarg].startsWith("(")) {
 			// It's a loner
 			this.ps.flush();
-			if(!this.send_attr(msg, imap_args[firstarg])){
+			if(!this.sendAttr(msg, imap_args[firstarg])){
 				// send fake end delimiter, so we do not break the protocol
 				this.ps.print(")\r\n");
 				this.ps.flush();
@@ -656,7 +656,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			//this.ps.print(attr+" ");
 			this.ps.flush();
-			if(!this.send_attr(msg, attr)) {
+			if(!this.sendAttr(msg, attr)) {
 				// send fake end delimiter, so we do not break the protocol
 				this.ps.print(")\r\n");
 				this.ps.flush();
@@ -691,7 +691,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return false;
 	}
 
-	private boolean send_attr(MailMessage mmsg, String a) {
+	private boolean sendAttr(MailMessage mmsg, String a) {
 		String attr = a.toLowerCase();
 		String val = null;
 
@@ -903,13 +903,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return false;
 	}
 
-	private void handle_store(IMAPMessage msg) {
+	private void handleStore(IMAPMessage msg) {
 		if(msg.args == null || msg.args.length < 2) {
 			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
-		if(!this.verify_auth(msg)) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -959,14 +959,14 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			msgs[i - from] = (MailMessage) allmsgs[i];
 		}
 
-		if(!do_store(msg.args, 1, msgs, msg, false)) {
+		if(!doStore(msg.args, 1, msgs, msg, false)) {
 			return;
 		}
 
 		this.reply(msg, "OK Store completed");
 	}
 
-	private boolean do_store(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
+	private boolean doStore(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
 		if(args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
@@ -1027,8 +1027,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return true;
 	}
 
-	private void handle_expunge(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleExpunge(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1041,8 +1041,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Expunge complete");
 	}
 
-	private void handle_close(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleClose(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1070,8 +1070,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_namespace(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleNamespace(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1079,8 +1079,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Namespace completed");
 	}
 
-	private void handle_status(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleStatus(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1157,8 +1157,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK STATUS completed");
 	}
 
-	private void handle_create(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleCreate(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1203,8 +1203,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Mailbox created");
 	}
 
-	private void handle_delete(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleDelete(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1232,8 +1232,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return;
 	}
 
-	private void handle_copy(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleCopy(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1297,8 +1297,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK COPY completed");
 	}
 
-	private void handle_append(IMAPMessage msg) {
-		if(!this.verify_auth(msg)) {
+	private void handleAppend(IMAPMessage msg) {
+		if(!this.verifyAuth(msg)) {
 			return;
 		}
 
@@ -1450,7 +1450,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return in;
 	}
 
-	private boolean verify_auth(IMAPMessage msg) {
+	private boolean verifyAuth(IMAPMessage msg) {
 		if(this.inbox == null) {
 			this.reply(msg, "NO Must be authenticated");
 			return false;
