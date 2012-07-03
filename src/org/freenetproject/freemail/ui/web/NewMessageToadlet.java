@@ -288,7 +288,7 @@ public class NewMessageToadlet extends WebPage {
 			if(extraHeader.matches("[^\\u0000-\\u007F]")) {
 				throw new IllegalArgumentException("Header contains 8bit character(s)");
 			}
-			header.append(extraHeader);
+			header.append(extraHeader + "\r\n");
 		}
 		header.append("\r\n");
 
