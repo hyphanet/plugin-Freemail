@@ -312,23 +312,6 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	/*
-	 * This is meant to reproduce the behavior in bug 5399
-	 */
-	public void testThunderbirdPostDraftSaveSearch() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 uid SEARCH UNDELETED HEADER Message-ID 1234@address.freemail");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* SEARCH");
-		expectedResponse.add("0003 OK Search completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 	public void testSearchWithNoMatches() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
@@ -339,6 +322,44 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* SEARCH");
 		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	/**
+	 * Attempt to emulate the behavior of Thunderbird when storing a draft
+	 * message, including the search to check that it was stored. See bug 5399
+	 */
+	public void testThunderbirdDraftStore() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT \"INBOX\"");
+		commands.add("0002 APPEND \"INBOX\" (\\Draft) {696}");
+		commands.add("FCC: imap://zidel%40b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail@10.8.0.1/INBOX/Sent");
+		commands.add("X-Identity-Key: id1");
+		commands.add("X-Account-Key: account1");
+		commands.add("Message-ID: <4FF2057E.8000902@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
+		commands.add("Date: Mon, 02 Jul 2012 22:33:02 +0200");
+		commands.add("From: zidel <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
+		commands.add("X-Mozilla-Draft-Info: internal/draft; vcard=0; receipt=0; DSN=0; uuencode=0");
+		commands.add("User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:13.0) Gecko/20120615 Thunderbird/13.0.1");
+		commands.add("MIME-Version: 1.0");
+		commands.add("To: zidel@b5");
+		commands.add("Subject: Test message");
+		commands.add("Content-Type: text/plain; charset=ISO-8859-1; format=flowed");
+		commands.add("Content-Transfer-Encoding: 7bit");
+		commands.add("");
+		commands.add("Test message");
+		commands.add("0003 NOOP");
+		commands.add("0004 uid SEARCH UNDELETED HEADER Message-ID 4FF2057E.8000902@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("0002 OK APPEND completed");
+		expectedResponse.add("0003 OK NOOP completed");
+		expectedResponse.add("* SEARCH 11");
+		expectedResponse.add("0004 OK Search completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
