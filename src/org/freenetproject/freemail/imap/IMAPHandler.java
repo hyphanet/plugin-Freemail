@@ -1585,7 +1585,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		while(it.hasNext()) {
 			boolean found = false;
 			for(String headerValue : it.next().getHeadersByName(headerName)) {
-				if(headerValue.toLowerCase().contains(searchString)) {
+				if(headerValue.toLowerCase().contains(searchString.toLowerCase())) {
 					found = true;
 					break;
 				}
