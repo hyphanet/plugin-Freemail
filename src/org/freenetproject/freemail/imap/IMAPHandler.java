@@ -1414,9 +1414,18 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
+		Map<Integer, MailMessage> messages = mb.listMessages();
+		try {
+			for(MailMessage message : messages.values()) {
+				message.readHeaders();
+			}
+		} catch(IOException e) {
+			sendState("BAD Internal server error while searching messages");
+			reply(msg, "NO Internal server error while searching messages");
+		}
+
 		//Index of the next search key
 		int offset = 0;
-		Map<Integer, MailMessage> messages = mb.listMessages();
 		while(offset < msg.args.length) {
 			//If it starts or ends with a paran, fail
 			if(msg.args[offset].startsWith("(") || msg.args[offset].endsWith(")")) {
