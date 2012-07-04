@@ -365,7 +365,14 @@ public class NewMessageToadlet extends WebPage {
 
 		List<String> extraHeaders = readExtraHeaders(req);
 		extraHeaders.add("In-Reply-To: " + msg.getFirstHeader("message-id"));
-		extraHeaders.add("References: " + msg.getFirstHeader("References") + msg.getFirstHeader("message-id"));
+
+		//Add the references header. This uses folding white space between each
+		//reference as a simple way of avoiding long lines.
+		String references = msg.getFirstHeader("References") + msg.getFirstHeader("message-id");
+		extraHeaders.add("References:");
+		for(String part : references.split(" ")) {
+			extraHeaders.add(" " + part);
+		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,
