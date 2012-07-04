@@ -21,6 +21,7 @@ package org.freenetproject.freemail;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.freenetproject.freemail.MailMessage;
 
@@ -72,5 +73,45 @@ public class MailMessageTest extends TestCase {
 		msg.flags.set("\\Deleted", true);
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
+	}
+
+	public void testSingleLineReferencesHeader() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("To: local@domain\r\n");
+		pw.print("References: <abc@domain>\r\n");
+		pw.close();
+
+		//Create new message and clear flags in case any were set
+		MailMessage msg = new MailMessage(messageFile, 0);
+		msg.readHeaders();
+		assertEquals(1, msg.getHeadersByName("References").size());
+		assertEquals("<abc@domain>", msg.getFirstHeader("References"));
+	}
+
+	public void testMultiLineReferencesHeader() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("To: local@domain\r\n");
+		pw.print("References: <1234@abc.com>\r\n");
+		pw.print(" <5678@def.com>\r\n");
+		pw.print(" <9123@ghi.com> <4567@jkl.com>\r\n");
+		pw.close();
+
+		//Create new message and clear flags in case any were set
+		MailMessage msg = new MailMessage(messageFile, 0);
+		msg.readHeaders();
+		assertEquals(1, msg.getHeadersByName("References").size());
+
+		String expected =
+				"<1234@abc.com> "
+				+ "<5678@def.com> "
+				+ "<9123@ghi.com> "
+				+ "<4567@jkl.com>";
+		assertEquals(expected, msg.getFirstHeader("References"));
 	}
 }
