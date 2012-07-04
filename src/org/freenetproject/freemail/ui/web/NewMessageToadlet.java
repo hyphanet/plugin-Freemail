@@ -368,7 +368,12 @@ public class NewMessageToadlet extends WebPage {
 
 		//Add the references header. This uses folding white space between each
 		//reference as a simple way of avoiding long lines.
-		String references = msg.getFirstHeader("References") + msg.getFirstHeader("message-id");
+		String references = "";
+		if(msg.getFirstHeader("References") != null) {
+			references += msg.getFirstHeader("References");
+		}
+		references += msg.getFirstHeader("message-id");
+
 		extraHeaders.add("References:");
 		for(String part : references.split(" ")) {
 			extraHeaders.add(" " + part);
