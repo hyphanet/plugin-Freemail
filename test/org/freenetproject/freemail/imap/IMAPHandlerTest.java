@@ -363,4 +363,17 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+	
+	public void testUidWithNoArgs() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT \"INBOX\"");
+		commands.add("0002 UID");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0004 BAD Not enough arguments for uid command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
