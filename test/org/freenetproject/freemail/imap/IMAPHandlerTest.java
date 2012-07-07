@@ -202,7 +202,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("0004 OK Mailbox closed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
@@ -224,7 +224,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
 		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
@@ -246,10 +246,10 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
-		expectedResponse.add("* 2 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
+		expectedResponse.add("* 2 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
-		expectedResponse.add("* 4 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.add("* 4 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0004 OK Store completed");
 		expectedResponse.add("* 1 EXPUNGE");
 		expectedResponse.add("* 1 EXPUNGE");
