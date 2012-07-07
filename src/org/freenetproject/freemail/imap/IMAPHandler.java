@@ -447,9 +447,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		int from;
-		int to;
-
 		if(!this.verifyAuth(msg)) {
 			return;
 		}
