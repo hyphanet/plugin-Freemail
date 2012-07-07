@@ -68,7 +68,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 1 +FLAGS (\\Seen \\Flagged \\Answered");
+		commands.add("0003 UID STORE 1 +FLAGS (\\Seen \\Flagged \\Answered)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
@@ -82,7 +82,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 11:12 +FLAGS (\\Seen \\Flagged \\Answered");
+		commands.add("0003 UID STORE 11:12 +FLAGS (\\Seen \\Flagged \\Answered)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
@@ -95,7 +95,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE BAD:12 +FLAGS (\\Seen \\Flagged \\Answered");
+		commands.add("0003 UID STORE BAD:12 +FLAGS (\\Seen \\Flagged \\Answered)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
@@ -108,7 +108,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 11:BAD +FLAGS (\\Seen \\Flagged \\Answered");
+		commands.add("0003 UID STORE 11:BAD +FLAGS (\\Seen \\Flagged \\Answered)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
