@@ -488,29 +488,14 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args[0].equalsIgnoreCase("store")) {
-			MailMessage[] targetmsgs = new MailMessage[ts.size()];
-
-			Iterator<Integer> it=ts.iterator();
-
-			int count=0;
-			while(it.hasNext()) {
-				Integer curuid = it.next();
-				MailMessage m=msgs.get(curuid);
-				if(m!=null) {
-					targetmsgs[count] = m;
-					count++;
+			Iterator<MailMessage> msgIt = msgs.values().iterator();
+			while(msgIt.hasNext()) {
+				if(!ts.contains(msgIt.next().getSeqNum())) {
+					msgIt.remove();
 				}
 			}
-			if(count>0) {
-				if(count<ts.size()) {
-					MailMessage[] t = new MailMessage[count];
-					for(int i=0; i<count; i++) {
-						t[i]=targetmsgs[i];
-					}
-					targetmsgs=t;
-				}
-				this.doStore(msg.args, 2, targetmsgs, msg, true);
-			}
+
+			this.doStore(msg.args, 2, msgs.values(), msg, true);
 
 			this.reply(msg, "OK Store completed");
 		} else if(msg.args[0].equalsIgnoreCase("copy")) {
@@ -854,55 +839,32 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		String rangeparts[] = msg.args[0].split(":");
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 
-		Object[] allmsgs = this.mb.listMessages().values().toArray();
-
-		int from;
-		int to;
+		Set<Integer> ts;
 		try {
-			from = Integer.parseInt(rangeparts[0]);
-		} catch (NumberFormatException nfe) {
-			this.reply(msg, "BAD That's not a number!");
-			return;
+			MailMessage lastMessage = msgs.get(msgs.lastKey());
+			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
+		} catch(NumberFormatException e) {
+			 this.reply(msg, "BAD Illegal sequence number set");
+			 return;
 		}
-		if(rangeparts.length > 1) {
-			if(rangeparts[1].equals("*")) {
-				to = allmsgs.length;
-			} else {
-				try {
-					to = Integer.parseInt(rangeparts[1]);
-				} catch (NumberFormatException nfe) {
-					this.reply(msg, "BAD That's not a number!");
-					return;
-				}
+
+		Iterator<MailMessage> msgIt = msgs.values().iterator();
+		while(msgIt.hasNext()) {
+			if(!ts.contains(msgIt.next().getSeqNum())) {
+				msgIt.remove();
 			}
-		} else {
-			to = from;
 		}
 
-		// convert to zero based array
-		from--;
-		to--;
-
-		if(from < 0 || to < 0 || from > allmsgs.length || to > allmsgs.length) {
-			this.reply(msg, "NO No such message");
-			return;
-		}
-
-		MailMessage[] msgs = new MailMessage[(to - from) + 1];
-		for(int i = from; i <= to; i++) {
-			msgs[i - from] = (MailMessage) allmsgs[i];
-		}
-
-		if(!doStore(msg.args, 1, msgs, msg, false)) {
+		if(!doStore(msg.args, 1, msgs.values(), msg, false)) {
 			return;
 		}
 
 		this.reply(msg, "OK Store completed");
 	}
 
-	private boolean doStore(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
+	private boolean doStore(String[] args, int offset, Collection<MailMessage> mmsgs, IMAPMessage msg, boolean senduid) {
 		if(args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
@@ -919,8 +881,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} else if(args[offset].startsWith("+")) {
 			setFlagTo = true;
 		} else {
-			for(int i = 0; i < mmsgs.length; i++) {
-				mmsgs[i].flags.clear();
+			for(MailMessage message : mmsgs) {
+				message.flags.clear();
 			}
 			setFlagTo = true;
 		}
@@ -932,27 +894,27 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				flag = flag.substring(0, flag.length() - 1);
 			}
 
-			for(int j = 0; j < mmsgs.length; j++) {
-				mmsgs[j].flags.set(flag, setFlagTo);
-				mmsgs[j].storeFlags();
+			for(MailMessage message : mmsgs) {
+				message.flags.set(flag, setFlagTo);
+				message.storeFlags();
 			}
 		}
 
 		if(msg.args[offset].toLowerCase().indexOf("silent") < 0) {
-			for(int i = 0; i < mmsgs.length; i++) {
+			for(MailMessage message : mmsgs) {
 				StringBuffer buf = new StringBuffer("");
 
-				buf.append(mmsgs[i].getSeqNum());
+				buf.append(message.getSeqNum());
 				if(senduid) {
 					buf.append(" FETCH (UID ");
-					buf.append(mmsgs[i].getUID());
+					buf.append(message.getUID());
 					buf.append(" FLAGS (");
-					buf.append(mmsgs[i].flags.getFlags());
+					buf.append(message.flags.getFlags());
 					buf.append("))");
 				} else {
 
 					buf.append(" FETCH FLAGS (");
-					buf.append(mmsgs[i].flags.getFlags());
+					buf.append(message.flags.getFlags());
 					buf.append(")");
 				}
 
