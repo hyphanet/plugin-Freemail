@@ -1145,39 +1145,22 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		Object[] allmsgs = this.mb.listMessages().values().toArray();
-		String rangeparts[] = msg.args[0].split(":");
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 
-		int from;
-		int to;
+		Set<Integer> ts;
 		try {
-			from = Integer.parseInt(rangeparts[0]);
-		} catch (NumberFormatException nfe) {
-			this.reply(msg, "BAD That's not a number!");
-			return;
+			MailMessage lastMessage = msgs.get(msgs.lastKey());
+			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
+		} catch(NumberFormatException e) {
+			 this.reply(msg, "BAD Illegal sequence number set");
+			 return;
 		}
-		if(rangeparts.length > 1) {
-			if(rangeparts[1].equals("*")) {
-				to = allmsgs.length;
-			} else {
-				try {
-					to = Integer.parseInt(rangeparts[1]);
-				} catch (NumberFormatException nfe) {
-					this.reply(msg, "BAD That's not a number!");
-					return;
-				}
+
+		Iterator<MailMessage> msgIt = msgs.values().iterator();
+		while(msgIt.hasNext()) {
+			if(!ts.contains(msgIt.next().getSeqNum())) {
+				msgIt.remove();
 			}
-		} else {
-			to = from;
-		}
-
-		// convert to zero based array
-		from--;
-		to--;
-
-		if(from < 0 || to < 0 || from > allmsgs.length || to > allmsgs.length) {
-			this.reply(msg, "NO No such message");
-			return;
 		}
 
 		MessageBank target = getMailboxFromPath(trimQuotes(msg.args[1]));
@@ -1186,8 +1169,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		for(int i = from; i <= to; i++) {
-			MailMessage src = (MailMessage)allmsgs[i];
+		for(MailMessage src : msgs.values()) {
 			MailMessage copy = target.createMessage();
 
 			src.copyTo(copy);
