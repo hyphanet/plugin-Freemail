@@ -492,7 +492,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		if(msg.args[0].equalsIgnoreCase("store")) {
 			Iterator<MailMessage> msgIt = msgs.values().iterator();
 			while(msgIt.hasNext()) {
-				if(!ts.contains(msgIt.next().getSeqNum())) {
+				if(!ts.contains(msgIt.next().getUID())) {
 					msgIt.remove();
 				}
 			}
