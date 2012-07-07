@@ -82,7 +82,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while(!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
 					//Logger.normal(this,line);

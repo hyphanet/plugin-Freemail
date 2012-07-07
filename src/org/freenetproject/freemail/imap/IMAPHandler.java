@@ -77,7 +77,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while(!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				IMAPMessage msg = null;
 				try {
 					msg = new IMAPMessage(line);

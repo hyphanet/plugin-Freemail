@@ -24,6 +24,7 @@ import java.io.IOException;
 
 public abstract class ServerHandler {
 	protected final Socket client;
+	protected volatile boolean stopping = false;
 
 	public ServerHandler(Socket c) {
 		client = c;
@@ -34,6 +35,7 @@ public abstract class ServerHandler {
 	}
 
 	public void kill() {
+		stopping = true;
 		try {
 			client.close();
 		} catch (IOException ioe) {
