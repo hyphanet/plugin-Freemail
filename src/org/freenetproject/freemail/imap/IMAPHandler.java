@@ -419,7 +419,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 	private void handleUid(IMAPMessage msg) {
 		if(msg.args == null || msg.args.length < 1) {
-			this.reply(msg, "BAD Not enough arguments to uid command");
+			this.reply(msg, "BAD Not enough arguments for uid command");
 			return;
 		}
 
@@ -443,7 +443,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		//And the rest in the old way for now
 		if(msg.args == null || msg.args.length < 3) {
-			this.reply(msg, "BAD Not enough arguments to uid command");
+			this.reply(msg, "BAD Not enough arguments for uid command");
 			return;
 		}
 
