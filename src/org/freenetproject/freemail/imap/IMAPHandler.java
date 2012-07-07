@@ -447,7 +447,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		//And the rest in the old way for now
-		if(msg.args == null || msg.args.length < 3) {
+		if(msg.args.length < 3) {
 			this.reply(msg, "BAD Not enough arguments for uid command");
 			return;
 		}
