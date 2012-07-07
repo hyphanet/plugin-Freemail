@@ -55,4 +55,70 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testCopyToNonexistentMailbox() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY 1 INBOX.abc");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopySetsRecentFlag() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY 1 INBOX");
+		commands.add("0004 FETCH * FLAGS");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 OK COPY completed");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Recent))");
+		expectedResponse.add("0004 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyDoesntCreateMailbox() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY 1 INBOX.abc");
+		commands.add("0004 SELECT INBOX.abc");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
+		expectedResponse.add("0004 NO No such mailbox");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidAfterCopy() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID SEARCH ALL");
+		commands.add("0004 COPY 1 INBOX");
+		commands.add("0005 UID SEARCH ALL");
+		commands.add("0005 FETCH 10 (UID)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
+		expectedResponse.add("0003 OK Search completed");
+		expectedResponse.add("0004 OK COPY completed");
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10 11");
+		expectedResponse.add("0005 OK Search completed");
+		expectedResponse.add("* 10 FETCH (UID 11)");
+		expectedResponse.add("0005 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
