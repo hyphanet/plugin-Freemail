@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -477,37 +478,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 //			return;
 //		}
 
-		// build a set from the uid ranges, first separated by , then by :
-		// if that fails, its probably an unsupported command
-
-		TreeSet<Integer> ts=new TreeSet<Integer>();
+		Set<Integer> ts;
 		try {
-			String[] rangeparts = msg.args[1].split(",");
-
-			for(int i=0; i<rangeparts.length; i++) {
-				String vals[]=rangeparts[i].split(":");
-				if(vals.length==1) {
-					ts.add(new Integer(vals[0]));
-				} else {
-					int maxMsgNum = msgs.lastKey().intValue();
-					from = parseSequenceNumber(vals[0], maxMsgNum);
-					to = parseSequenceNumber(vals[1], maxMsgNum);
-
-					if(from > to) {
-						int temp = to;
-						to = from;
-						from = temp;
-					}
-
-					for(int j=from; j<=to; j++) {
-						ts.add(new Integer(j));
-					}
-				}
-			}
-		}
-		catch(NumberFormatException ex) {
-			this.reply(msg, "BAD Unknown command");
-			return;
+			MailMessage lastMessage = msgs.get(msgs.lastKey());
+			ts = parseSequenceSet(msg.args[1], lastMessage.getUID());
+		} catch(NumberFormatException e) {
+			 this.reply(msg, "BAD Illegal sequence number set");
+			 return;
 		}
 
 		if(msg.args[0].equalsIgnoreCase("store")) {
