@@ -83,4 +83,24 @@ public class IMAPEmptyMailboxTest extends IMAPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testBadUidCommandInEmptyFolder() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID IllegalCommand arg1 arg2 arg3");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+		expectedResponse.add("0001 OK Logged in");
+		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
+		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
+		expectedResponse.add("* 0 EXISTS");
+		expectedResponse.add("* 0 RECENT");
+		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
+		expectedResponse.add("0002 OK [READ-WRITE] Done");
+		expectedResponse.add("0003 BAD Unknown command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
