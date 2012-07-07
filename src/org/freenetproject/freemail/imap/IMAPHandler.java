@@ -1139,14 +1139,19 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
+		MailMessage lastMessage = msgs.get(msgs.lastKey());
 
-		Set<Integer> ts;
+		SortedSet<Integer> ts;
 		try {
-			MailMessage lastMessage = msgs.get(msgs.lastKey());
 			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
 		} catch(NumberFormatException e) {
 			 this.reply(msg, "BAD Illegal sequence number set");
 			 return;
+		}
+
+		if(ts.first() < 1 || ts.last() > lastMessage.getSeqNum()) {
+			reply(msg, "NO Invalid message ID");
+			return;
 		}
 
 		Iterator<MailMessage> msgIt = msgs.values().iterator();
