@@ -23,6 +23,7 @@
 package org.freenetproject.freemail.imap;
 
 import java.net.Socket;
+import java.net.SocketException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.BufferedReader;
@@ -90,7 +91,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			this.client.close();
 		} catch (IOException ioe) {
-			Logger.error(this, "Caught IOException while reading imap data: " + ioe.getMessage(), ioe);
+			//If we are stopping and get a SocketException it is probable that
+			//the socket was closed while readLine() was blocked, so don't log
+			if(!(stopping && ioe instanceof SocketException)) {
+				Logger.error(this, "Caught IOException while reading imap data: " + ioe.getMessage(), ioe);
+			}
 		}
 	}
 
