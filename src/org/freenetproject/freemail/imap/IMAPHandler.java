@@ -471,15 +471,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		// until a proper search function is implemented we could return an empty
-		// result, but this confuses Thunderbird
-//		if(msg.args[0].toLowerCase().equals("search")) {
-//			// return a dummy result
-//			this.sendState("SEARCH");
-//			this.reply(msg, "OK SEARCH completed");
-//			return;
-//		}
-
 		Set<Integer> ts;
 		try {
 			MailMessage lastMessage = msgs.get(msgs.lastKey());
