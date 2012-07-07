@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.lang.NumberFormatException;
 import java.text.SimpleDateFormat;
@@ -356,9 +357,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handleFetch(IMAPMessage msg, boolean uid) {
-		int from;
-		int to;
-
 		if(!this.verifyAuth(msg)) {
 			return;
 		}
@@ -380,76 +378,33 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		String[] parts = msg.args[0].split(":");
-		if(parts[0].equals("*")) {
-			if(uid) {
-				from = msgs.get(msgs.lastKey()).getUID();
-			} else {
-				from = msgs.size();
-			}
-		} else {
-			try {
-				from = Integer.parseInt(parts[0]);
-			} catch (NumberFormatException nfe) {
-				this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
-				return;
-			}
-		}
-
-		if(parts.length < 2) {
-			to = from;
-		} else if(parts[1].equals("*")) {
-			if(uid) {
-				to = msgs.get(msgs.lastKey()).getUID();
-			} else {
-				to = msgs.size();
-			}
-		} else {
-			try {
-				to = Integer.parseInt(parts[1]);
-			} catch (NumberFormatException nfe) {
-				this.reply(msg, "BAD Bad number: "+parts[1]+". Please report this error!");
-				return;
-			}
+		MailMessage lastMessage = msgs.get(msgs.lastKey());
+		SortedSet<Integer> sequenceNumbers;
+		try {
+			sequenceNumbers = parseSequenceSet(msg.args[0],
+					uid ? lastMessage.getUID() : lastMessage.getSeqNum());
+		} catch(NumberFormatException e) {
+			 this.reply(msg, "BAD Illegal sequence number set");
+			 return;
 		}
 
 		if(!uid) {
-			//Check message ids and convert them to UIDs
-			if(from == 0 || to == 0 || from > msgs.size() || to > msgs.size()) {
-				this.reply(msg, "NO Invalid message ID");
+			if(sequenceNumbers.first() < 1 || sequenceNumbers.last() > lastMessage.getSeqNum()) {
+				reply(msg, "NO Invalid message ID");
 				return;
 			}
-
-			for(MailMessage message : msgs.values()) {
-				if(message.getSeqNum() == to) {
-					to = message.getUID();
-					break;
-				}
-			}
-			for(MailMessage message : msgs.values()) {
-				if(message.getSeqNum() == from) {
-					from = message.getUID();
-					break;
-				}
-			}
 		}
 
-		//Swap if needed so from is always smaller or equal to to
-		if(from > to) {
-			int temp = from;
-			from = to;
-			to = temp;
-		}
-
-		//Return the messages in the UID range. The continue and break
-		//statements work because the map is sorted on message ids which always
-		//means that the UIDs will be sorted too.
+		//Return the messages in the range
 		for(MailMessage message : msgs.values()) {
-			if(message.getUID() < from) {
-				continue;
-			}
-			if(message.getUID() > to) {
-				break;
+			if(uid) {
+				if(!sequenceNumbers.contains(message.getUID())) {
+					continue;
+				}
+			} else {
+				if(!sequenceNumbers.contains(message.getSeqNum())) {
+					continue;
+				}
 			}
 
 			if(!this.fetchSingle(message, msg.args, 1, uid)) {
@@ -617,14 +572,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				this.reply(msg, "NO No messages copied");
 		} else {
 			this.reply(msg, "BAD Unknown command");
-		}
-	}
-
-	private int parseSequenceNumber(String seqNum, int maxMessageNum) {
-		if(seqNum.equals("*")) {
-			return maxMessageNum;
-		} else {
-			return Integer.parseInt(seqNum);
 		}
 	}
 
@@ -1683,5 +1630,51 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return false;
 		}
 		return true;
+	}
+
+	private SortedSet<Integer> parseSequenceSet(String seqNum, int maxSeqNum) {
+		SortedSet<Integer> result = new TreeSet<Integer>();
+
+		//Split on , to get the ranges
+		for(String range : seqNum.split(",")) {
+			String fromSeqNum;
+			String toSeqNum;
+
+			if(!range.contains(":")) {
+				fromSeqNum = range;
+				toSeqNum = range;
+			} else {
+				String[] parts = range.split(":");
+				if(parts.length != 2) {
+					throw new NumberFormatException();
+				}
+
+				fromSeqNum = parts[0];
+				toSeqNum = parts[1];
+			}
+
+			int from = parseSequenceNumber(fromSeqNum, maxSeqNum);
+			int to = parseSequenceNumber(toSeqNum, maxSeqNum);
+
+			if(from > to) {
+				int temp = from;
+				from = to;
+				to = temp;
+			}
+
+			for(int i = from; i <= to; i++) {
+				result.add(i);
+			}
+		}
+
+		return result;
+	}
+
+	private int parseSequenceNumber(String seqNum, int maxSeqNum) {
+		if(seqNum.equals("*")) {
+			return maxSeqNum;
+		}
+
+		return Integer.parseInt(seqNum);
 	}
 }
