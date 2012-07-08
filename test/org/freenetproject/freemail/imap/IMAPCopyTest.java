@@ -121,4 +121,31 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testCopyPreservesFlags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 STORE 1 FLAGS (\\Seen)");
+		commands.add("0004 STORE 2 FLAGS (\\Deleted)");
+		commands.add("0005 STORE 3 FLAGS (\\Recent)");
+		commands.add("0006 COPY 1:3 INBOX");
+		commands.add("0007 UID FETCH 11:* (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("* 2 FETCH FLAGS (\\Deleted)");
+		expectedResponse.add("0004 OK Store completed");
+		expectedResponse.add("* 3 FETCH FLAGS (\\Recent)");
+		expectedResponse.add("0005 OK Store completed");
+		expectedResponse.add("0006 OK COPY completed");
+		expectedResponse.add("* 10 FETCH (UID 11 FLAGS (\\Seen \\Recent))");
+		expectedResponse.add("* 11 FETCH (UID 12 FLAGS (\\Deleted \\Recent))");
+		expectedResponse.add("* 12 FETCH (UID 13 FLAGS (\\Recent))");
+		expectedResponse.add("0007 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
