@@ -363,7 +363,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
-	
+
 	public void testUidWithNoArgs() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
