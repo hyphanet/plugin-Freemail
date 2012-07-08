@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Date;
@@ -232,7 +233,7 @@ public class AccountManager {
 	}
 
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 
 		MailMessage m = account.getMessageBank().createMessage();
 		Date currentDate = new Date();
