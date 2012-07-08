@@ -1054,7 +1054,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args == null || msg.args.length < 1) {
-			this.reply(msg, "NO Not enough arguments");
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
@@ -1100,7 +1100,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args == null || msg.args.length < 1) {
-			this.reply(msg, "NO Not enough arguments");
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
@@ -1134,7 +1134,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args == null || msg.args.length < 2) {
-			this.reply(msg, "NO Not enough arguments");
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
