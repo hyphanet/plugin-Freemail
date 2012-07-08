@@ -93,7 +93,9 @@ public abstract class IMAPTestBase extends TestCase {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+		IMAPHandler handler = new IMAPHandler(accManager, sock);
+		Thread imapThread = new Thread(handler);
+		imapThread.start();
 
 		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
 		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
@@ -110,6 +112,12 @@ public abstract class IMAPTestBase extends TestCase {
 
 		assertFalse("IMAP socket has more data", fromHandler.ready());
 
+		handler.kill();
 		sock.close();
+		try {
+			imapThread.join();
+		} catch(InterruptedException e) {
+			fail("Caught unexpected InterruptedException");
+		}
 	}
 }
