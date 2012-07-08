@@ -148,4 +148,30 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testCopyWithNoArgs() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0006 COPY");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0006 NO Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithoutDestination() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0006 COPY *");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0006 NO Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
