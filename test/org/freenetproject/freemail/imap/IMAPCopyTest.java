@@ -226,4 +226,69 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testCopyWithIllegalSequenceNumber() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberFirstInRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY BAD:* INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberLastInRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY *:BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberFirstInList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY BAD,* INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberLastInList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY *,BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
