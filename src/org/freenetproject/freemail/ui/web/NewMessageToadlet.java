@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -267,7 +268,7 @@ public class NewMessageToadlet extends WebPage {
 
 		//Build message header
 		StringBuilder header = new StringBuilder();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		FreemailAccount account = freemail.getAccountManager().getAccount(loginManager.getSession(ctx).getUserID());
 
