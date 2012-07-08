@@ -109,5 +109,7 @@ public abstract class IMAPTestBase extends TestCase {
 		}
 
 		assertFalse("IMAP socket has more data", fromHandler.ready());
+
+		sock.close();
 	}
 }
