@@ -209,7 +209,7 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0006 NO Not enough arguments");
+		expectedResponse.add("0006 BAD Not enough arguments");
 
 		runSimpleTest(commands, expectedResponse);
 	}
@@ -222,7 +222,7 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0006 NO Not enough arguments");
+		expectedResponse.add("0006 BAD Not enough arguments");
 
 		runSimpleTest(commands, expectedResponse);
 	}
