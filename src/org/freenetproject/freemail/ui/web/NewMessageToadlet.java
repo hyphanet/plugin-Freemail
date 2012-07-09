@@ -47,6 +47,7 @@ import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.support.MessageBankTools;
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
@@ -277,9 +278,16 @@ public class NewMessageToadlet extends WebPage {
 			//Use the values so we get what the user typed
 			header.append("To: " + recipient + "\r\n");
 		}
+
+		String local = EmailAddress.cleanLocalPart(account.getNickname());
+		if(local.length() == 0) {
+			local = "mail";
+		}
+		header.append("From: " + MailMessage.encodeHeader(account.getNickname())
+				+ " <" + local + "@" + account.getDomain() + ">" + "\r\n");
+
 		header.append("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n");
 		header.append("Date: " + sdf.format(new Date()) + "\r\n");
-		header.append("From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ">\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
 
 		//Add extra headers from request. Very little checking is done here since we want flexibility, and anything

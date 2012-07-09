@@ -114,4 +114,20 @@ public class MailMessageTest extends TestCase {
 				+ "<4567@jkl.com>";
 		assertEquals(expected, msg.getFirstHeader("References"));
 	}
+
+	public void testEncodeAsciiHeader() {
+		assertEquals("testHeader", MailMessage.encodeHeader("testHeader"));
+	}
+
+	public void testEncodeAsciiHeaderWithSpace() {
+		assertEquals("test=?UTF-8?Q?=20?=Header", MailMessage.encodeHeader("test Header"));
+	}
+
+	public void testEncodeHeaderWithSingleUTF8Character() {
+		assertEquals("test=?UTF-8?Q?=C3=A6?=Header", MailMessage.encodeHeader("testæHeader"));
+	}
+
+	public void testEncodeHeaderWithMultipleUTF8Character() {
+		assertEquals("=?UTF-8?Q?=C3=A6?==?UTF-8?Q?=E2=88=80?=", MailMessage.encodeHeader("æ∀"));
+	}
 }

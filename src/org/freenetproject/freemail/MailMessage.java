@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -518,6 +519,35 @@ public class MailMessage {
 		}
 
 		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
+	}
+
+	public static String encodeHeader(String header) {
+		StringBuilder result = new StringBuilder();
+
+		for(char c : header.toCharArray()) {
+			//ASCII printable characters except ? and SPACE can be passed
+			//though as is. _ can be used to encode SPACE, so encode that as
+			//well to avoid ambiguity
+			if(0x21 <= c && c <= 0x7e && c != '?' && c != '_') {
+				result.append(c);
+				continue;
+			}
+
+			//Encode the rest
+			//FIXME: There has to be a better way than wrapping with arrays everywhere...
+			Charset utf8 = Charset.forName("UTF-8");
+			ByteBuffer bytes = utf8.encode(CharBuffer.wrap(new char[] {c}));
+			result.append("=?UTF-8?Q?");
+			while(bytes.hasRemaining()) {
+				byte b = bytes.get();
+				result.append("=");
+				String encodedString = new String(Hex.encode(new byte[] {b}), utf8).toUpperCase();
+				result.append(encodedString);
+			}
+			result.append("?=");
+		}
+
+		return result.toString();
 	}
 
 	private static class MailMessageHeader {
