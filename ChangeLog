@@ -6,6 +6,7 @@ Changes from version 0.2.1 to version 0.2.2
       IMAP
     - Set locale when adding date to messages sent using the web interface,
       and when creating the welcome message
+    - Filter email headers before adding to outbox
 
   o Improvements:
     - Implement IMAP search commands needed by Thunderbird
