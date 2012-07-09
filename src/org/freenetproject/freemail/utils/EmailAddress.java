@@ -35,7 +35,7 @@ public class EmailAddress {
 
 	public EmailAddress(String address) {
 		if(address.matches(".*[^\\u0000-\\u007F]+.*")) {
-			throw new IllegalArgumentException("Address contains 8bit character");
+			Logger.error(this, "Address contains 8bit character");
 		}
 		if(address.matches(".*[\\u0000-\\u001F]+.*")) {
 			throw new IllegalArgumentException("Address contains ASCII control character");
