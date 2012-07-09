@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 import org.freenetproject.freemail.utils.Logger;
 
 
-class MailHeaderFilter {
+public class MailHeaderFilter {
 	private final BufferedReader reader;
 	private final StringBuffer buffer;
 	private boolean foundEnd;
