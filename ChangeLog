@@ -7,6 +7,10 @@ Changes from version 0.2.1 to version 0.2.2
     - Set locale when adding date to messages sent using the web interface,
       and when creating the welcome message
     - Filter email headers before adding to outbox
+    - Encode non-ascii characters in nickname when sending messages from the
+      web interface
+    - Drop or encode non-ascii characters from the headers when sending
+      messages using the web interface
 
   o Improvements:
     - Implement IMAP search commands needed by Thunderbird
