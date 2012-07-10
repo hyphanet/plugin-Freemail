@@ -273,7 +273,11 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		author.addChild("#", msg.getFirstHeader("From"));
+		try {
+			author.addChild("#", MailMessage.decodeHeader(msg.getFirstHeader("From")));
+		} catch (UnsupportedEncodingException e) {
+			author.addChild("#", msg.getFirstHeader("From"));
+		}
 
 		HTMLNode date = message.addChild("td", "class", "date");
 

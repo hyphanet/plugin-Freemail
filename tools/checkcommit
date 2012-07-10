@@ -45,39 +45,64 @@ PARENT=`git describe "$COMMIT"^`
 
 #Checkout the parent of the target
 git checkout "$PARENT" &> /dev/null
+mkdir -p .checkcommit.prev
 set +e
-ant checkstyle |& grep "\[cs:checkstyle\] " | tail -n +2 &> .checkcommit.prev
+ant clean &> /dev/null
+ant checkstyle unit &> .checkcommit.prev/build
+grep "\[cs:checkstyle\] " .checkcommit.prev/build | tail -n +2 | sort > .checkcommit.prev/checkstyle
+grep "\[junit\] Testcase: .*FAILED" .checkcommit.prev/build | sort > .checkcommit.prev/junit
 set -e
 
 #Checkout the target
 git checkout "$TARGET" &> /dev/null
+mkdir -p .checkcommit.cur
 set +e
-ant checkstyle |& grep "\[cs:checkstyle\] " | tail -n +2 &> .checkcommit.cur
+ant clean &> /dev/null
+ant checkstyle unit &> .checkcommit.cur/build
+grep "\[cs:checkstyle\] " .checkcommit.cur/build | tail -n +2 | sort > .checkcommit.cur/checkstyle
+grep "\[junit\] Testcase: .*FAILED" .checkcommit.cur/build | sort > .checkcommit.cur/junit
 set -e
 
 #Count differences
 ADDED=`diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+" | wc -l`
 REMOVED=`diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^-" | wc -l`
 
+#Count the Checkstyle warnings
+CHECKSTYLE_ADDED=`diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^+" | wc -l`
+CHECKSTYLE_REMOVED=`diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^-" | wc -l`
 if [[ ! $QUIET ]]; then
-	if [[ $ADDED -gt 0 || $VERBOSE ]]; then
+	if [[ $CHECKSTYLE_ADDED -gt 0 || $VERBOSE ]]; then
 		#Print any new warnings and the count
 		set +e
 		#TODO: Remove the initial +
-		diff -u .checkcommit.prev .checkcommit.cur | tail -n+3 | grep "^+"
+		diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^+"
 		set -e
-		echo "`git describe`: $ADDED warnings added, $REMOVED removed"
+		echo "`git describe`: $CHECKSTYLE_ADDED warnings added, $CHECKSTYLE_REMOVED removed"
+	fi
+fi
+
+#Count the jUnit test failures
+JUNIT_ADDED=`diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^+" | wc -l`
+JUNIT_REMOVED=`diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^-" | wc -l`
+if [[ ! $QUIET ]]; then
+	if [[ $JUNIT_ADDED -gt 0 || $VERBOSE ]]; then
+		#Print any new failures and the count
+		set +e
+		#TODO: Remove the initial +
+		diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^+"
+		set -e
+		echo "`git describe`: $JUNIT_ADDED new failures, $JUNIT_REMOVED failures fixed"
 	fi
 fi
 
 #Cleanup
-rm .checkcommit.prev .checkcommit.cur
+rm -r .checkcommit.prev/ .checkcommit.cur/
 
 #Checkout original branch
 git checkout "$ORIG" &> /dev/null
 
 #Exit with failure if warnings were added
-if [[ $ADDED == "0" ]]; then
+if [[ $CHECKSTYLE_ADDED == "0" && $JUNIT_ADDED == "0" ]]; then
 	exit 0
 else
 	exit 1

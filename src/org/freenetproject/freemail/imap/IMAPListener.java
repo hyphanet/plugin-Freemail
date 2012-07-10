@@ -47,9 +47,9 @@ public class IMAPListener extends ServerListener implements Runnable, ConfigClie
 
 	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase(Configurator.IMAP_BIND_ADDRESS)) {
+		if(key.equalsIgnoreCase(Configurator.IMAP_BIND_ADDRESS)) {
 			this.bindaddress = val;
-		} else if (key.equalsIgnoreCase(Configurator.IMAP_BIND_PORT)) {
+		} else if(key.equalsIgnoreCase(Configurator.IMAP_BIND_PORT)) {
 			this.bindport = Integer.parseInt(val);
 		}
 	}
@@ -66,7 +66,7 @@ public class IMAPListener extends ServerListener implements Runnable, ConfigClie
 	public void realrun() throws IOException {
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
 		sock.setSoTimeout(60000);
-		while (!sock.isClosed()) {
+		while(!sock.isClosed()) {
 			try {
 				IMAPHandler newcli = new IMAPHandler(accountManager, sock.accept());
 				Thread newthread = new Thread(newcli);

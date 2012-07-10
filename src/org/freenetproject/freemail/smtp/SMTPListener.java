@@ -59,16 +59,16 @@ public class SMTPListener extends ServerListener implements Runnable, ConfigClie
 
 	@Override
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase(Configurator.SMTP_BIND_ADDRESS)) {
+		if(key.equalsIgnoreCase(Configurator.SMTP_BIND_ADDRESS)) {
 			this.bindaddress = val;
-		} else if (key.equalsIgnoreCase(Configurator.SMTP_BIND_PORT)) {
+		} else if(key.equalsIgnoreCase(Configurator.SMTP_BIND_PORT)) {
 			this.bindport = Integer.parseInt(val);
 		}
 	}
 
 	public void realrun() throws IOException {
 		sock = new ServerSocket(this.bindport, 10, InetAddress.getByName(this.bindaddress));
-		while (!sock.isClosed()) {
+		while(!sock.isClosed()) {
 			try {
 				IdentityMatcher matcher = new IdentityMatcher(freemail.getWotConnection());
 				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), matcher);

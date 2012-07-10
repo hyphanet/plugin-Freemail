@@ -51,18 +51,18 @@ class MailLog {
 			BufferedReader br = new BufferedReader(frdr);
 			String line;
 
-			while ((line = br.readLine()) != null) {
+			while((line = br.readLine()) != null) {
 				String[] parts = line.split("=");
 
-				if (parts.length != 2) continue;
+				if(parts.length != 2) continue;
 
-				if (parts[0].equalsIgnoreCase("passes")) {
+				if(parts[0].equalsIgnoreCase("passes")) {
 					this.passes = Integer.parseInt(parts[1]);
 					continue;
 				}
 
 				int thisnum = Integer.parseInt(parts[0]);
-				if (thisnum > this.lastMessageId)
+				if(thisnum > this.lastMessageId)
 					this.lastMessageId = thisnum;
 				this.messages.put(new Integer(thisnum), parts[1]);
 			}
@@ -90,7 +90,7 @@ class MailLog {
 
 	public void addMessage(int num, String checksum) {
 		this.messages.put(new Integer(num), checksum);
-		if (num > this.lastMessageId)
+		if(num > this.lastMessageId)
 			this.lastMessageId = num;
 		this.writeLogFile();
 	}
@@ -108,7 +108,7 @@ class MailLog {
 		pw.println("passes="+this.passes);
 
 		Iterator<Map.Entry<Integer, String>> i = this.messages.entrySet().iterator();
-		while (i.hasNext()) {
+		while(i.hasNext()) {
 			Map.Entry<Integer, String> e = i.next();
 
 			Integer num = e.getKey();

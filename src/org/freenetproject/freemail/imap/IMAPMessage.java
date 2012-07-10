@@ -32,17 +32,23 @@ public class IMAPMessage {
 		char[] a2 = {']', '"'};
 
 		String[] parts = doSplit(raw, a1, a2);
-		if (parts.length < 2) {
+		if(parts.length < 2) {
 			throw new IMAPBadMessageException();
 		}
 		this.tag = parts[0];
 		this.type = parts[1].toLowerCase();
-		if (parts.length > 2) {
+		if(parts.length > 2) {
 			this.args = new String[parts.length - 2];
 			System.arraycopy(parts, 2, this.args, 0, parts.length - 2);
 		} else {
 			this.args = null;
 		}
+	}
+
+	IMAPMessage(String tag, String type, String[] args) {
+		this.tag = tag;
+		this.type = type;
+		this.args = args;
 	}
 
 	public static String[] doSplit(String in, char c1, char c2) {
@@ -59,27 +65,27 @@ public class IMAPMessage {
 		StringBuffer buf = new StringBuffer("");
 		Stack<Character> context = new Stack<Character>();
 
-		for (int i = 0; i < in.length(); i++) {
+		for(int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
 
 			int pos = -1;
-			for (int j = 0; j < c1.length; j++) {
-				if (c1[j] == c) {
+			for(int j = 0; j < c1.length; j++) {
+				if(c1[j] == c) {
 					pos = j;
 					break;
 				}
 			}
 
-			if (!context.empty() && c == context.peek().charValue()) {
+			if(!context.empty() && c == context.peek().charValue()) {
 				context.pop();
 				buf.append(c);
-			} else if (pos >= 0) {
+			} else if(pos >= 0) {
 				context.push(new Character(c2[pos]));
 				buf.append(c);
-			} else if (c == ' ' && context.empty()) {
+			} else if(c == ' ' && context.empty()) {
 				parts.add(buf.toString());
 				buf = new StringBuffer("");
-			} else if (context.empty()) {
+			} else if(context.empty()) {
 				buf.append(c);
 			} else buf.append(c);
 		}
@@ -88,7 +94,7 @@ public class IMAPMessage {
 
 		String[] retval = new String[parts.size()];
 
-		for (int i = 0; i < parts.size(); i++) {
+		for(int i = 0; i < parts.size(); i++) {
 			retval[i] = parts.get(i);
 		}
 
@@ -103,9 +109,9 @@ public class IMAPMessage {
 		retval += this.tag + " ";
 		retval += this.type;
 
-		if (this.args == null) return retval;
+		if(this.args == null) return retval;
 
-		for (int i = 0; i < this.args.length; i++) {
+		for(int i = 0; i < this.args.length; i++) {
 			retval += " " + this.args[i];
 		}
 		return retval;

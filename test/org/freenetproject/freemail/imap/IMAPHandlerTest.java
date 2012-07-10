@@ -29,12 +29,10 @@ import java.util.List;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.imap.IMAPHandler;
 
-import junit.framework.ComparisonFailure;
-
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 
-public class IMAPHandlerTest extends IMAPTestBase {
+public class IMAPHandlerTest extends IMAPTestWithMessages {
 	public void testIMAPGreeting() throws IOException {
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
@@ -78,17 +76,7 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands, INITIAL_RESPONSES);
 	}
 
 	/*
@@ -204,22 +192,6 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	/*
-	 * This checks for the bug fixed in c43fcb18df185a5c67fbfcabf31eca22f44b7493.
-	 * The IMAP handler thread would crash with a NullPointerException if
-	 * append was called with a subfolder of index before logging in.
-	 */
-	public void testAppend() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 APPEND inbox.folder arg2");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 NO Must be authenticated");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 	public void testImplicitExpungeOnClose() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
@@ -229,20 +201,13 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		commands.add("0005 SELECT INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
-		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("0004 OK Mailbox closed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
 		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 9 EXISTS");
+		expectedResponse.add("* 8 EXISTS");
 		expectedResponse.add("* 0 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
 		expectedResponse.add("0005 OK [READ-WRITE] Done");
@@ -258,19 +223,12 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		commands.add("0004 SELECT INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
-		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
 		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
 		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
+		expectedResponse.add("* 9 EXISTS");
 		expectedResponse.add("* 0 RECENT");
 		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
 		expectedResponse.add("0004 OK [READ-WRITE] Done");
@@ -287,18 +245,11 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		commands.add("0005 EXPUNGE");
 
 		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
-		expectedResponse.add("* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited");
-		expectedResponse.add("* 10 EXISTS");
-		expectedResponse.add("* 10 RECENT");
-		expectedResponse.add("* OK [UIDVALIDITY 1] Ok");
-		expectedResponse.add("0002 OK [READ-WRITE] Done");
-		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Deleted)");
-		expectedResponse.add("* 2 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
+		expectedResponse.add("* 2 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
-		expectedResponse.add("* 4 FETCH FLAGS (\\Seen \\Deleted)");
+		expectedResponse.add("* 4 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0004 OK Store completed");
 		expectedResponse.add("* 1 EXPUNGE");
 		expectedResponse.add("* 1 EXPUNGE");
@@ -330,23 +281,99 @@ public class IMAPHandlerTest extends IMAPTestBase {
 		expectedResponse.add("* BYE");
 		expectedResponse.add("0003 OK Bye");
 
-		try {
-			runSimpleTest(commands, expectedResponse);
-			fail("String literals without ending linebreak appear to work, fix this "
-					+ "test so regressions will cause the test to fail");
-		} catch(ComparisonFailure e) {
-			/*
-			 * A test failure is expected at the moment since the bug hasn't
-			 * been fixed yet. Check that the expected and actual values don't
-			 * change and print a warning.
-			 */
-			final String expected = "* BYE";
-			final String actual = "0004 NO Sorry - not implemented";
+		runSimpleTest(commands, expectedResponse);
+	}
 
-			assertEquals(expected, e.getExpected());
-			assertEquals(actual, e.getActual());
+	public void testSearchForUndeleted() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 SEARCH UNDELETED");
 
-			System.err.println("testLiteralWithoutEndingLinebreak: Expected failure");
-		}
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9");
+		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidSearchForUndeleted() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID SEARCH UNDELETED");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
+		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testSearchWithNoMatches() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 SEARCH DELETED UNDELETED");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH");
+		expectedResponse.add("0003 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	/**
+	 * Attempt to emulate the behavior of Thunderbird when storing a draft
+	 * message, including the search to check that it was stored. See bug 5399
+	 */
+	public void testThunderbirdDraftStore() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT \"INBOX\"");
+		commands.add("0002 APPEND \"INBOX\" (\\Draft) {696}");
+		commands.add("FCC: imap://zidel%40b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail@10.8.0.1/INBOX/Sent");
+		commands.add("X-Identity-Key: id1");
+		commands.add("X-Account-Key: account1");
+		commands.add("Message-ID: <4FF2057E.8000902@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
+		commands.add("Date: Mon, 02 Jul 2012 22:33:02 +0200");
+		commands.add("From: zidel <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
+		commands.add("X-Mozilla-Draft-Info: internal/draft; vcard=0; receipt=0; DSN=0; uuencode=0");
+		commands.add("User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:13.0) Gecko/20120615 Thunderbird/13.0.1");
+		commands.add("MIME-Version: 1.0");
+		commands.add("To: zidel@b5");
+		commands.add("Subject: Test message");
+		commands.add("Content-Type: text/plain; charset=ISO-8859-1; format=flowed");
+		commands.add("Content-Transfer-Encoding: 7bit");
+		commands.add("");
+		commands.add("Test message");
+		commands.add("0003 NOOP");
+		commands.add("0004 uid SEARCH UNDELETED HEADER Message-ID 4FF2057E.8000902@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("0002 OK APPEND completed");
+		expectedResponse.add("0003 OK NOOP completed");
+		expectedResponse.add("* SEARCH 11");
+		expectedResponse.add("0004 OK Search completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidWithNoArgs() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT \"INBOX\"");
+		commands.add("0003 UID");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+
+		runSimpleTest(commands, expectedResponse);
 	}
 }

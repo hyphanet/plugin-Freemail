@@ -43,7 +43,7 @@ public class PropsFile {
 	private static final int reapEvery = 20;
 
 	public static synchronized PropsFile createPropsFile(File f, boolean stopAtBlank) {
-		if (reapCounter == reapEvery) {
+		if(reapCounter == reapEvery) {
 			reapOld();
 			reapCounter = 0;
 		} else {
@@ -72,10 +72,10 @@ public class PropsFile {
 
 		Iterator<Map.Entry<String, PropsFile>> i = propsList.entrySet().iterator();
 
-		while (i.hasNext()) {
+		while(i.hasNext()) {
 			Map.Entry<String, PropsFile> entry = i.next();
 			File f = new File(entry.getKey());
-			if (!f.exists()) {
+			if(!f.exists()) {
 				Logger.debug(PropsFile.class, "Removing "+f.getPath());
 				i.remove();
 			}
@@ -96,7 +96,7 @@ public class PropsFile {
 		this.file = f;
 		this.data = null;
 
-		if (f.exists()) {
+		if(f.exists()) {
 			try {
 				this.bufrdr = this.read(stopAtBlank);
 			} catch (IOException ioe) {
@@ -120,15 +120,15 @@ public class PropsFile {
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
 
 		String line = null;
-		while ((line = br.readLine()) != null) {
-			if (this.commentPrefix != null && line.startsWith(this.commentPrefix)) {
+		while((line = br.readLine()) != null) {
+			if(this.commentPrefix != null && line.startsWith(this.commentPrefix)) {
 				continue;
 			}
-			if (stopAtBlank && line.length() == 0) {
+			if(stopAtBlank && line.length() == 0) {
 				return br;
 			}
 			String[] parts = line.split("=", 2);
-			if (parts.length < 2) continue;
+			if(parts.length < 2) continue;
 			this.data.put(parts[0], parts[1]);
 		}
 
@@ -141,7 +141,7 @@ public class PropsFile {
 	}
 
 	public void closeReader() {
-		if (this.bufrdr == null) return;
+		if(this.bufrdr == null) return;
 		try {
 			this.bufrdr.close();
 		} catch (IOException ioe) {
@@ -159,10 +159,10 @@ public class PropsFile {
 
 		PrintWriter pw = new PrintWriter(new FileOutputStream(this.file));
 
-		if (this.header != null) pw.println(this.header);
+		if(this.header != null) pw.println(this.header);
 
 		Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
-		while (i.hasNext()) {
+		while(i.hasNext()) {
 			Map.Entry<String, String> e = i.next();
 			String key = e.getKey();
 			String val = e.getValue();
@@ -174,18 +174,18 @@ public class PropsFile {
 	}
 
 	public String get(String key) {
-		if (this.data == null) return null;
+		if(this.data == null) return null;
 
 		return this.data.get(key);
 	}
 
 	public boolean put(String key, String val) {
-		if (this.data == null) {
+		if(this.data == null) {
 			this.data = new HashMap<String, String>();
 		}
 
 		Object o = this.data.put(key, val);
-		if (o == null || !o.equals(val)) {
+		if(o == null || !o.equals(val)) {
 			try {
 				this.write();
 			} catch (IOException ioe) {
@@ -209,7 +209,7 @@ public class PropsFile {
 	}
 
 	public boolean remove(String key) {
-		if (this.data.containsKey(key)) {
+		if(this.data.containsKey(key)) {
 			this.data.remove(key);
 			try {
 				this.write();

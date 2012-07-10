@@ -25,7 +25,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.LinkedList;
@@ -40,6 +42,7 @@ import org.archive.util.Base32;
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.FreemailPlugin;
+import org.freenetproject.freemail.MailHeaderFilter;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.Postman;
 import org.freenetproject.freemail.FreemailPlugin.TaskType;
@@ -219,17 +222,29 @@ public class MessageHandler {
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
+			PrintWriter pw = new PrintWriter(os);
 			InputStream messageStream = message.getInputStream();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream));
+			MailHeaderFilter filter = new MailHeaderFilter(reader);
 			try {
-				byte[] buffer = new byte[1024];
+				//Copy headers
+				String header = filter.readHeader();
+				while(header != null) {
+					pw.write(header + "\r\n");
+					header = filter.readHeader();
+				}
+				pw.write("\r\n");
+
+				//Then the rest of the message
+				char[] buffer = new char[1024];
 				while(true) {
-					int read = messageStream.read(buffer, 0, buffer.length);
+					int read = reader.read(buffer, 0, buffer.length);
 					if(read == -1) break;
-					os.write(buffer, 0, read);
+					pw.write(buffer, 0, read);
 				}
 			} finally {
-				Closer.close(os);
-				Closer.close(messageStream);
+				Closer.close(pw);
+				Closer.close(reader);
 			}
 
 			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));

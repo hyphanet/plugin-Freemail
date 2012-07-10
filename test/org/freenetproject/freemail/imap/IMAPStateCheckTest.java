@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IMAPStateCheckTest extends IMAPTestBase {
+public class IMAPStateCheckTest extends IMAPTestWithMessages {
 	/* Append is valid in authenticated and selected states */
 	public void testAppend() throws IOException {
 		assertFailsWithoutLogin("APPEND arg1 arg2");

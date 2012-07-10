@@ -82,7 +82,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while (!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while(!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
 					//Logger.normal(this,line);
@@ -103,23 +103,23 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void dispatch(SMTPCommand cmd) {
-		if (cmd.command.equals("helo")) {
+		if(cmd.command.equals("helo")) {
 			this.handle_helo(cmd);
-		} else if (cmd.command.equals("ehlo")) {
+		} else if(cmd.command.equals("ehlo")) {
 			this.handle_ehlo(cmd);
-		} else if (cmd.command.equals("quit")) {
+		} else if(cmd.command.equals("quit")) {
 			this.handle_quit(cmd);
-		} else if (cmd.command.equals("turn")) {
+		} else if(cmd.command.equals("turn")) {
 			this.handle_turn(cmd);
-		} else if (cmd.command.equals("auth")) {
+		} else if(cmd.command.equals("auth")) {
 			this.handle_auth(cmd);
-		} else if (cmd.command.equals("mail")) {
+		} else if(cmd.command.equals("mail")) {
 			this.handle_mail(cmd);
-		} else if (cmd.command.equals("rcpt")) {
+		} else if(cmd.command.equals("rcpt")) {
 			this.handle_rcpt(cmd);
-		} else if (cmd.command.equals("data")) {
+		} else if(cmd.command.equals("data")) {
 			this.handle_data(cmd);
-		} else if (cmd.command.equals("rset")) {
+		} else if(cmd.command.equals("rset")) {
 			this.handle_rset(cmd);
 		} else {
 			Logger.normal(this, "Unknown command: " + cmd.command);
@@ -153,10 +153,10 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		String uname;
 		String password;
 
-		if (cmd.args.length == 0) {
+		if(cmd.args.length == 0) {
 			this.ps.print("504 No auth type given\r\n");
 			return;
-		} else if (cmd.args[0].equalsIgnoreCase("login")) {
+		} else if(cmd.args[0].equalsIgnoreCase("login")) {
 			this.ps.print("334 "+new String(Base64.encode("Username:".getBytes()))+"\r\n");
 
 			String b64username;
@@ -166,7 +166,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			} catch (IOException ioe) {
 				return;
 			}
-			if (b64username == null) return;
+			if(b64username == null) return;
 
 			this.ps.print("334 "+new String(Base64.encode("Password:".getBytes()))+"\r\n");
 			try {
@@ -174,20 +174,20 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			} catch (IOException ioe) {
 				return;
 			}
-			if (b64password == null) return;
+			if(b64password == null) return;
 
 			uname = new String(Base64.decode(b64username.getBytes()));
 			password = new String(Base64.decode(b64password.getBytes()));
-		} else if (cmd.args[0].equalsIgnoreCase("plain")) {
+		} else if(cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
 
-			if (cmd.args.length > 1) {
+			if(cmd.args.length > 1) {
 				b64creds = cmd.args[1];
 			} else {
 				this.ps.print("334 \r\n");
 				try {
 					b64creds = this.bufrdr.readLine();
-					if (b64creds == null) return;
+					if(b64creds == null) return;
 				} catch (IOException ioe) {
 					return;
 				}
@@ -196,14 +196,14 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			String creds_plain = new String(Base64.decode(b64creds.getBytes()));
 			String[] creds = creds_plain.split("\0");
 
-			if (creds.length < 2) return;
+			if(creds.length < 2) return;
 
 			// most documents seem to reckon you send the
 			// username twice. Some think only once.
 			// This will work either way.
 			uname = creds[0];
 			// there may be a null first (is this always the case?)
-			if (uname.length() < 1) {
+			if(uname.length() < 1) {
 				uname = creds[1];
 			}
 			password = creds[creds.length - 1];
@@ -225,7 +225,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 
 		account = accountmanager.authenticate(uname, password);
-		if (account != null) {
+		if(account != null) {
 			this.ps.print("235 Authenticated\r\n");
 		} else {
 			this.ps.print("535 Authentication failed\r\n");
@@ -233,7 +233,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handle_mail(SMTPCommand cmd) {
-		if (this.account == null) {
+		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
@@ -245,23 +245,23 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handle_rcpt(SMTPCommand cmd) {
-		if (cmd.args.length < 1) {
+		if(cmd.args.length < 1) {
 			this.ps.print("504 Insufficient arguments\r\n");
 			return;
 		}
 
-		if (this.account == null) {
+		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
 
 		String allargs = new String();
-		for (int i = 0; i < cmd.args.length; i++) {
+		for(int i = 0; i < cmd.args.length; i++) {
 		    allargs += cmd.args[i];
 		}
 
 		String[] parts = allargs.split(":", 2);
-		if (parts.length < 2) {
+		if(parts.length < 2) {
 			this.ps.print("504 Can't understand that syntax\r\n");
 			return;
 		}
@@ -293,12 +293,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handle_data(SMTPCommand cmd) {
-		if (this.account == null) {
+		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
 		}
 
-		if (this.to.size() == 0) {
+		if(this.to.size() == 0) {
 			this.ps.print("503 RCPT first\r\n");
 			return;
 		}
@@ -312,8 +312,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 			String line;
 			boolean done = false;
-			while ((line = this.bufrdr.readLine()) != null) {
-				if (line.equals(".")) {
+			while((line = this.bufrdr.readLine()) != null) {
+				if(line.equals(".")) {
 					done = true;
 					break;
 				}
@@ -321,7 +321,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 
 			pw.close();
-			if (!done) {
+			if(!done) {
 				// connection closed before the message was
 				// finished. bail out.
 				tempfile.delete();

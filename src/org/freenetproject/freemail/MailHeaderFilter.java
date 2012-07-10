@@ -30,9 +30,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.StringBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TimeZone;
-import java.text.ParseException;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,18 +42,42 @@ import java.util.regex.Pattern;
 import org.freenetproject.freemail.utils.Logger;
 
 
-class MailHeaderFilter {
+public class MailHeaderFilter {
 	private final BufferedReader reader;
 	private final StringBuffer buffer;
 	private boolean foundEnd;
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
-	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 
+	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 		gmt = TimeZone.getTimeZone("GMT");
 		sdf.setTimeZone(gmt);
+	}
+
+	/** List of headers that can be passed though without being checked */
+	private static final Set<String> headerWhitelist;
+	static {
+		Set<String> backing = new HashSet<String>();
+		backing.add("From");
+		backing.add("To");
+		backing.add("CC");
+		backing.add("Subject");
+		backing.add("MIME-Version");
+		backing.add("Content-Type");
+		backing.add("Content-Transfer-Encoding");
+		backing.add("In-Reply-To");
+		backing.add("References");
+		headerWhitelist = Collections.unmodifiableSet(backing);
+	}
+
+	/** List of headers that must never be passed though */
+	private static final Set<String> headerBlacklist;
+	static {
+		Set<String> backing = new HashSet<String>();
+		backing.add("BCC");
+		headerBlacklist = Collections.unmodifiableSet(backing);
 	}
 
 	public MailHeaderFilter(BufferedReader rdr) {
@@ -63,22 +89,22 @@ class MailHeaderFilter {
 	public String readHeader() throws IOException {
 		String retval = null;
 
-		while (retval == null) {
-			if (this.foundEnd) {
+		while(retval == null) {
+			if(this.foundEnd) {
 				return this.flush();
 			}
 
 			String line = this.reader.readLine();
-			if (line == null) {
+			if(line == null) {
 				Logger.error(this, "Warning - reached end of message file before reaching end of headers! This shouldn't happen!");
 				throw new IOException("Header filter reached end of message file before reaching end of headers");
 			}
 
-			if (line.length() == 0) {
+			if(line.length() == 0) {
 				// end of the headers
 				this.foundEnd = true;
 				retval = this.flush();
-			} else if (line.startsWith(" ") || line.startsWith("\t")) {
+			} else if(line.startsWith(" ") || line.startsWith("\t")) {
 				// continuation of the previous header
 				this.buffer.append("\r\n "+line.trim());
 			} else {
@@ -93,88 +119,91 @@ class MailHeaderFilter {
 	// if the header is invalid or filtered out entirely,
 	// return null. Otherwise return the filtered header.
 	private String flush() {
-		if (this.buffer.length() == 0) return null;
+		if(this.buffer.length() == 0) return null;
 
-		String[] bits = this.buffer.toString().split(": ", 2);
+		String header = this.buffer.toString();
+		String[] bits = header.split(":", 2);
 		this.buffer.delete(0, this.buffer.length());
 
 		// invalid header - ditch it.
-		if (bits.length < 2) return null;
+		if(bits.length < 2) {
+			Logger.warning(this, "Dropping header due to unknown format: " + header);
+			return null;
+		}
 
+		bits[1] = bits[1].trim();
 		bits[1] = this.filterHeader(bits[0], bits[1]);
-		if (bits[1] == null) return null;
+		if(bits[1] == null) return null;
 
 		return bits[0]+": "+bits[1];
 	}
 
 	private String filterHeader(String name, String val) {
-		// Whitelist filter
-		if (name.equalsIgnoreCase("Date")) {
+		//Check for illegal characters
+		if(name.matches(".*[^\\u0000-\\u007F]+.*")) {
+			Logger.error(this, "Header name contains 8bit character(s), dropping (name=" + name + ")");
+			return null;
+		}
+		if(val.matches(".*[^\\u0000-\\u007F]+.*")) {
+			Logger.error(this, "Header value contains 8bit character(s) (name=" + name + ", value=" + val + ")");
+			//These should be dropped eventually, but we still have bugs
+			//related to this so just log for now
+		}
+
+		//Drop headers in the blacklist
+		for(String header : headerBlacklist) {
+			if(name.equalsIgnoreCase(header)) {
+				Logger.minor(this, "Dropping header " + name + " because it is blacklisted");
+				return null;
+			}
+		}
+
+		//Pass though headers in the whitelist
+		for(String header : headerWhitelist) {
+			if(name.equalsIgnoreCase(header)) {
+				Logger.minor(this, "Keeping header " + name + " because it is whitelisted");
+				return val;
+			}
+		}
+
+		//Rewrite or filter the rest
+		if(name.equalsIgnoreCase("Date")) {
 			// the norm is to put the sender's local time here, with the sender's local time offset
 			// at the end. Rather than giving away what time zone we're in, parse the date in
 			// and return it as a GMT time.
 
-			Date d = null;
-			try {
-				synchronized(sdf) {
-					d = sdf.parse(val);
-				}
-			} catch (ParseException pe) {
-				// ...the compiler whinges unless we catch this exception...
-				Logger.normal(this, "Warning: couldn't parse date: "+val+" (caught exception)");
+			Date d = MailMessage.parseDate(val);
+			if(d == null) {
+				Logger.warning(this, "Dropping date because we couldn't parse it (" + val + ")");
 				return null;
 			}
-			// but the docs don't say that it throws it, but says that it return null
-			// http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html#parse(java.lang.String, java.text.ParsePosition)
-			if (d == null) {
-				// invalid date - ditch the header
-				Logger.normal(this, "Warning: couldn't parse date: "+val+" (got null)");
-				return null;
-			}
+
 			String strDate;
 			synchronized(sdf) {
 				strDate = sdf.format(d);
 			}
 			return strDate;
-		} else if (name.equalsIgnoreCase("Message-ID")) {
+		} else if(name.equalsIgnoreCase("Message-ID")) {
 			// We want to keep message-ids for in-reply-to and hence message threading to work, but we need to make sure the
 			// mail client hasn't put in a real hostname, as some have been known to.
 			Matcher m = messageIdPattern.matcher(val);
-			if (!m.matches() || m.groupCount() < 2) {
+			if(!m.matches() || m.groupCount() < 2) {
 				// couldn't make any sense of it, so just drop it
 				return null;
 			} else {
-				if (m.group(2).endsWith("freemail")) {
+				if(m.group(2).endsWith("freemail")) {
 					// okay, the hostname part ends with freemail, so it's a fake Freemail domain and not a real one
 					return val;
 				} else {
 					// It's something else, so just replace it with 'freemail', although this might not actually be any more
 					// useful than dropping it, since the mail client will be looking for the unmangled header.
+					Logger.normal(this, "Replacing message id header");
 					return "<"+m.group(1)+"@freemail>";
 				}
 
 			}
-		} else if (name.equalsIgnoreCase("From")) {
-			return val;
-		} else if (name.equalsIgnoreCase("To")) {
-			return val;
-		} else if (name.equalsIgnoreCase("CC")) {
-			return val;
-		} else if (name.equalsIgnoreCase("BCC")) {
-			//The BCC field should not be sent
-			return null;
-		} else if (name.equalsIgnoreCase("Subject")) {
-			return val;
-		} else if (name.equalsIgnoreCase("MIME-Version")) {
-			return val;
-		} else if (name.equalsIgnoreCase("Content-Type")) {
-			return val;
-		} else if (name.equalsIgnoreCase("Content-Transfer-Encoding")) {
-			return val;
-		} else if (name.equalsIgnoreCase("In-Reply-To")) {
-			return val;
 		} else {
-			Logger.minor(this, "Dropping header " + name + " because it isn't on the whitelist");
+			Logger.warning(this, "Dropping unknown header " + name);
 			return null;
 		}
 	}

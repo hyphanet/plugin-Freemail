@@ -43,16 +43,16 @@ public class FreenetURI {
 	public FreenetURI(String uri) throws MalformedURLException {
 		String[] parts = uri.split(":", 2);
 
-		if (parts.length == 2 && !parts[0].equals("freenet")) {
+		if(parts.length == 2 && !parts[0].equals("freenet")) {
 			throw new MalformedURLException("Invalid scheme - not a Freenet address");
-		} else if (parts.length == 2) {
+		} else if(parts.length == 2) {
 			uri = parts[1];
 		}
 
 		// now split on the '@'
 		parts = uri.split("@", 2);
 
-		if (parts.length < 2) {
+		if(parts.length < 2) {
 			this.keytype  = "KSK";
 		} else {
 			this.keytype = parts[0];
@@ -62,7 +62,7 @@ public class FreenetURI {
 		// finally, separate the body from the metastrings
 		parts = uri.split("/", 2);
 
-		if (parts.length < 2) {
+		if(parts.length < 2) {
 			this.keybody = uri;
 			this.suffix = null;
 		} else {

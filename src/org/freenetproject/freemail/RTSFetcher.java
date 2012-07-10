@@ -84,22 +84,22 @@ public class RTSFetcher implements SlotSaveCallback {
 		File[] files = this.contact_dir.listFiles();
 
 		int i;
-		for (i = 0; i < files.length; i++) {
-			if (!files[i].getName().startsWith(RTS_UNPROC_PREFIX))
+		for(i = 0; i < files.length; i++) {
+			if(!files[i].getName().startsWith(RTS_UNPROC_PREFIX))
 				continue;
-			if (this.handle_rts(files[i])) {
+			if(this.handle_rts(files[i])) {
 				files[i].delete();
 			} else {
 				String[] parts = files[i].getName().split(",", 2);
 
 				int tries;
-				if (parts.length < 2) {
+				if(parts.length < 2) {
 					tries = 0;
 				} else {
 					tries = Integer.parseInt(parts[1]);
 				}
 				tries++;
-				if (tries > RTS_MAX_ATTEMPTS) {
+				if(tries > RTS_MAX_ATTEMPTS) {
 					Logger.normal(this, "Maximum attempts at handling RTS reached - deleting RTS");
 					files[i].delete();
 				} else {
@@ -113,13 +113,13 @@ public class RTSFetcher implements SlotSaveCallback {
 	private void fetch() throws ConnectionTerminatedException, InterruptedException {
 		int i;
 		RTSLog log = new RTSLog(new File(this.contact_dir, LOGFILE));
-		for (i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
+		for(i = 1 - MAX_DAYS_BACK; i <= 0; i++) {
 			String datestr = DateStringFactory.getOffsetKeyString(i);
-			if (log.getPasses(datestr) < PASSES_PER_DAY) {
+			if(log.getPasses(datestr) < PASSES_PER_DAY) {
 				boolean successfulPoll = this.fetch_day(log, datestr);
 				// don't count passes for today since more
 				// mail may arrive
-				if (i < 0 && successfulPoll) {
+				if(i < 0 && successfulPoll) {
 					log.incPasses(datestr);
 				}
 			}
@@ -160,7 +160,7 @@ public class RTSFetcher implements SlotSaveCallback {
 
 		int slot;
 		boolean success = true;
-		while ((slot = sm.getNextSlotNat()) > 0) {
+		while((slot = sm.getNextSlotNat()) > 0) {
 			Logger.minor(this, "trying to fetch "+keybase+slot);
 
 			try {
@@ -171,15 +171,15 @@ public class RTSFetcher implements SlotSaveCallback {
 				File rts_dest = new File(this.contact_dir, RTS_UNPROC_PREFIX + "-" + log.getAndIncUnprocNextId()+",0");
 
 				// stick this message in the RTS 'inbox'
-				if (result.renameTo(rts_dest)) {
+				if(result.renameTo(rts_dest)) {
 					// provided that worked, we can move on to the next RTS message
 					sm.slotUsed();
 				}
 			} catch (FCPFetchException fe) {
-				if (fe.isFatal()) {
+				if(fe.isFatal()) {
 					Logger.error(this, keybase+slot+": fatal fetch error - marking slot as used.");
 					sm.slotUsed();
-				} else if (fe.getCode() == FCPFetchException.ALL_DATA_NOT_FOUND) {
+				} else if(fe.getCode() == FCPFetchException.ALL_DATA_NOT_FOUND) {
 					// This could be the node not managing to find the CHK containing the actual data (since RTS messages are
 					// over 1KB, the node will opaquely insert them as a KSK redirect to a CHK, since a KSK/SSK can only hold
 					// 1KB of data). It could also be someone inserting dummy redirects to our RTS queue. We'll have to keep
@@ -187,9 +187,9 @@ public class RTSFetcher implements SlotSaveCallback {
 					// to fetch anything if they are dead keys.
 					Logger.error(this, keybase+slot+": All Data not found - leaving slot in queue and will poll an extra key");
 					sm.incPollAhead();
-				} else if (fe.getCode() == FCPFetchException.DATA_NOT_FOUND || fe.getCode() == FCPFetchException.RECENTLY_FAILED) {
+				} else if(fe.getCode() == FCPFetchException.DATA_NOT_FOUND || fe.getCode() == FCPFetchException.RECENTLY_FAILED) {
 					Logger.minor(this, keybase+slot+": no RTS.");
-				} else if (fe.isNetworkError()) {
+				} else if(fe.isNetworkError()) {
 					// Freenet is having special moment. This doesn't count as a valid poll.
 					success = false;
 				} else {
@@ -213,9 +213,9 @@ public class RTSFetcher implements SlotSaveCallback {
 
 	private boolean handle_rts(File rtsmessage) throws ConnectionTerminatedException, InterruptedException {
 		// sanity check!
-		if (!rtsmessage.exists()) return false;
+		if(!rtsmessage.exists()) return false;
 
-		if (rtsmessage.length() > RTS_MAX_SIZE) {
+		if(rtsmessage.length() > RTS_MAX_SIZE) {
 			Logger.normal(this, "RTS Message is too large - discarding!");
 			return true;
 		}
@@ -245,7 +245,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			ps = new PrintStream(new FileOutputStream(rtsfile));
 
 			String line;
-			while (true) {
+			while(true) {
 				try {
 					line = lis.readLine(200, 200, false);
 				} catch (TooLongException tle) {
@@ -255,13 +255,13 @@ public class RTSFetcher implements SlotSaveCallback {
 				}
 				messagebytes += lis.getLastBytesRead();
 
-				if (line == null || line.equals("")) break;
+				if(line == null || line.equals("")) break;
 				//FreemailLogger.normal(this, line);
 
 				ps.println(line);
 			}
 
-			if (line == null) {
+			if(line == null) {
 				// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
 
 				Logger.normal(this, "Couldn't find signature on RTS message - ignoring!");
@@ -278,15 +278,15 @@ public class RTSFetcher implements SlotSaveCallback {
 			their_encrypted_sig = new byte[bis.available()];
 
 			int totalread = 0;
-			while (true) {
+			while(true) {
 				int read = bis.read(their_encrypted_sig, totalread, bis.available());
-				if (read <= 0) break;
+				if(read <= 0) break;
 				totalread += read;
 			}
 		} catch (IOException ioe) {
 			Logger.normal(this, "IO error whilst handling RTS message. "+ioe.getMessage());
 			ioe.printStackTrace();
-			if (rtsfile != null) rtsfile.delete();
+			if(rtsfile != null) rtsfile.delete();
 			return false;
 		} finally {
 			if(ps != null) {
@@ -341,7 +341,7 @@ public class RTSFetcher implements SlotSaveCallback {
 		String their_exponent = mailsite.get("asymkey.pubexponent");
 		String their_modulus = mailsite.get("asymkey.modulus");
 
-		if (their_exponent == null || their_modulus == null) {
+		if(their_exponent == null || their_modulus == null) {
 			Logger.normal(this, "Mailsite fetched successfully but missing vital information! Discarding this RTS.");
 			msfile.delete();
 			rtsfile.delete();
@@ -364,15 +364,15 @@ public class RTSFetcher implements SlotSaveCallback {
 
 		// finally we can now check that our hash and their hash
 		// match!
-		if (their_hash.length < our_hash.length) {
+		if(their_hash.length < our_hash.length) {
 			Logger.normal(this, "The signature of the RTS message is not valid (our hash: "+our_hash.length+"bytes, their hash: "+their_hash.length+"bytes. Discarding the RTS message.");
 			msfile.delete();
 			rtsfile.delete();
 			return true;
 		}
 		int i;
-		for (i = 0; i < our_hash.length; i++) {
-			if (their_hash[i] != our_hash[i]) {
+		for(i = 0; i < our_hash.length; i++) {
+			if(their_hash[i] != our_hash[i]) {
 				Logger.normal(this, "The signature of the RTS message is not valid. Discarding the RTS message.");
 				msfile.delete();
 				rtsfile.delete();
@@ -418,12 +418,12 @@ public class RTSFetcher implements SlotSaveCallback {
 		int read = 0;
 		FileInputStream fis = new FileInputStream(rtsmessage);
 		try {
-			while (read < encrypted_params.length) {
+			while(read < encrypted_params.length) {
 				read += fis.read(encrypted_params, read, encrypted_params.length - read);
-				if (read < 0) break;
+				if(read < 0) break;
 			}
 
-			if (read < 0) {
+			if(read < 0) {
 				fis.close();
 				throw new InvalidCipherTextException("RTS Message too short");
 			}
@@ -442,7 +442,7 @@ public class RTSFetcher implements SlotSaveCallback {
 			byte[] plaintext = new byte[aescipher.getOutputSize((int)rtsmessage.length() - read)];
 
 			int ptbytes = 0;
-			while (read < rtsmessage.length()) {
+			while(read < rtsmessage.length()) {
 				byte[] buf = new byte[(int)rtsmessage.length() - read];
 
 				int thisread = fis.read(buf, 0, (int)rtsmessage.length() - read);
@@ -470,7 +470,7 @@ public class RTSFetcher implements SlotSaveCallback {
 	private void validate_rts(PropsFile rts) throws Exception {
 		StringBuffer missing = new StringBuffer();
 
-		if (rts.get("mailsite") == null) {
+		if(rts.get("mailsite") == null) {
 			missing.append("mailsite, ");
 		} else {
 			String mailsite = rts.get("mailsite");
@@ -481,11 +481,11 @@ public class RTSFetcher implements SlotSaveCallback {
 			}
 		}
 
-		if (rts.get("to") == null) {
+		if(rts.get("to") == null) {
 			missing.append("to, ");
 		}
 
-		if (rts.get("channel") == null) {
+		if(rts.get("channel") == null) {
 			missing.append("channel, ");
 		} else {
 			String channel = rts.get("channel");
@@ -496,14 +496,14 @@ public class RTSFetcher implements SlotSaveCallback {
 			}
 		}
 
-		if (rts.get("initiatorSlot") == null) {
+		if(rts.get("initiatorSlot") == null) {
 			missing.append("initiatorSlot, ");
 		}
-		if (rts.get("responderSlot") == null) {
+		if(rts.get("responderSlot") == null) {
 			missing.append("responderSlot, ");
 		}
 
-		if (missing.length() == 0) return;
+		if(missing.length() == 0) return;
 		/* FIXME: Throw a better exception */
 		throw new Exception(missing.toString().substring(0, missing.length() - 2));
 	}

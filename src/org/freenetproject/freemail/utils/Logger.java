@@ -207,7 +207,7 @@ public class Logger {
 
 				int updated = 0;
 
-				for (int i = 0; i < levels.length; i++) {
+				for(int i = 0; i < levels.length; i++) {
 					if(levels[i].equalsIgnoreCase("debug")) {
 						updated |= DEBUG;
 					} else if(levels[i].equalsIgnoreCase("minor")) {

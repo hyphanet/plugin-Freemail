@@ -1,3 +1,35 @@
+Changes from version 0.2.1 to version 0.2.2
+  o Bugfixes:
+    - Fixed bug that stopped In-Reply-To header from being added to replies
+      when using the web interface
+    - Don't automatically mark messages as seen when they are deleted using
+      IMAP
+    - Set locale when adding date to messages sent using the web interface,
+      and when creating the welcome message
+    - Filter email headers before adding to outbox
+    - Encode non-ascii characters in nickname when sending messages from the
+      web interface
+    - Drop or encode non-ascii characters from the headers when sending
+      messages using the web interface
+    - Fix decoding of multibyte characters in headers
+
+  o Improvements:
+    - Implement IMAP search commands needed by Thunderbird
+    - Add References header when replying using the web interface
+
+  o Build improvements:
+    - Don't fail build if unit tests or Checkstyle fails
+    - Check unit test failures when running checkcommit
+    - Avoid some false positives when running checkcommit
+
+  o Code changes:
+    - Replace arrays with Lists in MailMessage API
+    - Split IMAPTestBase into two classes (with and without messages)
+    - Combine handling of IMAP fetch and uid fetch commands
+
+  o Other:
+    - Change copyright header in Version.java from LGPL to GPL
+
 Changes from version 0.2 to version 0.2.1 - 2012-06-21
   o Improvements:
     - Don't print copyright statement to stdout when running as a plugin

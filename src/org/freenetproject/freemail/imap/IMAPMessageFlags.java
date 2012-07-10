@@ -58,8 +58,8 @@ public class IMAPMessageFlags {
 		StringBuffer buf = new StringBuffer();
 		boolean first = true;
 
-		for (i = 0; i < allFlags.length; i++) {
-			if (!first)
+		for(i = 0; i < allFlags.length; i++) {
+			if(!first)
 				buf.append(" ");
 			first = false;
 			buf.append(allFlags[i]);
@@ -73,8 +73,8 @@ public class IMAPMessageFlags {
 		StringBuffer buf = new StringBuffer();
 		boolean first = true;
 
-		for (i = 0; i < permanentFlags.length; i++) {
-			if (!first)
+		for(i = 0; i < permanentFlags.length; i++) {
+			if(!first)
 				buf.append(" ");
 			first = false;
 			buf.append(permanentFlags[i]);
@@ -91,8 +91,8 @@ public class IMAPMessageFlags {
 
 	public IMAPMessageFlags(String shortflags) {
 		this.flags = new Vector<String>();
-		for (int i = 0; i < allShortFlags.length; i++) {
-			if (shortflags.indexOf(allShortFlags[i]) >= 0) {
+		for(int i = 0; i < allShortFlags.length; i++) {
+			if(shortflags.indexOf(allShortFlags[i]) >= 0) {
 				this.flags.add(allFlags[i]);
 			}
 		}
@@ -101,13 +101,10 @@ public class IMAPMessageFlags {
 	public void set(String flag, boolean value) {
 		flag = sanitize_flag(flag);
 
-		if (flag == null) return;
+		if(flag == null) return;
 
-		if (value) {
+		if(value) {
 			this.flags.add(flag);
-			if(flag.equals("\\Deleted")) {
-				set("\\Seen", true);
-			}
 		} else {
 			this.flags.remove(flag);
 		}
@@ -116,8 +113,8 @@ public class IMAPMessageFlags {
 	public String getShortFlagString() {
 		String retval = new String("");
 
-		for (int i = 0; i < allFlags.length; i++) {
-			if (this.flags.contains(allFlags[i])) {
+		for(int i = 0; i < allFlags.length; i++) {
+			if(this.flags.contains(allFlags[i])) {
 				retval += allShortFlags[i];
 			}
 		}
@@ -128,9 +125,9 @@ public class IMAPMessageFlags {
 	public String getFlags() {
 		String retval = "";
 
-		for (int i = 0; i < allFlags.length; i++) {
-			if (this.flags.contains(allFlags[i])) {
-				if (retval.length() > 0) retval += " ";
+		for(int i = 0; i < allFlags.length; i++) {
+			if(this.flags.contains(allFlags[i])) {
+				if(retval.length() > 0) retval += " ";
 				retval += allFlags[i];
 			}
 		}
@@ -145,9 +142,9 @@ public class IMAPMessageFlags {
 	public boolean get(String flag) {
 		flag = sanitize_flag(flag);
 
-		if (flag == null) return false;
+		if(flag == null) return false;
 
-		if (this.flags.contains(flag)) return true;
+		if(this.flags.contains(flag)) return true;
 		return false;
 	}
 
@@ -156,8 +153,8 @@ public class IMAPMessageFlags {
 	private static String sanitize_flag(String flag) {
 		String realFlag = null;
 
-		for (int i = 0; i < allFlags.length; i++) {
-			if (allFlags[i].toLowerCase().equals(flag.toLowerCase())) {
+		for(int i = 0; i < allFlags.length; i++) {
+			if(allFlags[i].toLowerCase().equals(flag.toLowerCase())) {
 				realFlag = allFlags[i];
 			}
 		}

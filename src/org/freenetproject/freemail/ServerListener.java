@@ -39,13 +39,13 @@ public abstract class ServerListener {
 	 */
 	public void kill() {
 		try {
-			if (sock != null) sock.close();
+			if(sock != null) sock.close();
 		} catch (IOException ioe) {
 
 		}
 		// kill all our handlers too
 		synchronized(handlers) {
-			for (Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
+			for(Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
 				ServerHandler handler = i.next();
 				handler.kill();
 			}
@@ -56,9 +56,9 @@ public abstract class ServerListener {
 	 * Wait for all our client threads to terminate
 	 */
 	public void joinClientThreads() {
-		for (Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
+		for(Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
 			Thread t = i.next();
-			while (t != null) {
+			while(t != null) {
 				try {
 					t.join();
 					t = null;
@@ -79,18 +79,18 @@ public abstract class ServerListener {
 	protected void reapHandlers() {
 		// clean up dead handlers...
 		synchronized(handlers) {
-			for (Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
+			for(Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
 				ServerHandler handler = i.next();
-				if (!handler.isAlive()) {
+				if(!handler.isAlive()) {
 					i.remove();
 				}
 			}
 		}
 
 		// ...and threads...
-		for (Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
+		for(Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
 			Thread t = i.next();
-			if (!t.isAlive()) {
+			if(!t.isAlive()) {
 				i.remove();
 			}
 		}

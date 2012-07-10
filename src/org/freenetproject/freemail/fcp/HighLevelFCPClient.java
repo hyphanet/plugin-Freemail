@@ -55,7 +55,7 @@ public class HighLevelFCPClient implements FCPClient {
 		msg.headers.put("ReturnType", "direct");
 		msg.headers.put("Persistence", "connection");
 
-		while (true) {
+		while(true) {
 			try {
 				this.conn.doRequest(this, msg);
 				break;
@@ -77,15 +77,15 @@ public class HighLevelFCPClient implements FCPClient {
 			throw e;
 		}
 
-		if (reply.getType().equalsIgnoreCase("AllData")) {
+		if(reply.getType().equalsIgnoreCase("AllData")) {
 			return reply.getData();
-		} else if (reply.getType().equalsIgnoreCase("GetFailed")) {
+		} else if(reply.getType().equalsIgnoreCase("GetFailed")) {
 			String s_code = reply.headers.get("Code");
-			if (s_code == null) return null;
+			if(s_code == null) return null;
 			int code = Integer.parseInt(s_code);
-			if (code == FCP_PERMANANT_REDIRECT || code == FCP_TOO_MANY_PATH_COMPONENTS) {
+			if(code == FCP_PERMANANT_REDIRECT || code == FCP_TOO_MANY_PATH_COMPONENTS) {
 				String newuri = reply.headers.get("RedirectURI");
-				if (newuri == null) return null;
+				if(newuri == null) return null;
 				return this.fetch(newuri);
 			}
 			throw new FCPFetchException(reply);
@@ -114,7 +114,7 @@ public class HighLevelFCPClient implements FCPClient {
 	public SSKKeyPair makeSSK() throws ConnectionTerminatedException, InterruptedException {
 		FCPMessage msg = this.conn.getMessage("GenerateSSK");
 
-		while (true) {
+		while(true) {
 			try {
 				this.conn.doRequest(this, msg);
 				break;
@@ -135,7 +135,7 @@ public class HighLevelFCPClient implements FCPClient {
 			throw e;
 		}
 
-		if (reply.getType().equalsIgnoreCase("SSKKeypair")) {
+		if(reply.getType().equalsIgnoreCase("SSKKeypair")) {
 			SSKKeyPair retval = new SSKKeyPair();
 
 			retval.privkey = reply.headers.get("InsertURI");
@@ -154,7 +154,7 @@ public class HighLevelFCPClient implements FCPClient {
 		msg.headers.put("Persistence", "connection");
 		msg.setData(data);
 
-		while (true) {
+		while(true) {
 			try {
 				this.conn.doRequest(this, msg);
 				break;
@@ -173,7 +173,7 @@ public class HighLevelFCPClient implements FCPClient {
 			throw e;
 		}
 
-		if (reply.getType().equalsIgnoreCase("PutSuccessful")) {
+		if(reply.getType().equalsIgnoreCase("PutSuccessful")) {
 			return null;
 		} else if(reply.getType().equalsIgnoreCase("PutFailed")) {
 			return new FCPPutFailedException(reply);
@@ -194,7 +194,7 @@ public class HighLevelFCPClient implements FCPClient {
 				basekey = basekey.substring(0, basekey.length() - 1);
 			}
 		}
-		while (carryon) {
+		while(carryon) {
 			Logger.debug(this, "trying slotinsert to "+basekey+"-"+slot+suffix);
 
 			try {
@@ -212,10 +212,10 @@ public class HighLevelFCPClient implements FCPClient {
 				Logger.error(this, "Unknown error while doing slotinsert: " + e.getMessage());
 				return -1;
 			}
-			if (emsg == null) {
+			if(emsg == null) {
 				Logger.debug(this, "insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
-			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
+			} else if(emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
 				Logger.debug(this, "collision");
 			} else {
@@ -239,7 +239,7 @@ public class HighLevelFCPClient implements FCPClient {
 				basekey = basekey.substring(0, basekey.length() - 1);
 			}
 		}
-		while (carryon) {
+		while(carryon) {
 			Logger.debug(this, "trying slotinsert to "+basekey+"-"+slot+suffix);
 
 			bis = new ByteArrayInputStream(data);
@@ -253,10 +253,10 @@ public class HighLevelFCPClient implements FCPClient {
 				Logger.error(this, "Unknown error while doing slotinsert: " + e.getMessage());
 				return -1;
 			}
-			if (emsg == null) {
+			if(emsg == null) {
 				Logger.debug(this, "insert of "+basekey+"-"+slot+suffix+" successful");
 				return slot;
-			} else if (emsg.errorcode == FCPPutFailedException.COLLISION) {
+			} else if(emsg.errorcode == FCPPutFailedException.COLLISION) {
 				slot++;
 				Logger.debug(this, "collision");
 			} else {

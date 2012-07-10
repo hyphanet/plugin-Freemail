@@ -34,13 +34,13 @@ public class EmailAddress {
 	public String domain;
 
 	public EmailAddress(String address) {
-		if(address.matches("[^\\u0000-\\u007F]")) {
-			throw new IllegalArgumentException("Address contains 8bit character");
+		if(address.matches(".*[^\\u0000-\\u007F]+.*")) {
+			Logger.error(this, "Address contains 8bit character");
 		}
-		if(address.matches("[\\u0000-\\u001F]")) {
+		if(address.matches(".*[\\u0000-\\u001F]+.*")) {
 			throw new IllegalArgumentException("Address contains ASCII control character");
 		}
-		if(address.matches("[\\u007F]")) {
+		if(address.matches(".*[\\u007F]+.*")) {
 			throw new IllegalArgumentException("Address contains ASCII DEL control character");
 		}
 
@@ -49,7 +49,7 @@ public class EmailAddress {
 		this.domain = null;
 
 		StringBuffer bank = new StringBuffer("");
-		for (int i = 0; i < address.length(); i++) {
+		for(int i = 0; i < address.length(); i++) {
 			char c = address.charAt(i);
 
 			switch (c) {
@@ -78,12 +78,12 @@ public class EmailAddress {
 			}
 		}
 
-		if (this.realname == null && this.domain == null) {
+		if(this.realname == null && this.domain == null) {
 			this.domain = bank.toString().toLowerCase();
 		}
 
 		// trim quotes out of the real name field
-		if (realname != null) {
+		if(realname != null) {
 			this.realname = this.realname.trim();
 
 			if((this.realname.length() > 0) && (this.realname.charAt(0) == '\"')) {
@@ -96,17 +96,14 @@ public class EmailAddress {
 		}
 	}
 
-	public EmailAddress() {
-	}
-
 	public boolean is_freemail_address() {
-		if (this.domain == null) return false;
-		if (!this.domain.endsWith(".freemail")) return false;
+		if(this.domain == null) return false;
+		if(!this.domain.endsWith(".freemail")) return false;
 		return true;
 	}
 
 	public boolean is_ssk_address() {
-		if (!this.is_freemail_address()) return false;
+		if(!this.is_freemail_address()) return false;
 		String key;
 		try {
 			key = new String(Base32.decode(this.getSubDomain()));
@@ -116,8 +113,8 @@ public class EmailAddress {
 
 		String[] parts = key.split(",", 3);
 
-		if (parts.length < 3) return false;
-		if (parts[0].length() != SSK_PART_LENGTH || parts[1].length() != SSK_PART_LENGTH) return false;
+		if(parts.length < 3) return false;
+		if(parts[0].length() != SSK_PART_LENGTH || parts[1].length() != SSK_PART_LENGTH) return false;
 		return true;
 	}
 

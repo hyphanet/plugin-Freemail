@@ -31,16 +31,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
-import java.util.Enumeration;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -60,9 +63,9 @@ public class MailMessage {
 	private File file;
 	private OutputStream os;
 	private PrintStream ps;
-	private final Vector<MailMessageHeader> headers;
+	private final List<MailMessageHeader> headers;
 	private BufferedReader brdr;
-	private int msg_seqnum=0;
+	private int msg_seqnum = 0;
 	public IMAPMessageFlags flags;
 	private static final Random messageIdRandom = new Random();
 
@@ -73,11 +76,11 @@ public class MailMessage {
 
 		// initialize flags from filename
 		String[] parts = f.getName().split(",");
-		if (parts.length < 2 && !f.getName().endsWith(",")) {
+		if(parts.length < 2 && !f.getName().endsWith(",")) {
 			// treat it as a new message
 			this.flags = new IMAPMessageFlags();
 			this.flags.set("\\Recent", true);
-		} else if (parts.length < 2) {
+		} else if(parts.length < 2) {
 			// just doesn't have any flags set
 			this.flags = new IMAPMessageFlags();
 		} else {
@@ -92,13 +95,9 @@ public class MailMessage {
 
 	// get the first header of a given name
 	public String getFirstHeader(String name) {
-		Enumeration<MailMessageHeader> e = this.headers.elements();
-
-		while (e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			if (h.name.equalsIgnoreCase(name)) {
-				return h.val;
+		for(MailMessageHeader header : headers) {
+			if(header.name.equalsIgnoreCase(name)) {
+				return header.val;
 			}
 		}
 
@@ -108,15 +107,11 @@ public class MailMessage {
 	public String getHeaders(String name) {
 		StringBuffer buf = new StringBuffer("");
 
-		Enumeration<MailMessageHeader> e = this.headers.elements();
-
-		while (e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			if (h.name.equalsIgnoreCase(name)) {
-				buf.append(h.name);
+		for(MailMessageHeader header : headers) {
+			if(header.name.equalsIgnoreCase(name)) {
+				buf.append(header.name);
 				buf.append(": ");
-				buf.append(h.val);
+				buf.append(header.val);
 				buf.append("\r\n");
 			}
 		}
@@ -152,55 +147,40 @@ public class MailMessage {
 		return true;
 	}
 
-	public String[] getHeadersAsArray(String name) {
-		Vector<String> hdrs = new Vector<String>();
+	/**
+	 * Returns a list of the values of all headers with the given name.
+	 * @param name the name of the headers to return
+	 * @return a list of the values of all headers with the given name
+	 */
+	public List<String> getHeadersByName(String name) {
+		List<String> matches = new LinkedList<String>();
 
-		Enumeration<MailMessageHeader> e = this.headers.elements();
-
-		while (e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			if (h.name.equalsIgnoreCase(name)) {
-				hdrs.add(h.val);
+		for(MailMessageHeader header : headers) {
+			if(header.name.equalsIgnoreCase(name)) {
+				matches.add(header.val);
 			}
 		}
 
-		String[] retval = new String[hdrs.size()];
-
-		Enumeration<String> headers = hdrs.elements();
-
-		int i = 0;
-		while (headers.hasMoreElements()) {
-			retval[i] = headers.nextElement();
-			i++;
-		}
-
-		return retval;
+		return matches;
 	}
 
 	public void removeHeader(String name, String val) {
-		int i;
-
-		for (i = 0; i < this.headers.size(); i++) {
-			MailMessageHeader h = this.headers.elementAt(i);
-
-			if (h.name.equalsIgnoreCase(name) && h.val.equalsIgnoreCase(val)) {
-				this.headers.remove(i);
-				i--;
+		Iterator<MailMessageHeader> headerIt = headers.iterator();
+		while(headerIt.hasNext()) {
+			MailMessageHeader header = headerIt.next();
+			if(header.name.equalsIgnoreCase(name) && header.val.equalsIgnoreCase(val)) {
+				headerIt.remove();
 			}
 		}
 	}
 
 	public String getAllHeadersAsString() {
-		Enumeration<MailMessageHeader> e = this.headers.elements();
 		StringBuffer buf = new StringBuffer();
 
-		while (e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			buf.append(h.name);
+		for(MailMessageHeader header : headers) {
+			buf.append(header.name);
 			buf.append(": ");
-			buf.append(h.val);
+			buf.append(header.val);
 			buf.append("\r\n");
 		}
 
@@ -211,12 +191,8 @@ public class MailMessage {
 		this.os = new FileOutputStream(this.file);
 		this.ps = new PrintStream(this.os);
 
-		Enumeration<MailMessageHeader>  e = this.headers.elements();
-
-		while (e.hasMoreElements()) {
-			MailMessageHeader h = e.nextElement();
-
-			this.ps.println(h.name + ": " + h.val);
+		for(MailMessageHeader header : headers) {
+			this.ps.println(header.name + ": " + header.val);
 		}
 
 		this.ps.println("");
@@ -264,33 +240,33 @@ public class MailMessage {
 	}
 
 	public void readHeaders(BufferedReader bufrdr) throws IOException {
-		if (this.headers.size() > 0) return;
+		if(this.headers.size() > 0) return;
 
 		String line;
 		String[] parts = null;
-		while ((line = bufrdr.readLine()) != null) {
-			if (line.length() == 0) {
-				if (parts != null)
+		while((line = bufrdr.readLine()) != null) {
+			if(line.length() == 0) {
+				if(parts != null)
 					this.addHeader(parts[0], parts[1]);
 				parts = null;
 				break;
-			} else if (line.startsWith(" ") || line.startsWith("\t")) {
+			} else if(line.startsWith(" ") || line.startsWith("\t")) {
 				// continuation of previous line
-				if (parts == null || parts[1] == null)
+				if(parts == null || parts[1] == null)
 					continue;
 				parts[1] += " "+line.trim();
 			} else {
-				if (parts != null)
+				if(parts != null)
 					this.addHeader(parts[0], parts[1]);
 				parts = null;
 				parts = line.split(": ", 2);
 
-				if (parts.length < 2)
+				if(parts.length < 2)
 					parts = null;
 			}
 		}
 
-		if (parts != null) {
+		if(parts != null) {
 			this.addHeader(parts[0], parts[1]);
 		}
 	}
@@ -313,7 +289,7 @@ public class MailMessage {
 		long counter = 0;
 		String line;
 
-		while ((line = br.readLine()) != null) {
+		while((line = br.readLine()) != null) {
 			counter += line.getBytes().length;
 			counter += "\r\n".getBytes().length;
 		}
@@ -324,7 +300,7 @@ public class MailMessage {
 
 	public void closeStream() {
 		try {
-			if (this.brdr != null) this.brdr.close();
+			if(this.brdr != null) this.brdr.close();
 		} catch (IOException ioe) {
 
 		}
@@ -332,7 +308,7 @@ public class MailMessage {
 	}
 
 	public String readLine() throws IOException {
-		if (this.brdr == null) {
+		if(this.brdr == null) {
 			this.brdr = new BufferedReader(new FileReader(this.file));
 		}
 
@@ -344,7 +320,7 @@ public class MailMessage {
 		String line;
 		try {
 			PrintStream copyps = msg.getRawStream();
-			while ((line = this.readLine()) != null) {
+			while((line = this.readLine()) != null) {
 				copyps.println(line);
 			}
 			msg.commit();
@@ -388,6 +364,16 @@ public class MailMessage {
 
 	public Date getDate() {
 		String date = getFirstHeader("Date");
+		return MailMessage.parseDate(date);
+	}
+
+	/**
+	 * Parses the given string using the date formats valid in email messages
+	 * and returns a {@code Date}, or {@code null} if the date isn't valid.
+	 * @param date the date that should be parsed
+	 * @return the parsed date
+	 */
+	public static Date parseDate(String date) {
 		if(date == null) {
 			return null;
 		}
@@ -401,7 +387,7 @@ public class MailMessage {
 			}
 		}
 
-		Logger.minor(this, "No format matched for date " + date);
+		Logger.minor(MailMessage.class, "No format matched for date " + date);
 		return null;
 	}
 
@@ -410,14 +396,14 @@ public class MailMessage {
 	 * is returned without the =? and ?= markers
 	 * (i.e. &lt;charset&gt;?&lt;encoding&gt;?&lt;encoded-text&gt;)
 	 */
-	private String getEncodedWord(String header, int offset) {
+	private static String getEncodedWord(String header, int offset) {
 		assert (header != null);
 		assert (header.length() > offset) : "length=" + header.length() + ", offset=" + offset;
 		assert (offset >= 0);
 
 		if(!header.substring(offset, offset + "=?".length()).equals("=?")) {
 			//It makes no sense to call the function if this is the case
-			Logger.warning(this, "Offset didn't point to =? in isEncodedWord");
+			Logger.warning(MailMessage.class, "Offset didn't point to =? in isEncodedWord");
 			assert false : "Offset didn't point to =? in isEncodedWord";
 			return null;
 		}
@@ -438,22 +424,22 @@ public class MailMessage {
 		}
 
 		String word = header.substring(offset + 2, wordEnd);
-		Logger.debug(this, "Found possible encoded word: " + word);
+		Logger.debug(MailMessage.class, "Found possible encoded word: " + word);
 
 		//75 - 4 since we removed the =? and ?= (75 is the limit from RFC2047)
 		if(word.length() > (71)) {
-			Logger.debug(this, "Found possible encoded word but it was too long");
+			Logger.debug(MailMessage.class, "Found possible encoded word but it was too long");
 			return null;
 		}
 		if(word.contains(" ")) {
-			Logger.debug(this, "Found possible encoded word but it contained spaces");
+			Logger.debug(MailMessage.class, "Found possible encoded word but it contained spaces");
 			return null;
 		}
 
 		return word;
 	}
 
-	private String decodeMIMEEncodedWord(String charsetName, String encoding, String text)
+	private static String decodeMIMEEncodedWord(String charsetName, String encoding, String text)
 			throws UnsupportedEncodingException {
 
 		Charset charset = Charset.forName(charsetName);
@@ -465,24 +451,27 @@ public class MailMessage {
 		}
 
 		if(encoding.equalsIgnoreCase("Q")) {
-			StringBuffer decoded = new StringBuffer();
+			byte[] buffer = new byte[text.length()];
+			int bufIndex = 0;
 			int offset = 0;
 			while(offset < text.length()) {
 				char c = text.charAt(offset);
 				if(c == '=') {
 					byte[] value = Hex.decode(text.substring(offset + 1, offset + 3));
-					decoded.append(charset.decode(ByteBuffer.wrap(value)));
+					assert (value.length == 1);
+					buffer[bufIndex++] = value[0];
 					offset += 3;
 				} else {
-					decoded.append(c);
+					assert (c < 128);
+					buffer[bufIndex++] = (byte)c;
 					offset++;
 				}
 			}
 
-			return decoded.toString();
+			return new String(buffer, 0, bufIndex, charset);
 		}
 
-		Logger.warning(this, "Freemail doesn't support encoding: " + encoding);
+		Logger.warning(MailMessage.class, "Freemail doesn't support encoding: " + encoding);
 		throw new UnsupportedEncodingException(
 				"MIME header encoding " + encoding + " not supported");
 	}
@@ -499,21 +488,25 @@ public class MailMessage {
 			return null;
 		}
 
+		return decodeHeader(rawSubject);
+	}
+
+	public static String decodeHeader(String rawHeader) throws UnsupportedEncodingException {
 		StringBuffer subject = new StringBuffer();
 
 		int offset = 0;
-		while(offset < rawSubject.length()) {
+		while(offset < rawHeader.length()) {
 			//First, copy anything that we know isn't an encoded word
-			int index = rawSubject.indexOf("=?", offset);
+			int index = rawHeader.indexOf("=?", offset);
 			if(index == -1) {
-				subject.append(rawSubject.substring(offset));
+				subject.append(rawHeader.substring(offset));
 				break;
 			}
-			subject.append(rawSubject.substring(offset, index));
+			subject.append(rawHeader.substring(offset, index));
 			offset = index;
 
 			//Check if we have an encoded word
-			String word = getEncodedWord(rawSubject, offset);
+			String word = getEncodedWord(rawHeader, offset);
 			if(word == null) {
 				subject.append("=?");
 				offset += "=?".length();
@@ -543,6 +536,35 @@ public class MailMessage {
 		}
 
 		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
+	}
+
+	public static String encodeHeader(String header) {
+		StringBuilder result = new StringBuilder();
+
+		for(char c : header.toCharArray()) {
+			//ASCII printable characters except ? and SPACE can be passed
+			//though as is. _ can be used to encode SPACE, so encode that as
+			//well to avoid ambiguity
+			if(0x21 <= c && c <= 0x7e && c != '?' && c != '_') {
+				result.append(c);
+				continue;
+			}
+
+			//Encode the rest
+			//FIXME: There has to be a better way than wrapping with arrays everywhere...
+			Charset utf8 = Charset.forName("UTF-8");
+			ByteBuffer bytes = utf8.encode(CharBuffer.wrap(new char[] {c}));
+			result.append("=?UTF-8?Q?");
+			while(bytes.hasRemaining()) {
+				byte b = bytes.get();
+				result.append("=");
+				String encodedString = new String(Hex.encode(new byte[] {b}), utf8).toUpperCase();
+				result.append(encodedString);
+			}
+			result.append("?=");
+		}
+
+		return result.toString();
 	}
 
 	private static class MailMessageHeader {

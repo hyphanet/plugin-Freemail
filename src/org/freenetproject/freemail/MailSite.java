@@ -41,21 +41,21 @@ public class MailSite {
 		StringBuffer buf = new StringBuffer();
 
 		String rtsksk = this.accprops.get("rtskey");
-		if (rtsksk == null) {
+		if(rtsksk == null) {
 			Logger.error(this, "Can't insert mailsite - missing RTS KSK");
 			return null;
 		}
 		buf.append("rtsksk=").append(rtsksk).append("\r\n");
 
 		String keymodulus = this.accprops.get("asymkey.modulus");
-		if (keymodulus == null) {
+		if(keymodulus == null) {
 			Logger.error(this, "Can't insert mailsite - missing asymmetric crypto key modulus");
 			return null;
 		}
 		buf.append("asymkey.modulus=").append(keymodulus).append("\r\n");
 
 		String key_pubexponent = this.accprops.get("asymkey.pubexponent");
-		if (key_pubexponent == null) {
+		if(key_pubexponent == null) {
 			Logger.error(this, "Can't insert mailsite - missing asymmetric crypto key public exponent");
 			return null;
 		}
@@ -67,7 +67,7 @@ public class MailSite {
 	public int publish(int minslot) throws InterruptedException {
 		byte[] mailpage;
 		String mailsite_s = this.getMailPage();
-		if (mailsite_s == null) {
+		if(mailsite_s == null) {
 			return -1;
 		}
 		try {
@@ -77,7 +77,7 @@ public class MailSite {
 		}
 
 		String key = this.accprops.get("mailsite.privkey");
-		if (key == null) return -1;
+		if(key == null) return -1;
 
 		HighLevelFCPClient cli = new HighLevelFCPClient();
 
@@ -88,7 +88,7 @@ public class MailSite {
 			return -1;
 		}
 
-		if (actualslot < 0) return -1;
+		if(actualslot < 0) return -1;
 
 		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
 

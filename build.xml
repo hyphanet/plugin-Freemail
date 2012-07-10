@@ -118,7 +118,7 @@
 
 	<target name="unit" depends="unit-build" unless="${test.skip}">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" haltonfailure="yes" dir="${test.run}">
+		<junit fork="yes" dir="${test.run}">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${build}"/>
@@ -176,7 +176,7 @@
 	<!-- Checkstyle target that is run each build. Should run a
 	     config that normally doesn't produce any warnings. -->
 	<target name="checkstyle-auto" unless="${checkstyle.skip}">
-		<cs:checkstyle config="checkstyle_auto.xml">
+		<cs:checkstyle config="checkstyle_auto.xml" failOnViolation="false">
 			<fileset dir="${src}" includes="**/*.java">
 				<exclude name="org/archive/**"/>
 			</fileset>
@@ -188,7 +188,7 @@
 	<!-- Checkstyle run with the full config, i.e. what we would like the
 	     code to follow. Useful for e.g. checking new commits. -->
 	<target name="checkstyle">
-		<cs:checkstyle config="checkstyle.xml">
+		<cs:checkstyle config="checkstyle.xml" failOnViolation="false">
 			<fileset dir="${src}" includes="**/*.java">
 				<exclude name="org/archive/**"/>
 			</fileset>

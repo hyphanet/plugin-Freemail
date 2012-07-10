@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -46,6 +47,7 @@ import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.support.MessageBankTools;
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
@@ -100,7 +102,7 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), "");
+		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), Collections.<String>emptyList());
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
@@ -124,8 +126,9 @@ public class NewMessageToadlet extends WebPage {
 		Logger.debug(this, "Found " + recipients.size() + " recipients");
 
 		String subject = getBucketAsString(req.getPart("subject"));
-		String inReplyTo = getBucketAsString(req.getPart("inReplyTo"));
 		Bucket body = req.getPart("message-text");
+
+		List<String> extraHeaders = readExtraHeaders(req);
 
 		//Because the button is an image we get x/y coordinates as addRcpt.x and addRcpt.y
 		if(req.isPartSet("addRcpt.x") && req.isPartSet("addRcpt.y")) {
@@ -136,7 +139,7 @@ public class NewMessageToadlet extends WebPage {
 			HTMLNode contentNode = page.content;
 
 			HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-			addMessageForm(messageBox, ctx, recipients, subject, body, inReplyTo);
+			addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
@@ -152,7 +155,7 @@ public class NewMessageToadlet extends WebPage {
 				HTMLNode contentNode = page.content;
 
 				HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
-				addMessageForm(messageBox, ctx, recipients, subject, body, inReplyTo);
+				addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
 				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 				return;
@@ -215,13 +218,41 @@ public class NewMessageToadlet extends WebPage {
 				continue;
 			}
 
-			//Strip parts if needed
+			//Split the address into parts
+			String name = "";
 			String address = recipient;
-			if(address.contains("<") && address.contains(">")) {
-				address = address.substring(address.indexOf("<") + 1, address.indexOf(">"));
-			}
+			if(recipient.contains("<") && recipient.contains(">")) {
+				name = recipient.substring(0, recipient.indexOf("<"));
+				name = name.trim();
 
-			recipients.put(address, recipient);
+				address = recipient.substring(recipient.indexOf("<") + 1, recipient.indexOf(">"));
+				address = address.trim();
+			}
+			String localPart = address.split("@", 2)[0];
+			String domainPart = address.split("@", 2)[1];
+
+			//Handle non-ascii characters
+			name = MailMessage.encodeHeader(name);
+			if(localPart.matches(".*[^\\u0000-\\u007F]+.*")) {
+				//Allow this due to earlier bugs, but drop the non-ascii
+				//characters. We can do this since we don't care about the
+				//local part anyway
+				localPart = EmailAddress.cleanLocalPart(localPart);
+				if(localPart.equals("")) {
+					localPart = "mail";
+				}
+			}
+			//If the domain part has non-ascii characters we won't find any
+			//matches, so handle it that way
+
+			String checkedAddress = localPart + "@" + domainPart;
+			String checkedRecipient;
+			if(name.equals("")) {
+				checkedRecipient = checkedAddress;
+			} else {
+				checkedRecipient = name + " <" + checkedAddress + ">";
+			}
+			recipients.put(checkedAddress, checkedRecipient);
 		}
 		recipientHandling.log(this, "Time spent handling " + recipients.size() + " recipients");
 
@@ -266,7 +297,7 @@ public class NewMessageToadlet extends WebPage {
 
 		//Build message header
 		StringBuilder header = new StringBuilder();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		FreemailAccount account = freemail.getAccountManager().getAccount(loginManager.getSession(ctx).getUserID());
 
@@ -275,10 +306,27 @@ public class NewMessageToadlet extends WebPage {
 			//Use the values so we get what the user typed
 			header.append("To: " + recipient + "\r\n");
 		}
-		header.append("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n");
+
+		String local = EmailAddress.cleanLocalPart(account.getNickname());
+		if(local.length() == 0) {
+			local = "mail";
+		}
+		header.append("From: " + MailMessage.encodeHeader(account.getNickname())
+				+ " <" + local + "@" + account.getDomain() + ">" + "\r\n");
+
+		header.append("Subject: " + MailMessage.encodeHeader(getBucketAsString(req.getPart("subject"))) + "\r\n");
 		header.append("Date: " + sdf.format(new Date()) + "\r\n");
-		header.append("From: " + account.getNickname() + " <" + account.getNickname() + "@" + account.getDomain() + ">\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
+
+		//Add extra headers from request. Very little checking is done here since we want flexibility, and anything
+		//that can be added here could also be sent using the SMTP server, so security should not be an issue.
+		List<String> extraHeaders = readExtraHeaders(req);
+		for(String extraHeader : extraHeaders) {
+			if(extraHeader.matches("[^\\u0000-\\u007F]")) {
+				throw new IllegalArgumentException("Header contains 8bit character(s)");
+			}
+			header.append(extraHeader + "\r\n");
+		}
 		header.append("\r\n");
 
 		Bucket messageHeader = new ArrayBucket(header.toString().getBytes("UTF-8"));
@@ -326,10 +374,19 @@ public class NewMessageToadlet extends WebPage {
 		MailMessage msg = MessageBankTools.getMessage(mb, Integer.parseInt(message));
 		msg.readHeaders();
 
-		String recipient = msg.getFirstHeader("From");
-		String inReplyTo = msg.getFirstHeader("message-id");
+		String recipient;
+		try {
+			recipient = MailMessage.decodeHeader(msg.getFirstHeader("From"));
+		} catch(UnsupportedEncodingException e) {
+			recipient = msg.getFirstHeader("From");
+		}
 
-		String subject = msg.getFirstHeader("Subject");
+		String subject;
+		try {
+			subject = MailMessage.decodeHeader(msg.getFirstHeader("Subject"));
+		} catch(UnsupportedEncodingException e) {
+			subject = msg.getFirstHeader("Subject");
+		}
 		if(!subject.toLowerCase().startsWith("re: ")) {
 			subject = "Re: " + subject;
 		}
@@ -353,21 +410,50 @@ public class NewMessageToadlet extends WebPage {
 			msg.closeStream();
 		}
 
+		List<String> extraHeaders = readExtraHeaders(req);
+		extraHeaders.add("In-Reply-To: " + msg.getFirstHeader("message-id"));
+
+		//Add the references header. This uses folding white space between each
+		//reference as a simple way of avoiding long lines.
+		String references = "";
+		if(msg.getFirstHeader("References") != null) {
+			references += msg.getFirstHeader("References");
+		}
+		references += msg.getFirstHeader("message-id");
+
+		extraHeaders.add("References:");
+		for(String part : references.split(" ")) {
+			extraHeaders.add(" " + part);
+		}
+
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,
-		               bucketFromString(body.toString()), inReplyTo);
+		               bucketFromString(body.toString()), extraHeaders);
 
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject, Bucket body, String inReplyTo) {
+	/**
+	 * @param headers Contains a list of headers that should be added to the final message
+	 */
+	private void addMessageForm(HTMLNode parent, ToadletContext ctx, List<String> recipients, String subject,
+	                            Bucket body, List<String> headers) {
+		assert (parent != null);
+		assert (ctx != null);
 		assert (recipients != null);
 		assert (subject != null);
 		assert (body != null);
+		assert (headers != null);
 
 		HTMLNode messageForm = ctx.addFormChild(parent, path(), "newMessage");
-		messageForm.addChild("input", new String[] {"type",   "name",      "value"},
-		                              new String[] {"hidden", "inReplyTo", inReplyTo});
+
+		//Add the extra headers as hidden fields
+		int i = 0;
+		for(String header : headers) {
+			messageForm.addChild("input", new String[] {"type",   "name",            "value"},
+			                              new String[] {"hidden", "extraHeader" + i, header});
+			i++;
+		}
 
 		HTMLNode recipientBox = addInfobox(messageForm, FreemailL10n.getString("Freemail.NewMessageToadlet.to"));
 
@@ -406,7 +492,17 @@ public class NewMessageToadlet extends WebPage {
 		                              new String[] {"submit", "sendMessage", sendText});
 	}
 
+	/**
+	 * Returns the contents of the {@code Bucket} as a {@code String}. {@code null} is returned if b is {@code null} or
+	 * if the JVM doesn't support the UTF-8 encoding.
+	 * @param b the bucket to read
+	 * @return the contents of the {@code Bucket} as a {@code String}
+	 */
 	private String getBucketAsString(Bucket b) {
+		if(b == null) {
+			return null;
+		}
+
 		InputStream is;
 		try {
 			is = b.getInputStream();
@@ -462,5 +558,19 @@ public class NewMessageToadlet extends WebPage {
 
 	private Bucket bucketFromString(String data) {
 		return new ArrayBucket(data.getBytes());
+	}
+
+	private List<String> readExtraHeaders(HTTPRequest req) {
+		List<String> extraHeaders = new LinkedList<String>();
+		for(int i = 0;; i++) {
+			String header = getBucketAsString(req.getPart("extraHeader" + i));
+			if(header == null) {
+				break;
+			}
+
+			extraHeaders.add(header);
+		}
+
+		return extraHeaders;
 	}
 }

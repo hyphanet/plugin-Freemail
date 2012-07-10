@@ -1246,7 +1246,7 @@ class Channel {
 		// parse the Freemail header(s) out.
 		PropsFile msgprops = PropsFile.createPropsFile(msg, true);
 		String s_id = msgprops.get("id");
-		if (s_id == null) {
+		if(s_id == null) {
 			Logger.error(this, "Message is missing id. Discarding.");
 			msgprops.closeReader();
 			return true;
@@ -1273,7 +1273,7 @@ class Channel {
 		}
 
 		BufferedReader br = msgprops.getReader();
-		if (br == null) {
+		if(br == null) {
 			Logger.error(this, "Got an invalid message. Discarding.");
 			msgprops.closeReader();
 			return true;

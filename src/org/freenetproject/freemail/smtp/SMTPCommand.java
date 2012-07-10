@@ -30,20 +30,20 @@ public class SMTPCommand {
 		Vector<String> tmp_args = new Vector<String>();
 		StringBuffer buf = new StringBuffer("");
 
-		for (int i = 0; i < line.length(); i++) {
+		for(int i = 0; i < line.length(); i++) {
 			char c = line.charAt(i);
 
 			switch (c) {
 				case ' ':
-					if (in_quotes) {
+					if(in_quotes) {
 						buf.append(c);
-					} else if (buf.length() > 0) {
+					} else if(buf.length() > 0) {
 						tmp_args.add(buf.toString());
 						buf = new StringBuffer("");
 					}
 					break;
 				case '"':
-					if (in_quotes)
+					if(in_quotes)
 						in_quotes = false;
 					else
 						in_quotes = true;
@@ -52,15 +52,15 @@ public class SMTPCommand {
 					buf.append(c);
 			}
 		}
-		if (buf.length() > 0) {
+		if(buf.length() > 0) {
 			tmp_args.add(buf.toString());
 		}
-		if (tmp_args.size() == 0) throw new SMTPBadCommandException();
+		if(tmp_args.size() == 0) throw new SMTPBadCommandException();
 		String tmpcmd = tmp_args.remove(0);
 		this.command = tmpcmd.toLowerCase();
 		this.args = new String[tmp_args.size()];
 
-		for (int i = 0; i < tmp_args.size(); i++) {
+		for(int i = 0; i < tmp_args.size(); i++) {
 			this.args[i] = tmp_args.get(i);
 		}
 	}
