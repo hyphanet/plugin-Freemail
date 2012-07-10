@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
-import java.text.ParseException;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -172,23 +171,12 @@ public class MailHeaderFilter {
 			// at the end. Rather than giving away what time zone we're in, parse the date in
 			// and return it as a GMT time.
 
-			Date d = null;
-			try {
-				synchronized(sdf) {
-					d = sdf.parse(val);
-				}
-			} catch (ParseException pe) {
-				// ...the compiler whinges unless we catch this exception...
-				Logger.warning(this, "Couldn't parse date: "+val+" (caught exception)");
-				return null;
-			}
-			// but the docs don't say that it throws it, but says that it return null
-			// http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html#parse(java.lang.String, java.text.ParsePosition)
+			Date d = MailMessage.parseDate(val);
 			if(d == null) {
-				// invalid date - ditch the header
-				Logger.warning(this, "Couldn't parse date: "+val+" (got null)");
+				Logger.warning(this, "Dropping date because we couldn't parse it (" + val + ")");
 				return null;
 			}
+
 			String strDate;
 			synchronized(sdf) {
 				strDate = sdf.format(d);
