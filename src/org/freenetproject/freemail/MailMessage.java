@@ -451,21 +451,24 @@ public class MailMessage {
 		}
 
 		if(encoding.equalsIgnoreCase("Q")) {
-			StringBuffer decoded = new StringBuffer();
+			byte[] buffer = new byte[text.length()];
+			int bufIndex = 0;
 			int offset = 0;
 			while(offset < text.length()) {
 				char c = text.charAt(offset);
 				if(c == '=') {
 					byte[] value = Hex.decode(text.substring(offset + 1, offset + 3));
-					decoded.append(charset.decode(ByteBuffer.wrap(value)));
+					assert (value.length == 1);
+					buffer[bufIndex++] = value[0];
 					offset += 3;
 				} else {
-					decoded.append(c);
+					assert (c < 128);
+					buffer[bufIndex++] = (byte)c;
 					offset++;
 				}
 			}
 
-			return decoded.toString();
+			return new String(buffer, 0, bufIndex, charset);
 		}
 
 		Logger.warning(MailMessage.class, "Freemail doesn't support encoding: " + encoding);
