@@ -122,7 +122,7 @@ public class MailHeaderFilter {
 		if(this.buffer.length() == 0) return null;
 
 		String header = this.buffer.toString();
-		String[] bits = header.split(": ", 2);
+		String[] bits = header.split(":", 2);
 		this.buffer.delete(0, this.buffer.length());
 
 		// invalid header - ditch it.
@@ -131,6 +131,7 @@ public class MailHeaderFilter {
 			return null;
 		}
 
+		bits[1] = bits[1].trim();
 		bits[1] = this.filterHeader(bits[0], bits[1]);
 		if(bits[1] == null) return null;
 
