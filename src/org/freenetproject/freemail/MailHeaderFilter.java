@@ -154,6 +154,7 @@ public class MailHeaderFilter {
 				} else {
 					// It's something else, so just replace it with 'freemail', although this might not actually be any more
 					// useful than dropping it, since the mail client will be looking for the unmangled header.
+					Logger.normal(this, "Replacing message id header");
 					return "<"+m.group(1)+"@freemail>";
 				}
 
@@ -166,6 +167,7 @@ public class MailHeaderFilter {
 			return val;
 		} else if(name.equalsIgnoreCase("BCC")) {
 			//The BCC field should not be sent
+			Logger.normal(this, "Dropping BCC header");
 			return null;
 		} else if(name.equalsIgnoreCase("Subject")) {
 			return val;
