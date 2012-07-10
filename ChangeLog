@@ -11,6 +11,7 @@ Changes from version 0.2.1 to version 0.2.2
       web interface
     - Drop or encode non-ascii characters from the headers when sending
       messages using the web interface
+    - Fix decoding of multibyte characters in headers
 
   o Improvements:
     - Implement IMAP search commands needed by Thunderbird
