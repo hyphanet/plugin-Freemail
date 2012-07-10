@@ -314,7 +314,7 @@ public class NewMessageToadlet extends WebPage {
 		header.append("From: " + MailMessage.encodeHeader(account.getNickname())
 				+ " <" + local + "@" + account.getDomain() + ">" + "\r\n");
 
-		header.append("Subject: " + getBucketAsString(req.getPart("subject")) + "\r\n");
+		header.append("Subject: " + MailMessage.encodeHeader(getBucketAsString(req.getPart("subject"))) + "\r\n");
 		header.append("Date: " + sdf.format(new Date()) + "\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
 
