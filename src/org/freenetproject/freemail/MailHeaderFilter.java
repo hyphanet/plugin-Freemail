@@ -95,11 +95,15 @@ public class MailHeaderFilter {
 	private String flush() {
 		if(this.buffer.length() == 0) return null;
 
-		String[] bits = this.buffer.toString().split(": ", 2);
+		String header = this.buffer.toString();
+		String[] bits = header.split(": ", 2);
 		this.buffer.delete(0, this.buffer.length());
 
 		// invalid header - ditch it.
-		if(bits.length < 2) return null;
+		if(bits.length < 2) {
+			Logger.warning(this, "Dropping header due to unknown format: " + header);
+			return null;
+		}
 
 		bits[1] = this.filterHeader(bits[0], bits[1]);
 		if(bits[1] == null) return null;
@@ -121,14 +125,14 @@ public class MailHeaderFilter {
 				}
 			} catch (ParseException pe) {
 				// ...the compiler whinges unless we catch this exception...
-				Logger.normal(this, "Warning: couldn't parse date: "+val+" (caught exception)");
+				Logger.warning(this, "Couldn't parse date: "+val+" (caught exception)");
 				return null;
 			}
 			// but the docs don't say that it throws it, but says that it return null
 			// http://java.sun.com/j2se/1.5.0/docs/api/java/text/SimpleDateFormat.html#parse(java.lang.String, java.text.ParsePosition)
 			if(d == null) {
 				// invalid date - ditch the header
-				Logger.normal(this, "Warning: couldn't parse date: "+val+" (got null)");
+				Logger.warning(this, "Couldn't parse date: "+val+" (got null)");
 				return null;
 			}
 			String strDate;
@@ -174,7 +178,7 @@ public class MailHeaderFilter {
 		} else if(name.equalsIgnoreCase("In-Reply-To")) {
 			return val;
 		} else {
-			Logger.minor(this, "Dropping header " + name + " because it isn't on the whitelist");
+			Logger.warning(this, "Dropping unknown header " + name);
 			return null;
 		}
 	}
