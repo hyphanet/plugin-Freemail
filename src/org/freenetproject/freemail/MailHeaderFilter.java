@@ -30,7 +30,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.StringBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TimeZone;
 import java.text.ParseException;
 import java.util.Locale;
@@ -46,12 +49,33 @@ public class MailHeaderFilter {
 	private boolean foundEnd;
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
-	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 
+	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 		gmt = TimeZone.getTimeZone("GMT");
 		sdf.setTimeZone(gmt);
+	}
+
+	private static final Set<String> headerWhitelist;
+	static {
+		Set<String> backing = new HashSet<String>();
+		backing.add("From");
+		backing.add("To");
+		backing.add("CC");
+		backing.add("Subject");
+		backing.add("MIME-Version");
+		backing.add("Content-Type");
+		backing.add("Content-Transfer-Encoding");
+		backing.add("In-Reply-To");
+		headerWhitelist = Collections.unmodifiableSet(backing);
+	}
+
+	private static final Set<String> headerBlacklist;
+	static {
+		Set<String> backing = new HashSet<String>();
+		backing.add("BCC");
+		headerBlacklist = Collections.unmodifiableSet(backing);
 	}
 
 	public MailHeaderFilter(BufferedReader rdr) {
@@ -112,7 +136,23 @@ public class MailHeaderFilter {
 	}
 
 	private String filterHeader(String name, String val) {
-		// Whitelist filter
+		//Drop headers in the blacklist
+		for(String header : headerBlacklist) {
+			if(name.equalsIgnoreCase(header)) {
+				Logger.minor(this, "Dropping header " + name + " because it is blacklisted");
+				return null;
+			}
+		}
+
+		//Pass though headers in the whitelist
+		for(String header : headerWhitelist) {
+			if(name.equalsIgnoreCase(header)) {
+				Logger.minor(this, "Keeping header " + name + " because it is whitelisted");
+				return val;
+			}
+		}
+
+		//Rewrite or filter the rest
 		if(name.equalsIgnoreCase("Date")) {
 			// the norm is to put the sender's local time here, with the sender's local time offset
 			// at the end. Rather than giving away what time zone we're in, parse the date in
@@ -159,26 +199,6 @@ public class MailHeaderFilter {
 				}
 
 			}
-		} else if(name.equalsIgnoreCase("From")) {
-			return val;
-		} else if(name.equalsIgnoreCase("To")) {
-			return val;
-		} else if(name.equalsIgnoreCase("CC")) {
-			return val;
-		} else if(name.equalsIgnoreCase("BCC")) {
-			//The BCC field should not be sent
-			Logger.normal(this, "Dropping BCC header");
-			return null;
-		} else if(name.equalsIgnoreCase("Subject")) {
-			return val;
-		} else if(name.equalsIgnoreCase("MIME-Version")) {
-			return val;
-		} else if(name.equalsIgnoreCase("Content-Type")) {
-			return val;
-		} else if(name.equalsIgnoreCase("Content-Transfer-Encoding")) {
-			return val;
-		} else if(name.equalsIgnoreCase("In-Reply-To")) {
-			return val;
 		} else {
 			Logger.warning(this, "Dropping unknown header " + name);
 			return null;
