@@ -374,9 +374,19 @@ public class NewMessageToadlet extends WebPage {
 		MailMessage msg = MessageBankTools.getMessage(mb, Integer.parseInt(message));
 		msg.readHeaders();
 
-		String recipient = msg.getFirstHeader("From");
+		String recipient;
+		try {
+			recipient = MailMessage.decodeHeader(msg.getFirstHeader("From"));
+		} catch(UnsupportedEncodingException e) {
+			recipient = msg.getFirstHeader("From");
+		}
 
-		String subject = msg.getFirstHeader("Subject");
+		String subject;
+		try {
+			subject = MailMessage.decodeHeader(msg.getFirstHeader("Subject"));
+		} catch(UnsupportedEncodingException e) {
+			subject = msg.getFirstHeader("Subject");
+		}
 		if(!subject.toLowerCase().startsWith("re: ")) {
 			subject = "Re: " + subject;
 		}
