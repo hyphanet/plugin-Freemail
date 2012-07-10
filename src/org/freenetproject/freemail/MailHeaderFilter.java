@@ -139,6 +139,17 @@ public class MailHeaderFilter {
 	}
 
 	private String filterHeader(String name, String val) {
+		//Check for illegal characters
+		if(name.matches(".*[^\\u0000-\\u007F]+.*")) {
+			Logger.error(this, "Header name contains 8bit character(s), dropping (name=" + name + ")");
+			return null;
+		}
+		if(val.matches(".*[^\\u0000-\\u007F]+.*")) {
+			Logger.error(this, "Header value contains 8bit character(s) (name=" + name + ", value=" + val + ")");
+			//These should be dropped eventually, but we still have bugs
+			//related to this so just log for now
+		}
+
 		//Drop headers in the blacklist
 		for(String header : headerBlacklist) {
 			if(name.equalsIgnoreCase(header)) {
