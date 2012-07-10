@@ -22,6 +22,9 @@ package org.freenetproject.freemail;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.freenetproject.freemail.MailMessage;
 
@@ -129,5 +132,19 @@ public class MailMessageTest extends TestCase {
 
 	public void testEncodeHeaderWithMultipleUTF8Character() {
 		assertEquals("=?UTF-8?Q?=C3=A6?==?UTF-8?Q?=E2=88=80?=", MailMessage.encodeHeader("æ∀"));
+	}
+
+	public void testEncodeDecodeMultipleStrings() throws UnsupportedEncodingException {
+		List<String> input = new LinkedList<String>();
+		input.add("Test message");
+		input.add("Test message (æøå)");
+		input.add("testæHeader∀");
+		input.add("æ∀");
+
+		for(String s : input) {
+			String encoded = MailMessage.encodeHeader(s);
+			String decoded = MailMessage.decodeHeader(encoded);
+			assertEquals(s, decoded);
+		}
 	}
 }
