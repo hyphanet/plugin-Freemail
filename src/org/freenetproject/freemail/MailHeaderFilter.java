@@ -68,6 +68,7 @@ public class MailHeaderFilter {
 		backing.add("Content-Type");
 		backing.add("Content-Transfer-Encoding");
 		backing.add("In-Reply-To");
+		backing.add("References");
 		headerWhitelist = Collections.unmodifiableSet(backing);
 	}
 
