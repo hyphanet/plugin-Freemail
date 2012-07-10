@@ -218,13 +218,41 @@ public class NewMessageToadlet extends WebPage {
 				continue;
 			}
 
-			//Strip parts if needed
+			//Split the address into parts
+			String name = "";
 			String address = recipient;
-			if(address.contains("<") && address.contains(">")) {
-				address = address.substring(address.indexOf("<") + 1, address.indexOf(">"));
-			}
+			if(recipient.contains("<") && recipient.contains(">")) {
+				name = recipient.substring(0, recipient.indexOf("<"));
+				name = name.trim();
 
-			recipients.put(address, recipient);
+				address = recipient.substring(recipient.indexOf("<") + 1, recipient.indexOf(">"));
+				address = address.trim();
+			}
+			String localPart = address.split("@", 2)[0];
+			String domainPart = address.split("@", 2)[1];
+
+			//Handle non-ascii characters
+			name = MailMessage.encodeHeader(name);
+			if(localPart.matches(".*[^\\u0000-\\u007F]+.*")) {
+				//Allow this due to earlier bugs, but drop the non-ascii
+				//characters. We can do this since we don't care about the
+				//local part anyway
+				localPart = EmailAddress.cleanLocalPart(localPart);
+				if(localPart.equals("")) {
+					localPart = "mail";
+				}
+			}
+			//If the domain part has non-ascii characters we won't find any
+			//matches, so handle it that way
+
+			String checkedAddress = localPart + "@" + domainPart;
+			String checkedRecipient;
+			if(name.equals("")) {
+				checkedRecipient = checkedAddress;
+			} else {
+				checkedRecipient = name + " <" + checkedAddress + ">";
+			}
+			recipients.put(checkedAddress, checkedRecipient);
 		}
 		recipientHandling.log(this, "Time spent handling " + recipients.size() + " recipients");
 
