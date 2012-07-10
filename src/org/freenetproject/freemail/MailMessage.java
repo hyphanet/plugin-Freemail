@@ -364,6 +364,16 @@ public class MailMessage {
 
 	public Date getDate() {
 		String date = getFirstHeader("Date");
+		return MailMessage.parseDate(date);
+	}
+
+	/**
+	 * Parses the given string using the date formats valid in email messages
+	 * and returns a {@code Date}, or {@code null} if the date isn't valid.
+	 * @param date the date that should be parsed
+	 * @return the parsed date
+	 */
+	public static Date parseDate(String date) {
 		if(date == null) {
 			return null;
 		}
@@ -377,7 +387,7 @@ public class MailMessage {
 			}
 		}
 
-		Logger.minor(this, "No format matched for date " + date);
+		Logger.minor(MailMessage.class, "No format matched for date " + date);
 		return null;
 	}
 
