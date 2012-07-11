@@ -147,7 +147,11 @@ public class MessageToadlet extends WebPage {
 			for(String recipient : message.getHeadersByName(header)) {
 				HTMLNode toPara = headerBox.addChild("p");
 				toPara.addChild("strong", header + ":");
-				toPara.addChild("#", " " + recipient);
+				try {
+					toPara.addChild("#", " " + MailMessage.decodeHeader(recipient));
+				} catch (UnsupportedEncodingException e) {
+					toPara.addChild("#", " " + recipient);
+				}
 			}
 		}
 
