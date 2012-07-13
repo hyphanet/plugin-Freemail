@@ -1,0 +1,9 @@
+#!/bin/bash
+FREEMAIL_REPO="`dirname $0`/../"
+TEMP_DIR=`mktemp -d`
+VERSION=`git --git-dir="$FREEMAIL_REPO/.git/" describe | sed -e "s/v\(.*\)/\1/"`
+
+git clone "$FREEMAIL_REPO" "$TEMP_DIR/freemail-$VERSION"
+rm -fr "$TEMP_DIR/freemail-$VERSION/.git/"
+tar -cj -C "$TEMP_DIR" -f freemail-$VERSION.tar.bz2 "freemail-$VERSION/"
+rm -fr "$TEMP_DIR"
