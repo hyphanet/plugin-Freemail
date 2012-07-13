@@ -16,6 +16,7 @@ Changes from version 0.2.1 to version 0.2.2
   o Improvements:
     - Implement IMAP search commands needed by Thunderbird
     - Add References header when replying using the web interface
+    - Decode recipient headers when showing message
 
   o Build improvements:
     - Don't fail build if unit tests or Checkstyle fails
