@@ -148,4 +148,36 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testStoreWithWildcardFirst() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 STORE *:7 FLAGS (\\Seen)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 7 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("* 8 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("* 9 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("0003 OK Store completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testStoreWithWildcardLast() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 STORE 7:* FLAGS (\\Seen)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 7 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("* 8 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("* 9 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("0003 OK Store completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
