@@ -180,4 +180,30 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testStoreWithRangeFrom0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 STORE 0:1 FLAGS (\\Seen)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO No such message");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testStoreWithRangeTo0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 STORE 1:0 FLAGS (\\Seen)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO No such message");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
