@@ -50,6 +50,19 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	public void testUidStoreWithoutFlagsList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE 1 FLAGS");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 	public void testSimpleUidStore() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
