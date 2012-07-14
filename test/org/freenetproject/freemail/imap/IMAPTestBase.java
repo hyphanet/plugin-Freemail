@@ -104,20 +104,22 @@ public abstract class IMAPTestBase extends TestCase {
 			send(toHandler, cmd + "\r\n");
 		}
 
-		int lineNum = 0;
-		for(String response : expectedResponse) {
-			String line = fromHandler.readLine();
-			assertEquals("Failed at line " + lineNum++, response, line);
-		}
-
-		assertFalse("IMAP socket has more data", fromHandler.ready());
-
-		handler.kill();
-		sock.close();
 		try {
-			imapThread.join();
-		} catch(InterruptedException e) {
-			fail("Caught unexpected InterruptedException");
+			int lineNum = 0;
+			for(String response : expectedResponse) {
+				String line = fromHandler.readLine();
+				assertEquals("Failed at line " + lineNum++, response, line);
+			}
+
+			assertFalse("IMAP socket has more data", fromHandler.ready());
+		} finally {
+			handler.kill();
+			sock.close();
+			try {
+				imapThread.join();
+			} catch(InterruptedException e) {
+				fail("Caught unexpected InterruptedException");
+			}
 		}
 	}
 }
