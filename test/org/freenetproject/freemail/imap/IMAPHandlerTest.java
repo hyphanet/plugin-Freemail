@@ -136,15 +136,44 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 	}
 
 	public void testLogout() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGOUT");
+		FakeSocket sock = new FakeSocket();
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
+		new Thread(new IMAPHandler(accManager, sock)).start();
+
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+
+		send(toHandler, "0001 LOGOUT\r\n");
+
+		int lineNum = 0;
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("* BYE");
 		expectedResponse.add("0001 OK Bye");
+		for(String response : expectedResponse) {
+			String line;
+			try {
+				line = fromHandler.readLine();
+			} catch(IOException e) {
+				//Because of the way we set up the socket we might not be able
+				//to read data after the server closes its end of the pipe
+				if(!e.getMessage().equals("Pipe closed")) {
+					throw e;
+				}
+				return;
+			}
+			if(line == null) {
+				//Same reason as above
+				return;
+			}
 
-		runSimpleTest(commands, expectedResponse);
+			assertEquals("Failed at line " + lineNum++, response, line);
+		}
+
+		assertFalse("IMAP socket has more data", fromHandler.ready());
+
+		sock.close();
 	}
 
 	public void testCapability() throws IOException {
