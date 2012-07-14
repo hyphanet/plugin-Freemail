@@ -41,7 +41,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE");
+		commands.add("0003 UID STORE 1");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
