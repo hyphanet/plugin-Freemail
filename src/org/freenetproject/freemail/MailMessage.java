@@ -632,6 +632,12 @@ public class MailMessage {
 			return super.readLine();
 		}
 
+		/**
+		 * Reads and decodes quoted-printable data until a canonical line has
+		 * been decoded.
+		 * @return a canonical line of message text
+		 * @throws IOException if an I/O error occurs while reading the input
+		 */
 		private String readQpLine() throws IOException {
 			byte[] outputBuf = new byte[0];
 			int bufOffset = 0;
@@ -646,29 +652,46 @@ public class MailMessage {
 				byte[] buf = new byte[bufOffset + line.length()];
 				System.arraycopy(outputBuf, 0, buf, 0, bufOffset);
 				outputBuf = buf;
+				bufOffset = decodeQpLine(line, outputBuf, bufOffset);
 
-				int lineOffset = 0;
-				while(lineOffset < line.length()) {
-					char c = line.charAt(lineOffset);
-					if(c == '=') {
-						if(lineOffset + 1 == line.length()) {
-							//Soft line break, so read another input line
-							continue;
-						}
-
-						byte[] value = Hex.decode(line.substring(lineOffset + 1, lineOffset + 3));
-						assert (value.length == 1);
-						outputBuf[bufOffset++] = value[0];
-						lineOffset += 3;
-					} else {
-						assert (c < 128);
-						outputBuf[bufOffset++] = (byte)c;
-						lineOffset++;
-					}
+				if(bufOffset < 0) {
+					return new String(outputBuf, 0, -bufOffset, charset);
 				}
-
-				return new String(outputBuf, 0, bufOffset, charset);
 			}
+		}
+
+		/**
+		 * Decode a single line of quoted-printable data. If the line ends with
+		 * a soft line break the new buffer offset is returned, otherwise the
+		 * new offset is returned as a negative number.
+		 *
+		 * @param line the input line in quoted-printable form
+		 * @param outputBuf the destination buffer
+		 * @param bufOffset the first index that should be written to
+		 * @return the new offset
+		 */
+		private int decodeQpLine(String line, byte[] outputBuf, int bufOffset) {
+			int lineOffset = 0;
+			while(lineOffset < line.length()) {
+				char c = line.charAt(lineOffset);
+				if(c == '=') {
+					if(lineOffset + 1 == line.length()) {
+						//Soft line break, so read another input line
+						return bufOffset;
+					}
+
+					byte[] value = Hex.decode(line.substring(lineOffset + 1, lineOffset + 3));
+					assert (value.length == 1);
+					outputBuf[bufOffset++] = value[0];
+					lineOffset += 3;
+				} else {
+					assert (c < 128);
+					outputBuf[bufOffset++] = (byte)c;
+					lineOffset++;
+				}
+			}
+
+			return -bufOffset;
 		}
 	}
 
