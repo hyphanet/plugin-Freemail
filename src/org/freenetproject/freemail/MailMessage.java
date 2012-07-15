@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -567,6 +568,16 @@ public class MailMessage {
 		return result.toString();
 	}
 
+	public BufferedReader getBodyReader() throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line = reader.readLine();
+		while(line != null && !line.equals("")) {
+			line = reader.readLine();
+		}
+
+		return new MessageBodyReader(reader);
+	}
+
 	private static class MailMessageHeader {
 		public String name;
 		public String val;
@@ -574,6 +585,12 @@ public class MailMessage {
 		public MailMessageHeader(String n, String v) {
 			this.name = n;
 			this.val = v;
+		}
+	}
+
+	private class MessageBodyReader extends BufferedReader {
+		public MessageBodyReader(Reader in) {
+			super(in);
 		}
 	}
 }

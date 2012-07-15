@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -392,22 +393,15 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		StringBuilder body = new StringBuilder();
-
+		BufferedReader bodyReader = msg.getBodyReader();
 		try {
-			//First we have to read past the header
-			String line = msg.readLine();
-			while((line != null) && (!line.equals(""))) {
-				line = msg.readLine();
-			}
-
-			//Now add the actual message content
-			line = msg.readLine();
+			String line = bodyReader.readLine();
 			while(line != null) {
 				body.append(">" + line + "\r\n");
-				line = msg.readLine();
+				line = bodyReader.readLine();
 			}
 		} finally {
-			msg.closeStream();
+			bodyReader.close();
 		}
 
 		List<String> extraHeaders = readExtraHeaders(req);
