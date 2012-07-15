@@ -638,6 +638,11 @@ public class MailMessage {
 
 			while(true) {
 				String line = super.readLine();
+				if(line == null) {
+					//TODO: What if this should have been a continuation line?
+					return null;
+				}
+
 				byte[] buf = new byte[bufOffset + line.length()];
 				System.arraycopy(outputBuf, 0, buf, 0, bufOffset);
 				outputBuf = buf;
