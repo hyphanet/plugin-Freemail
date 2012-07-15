@@ -177,7 +177,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 * The IMAP handler thread would crash with a NullPointerException if
 	 * append was called with a subfolder of index before logging in.
 	 */
-	public void testAppend() throws IOException {
+	public void testAppendWithSubfolderBeforeLogin() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 APPEND inbox.folder arg2");
 
