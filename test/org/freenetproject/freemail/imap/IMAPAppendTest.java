@@ -187,4 +187,30 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testAppendWithoutArguments() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0002 APPEND");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0002 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testAppendWithoutMessageLiteral() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0002 APPEND inbox");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0002 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
