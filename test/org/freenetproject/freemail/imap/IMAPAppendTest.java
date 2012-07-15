@@ -213,4 +213,24 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testAppendWithMoreThan3Flags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 APPEND \"INBOX\" (\\Seen \\Answered \\Flagged \\Deleted \\Draft) {42}");
+		commands.add("To: zidel@zidel.freemail");
+		commands.add("");
+		commands.add("Test message");
+		commands.add("0004 FETCH * (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("0003 OK APPEND completed");
+		expectedResponse.add("* 10 FETCH (UID 11 FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent))");
+		expectedResponse.add("0004 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
