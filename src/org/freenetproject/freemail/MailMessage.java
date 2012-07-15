@@ -570,9 +570,16 @@ public class MailMessage {
 
 	public BufferedReader getBodyReader() throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(file));
-		String line = reader.readLine();
-		while(line != null && !line.equals("")) {
-			line = reader.readLine();
+
+		//Read past the headers and store them if they haven't been read
+		//already
+		if(headers.size() > 0) {
+			String line = reader.readLine();
+			while(line != null && !line.equals("")) {
+				line = reader.readLine();
+			}
+		} else {
+			readHeaders(reader);
 		}
 
 		return new MessageBodyReader(reader);
