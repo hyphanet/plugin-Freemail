@@ -589,8 +589,92 @@ public class MailMessage {
 	}
 
 	private class MessageBodyReader extends BufferedReader {
-		public MessageBodyReader(Reader in) {
+		private final Charset charset;
+		private final ContentTransferEncoding transferEncoding;
+
+		public MessageBodyReader(Reader in) throws UnsupportedEncodingException {
 			super(in);
+			transferEncoding = ContentTransferEncoding.parse(getFirstHeader("Content-Transfer-Encoding"));
+
+			String contentType = getFirstHeader("Content-Type");
+			if(contentType == null) {
+				contentType = "text/plain; charset=us-ascii";
+			}
+			String[] parts = contentType.split(";");
+			if(!parts[0].equalsIgnoreCase("text/plain")) {
+				throw new UnsupportedEncodingException("Can't handle content types other than text/plain");
+			}
+
+			String[] charsetParts = parts[1].trim().split("=", 1);
+			if(!charsetParts[0].equalsIgnoreCase("charset")) {
+				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset");
+			}
+			charset = Charset.forName(charsetParts[1]);
+		}
+
+		@Override
+		public String readLine() throws IOException {
+			if(transferEncoding.equals(ContentTransferEncoding.SEVEN_BIT)) {
+				return super.readLine();
+			}
+			if(transferEncoding.equals(ContentTransferEncoding.QUOTED_PRINTABLE)) {
+				return readQpLine();
+			}
+
+			return super.readLine();
+		}
+
+		private String readQpLine() throws IOException {
+			byte[] outputBuf = new byte[0];
+			int bufOffset = 0;
+
+			while(true) {
+				String line = super.readLine();
+				byte[] buf = new byte[bufOffset + line.length()];
+				System.arraycopy(outputBuf, 0, buf, 0, bufOffset);
+				outputBuf = buf;
+
+				int lineOffset = 0;
+				while(lineOffset < line.length()) {
+					char c = line.charAt(lineOffset);
+					if(c == '=') {
+						if(lineOffset + 1 == line.length()) {
+							//Soft line break, so read another input line
+							continue;
+						}
+
+						byte[] value = Hex.decode(line.substring(lineOffset + 1, lineOffset + 3));
+						assert (value.length == 1);
+						outputBuf[bufOffset++] = value[0];
+						lineOffset += 3;
+					} else {
+						assert (c < 128);
+						outputBuf[bufOffset++] = (byte)c;
+						lineOffset++;
+					}
+				}
+
+				return new String(outputBuf, 0, bufOffset, charset);
+			}
+		}
+	}
+
+	private enum ContentTransferEncoding {
+		SEVEN_BIT,
+		QUOTED_PRINTABLE;
+
+		public static ContentTransferEncoding parse(String encoding) throws UnsupportedEncodingException {
+			if(encoding == null) {
+				return ContentTransferEncoding.SEVEN_BIT;
+			}
+			if(encoding.equalsIgnoreCase("7bit")) {
+				return ContentTransferEncoding.SEVEN_BIT;
+			}
+			if(encoding.equalsIgnoreCase("quoted-printable")) {
+				return ContentTransferEncoding.QUOTED_PRINTABLE;
+			}
+
+			throw new UnsupportedEncodingException();
 		}
 	}
 }
