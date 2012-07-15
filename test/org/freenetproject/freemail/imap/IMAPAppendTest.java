@@ -233,4 +233,17 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testAppendToMailboxThatDoesntExist() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 APPEND \"INBOX.NoSuchMailbox\" {42}");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
