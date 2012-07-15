@@ -188,4 +188,41 @@ public class MailMessageTest extends TestCase {
 		assertEquals("Test message (æ), line 2", reader.readLine());
 		assertEquals(null, reader.readLine());
 	}
+
+	public void testDecodeQpAndIso8859_1MessageBody() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
+		pw.print("Content-Type: text/plain; charset=iso-8859-1\r\n");
+		pw.print("\r\n");
+		pw.print("Test message (=E6=F8=E5), line 1\r\n");
+		pw.close();
+
+		MailMessage msg = new MailMessage(messageFile, 0);
+		BufferedReader reader = msg.getBodyReader();
+
+		assertEquals("Test message (æøå), line 1", reader.readLine());
+		assertEquals(null, reader.readLine());
+	}
+
+	public void testDecodeQpWithSoftLineBreak() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
+		pw.print("Content-Type: text/plain; charset=iso-8859-1\r\n");
+		pw.print("\r\n");
+		pw.print("Test message (=E6=F8=E5), line 1 =\r\n");
+		pw.print("was split across two lines\r\n");
+		pw.close();
+
+		MailMessage msg = new MailMessage(messageFile, 0);
+		BufferedReader reader = msg.getBodyReader();
+
+		assertEquals("Test message (æøå), line 1 was split across two lines", reader.readLine());
+		assertEquals(null, reader.readLine());
+	}
 }
