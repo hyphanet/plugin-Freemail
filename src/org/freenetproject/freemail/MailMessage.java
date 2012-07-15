@@ -612,7 +612,7 @@ public class MailMessage {
 				throw new UnsupportedEncodingException("Can't handle content types other than text/plain");
 			}
 
-			String[] charsetParts = parts[1].trim().split("=", 1);
+			String[] charsetParts = parts[1].trim().split("=", 2);
 			if(!charsetParts[0].equalsIgnoreCase("charset")) {
 				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset");
 			}
