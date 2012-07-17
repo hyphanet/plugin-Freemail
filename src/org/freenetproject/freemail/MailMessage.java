@@ -582,7 +582,12 @@ public class MailMessage {
 			readHeaders(reader);
 		}
 
-		return new MessageBodyReader(reader);
+		try {
+			return new MessageBodyReader(reader);
+		} catch(UnsupportedEncodingException e) {
+			Logger.warning(this, "Message uses unsupported encoding. Will display raw content", e);
+			return reader;
+		}
 	}
 
 	private static class MailMessageHeader {
