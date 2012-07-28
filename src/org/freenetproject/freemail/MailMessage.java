@@ -718,4 +718,152 @@ public class MailMessage {
 			throw new UnsupportedEncodingException();
 		}
 	}
+
+	public static class EncodingOutputStream extends OutputStream {
+		private final OutputStream out;
+
+		private byte[] buffer = new byte[4];
+		private int bufOffset = 0;
+
+		private int outputLineLength = 0;
+
+		public EncodingOutputStream(OutputStream destination) {
+			this.out = destination;
+		}
+
+		@Override
+		public void close() throws IOException {
+			writeBuffer(false);
+		}
+
+		@Override
+		public void write(int data) throws IOException {
+			byte b = (byte)data;
+
+			//Literal representation. Write the buffer first on the assumption
+			//that it contains buffered whitespace.
+			if((33 <= b && b <= 60) || (62 <= b && b <= 126)) {
+				writeBuffer(true);
+				out.write(b);
+				outputLineLength++;
+				return;
+			}
+
+			//Whitespace. Buffer the whitespace since it must be followed by a
+			//printable character
+			if(b == 9 || b == 32) {
+				insertIntoBuffer(b);
+				return;
+			}
+
+			//Line break. \r or \n alone must be encoded, while \r\n must be
+			//inserted directly into the output
+			if(b == '\r') {
+				insertIntoBuffer(b);
+				return;
+			}
+			if((b == '\n') && (bufOffset > 0) && (buffer[bufOffset - 1] == '\r')) {
+				//If the last character in the buffer is \r we must insert a
+				//hard line break, if it isn't just encode the \n
+				bufOffset--;
+				writeBuffer(false);
+				out.write('\r');
+				out.write('\n');
+				return;
+			}
+
+			//Next char will always be =
+			writeBuffer(true);
+
+			//Encode the rest
+			writeEncoded(b);
+		}
+
+		private void writeEncoded(byte b) throws IOException {
+			if(outputLineLength > (76 - 3)) {
+				insertSoftLineBreak(true);
+			}
+
+			out.write('=');
+			byte[] encoded = Hex.encode(new byte[] {b});
+			for(int i = 0; i < 2; i++) {
+				//Make sure it is upper case
+				if(encoded[i] >= 'a') {
+					encoded[i] -= 0x20;
+				}
+
+				out.write(encoded[i]);
+			}
+		}
+
+		/**
+		 * Check that the buffer only contains only whitespace characters
+		 * @param buf the buffer
+		 * @param off the start offset in the buffer
+		 * @param len the number of bytes to check
+		 * @return {@code true} if the buffer only contains whitespace characters
+		 */
+		private boolean onlyWhitespace(byte[] buf, int off, int len) {
+			for(int i = off; i < (off + len); i++) {
+				if(buf[i] != '\t' || buf[i] != '\r' || buf[i] == ' ') {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private boolean insertSoftLineBreak(boolean always) throws IOException {
+			if(always || outputLineLength >= 75) {
+				//Insert soft line break
+				out.write(new byte[] {'=', '\r', '\n'});
+				outputLineLength = 0;
+				return true;
+			}
+
+			return false;
+		}
+
+		private void insertIntoBuffer(byte b) {
+			if(bufOffset == buffer.length) {
+				byte[] temp = new byte[buffer.length * 2];
+				System.arraycopy(buffer, 0, temp, 0, bufOffset);
+				buffer = temp;
+			}
+
+			buffer[bufOffset++] = b;
+		}
+
+		private void writeBuffer(boolean nextPrintable) throws IOException {
+			assert onlyWhitespace(buffer, 0, bufOffset);
+			if(bufOffset == 0) {
+				return;
+			}
+
+			for(int i = 0; i < bufOffset - 1; i++) {
+				byte b = buffer[i];
+				insertSoftLineBreak(false);
+
+				if((0x20 <= b && b <= 0x3C)
+						|| (0x3E <= b && b <= 0x7F)
+						|| (b == '\t')) {
+					out.write(b);
+					outputLineLength++;
+				} else {
+					writeEncoded(b);
+				}
+			}
+
+			//If we need a printable character after the last buffered
+			//character, encode it unless it is printable (again except space)
+			byte b = buffer[bufOffset - 1];
+			if(!nextPrintable && (b <= 0x20 || b == 0x7F)) {
+				writeEncoded(b);
+			} else {
+				out.write(b);
+				outputLineLength++;
+			}
+			bufOffset = 0;
+		}
+	}
 }
