@@ -806,7 +806,7 @@ public class MailMessage {
 		 */
 		private boolean onlyWhitespace(byte[] buf, int off, int len) {
 			for(int i = off; i < (off + len); i++) {
-				if(buf[i] != '\t' && buf[i] != '\r' && buf[i] == ' ') {
+				if(buf[i] != '\t' && buf[i] != '\r' && buf[i] != ' ') {
 					assert false : "Buffer contained illegal character " + buf[i];
 				}
 			}
