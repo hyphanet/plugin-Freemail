@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -567,6 +568,28 @@ public class MailMessage {
 		return result.toString();
 	}
 
+	public BufferedReader getBodyReader() throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+
+		//Read past the headers and store them if they haven't been read
+		//already
+		if(headers.size() > 0) {
+			String line = reader.readLine();
+			while(line != null && !line.equals("")) {
+				line = reader.readLine();
+			}
+		} else {
+			readHeaders(reader);
+		}
+
+		try {
+			return new MessageBodyReader(reader);
+		} catch(UnsupportedEncodingException e) {
+			Logger.warning(this, "Message uses unsupported encoding. Will display raw content", e);
+			return reader;
+		}
+	}
+
 	private static class MailMessageHeader {
 		public String name;
 		public String val;
@@ -574,6 +597,274 @@ public class MailMessage {
 		public MailMessageHeader(String n, String v) {
 			this.name = n;
 			this.val = v;
+		}
+	}
+
+	private class MessageBodyReader extends BufferedReader {
+		private final Charset charset;
+		private final ContentTransferEncoding transferEncoding;
+
+		public MessageBodyReader(Reader in) throws UnsupportedEncodingException {
+			super(in);
+			transferEncoding = ContentTransferEncoding.parse(getFirstHeader("Content-Transfer-Encoding"));
+
+			String contentType = getFirstHeader("Content-Type");
+			if(contentType == null) {
+				contentType = "text/plain; charset=us-ascii";
+			}
+			String[] parts = contentType.split(";");
+			if(!parts[0].equalsIgnoreCase("text/plain")) {
+				throw new UnsupportedEncodingException("Can't handle content types other than text/plain");
+			}
+
+			String[] charsetParts = parts[1].trim().split("=", 2);
+			if(!charsetParts[0].equalsIgnoreCase("charset")) {
+				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
+						+ "Parameter was " + charsetParts[0]);
+			}
+			charset = Charset.forName(charsetParts[1]);
+		}
+
+		@Override
+		public String readLine() throws IOException {
+			if(transferEncoding.equals(ContentTransferEncoding.SEVEN_BIT)) {
+				return super.readLine();
+			}
+			if(transferEncoding.equals(ContentTransferEncoding.QUOTED_PRINTABLE)) {
+				return readQpLine();
+			}
+
+			return super.readLine();
+		}
+
+		/**
+		 * Reads and decodes quoted-printable data until a canonical line has
+		 * been decoded.
+		 * @return a canonical line of message text
+		 * @throws IOException if an I/O error occurs while reading the input
+		 */
+		private String readQpLine() throws IOException {
+			byte[] outputBuf = new byte[0];
+			int bufOffset = 0;
+
+			while(true) {
+				String line = super.readLine();
+				if(line == null) {
+					//TODO: What if this should have been a continuation line?
+					return null;
+				}
+
+				byte[] buf = new byte[bufOffset + line.length()];
+				System.arraycopy(outputBuf, 0, buf, 0, bufOffset);
+				outputBuf = buf;
+				bufOffset = decodeQpLine(line, outputBuf, bufOffset);
+
+				if(bufOffset < 0) {
+					return new String(outputBuf, 0, -bufOffset, charset);
+				}
+			}
+		}
+
+		/**
+		 * Decode a single line of quoted-printable data. If the line ends with
+		 * a soft line break the new buffer offset is returned, otherwise the
+		 * new offset is returned as a negative number.
+		 *
+		 * @param line the input line in quoted-printable form
+		 * @param outputBuf the destination buffer
+		 * @param bufOffset the first index that should be written to
+		 * @return the new offset
+		 */
+		private int decodeQpLine(String line, byte[] outputBuf, int bufOffset) {
+			int lineOffset = 0;
+			while(lineOffset < line.length()) {
+				char c = line.charAt(lineOffset);
+				if(c == '=') {
+					if(lineOffset + 1 == line.length()) {
+						//Soft line break, so read another input line
+						return bufOffset;
+					}
+
+					byte[] value = Hex.decode(line.substring(lineOffset + 1, lineOffset + 3));
+					assert (value.length == 1);
+					outputBuf[bufOffset++] = value[0];
+					lineOffset += 3;
+				} else {
+					assert (c < 128);
+					outputBuf[bufOffset++] = (byte)c;
+					lineOffset++;
+				}
+			}
+
+			return -bufOffset;
+		}
+	}
+
+	private enum ContentTransferEncoding {
+		SEVEN_BIT,
+		QUOTED_PRINTABLE;
+
+		public static ContentTransferEncoding parse(String encoding) throws UnsupportedEncodingException {
+			if(encoding == null) {
+				return ContentTransferEncoding.SEVEN_BIT;
+			}
+			if(encoding.equalsIgnoreCase("7bit")) {
+				return ContentTransferEncoding.SEVEN_BIT;
+			}
+			if(encoding.equalsIgnoreCase("quoted-printable")) {
+				return ContentTransferEncoding.QUOTED_PRINTABLE;
+			}
+
+			throw new UnsupportedEncodingException();
+		}
+	}
+
+	public static class EncodingOutputStream extends OutputStream {
+		private final OutputStream out;
+
+		private byte[] buffer = new byte[4];
+		private int bufOffset = 0;
+
+		private int outputLineLength = 0;
+
+		public EncodingOutputStream(OutputStream destination) {
+			this.out = destination;
+		}
+
+		@Override
+		public void close() throws IOException {
+			writeBuffer(false);
+		}
+
+		@Override
+		public void write(int data) throws IOException {
+			byte b = (byte)data;
+
+			//Literal representation. Write the buffer first on the assumption
+			//that it contains buffered whitespace.
+			if((33 <= b && b <= 60) || (62 <= b && b <= 126)) {
+				writeBuffer(true);
+				insertSoftLineBreak(false);
+				out.write(b);
+				outputLineLength++;
+				return;
+			}
+
+			//Whitespace. Buffer the whitespace since it must be followed by a
+			//printable character
+			if(b == 9 || b == 32) {
+				insertIntoBuffer(b);
+				return;
+			}
+
+			//Line break. \r or \n alone must be encoded, while \r\n must be
+			//inserted directly into the output
+			if(b == '\r') {
+				insertIntoBuffer(b);
+				return;
+			}
+			if((b == '\n') && (bufOffset > 0) && (buffer[bufOffset - 1] == '\r')) {
+				//If the last character in the buffer is \r we must insert a
+				//hard line break, if it isn't just encode the \n
+				bufOffset--;
+				writeBuffer(false);
+				out.write('\r');
+				out.write('\n');
+				return;
+			}
+
+			//Next char will always be =
+			writeBuffer(true);
+
+			//Encode the rest
+			writeEncoded(b);
+		}
+
+		private void writeEncoded(byte b) throws IOException {
+			if(outputLineLength > (76 - 3)) {
+				insertSoftLineBreak(true);
+			}
+
+			out.write('=');
+			byte[] encoded = Hex.encode(new byte[] {b});
+			for(int i = 0; i < 2; i++) {
+				//Make sure it is upper case
+				if(encoded[i] >= 'a') {
+					encoded[i] -= 0x20;
+				}
+
+				out.write(encoded[i]);
+			}
+		}
+
+		/**
+		 * Check that the buffer only contains only whitespace characters
+		 * @param buf the buffer
+		 * @param off the start offset in the buffer
+		 * @param len the number of bytes to check
+		 * @return {@code true} if the buffer only contains whitespace characters
+		 */
+		private boolean onlyWhitespace(byte[] buf, int off, int len) {
+			for(int i = off; i < (off + len); i++) {
+				if(buf[i] != '\t' && buf[i] != '\r' && buf[i] != ' ') {
+					assert false : "Buffer contained illegal character " + buf[i];
+				}
+			}
+
+			return true;
+		}
+
+		private boolean insertSoftLineBreak(boolean always) throws IOException {
+			if(always || outputLineLength >= 75) {
+				//Insert soft line break
+				out.write(new byte[] {'=', '\r', '\n'});
+				outputLineLength = 0;
+				return true;
+			}
+
+			return false;
+		}
+
+		private void insertIntoBuffer(byte b) {
+			if(bufOffset == buffer.length) {
+				byte[] temp = new byte[buffer.length * 2];
+				System.arraycopy(buffer, 0, temp, 0, bufOffset);
+				buffer = temp;
+			}
+
+			buffer[bufOffset++] = b;
+		}
+
+		private void writeBuffer(boolean nextPrintable) throws IOException {
+			assert onlyWhitespace(buffer, 0, bufOffset);
+			if(bufOffset == 0) {
+				return;
+			}
+
+			for(int i = 0; i < bufOffset - 1; i++) {
+				byte b = buffer[i];
+				insertSoftLineBreak(false);
+
+				if((0x20 <= b && b <= 0x3C)
+						|| (0x3E <= b && b <= 0x7F)
+						|| (b == '\t')) {
+					out.write(b);
+					outputLineLength++;
+				} else {
+					writeEncoded(b);
+				}
+			}
+
+			//If we need a printable character after the last buffered
+			//character, encode it unless it is printable (again except space)
+			byte b = buffer[bufOffset - 1];
+			if(!nextPrintable && (b <= 0x20 || b == 0x7F)) {
+				writeEncoded(b);
+			} else {
+				out.write(b);
+				outputLineLength++;
+			}
+			bufOffset = 0;
 		}
 	}
 }

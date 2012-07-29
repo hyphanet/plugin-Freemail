@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -175,20 +176,11 @@ public class MessageToadlet extends WebPage {
 
 		List<String> lines = new LinkedList<String>();
 		try {
-			boolean inHeader = true;
-			while(true) {
-				String line = message.readLine();
-				if(line == null) break;
-
-				if((line.equals("")) && inHeader) {
-					inHeader = false;
-					continue;
-				}
-				if(inHeader) {
-					continue;
-				}
-
+			BufferedReader body = message.getBodyReader();
+			String line = body.readLine();
+			while(line != null) {
 				lines.add(line);
+				line = body.readLine();
 			}
 		} catch(IOException e) {
 			//TODO: Better error message
