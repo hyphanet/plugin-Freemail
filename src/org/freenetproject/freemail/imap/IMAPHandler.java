@@ -781,6 +781,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				}
 				buf.append("\r\n");
 			} else if(parts[0].equalsIgnoreCase("header")) {
+				this.ps.print("[HEADER]");
+
 				// send all the header fields
 				try {
 					mmsg.readHeaders();
