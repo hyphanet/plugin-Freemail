@@ -744,6 +744,7 @@ public class MailMessage {
 			//that it contains buffered whitespace.
 			if((33 <= b && b <= 60) || (62 <= b && b <= 126)) {
 				writeBuffer(true);
+				insertSoftLineBreak(false);
 				out.write(b);
 				outputLineLength++;
 				return;
