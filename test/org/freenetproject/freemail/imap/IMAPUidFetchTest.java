@@ -294,4 +294,21 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUidFetchBodyPeekHeader() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID FETCH 1 (BODY.PEEK[HEADER])");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (BODY[HEADER] {32}");
+		expectedResponse.add("Subject: IMAP test message 0");
+		expectedResponse.add("");
+		expectedResponse.add(" UID 1)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
