@@ -1,6 +1,6 @@
 /*
- * IMAPUidFetchTest.java
- * This file is part of Freemail, copyright (C) 2012 Martin Nyhus
+ * IMAPCopyTest.java
+ * This file is part of Freemail, copyright (C) 2012
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,291 +23,271 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IMAPUidFetchTest extends IMAPTestWithMessages {
-	public void testUidFetchBodyPeek() throws IOException {
+public class IMAPCopyTest extends IMAPTestWithMessages {
+	public void testCopySingleMessageToSameFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 1 (BODY.PEEK[])");
+		commands.add("0003 SEARCH ALL");
+		commands.add("0004 COPY 1 INBOX");
+		commands.add("0005 SEARCH ALL");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (BODY[] {32}");
-		expectedResponse.add("Subject: IMAP test message 0");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 1)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9");
+		expectedResponse.add("0003 OK Search completed");
+		expectedResponse.add("0004 OK COPY completed");
+		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9 10");
+		expectedResponse.add("0005 OK Search completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchSingleArg() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 10:* BODY.PEEK[]");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (BODY[] {32}");
-		expectedResponse.add("Subject: IMAP test message 9");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithOnlyUid() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 10:* UID");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/*
-	 * In the sequence number range * is the highest sequence number in use and the order of the two
-	 * doesn't matter (i.e. 2:4 == 4:2), so 20:* should return the highest numbered message
-	 * (assuming * < 20).
-	 */
-	public void testUidSequenceNumberRangeWithFirstAboveMax() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 20:* (UID FLAGS)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (UID 10 FLAGS ())");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidSequenceNumberRangeWithWildcardFirst() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH *:10 (UID FLAGS)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (UID 10 FLAGS ())");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchBodyStartRange() throws IOException {
+	public void testCopyWithMessageId0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 1 (BODY.PEEK[]<0.15>)");
+		commands.add("0003 COPY 0 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (BODY[]<0> {15}");
-		expectedResponse.add("Subject: IMAP t UID 1)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchBodyMiddleRange() throws IOException {
+	public void testCopyWithMessageIdRangeFrom0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 1 (BODY.PEEK[]<1.15>)");
+		commands.add("0003 COPY 0:* INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (BODY[]<1> {15}");
-		expectedResponse.add("ubject: IMAP te UID 1)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchBodyEndRange() throws IOException {
+	public void testCopyWithMessageIdRangeTo0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 1 (BODY.PEEK[]<15.1000>)");
+		commands.add("0003 COPY *:0 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (BODY[]<15> {17}");
-		expectedResponse.add("est message 0");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 1)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchSequenceNumberRangeWithWildcard() throws IOException {
+	public void testCopyWithTooHighMessageIdFirstInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 10:* (UID)");
+		commands.add("0003 COPY 11:10 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithSequenceNumberRange() throws IOException {
+	public void testCopyWithTooHighMessageIdLastInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 9:10 (UID)");
+		commands.add("0003 COPY 10:11 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 8 FETCH (UID 9)");
-		expectedResponse.add("* 9 FETCH (UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithOutOfBoundsSequenceNumber() throws IOException {
+	public void testCopyToNonexistentMailbox() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 9:11 (UID)");
+		commands.add("0003 COPY 1 INBOX.abc");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 8 FETCH (UID 9)");
-		expectedResponse.add("* 9 FETCH (UID 10)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithInvalidSequenceNumberRange() throws IOException {
+	public void testCopySetsRecentFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 9:BAD (UID)");
+		commands.add("0003 COPY 1 INBOX");
+		commands.add("0004 FETCH * FLAGS");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Bad number: BAD. Please report this error!");
+		expectedResponse.add("0003 OK COPY completed");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Recent))");
+		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithUnterminatedArgumentList() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 10:* (BODY.PEEK[]");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (BODY[] {32}");
-		expectedResponse.add("Subject: IMAP test message 9");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 10)");
-		expectedResponse.add("0003 BAD Unknown attribute in list or unterminated list");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithLongArgumentList() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 10:* (UID FLAGS BODY.PEEK[]<0.1>)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 9 FETCH (UID 10 FLAGS () BODY[]<0> {1}");
-		expectedResponse.add("S)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithoutArguments() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithoutDataItems() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH *:10");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithInvalidMessageNumberFirst() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH BAD:10 UID");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Bad number: BAD. Please report this error!");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchWithListOfUids() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT inbox");
-		commands.add("0003 UID FETCH 7,8 (UID)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 6 FETCH (UID 7)");
-		expectedResponse.add("* 7 FETCH (UID 8)");
-		expectedResponse.add("0003 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidFetchBodyPeekHeader() throws IOException {
+	public void testCopyDoesntCreateMailbox() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID FETCH 1 (BODY.PEEK[HEADER])");
+		commands.add("0003 COPY 1 INBOX.abc");
+		commands.add("0004 SELECT INBOX.abc");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (BODY[HEADER] {32}");
-		expectedResponse.add("Subject: IMAP test message 0");
-		expectedResponse.add("");
-		expectedResponse.add(" UID 1)");
-		expectedResponse.add("0003 OK Fetch completed");
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
+		expectedResponse.add("0004 NO No such mailbox");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidAfterCopy() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID SEARCH ALL");
+		commands.add("0004 COPY 1 INBOX");
+		commands.add("0005 UID SEARCH ALL");
+		commands.add("0005 FETCH 10 (UID)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
+		expectedResponse.add("0003 OK Search completed");
+		expectedResponse.add("0004 OK COPY completed");
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10 11");
+		expectedResponse.add("0005 OK Search completed");
+		expectedResponse.add("* 10 FETCH (UID 11)");
+		expectedResponse.add("0005 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyPreservesFlags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 STORE 1 FLAGS (\\Seen)");
+		commands.add("0004 STORE 2 FLAGS (\\Deleted)");
+		commands.add("0005 STORE 3 FLAGS (\\Recent)");
+		commands.add("0006 COPY 1:3 INBOX");
+		commands.add("0007 UID FETCH 11:* (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH FLAGS (\\Seen)");
+		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("* 2 FETCH FLAGS (\\Deleted)");
+		expectedResponse.add("0004 OK Store completed");
+		expectedResponse.add("* 3 FETCH FLAGS (\\Recent)");
+		expectedResponse.add("0005 OK Store completed");
+		expectedResponse.add("0006 OK COPY completed");
+		expectedResponse.add("* 10 FETCH (UID 11 FLAGS (\\Seen \\Recent))");
+		expectedResponse.add("* 11 FETCH (UID 12 FLAGS (\\Deleted \\Recent))");
+		expectedResponse.add("* 12 FETCH (UID 13 FLAGS (\\Recent))");
+		expectedResponse.add("0007 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithNoArgs() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0006 COPY");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0006 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithoutDestination() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0006 COPY *");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0006 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumber() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberFirstInRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY BAD:* INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberLastInRange() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY 1:BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberFirstInList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY BAD,* INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testCopyWithIllegalSequenceNumberLastInList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 COPY *,BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
 	}

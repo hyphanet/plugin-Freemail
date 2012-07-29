@@ -25,9 +25,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.imap.IMAPHandler;
@@ -93,7 +96,9 @@ public abstract class IMAPTestBase extends TestCase {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+		IMAPHandler handler = new IMAPHandler(accManager, sock);
+		Thread imapThread = new Thread(handler);
+		imapThread.start();
 
 		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
 		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
@@ -102,12 +107,48 @@ public abstract class IMAPTestBase extends TestCase {
 			send(toHandler, cmd + "\r\n");
 		}
 
-		int lineNum = 0;
-		for(String response : expectedResponse) {
-			String line = fromHandler.readLine();
-			assertEquals("Failed at line " + lineNum++, response, line);
-		}
+		try {
+			int lineNum = 0;
+			for(String response : expectedResponse) {
+				try {
+					waitForReady(fromHandler, 1, TimeUnit.SECONDS);
+				} catch (TimeoutException e) {
+					fail("Test timed out waiting for response");
+				} catch (InterruptedException e) {
+					fail("Thread interrupted unexpectedly");
+				}
 
-		assertFalse("IMAP socket has more data", fromHandler.ready());
+				String line = fromHandler.readLine();
+				assertEquals("Failed at line " + lineNum++, response, line);
+			}
+
+			assertFalse("IMAP socket has more data", fromHandler.ready());
+		} finally {
+			handler.kill();
+			sock.close();
+			try {
+				imapThread.join();
+			} catch(InterruptedException e) {
+				fail("Caught unexpected InterruptedException");
+			}
+		}
+	}
+
+	private void waitForReady(Reader reader, int timeout, TimeUnit unit)
+			throws IOException, TimeoutException, InterruptedException {
+		long start = System.nanoTime();
+		int sleepTime = 1;
+
+		while(!reader.ready()) {
+			//Check if we have timed out
+			long waited = System.nanoTime() - start;
+			if(unit.convert(waited, TimeUnit.NANOSECONDS) > timeout) {
+				throw new TimeoutException();
+			}
+
+			//If not sleep a little
+			Thread.sleep(sleepTime);
+			sleepTime = Math.max(sleepTime * 2, 100);
+		}
 	}
 }

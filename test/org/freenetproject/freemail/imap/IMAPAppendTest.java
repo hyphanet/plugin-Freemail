@@ -177,13 +177,72 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 * The IMAP handler thread would crash with a NullPointerException if
 	 * append was called with a subfolder of index before logging in.
 	 */
-	public void testAppend() throws IOException {
+	public void testAppendWithSubfolderBeforeLogin() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 APPEND inbox.folder arg2");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 NO Must be authenticated");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testAppendWithoutArguments() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0002 APPEND");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0002 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testAppendWithoutMessageLiteral() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0002 APPEND inbox");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0002 BAD Not enough arguments");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testAppendWithMoreThan3Flags() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 APPEND \"INBOX\" (\\Seen \\Answered \\Flagged \\Deleted \\Draft) {42}");
+		commands.add("To: zidel@zidel.freemail");
+		commands.add("");
+		commands.add("Test message");
+		commands.add("0004 FETCH * (UID FLAGS)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("+ OK");
+		expectedResponse.add("0003 OK APPEND completed");
+		expectedResponse.add("* 10 FETCH (UID 11 FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent))");
+		expectedResponse.add("0004 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testAppendToMailboxThatDoesntExist() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 APPEND \"INBOX.NoSuchMailbox\" {42}");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox");
 
 		runSimpleTest(commands, expectedResponse);
 	}
