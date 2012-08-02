@@ -32,7 +32,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+		expectedResponse.add("0003 BAD Not enough arguments for uid command");
 
 		runSimpleTest(commands, expectedResponse);
 	}
@@ -45,7 +45,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+		expectedResponse.add("0003 BAD Not enough arguments for uid command");
 
 		runSimpleTest(commands, expectedResponse);
 	}
@@ -58,7 +58,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+		expectedResponse.add("0003 BAD Not enough arguments to store flags");
 
 		runSimpleTest(commands, expectedResponse);
 	}
