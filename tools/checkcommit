@@ -1,27 +1,62 @@
 #!/bin/bash
 set -e
 
-#Check arguments
-if [[ -n "$3" ]]; then
-	echo "USAGE: $0 [--quiet|--verbose] [<commit>]"
-	echo "     --quiet    - suppress non-error messages"
-	echo "     --verbose  - print added/removed count even when no warnings are added"
-	echo "    <commit>    - the commit that should be checked, see gitrevisions(7)"
-	echo "                  defaults to the currently checked out commit"
+usage() {
+	cat <<EOM
+USAGE: $0 [options] <commit> <commit>
+       $0 [options] [<commit>]
+
+    Checks for differences in style warnings and unit test failures between the
+    two commits. The second form is shorthand for <commit>^ <commit>, and uses
+    HEAD if the commit is missing.
+
+    --quiet    - suppress non-error messages
+    --verbose  - print added/removed count even when no warnings are added
+    <commit>   - the two commits that should be compared, see gitrevisions(7)
+                 for ways to specify commits
+EOM
 	exit 1
+}
+
+FROM=""
+TO=""
+
+for arg in "$@"; do
+	if [[ "$arg" = --* ]]; then
+		if [[ "$arg" == "--quiet" ]]; then
+			QUIET="true"
+			VERBOSE=""
+		elif [[ "$arg" == "--verbose" ]]; then
+			VERBOSE="true"
+			QUIET=""
+		else
+			echo "`basename $0`: unrecognized option '$arg'"
+			usage
+		fi
+	elif [[ -z "$FROM" ]]; then
+		FROM="$arg"
+	elif [[ -z "$TO" ]]; then
+		TO="$arg"
+	else
+		echo "`basename $0`: Extra argument $arg"
+		usage
+	fi
+done
+
+#Abort if the working directory isn't clean
+if [[ -n "$(git status --porcelain)" ]]; then
+	echo "`basename $0`: Aborting due to dirty working directory"
+	exit 1;
 fi
 
-if [[ "$1" == "--quiet" ]]; then
-	QUIET="true"
-	shift 1
-elif [[ "$1" == "--verbose" ]]; then
-	VERBOSE="true"
-	shift 1
+#Handle second form of the command
+if [[ -z "$FROM" ]]; then
+	#Without commit
+	FROM=`git describe --always`
 fi
-
-COMMIT=$1
-if [[ -z "$COMMIT" ]]; then
-	COMMIT=`git describe`
+if [[ -z "$TO" ]]; then
+	#With commit
+	TO="$FROM"
 fi
 
 #Save the current branch / commit
@@ -30,21 +65,8 @@ if [[ $ORIG == "(no branch)" ]]; then
 	ORIG=`git describe`
 fi
 
-#TODO: Check the state of the tree and index
-if [ -a .checkcommit.prev ]; then
-	echo ".checkcommit.prev exists, won't overwrite"
-	exit 1;
-fi
-if [ -a .checkcommit.cur ]; then
-	echo ".checkcommit.cur exists, won't overwrite"
-	exit 1;
-fi
-
-TARGET=`git describe "$COMMIT"`
-PARENT=`git describe "$COMMIT"^`
-
 #Checkout the parent of the target
-git checkout "$PARENT" &> /dev/null
+git checkout "$FROM" &> /dev/null
 mkdir -p .checkcommit.prev
 set +e
 ant clean &> /dev/null
@@ -54,7 +76,7 @@ grep "\[junit\] Testcase: .*FAILED" .checkcommit.prev/build | sort > .checkcommi
 set -e
 
 #Checkout the target
-git checkout "$TARGET" &> /dev/null
+git checkout "$TO" &> /dev/null
 mkdir -p .checkcommit.cur
 set +e
 ant clean &> /dev/null
@@ -77,7 +99,7 @@ if [[ ! $QUIET ]]; then
 		#TODO: Remove the initial +
 		diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^+"
 		set -e
-		echo "`git describe`: $CHECKSTYLE_ADDED warnings added, $CHECKSTYLE_REMOVED removed"
+		echo "$FROM..$TO: $CHECKSTYLE_ADDED warnings added, $CHECKSTYLE_REMOVED removed"
 	fi
 fi
 
@@ -91,12 +113,12 @@ if [[ ! $QUIET ]]; then
 		#TODO: Remove the initial +
 		diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^+"
 		set -e
-		echo "`git describe`: $JUNIT_ADDED new failures, $JUNIT_REMOVED failures fixed"
+		echo "$FROM..$TO: $JUNIT_ADDED new failures, $JUNIT_REMOVED failures fixed"
 	fi
 fi
 
 #Cleanup
-rm -r .checkcommit.prev/ .checkcommit.cur/
+rm -fr .checkcommit.prev/ .checkcommit.cur/
 
 #Checkout original branch
 git checkout "$ORIG" &> /dev/null
