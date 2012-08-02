@@ -770,6 +770,7 @@ public class MailMessage {
 				writeBuffer(false);
 				out.write('\r');
 				out.write('\n');
+				outputLineLength = 0;
 				return;
 			}
 
