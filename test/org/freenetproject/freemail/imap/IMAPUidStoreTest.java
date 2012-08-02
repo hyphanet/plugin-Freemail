@@ -218,7 +218,7 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 3 FETCH (UID 3 FLAGS ())");
-		expectedResponse.add("0004 OK Store completed");
+		expectedResponse.add("0003 OK Store completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
