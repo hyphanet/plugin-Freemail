@@ -488,7 +488,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				}
 			}
 
-			this.doStore(msg.args, 2, msgs.values(), msg, true);
+			if(!this.doStore(msg.args, 2, msgs.values(), msg, true)) {
+				return;
+			}
 
 			this.reply(msg, "OK Store completed");
 		} else if(msg.args[0].equalsIgnoreCase("copy")) {
