@@ -867,6 +867,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return false;
 		}
 
+		if(args.length - offset < 2) {
+			this.reply(msg, "BAD Not enough arguments to store flags");
+			return false;
+		}
+
 		if(args[offset + 1].startsWith("("))
 			args[offset + 1] = args[offset + 1].substring(1);
 
