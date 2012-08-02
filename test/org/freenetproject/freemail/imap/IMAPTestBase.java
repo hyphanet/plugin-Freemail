@@ -122,7 +122,15 @@ public abstract class IMAPTestBase extends TestCase {
 				assertEquals("Failed at line " + lineNum++, response, line);
 			}
 
-			assertFalse("IMAP socket has more data", fromHandler.ready());
+			if(fromHandler.ready()) {
+				String data = "";
+				while(fromHandler.ready()) {
+					char[] tmp = new char[1024];
+					int read = fromHandler.read(tmp, 0, tmp.length);
+					data += new String(tmp, 0, read);
+				}
+				fail("IMAP socket has more data: " + data);
+			}
 		} finally {
 			handler.kill();
 			sock.close();
