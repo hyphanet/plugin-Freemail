@@ -199,8 +199,9 @@ public class NewMessageToadlet extends WebPage {
 			msg.cancel();
 			return false;
 		}
-
 		Closer.close(ps);
+
+		msg.flags.set("\\Seen", true);
 		msg.commit();
 
 		return true;
