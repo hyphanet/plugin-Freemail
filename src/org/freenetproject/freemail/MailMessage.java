@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -586,6 +587,9 @@ public class MailMessage {
 			return new MessageBodyReader(reader);
 		} catch(UnsupportedEncodingException e) {
 			Logger.warning(this, "Message transfer encoding isn't supported, will display raw content", e);
+			return reader;
+		} catch(IllegalCharsetNameException e) {
+			Logger.warning(this, "Message charset name contains illegal characters, will display raw content", e);
 			return reader;
 		}
 	}
