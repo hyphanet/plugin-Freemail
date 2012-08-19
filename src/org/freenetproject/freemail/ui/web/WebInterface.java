@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.freenetproject.freemail.FreemailPlugin;
+import org.freenetproject.freemail.config.Configurator;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.Toadlet;
@@ -44,7 +45,8 @@ public class WebInterface {
 	private final ToadletContainer container;
 	private final PluginRespirator pluginRespirator;
 
-	public WebInterface(ToadletContainer container, PluginRespirator pluginRespirator, FreemailPlugin freemail) {
+	public WebInterface(ToadletContainer container, PluginRespirator pluginRespirator, FreemailPlugin freemail,
+			Configurator config) {
 		this.container = container;
 		this.pluginRespirator = pluginRespirator;
 		LoginManager loginManager = new LoginManager(freemail.getAccountManager(),
@@ -59,11 +61,13 @@ public class WebInterface {
 		InboxToadlet inboxToadlet = new InboxToadlet(freemail.getAccountManager(), pluginRespirator, loginManager);
 		OutboxToadlet outboxToadlet = new OutboxToadlet(pluginRespirator, freemail.getAccountManager(), freemail, loginManager);
 		NewMessageToadlet newMessageToadlet = new NewMessageToadlet(freemail.getWotConnection(), freemail, pluginRespirator, loginManager);
+		InfoToadlet infoToadlet = new InfoToadlet(pluginRespirator, loginManager, freemail.getAccountManager(), config);
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);
 		registerToadlet(logoutToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false);
 		registerToadlet(inboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InboxToadlet.name", "Freemail.InboxToadlet.title", false);
 		registerToadlet(outboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.OutboxToadlet.name", "Freemail.OutboxToadlet.title", false);
 		registerToadlet(newMessageToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.NewMessageToadlet.name", "Freemail.NewMessageToadlet.title", false);
+		registerToadlet(infoToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InfoToadlet.name", "Freemail.InfoToadlet.title", false);
 
 		//Toadlets that don't go in the menu
 		MessageToadlet messageToadlet = new MessageToadlet(freemail.getAccountManager(), pluginRespirator, loginManager);

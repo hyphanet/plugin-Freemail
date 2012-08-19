@@ -46,4 +46,13 @@ Freemail.OutboxToadlet.name=Outbox
 Freemail.OutboxToadlet.title=Outbox
 Freemail.OutboxToadlet.neverSent=Never
 Freemail.Web.Common.defaultSubject=(No subject)
+Freemail.InfoToadlet.title=About
+Freemail.InfoToadlet.name=About
+Freemail.InfoToadlet.account.title=Account information
+Freemail.InfoToadlet.email-title=Email:
+Freemail.InfoToadlet.imap-addr.title=IMAP server address:
+Freemail.InfoToadlet.imap-port.title=IMAP server port:
+Freemail.InfoToadlet.smtp-addr.title=SMTP server address:
+Freemail.InfoToadlet.smtp-port.title=SMTP server port:
+Freemail.InfoToadlet.server.title=Freemail info
 End
