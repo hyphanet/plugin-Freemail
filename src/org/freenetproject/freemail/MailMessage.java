@@ -631,7 +631,12 @@ public class MailMessage {
 				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
 						+ "Parameter was " + charsetParts[0]);
 			}
-			charset = Charset.forName(charsetParts[1]);
+
+			String charsetName = charsetParts[1];
+			if(charsetName.startsWith("\"") && charsetName.endsWith("\"")) {
+				charsetName = charsetName.substring(1, charsetName.length() - 1);
+			}
+			charset = Charset.forName(charsetName);
 		}
 
 		@Override
