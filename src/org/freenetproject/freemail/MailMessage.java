@@ -585,7 +585,7 @@ public class MailMessage {
 		}
 
 		try {
-			return new MessageBodyReader(reader);
+			return new MessageBodyReader(reader, this);
 		} catch(UnsupportedEncodingException e) {
 			Logger.warning(this, "Message transfer encoding isn't supported, will display raw content", e);
 			return reader;
@@ -608,15 +608,15 @@ public class MailMessage {
 		}
 	}
 
-	private class MessageBodyReader extends BufferedReader {
+	private static class MessageBodyReader extends BufferedReader {
 		private final Charset charset;
 		private final ContentTransferEncoding transferEncoding;
 
-		public MessageBodyReader(Reader in) throws UnsupportedEncodingException {
+		public MessageBodyReader(Reader in, MailMessage msg) throws UnsupportedEncodingException {
 			super(in);
-			transferEncoding = ContentTransferEncoding.parse(getFirstHeader("Content-Transfer-Encoding"));
+			transferEncoding = ContentTransferEncoding.parse(msg.getFirstHeader("Content-Transfer-Encoding"));
 
-			String contentType = getFirstHeader("Content-Type");
+			String contentType = msg.getFirstHeader("Content-Type");
 			if(contentType == null) {
 				contentType = "text/plain; charset=us-ascii";
 			}
