@@ -130,4 +130,43 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals("Test message (æøå), line 1 was split across two lines", reader.readLine());
 		assertEquals(null, reader.readLine());
 	}
+
+	public void testDecodeBase64AndAsciiMessageBody() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("Content-Transfer-Encoding: base64\r\n");
+		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
+		pw.print("\r\n");
+		pw.print("VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2FnZSwgbGluZSAyDQo=");
+		pw.close();
+
+		MailMessage msg = new MailMessage(messageFile, 0);
+		BufferedReader reader = msg.getBodyReader();
+
+		assertEquals("Test message, line 1", reader.readLine());
+		assertEquals("Test message, line 2", reader.readLine());
+		assertEquals(null, reader.readLine());
+	}
+
+	public void testDecodeBase64AndUtf8MessageBody() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("Content-Transfer-Encoding: base64\r\n");
+		pw.print("Content-Type: text/plain; charset=utf-8\r\n");
+		pw.print("\r\n");
+		pw.print("VGVzdCBtZXNzYWdlICjDpiksIGxpbmUgMQ0KVGVzdCBt\r\n");
+		pw.print("ZXNzYWdlICjDpiksIGxpbmUgMg0K\r\n");
+		pw.close();
+
+		MailMessage msg = new MailMessage(messageFile, 0);
+		BufferedReader reader = msg.getBodyReader();
+
+		assertEquals("Test message (æ), line 1", reader.readLine());
+		assertEquals("Test message (æ), line 2", reader.readLine());
+		assertEquals(null, reader.readLine());
+	}
 }
