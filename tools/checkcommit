@@ -18,8 +18,8 @@ EOM
 	exit 1
 }
 
-FROM=""
-TO=""
+COMMIT1=""
+COMMIT2=""
 
 for arg in "$@"; do
 	if [[ "$arg" = --* ]]; then
@@ -33,10 +33,10 @@ for arg in "$@"; do
 			echo "`basename $0`: unrecognized option '$arg'"
 			usage
 		fi
-	elif [[ -z "$FROM" ]]; then
-		FROM="$arg"
-	elif [[ -z "$TO" ]]; then
-		TO="$arg"
+	elif [[ -z "$COMMIT1" ]]; then
+		COMMIT1="$arg"
+	elif [[ -z "$COMMIT2" ]]; then
+		COMMIT2="$arg"
 	else
 		echo "`basename $0`: Extra argument $arg"
 		usage
@@ -49,15 +49,22 @@ if [[ -n "$(git status --porcelain)" ]]; then
 	exit 1;
 fi
 
-#Handle second form of the command
-if [[ -z "$FROM" ]]; then
-	#Without commit
-	FROM=`git describe --always`
+#Find the two commits we should test
+if [[ -z "$COMMIT1" && -z "$COMMIT2" ]]; then
+	#No commits, test HEAD^..HEAD
+	FROM="HEAD^"
+	TO="HEAD"
+elif [[ -n "$COMMIT1" && -z "$COMMIT2" ]]; then
+	#One commit, test $COMMIT1^..$COMMIT1
+	FROM="$COMMIT1^"
+	TO="$COMMIT1"
+else
+	#Two commits, test $COMMIT1..$COMMIT2
+	FROM="$COMMIT1"
+	TO="$COMMIT2"
 fi
-if [[ -z "$TO" ]]; then
-	#With commit
-	TO="$FROM"
-fi
+FROM=`git describe --always $FROM`
+TO=`git describe --always $TO`
 
 #Save the current branch / commit
 ORIG=`git branch | grep '*' | cut -d" " -f2-`
