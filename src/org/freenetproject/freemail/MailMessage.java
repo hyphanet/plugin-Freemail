@@ -612,6 +612,12 @@ public class MailMessage {
 		private final Charset charset;
 		private final ContentTransferEncoding transferEncoding;
 
+		/**
+		 * Used to store data e.g. when the hard line break is in the middle of
+		 * an encoded line as can happen in e.g. base64.
+		 */
+		private String buffer;
+
 		public MessageBodyReader(Reader in, MailMessage msg) throws UnsupportedEncodingException {
 			super(in);
 			transferEncoding = ContentTransferEncoding.parse(msg.getFirstHeader("Content-Transfer-Encoding"));
@@ -647,6 +653,9 @@ public class MailMessage {
 			if(transferEncoding.equals(ContentTransferEncoding.QUOTED_PRINTABLE)) {
 				return readQpLine();
 			}
+			if(transferEncoding.equals(ContentTransferEncoding.BASE64)) {
+				return readBase64Line();
+			}
 
 			return super.readLine();
 		}
@@ -676,6 +685,50 @@ public class MailMessage {
 				if(bufOffset < 0) {
 					return new String(outputBuf, 0, -bufOffset, charset);
 				}
+			}
+		}
+
+		private String readBase64Line() throws IOException {
+			String result = "";
+			boolean readData = false;
+
+			if(buffer != null) {
+				result = buffer;
+				buffer = null;
+				int linebreakIndex = result.indexOf("\r\n");
+				if(linebreakIndex != -1) {
+					//Buffer already contains a line
+					buffer = result.substring(linebreakIndex + "\r\n".length());
+					if(buffer.equals("")) {
+						buffer = null;
+					}
+					return result.substring(0, linebreakIndex);
+				}
+				readData = true;
+			}
+
+			//Read more data from the encoded body
+			while(true) {
+				String encodedLine = super.readLine();
+				if(encodedLine == null) {
+					return readData ? result : null;
+				}
+				readData = true;
+
+				byte[] data = Base64.decode(encodedLine);
+				String line = new String(data, 0, data.length, charset);
+
+				int linebreakIndex = line.indexOf("\r\n");
+				if(linebreakIndex != -1) {
+					//Put extra data into buffer and return the rest
+					buffer = line.substring(linebreakIndex + "\r\n".length());
+					if(buffer.equals("")) {
+						buffer = null;
+					}
+					return result + line.substring(0, linebreakIndex);
+				}
+
+				result = result + line;
 			}
 		}
 
@@ -716,7 +769,8 @@ public class MailMessage {
 
 	private enum ContentTransferEncoding {
 		SEVEN_BIT,
-		QUOTED_PRINTABLE;
+		QUOTED_PRINTABLE,
+		BASE64;
 
 		public static ContentTransferEncoding parse(String encoding) throws UnsupportedEncodingException {
 			if(encoding == null) {
@@ -727,6 +781,9 @@ public class MailMessage {
 			}
 			if(encoding.equalsIgnoreCase("quoted-printable")) {
 				return ContentTransferEncoding.QUOTED_PRINTABLE;
+			}
+			if(encoding.equalsIgnoreCase("base64")) {
+				return ContentTransferEncoding.BASE64;
 			}
 
 			throw new UnsupportedEncodingException();
