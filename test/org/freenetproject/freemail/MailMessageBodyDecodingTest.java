@@ -190,4 +190,35 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals("Test message, line 3", reader.readLine());
 		assertEquals(null, reader.readLine());
 	}
+
+	/**
+	 * Tests that the implementation can handle body lines that don't contain
+	 * hard line breaks when decoded.
+	 */
+	public void testDecodeBase64WithShortBodyLines() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("Content-Transfer-Encoding: base64\r\n");
+		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
+		pw.print("\r\n");
+		pw.print("VGVzdCBtZXNz\r\n");
+		pw.print("YWdlLCBsaW5l\r\n");
+		pw.print("IDENClRlc3Qg\r\n");
+		pw.print("bWVzc2FnZSwg\r\n");
+		pw.print("bGluZSAyDQpU\r\n");
+		pw.print("ZXN0IG1lc3Nh\r\n");
+		pw.print("Z2UsIGxpbmUg\r\n");
+		pw.print("Mw0K\r\n");
+		pw.close();
+
+		MailMessage msg = new MailMessage(messageFile, 0);
+		BufferedReader reader = msg.getBodyReader();
+
+		assertEquals("Test message, line 1", reader.readLine());
+		assertEquals("Test message, line 2", reader.readLine());
+		assertEquals("Test message, line 3", reader.readLine());
+		assertEquals(null, reader.readLine());
+	}
 }
