@@ -698,6 +698,7 @@ public class MailMessage {
 				int linebreakIndex = result.indexOf("\r\n");
 				if(linebreakIndex != -1) {
 					//Buffer already contains a line
+					assert (buffer == null);
 					buffer = result.substring(linebreakIndex + "\r\n".length());
 					if(buffer.equals("")) {
 						buffer = null;
@@ -721,6 +722,7 @@ public class MailMessage {
 				int linebreakIndex = line.indexOf("\r\n");
 				if(linebreakIndex != -1) {
 					//Put extra data into buffer and return the rest
+					assert (buffer == null);
 					buffer = line.substring(linebreakIndex + "\r\n".length());
 					if(buffer.equals("")) {
 						buffer = null;
