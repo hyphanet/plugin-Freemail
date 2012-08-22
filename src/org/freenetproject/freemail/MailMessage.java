@@ -585,7 +585,7 @@ public class MailMessage {
 		try {
 			return new MessageBodyReader(reader);
 		} catch(UnsupportedEncodingException e) {
-			Logger.warning(this, "Message uses unsupported encoding. Will display raw content", e);
+			Logger.warning(this, "Message transfer encoding isn't supported, will display raw content", e);
 			return reader;
 		}
 	}
@@ -614,7 +614,8 @@ public class MailMessage {
 			}
 			String[] parts = contentType.split(";");
 			if(!parts[0].equalsIgnoreCase("text/plain")) {
-				throw new UnsupportedEncodingException("Can't handle content types other than text/plain");
+				throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
+						+ parts[0]);
 			}
 
 			String[] charsetParts = parts[1].trim().split("=", 2);
