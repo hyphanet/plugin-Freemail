@@ -319,4 +319,27 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals("Test message, line 3", reader.readLine());
 		assertEquals(null, reader.readLine());
 	}
+
+	/**
+	 * Tests reading of messages without the extra MIME headers
+	 */
+	public void testReadPlainRFC822Message() throws IOException {
+		File messageFile = new File(msgDir, "0");
+		messageFile.createNewFile();
+
+		PrintWriter pw = new PrintWriter(messageFile);
+		pw.print("\r\n");
+		pw.print("Test message, line 1\r\n");
+		pw.print("Test message, line 2\r\n");
+		pw.print("Test message, line 3");
+		pw.close();
+
+		MailMessage msg = new MailMessage(messageFile, 0);
+		BufferedReader reader = msg.getBodyReader();
+
+		assertEquals("Test message, line 1", reader.readLine());
+		assertEquals("Test message, line 2", reader.readLine());
+		assertEquals("Test message, line 3", reader.readLine());
+		assertEquals(null, reader.readLine());
+	}
 }
