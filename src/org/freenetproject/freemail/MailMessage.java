@@ -35,6 +35,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -590,6 +591,9 @@ public class MailMessage {
 			return reader;
 		} catch(IllegalCharsetNameException e) {
 			Logger.warning(this, "Message charset name contains illegal characters, will display raw content", e);
+			return reader;
+		} catch(UnsupportedCharsetException e) {
+			Logger.warning(this, "Message charset isn't supported, will display raw content", e);
 			return reader;
 		}
 	}
