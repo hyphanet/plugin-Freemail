@@ -647,17 +647,18 @@ public class MailMessage {
 
 		@Override
 		public String readLine() throws IOException {
-			if(transferEncoding.equals(ContentTransferEncoding.SEVEN_BIT)) {
+			switch(transferEncoding) {
+			case BASE64:
+				return readBase64Line();
+			case QUOTED_PRINTABLE:
+				return readQpLine();
+			case SEVEN_BIT:
+				return super.readLine();
+			default:
+				Logger.error(this, "Missing case in transfer encoding switch: " + transferEncoding);
+				assert (false);
 				return super.readLine();
 			}
-			if(transferEncoding.equals(ContentTransferEncoding.QUOTED_PRINTABLE)) {
-				return readQpLine();
-			}
-			if(transferEncoding.equals(ContentTransferEncoding.BASE64)) {
-				return readBase64Line();
-			}
-
-			return super.readLine();
 		}
 
 		/**
