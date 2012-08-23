@@ -1,4 +1,4 @@
-Changes from version 0.2.1 to version 0.2.2
+Changes from version 0.2.1 to version 0.2.2 - 2012-07-13
   o Bugfixes:
     - Fixed bug that stopped In-Reply-To header from being added to replies
       when using the web interface
