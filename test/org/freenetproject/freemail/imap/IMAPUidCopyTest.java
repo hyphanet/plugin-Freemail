@@ -121,6 +121,10 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	/**
+	 * Check that the \Recent flag is set on the message that results from a
+	 * uid copy command, as specified in RFC3501 section 6.4.7.
+	 */
 	public void testUidCopySetsRecentFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
