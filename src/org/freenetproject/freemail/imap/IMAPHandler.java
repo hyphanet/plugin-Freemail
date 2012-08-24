@@ -518,6 +518,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				if(srcmsg!=null) {
 					MailMessage copymsg = target.createMessage();
 					srcmsg.copyTo(copymsg);
+					copymsg.flags.set("\\Recent", true);
+					copymsg.storeFlags();
 
 					copied++;
 				}
