@@ -77,7 +77,10 @@ git checkout "$FROM" &> /dev/null
 mkdir -p .checkcommit.prev
 set +e
 ant clean &> /dev/null
-ant checkstyle unit &> .checkcommit.prev/build
+if ! ant checkstyle unit &> .checkcommit.prev/build; then
+	echo "Failed while building $FROM"
+	exit 1
+fi
 grep "\[cs:checkstyle\] " .checkcommit.prev/build | tail -n +2 | sort > .checkcommit.prev/checkstyle
 grep "\[junit\] Testcase: .*FAILED" .checkcommit.prev/build | sort > .checkcommit.prev/junit
 set -e
@@ -87,7 +90,10 @@ git checkout "$TO" &> /dev/null
 mkdir -p .checkcommit.cur
 set +e
 ant clean &> /dev/null
-ant checkstyle unit &> .checkcommit.cur/build
+if ! ant checkstyle unit &> .checkcommit.cur/build; then
+	echo "Failed while building $TO"
+	exit 1
+fi
 grep "\[cs:checkstyle\] " .checkcommit.cur/build | tail -n +2 | sort > .checkcommit.cur/checkstyle
 grep "\[junit\] Testcase: .*FAILED" .checkcommit.cur/build | sort > .checkcommit.cur/junit
 set -e
