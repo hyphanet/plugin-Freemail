@@ -126,7 +126,10 @@ public class FCPConnection implements Runnable {
 		stopping = true;
 		try {
 			// we can safely close the socket from this thread: any read operations other threads are in will throw a SocketException
-			if(conn != null) conn.close();
+			if(conn != null) {
+				conn.close();
+				conn = null;
+			}
 		} catch (IOException ioe) {
 			// ignore
 		}
@@ -135,7 +138,10 @@ public class FCPConnection implements Runnable {
 	@Override
 	protected void finalize() throws Throwable {
 		try {
-			this.conn.close();
+			if(conn != null) {
+				this.conn.close();
+				Logger.error(FCPConnection.class, "Connection not closed in finalizer");
+			}
 		} finally {
 			super.finalize();
 		}
