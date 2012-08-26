@@ -136,9 +136,9 @@ public class FCPConnection implements Runnable {
 	protected void finalize() throws Throwable {
 		try {
 			this.conn.close();
-		} catch (Exception e) {
+		} finally {
+			super.finalize();
 		}
-		super.finalize();
 	}
 
 	public synchronized void doRequest(FCPClient cli, FCPMessage msg) throws NoNodeConnectionException,
