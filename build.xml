@@ -15,8 +15,10 @@
 	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
 	<property name="version.build" value="org/freenetproject/freemail/Version.class"/>
 
-	<property name="bcdist" value="lcrypto-jdk15on-147"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
+
+	<property name="bcdist" value="lcrypto-jdk15on-147"/>
+	<property name="bc_url" value="http://www.bouncycastle.org/download/${bcdist}.zip"/>
 
 	<exec executable="git"
 		failifexecutionfails="false"
@@ -43,7 +45,7 @@
 
 	<target name="bouncycastle-fetch" depends="bouncycastle-check" unless="bouncycastle-dist.present">
 		<mkdir dir="${deps}" />
-		<get src="http://www.bouncycastle.org/download/${bcdist}.zip"
+		<get src="${bc_url}"
 		dest="${deps}/${bcdist}.zip"
 		verbose="true"
 		usetimestamp="true" />
