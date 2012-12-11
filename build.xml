@@ -59,6 +59,10 @@
 			<exclude name="**/test/*" />
 			<exclude name="org/bouncycastle/util/IPTest.java" />
 			<exclude name="org/bouncycastle/util/AllTests.java" />
+
+			<classpath>
+				<pathelement location="${junit}"/>
+			</classpath>
 		</javac>
 	</target>
 
