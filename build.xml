@@ -62,6 +62,7 @@
 
 			<classpath>
 				<pathelement location="${junit}"/>
+				<pathelement path="${bc.lib}"/>
 			</classpath>
 		</javac>
 	</target>
