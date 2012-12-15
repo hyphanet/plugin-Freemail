@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="Freemail" default="dist" basedir="." xmlns:cs="antlib:com.puppycrawl.tools.checkstyle">
+<project name="Freemail" default="default" basedir="." xmlns:cs="antlib:com.puppycrawl.tools.checkstyle">
 	<property name="override" location="override.properties" />
 	<property file="${override}"/>
 	<property file="build.properties"/>
@@ -37,6 +37,17 @@
 			<isset property="git.describe" />
 		</and>
 	</condition>
+
+	<!--
+	     Convenience targets
+	-->
+
+	<target name="default" depends="unit, checkstyle-auto, dist"/>
+
+
+	<!--
+	     Real targets
+	-->
 
 	<target name="bouncycastle-check">
 		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
@@ -145,7 +156,7 @@
 		<delete dir="${test.run}"/>
 	</target>
 
-	<target name="dist" depends="compile, unit, checkstyle-auto">
+	<target name="dist" depends="compile">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
