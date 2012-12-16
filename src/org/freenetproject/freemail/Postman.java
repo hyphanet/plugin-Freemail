@@ -72,11 +72,10 @@ public abstract class Postman {
 			if(first) {
 				if(!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", from);
-					EmailAddress e = new EmailAddress(from);
-					if(e.realname == null) e.realname = "";
-					e.realname = "**SPOOFED** "+e.realname;
-					e.realname = e.realname.trim();
-					newmsg.addHeader("From", e.toLongString());
+					if(addr.realname == null) addr.realname = "";
+					addr.realname = "**SPOOFED** "+addr.realname;
+					addr.realname = addr.realname.trim();
+					newmsg.addHeader("From", addr.toLongString());
 				}
 			} else {
 				newmsg.removeHeader("From", from);
