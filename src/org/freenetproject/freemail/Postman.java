@@ -59,7 +59,15 @@ public abstract class Postman {
 
 		boolean first = true;
 		for(String from : froms) {
-			EmailAddress addr = new EmailAddress(from);
+			EmailAddress addr = null;
+			try {
+				addr = new EmailAddress(from);
+			} catch (IllegalArgumentException e) {
+				//Invalid address, remove it and keep going
+				Logger.warning(this, "Ignoring invalid address from received message: " + from);
+				newmsg.removeHeader("From", from);
+				continue;
+			}
 
 			if(first) {
 				if(!this.validateFrom(addr)) {
