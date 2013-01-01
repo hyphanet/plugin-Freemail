@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
@@ -379,7 +380,7 @@ public class MailMessage {
 		}
 
 		for(String format : dateFormats) {
-			SimpleDateFormat sdf = new SimpleDateFormat(format);
+			SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.ROOT);
 			try {
 				return sdf.parse(date);
 			} catch (ParseException e) {
