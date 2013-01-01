@@ -23,12 +23,13 @@ package org.freenetproject.freemail.ui.web;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -283,8 +284,9 @@ public class InboxToadlet extends WebPage {
 
 		Date msgDate = msg.getDate();
 		if(msgDate != null) {
-			SimpleDateFormat sdf = new SimpleDateFormat();
-			date.addChild("#", sdf.format(msgDate));
+			DateFormat df = DateFormat.getDateTimeInstance(
+					DateFormat.LONG, DateFormat.LONG, Locale.getDefault());
+			date.addChild("#", df.format(msgDate));
 		} else {
 			/* Use the raw date header if possible. If it is null
 			 * the field will  simply be left blank */
