@@ -51,7 +51,7 @@ public class MailHeaderFilter {
 
 	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 	static {
-		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 		gmt = TimeZone.getTimeZone("GMT");
 		sdf.setTimeZone(gmt);
 	}
