@@ -66,7 +66,14 @@
 
 	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
 		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" nowarn="true" includeantruntime="false">
+		<javac srcdir="${deps}/${bcdist}/src"
+		       destdir="${build}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       nowarn="true"
+		       includeantruntime="false">
 			<exclude name="**/test/*" />
 			<exclude name="org/bouncycastle/util/IPTest.java" />
 			<exclude name="org/bouncycastle/util/AllTests.java" />
@@ -84,7 +91,9 @@
 		<tstamp/>
 
 		<!-- Create the Version file with patched revision number in ${build} -->
-		<copy file="${src}/${version.src}" tofile="${build}/${version.src}" overwrite="true" />
+		<copy file="${src}/${version.src}"
+		      tofile="${build}/${version.src}"
+		      overwrite="true" />
 		<delete file="${build}/${version.build}" quiet="true" />
 		<replace file="${build}/${version.src}">
 			<replacefilter token="@custom@" value="${git.revision}"/>
@@ -92,7 +101,13 @@
 		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
 
 		<!-- Compile the patched version file -->
-		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" includeantruntime="false">
+		<javac srcdir="${build}"
+		       destdir="${build}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       includeantruntime="false">
 			<include name="${version.src}"/>
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
@@ -103,7 +118,13 @@
 
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" includeantruntime="false">
+		<javac srcdir="${src}"
+		       destdir="${build}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       includeantruntime="false">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
@@ -123,7 +144,13 @@
 
 	<target name="unit-build" depends="compile" unless="${test.skip}">
 		<mkdir dir="${build-test}"/>
-		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.6" target="1.6" includeantruntime="false">
+		<javac srcdir="${test}"
+		       destdir="${build-test}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       includeantruntime="false">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${build}"/>
