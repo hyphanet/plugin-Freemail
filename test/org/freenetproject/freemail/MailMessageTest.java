@@ -242,4 +242,10 @@ public class MailMessageTest extends TestCase {
 			Locale.setDefault(orig);
 		}
 	}
+
+	public void testDecodeDateMissingTimezone() {
+		final String date = "17 Oct 2011 10:24:14";
+		Date actual = MailMessage.parseDate(date);
+		assertEquals(null, actual);
+	}
 }
