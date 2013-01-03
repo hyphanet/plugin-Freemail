@@ -122,16 +122,16 @@ public class FCPFetchException extends FCPException {
 	 */
 	public boolean isNetworkError() {
 		switch (getCode()) {
-			case BUCKET_ERROR:
-			case ROUTE_NOT_FOUND:
-			case REJECTED_OVERLOAD:
-			case INTERNAL_ERROR:
-			case TRANSFER_FAILED:
-			case CANCELLED:
-				return true;
+		case BUCKET_ERROR:
+		case ROUTE_NOT_FOUND:
+		case REJECTED_OVERLOAD:
+		case INTERNAL_ERROR:
+		case TRANSFER_FAILED:
+		case CANCELLED:
+			return true;
 
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
 
