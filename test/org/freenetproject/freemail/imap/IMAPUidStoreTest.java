@@ -235,4 +235,43 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	public void testUidStoreWithMessageId0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE 0 FLAGS \\Seen");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidStoreWithMessageIdRangeFrom0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE 0:* FLAGS \\Seen");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidStoreWithMessageIdRangeTo0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID STORE *:0 FLAGS \\Seen");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
+
+		runSimpleTest(commands, expectedResponse);
+	}
 }
