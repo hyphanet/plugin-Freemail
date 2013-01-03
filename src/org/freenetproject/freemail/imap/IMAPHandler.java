@@ -392,6 +392,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} catch(NumberFormatException e) {
 			 this.reply(msg, "BAD Illegal sequence number set");
 			 return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
+			return;
 		}
 
 		if(!uid) {
@@ -478,6 +481,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} catch(NumberFormatException e) {
 			 this.reply(msg, "BAD Illegal sequence number set");
 			 return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
+			return;
 		}
 
 		if(msg.args[0].equalsIgnoreCase("store")) {
@@ -847,6 +853,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} catch(NumberFormatException e) {
 			 this.reply(msg, "BAD Illegal sequence number set");
 			 return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
+			return;
 		}
 
 		Iterator<MailMessage> msgIt = msgs.values().iterator();
@@ -1158,6 +1167,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} catch(NumberFormatException e) {
 			 this.reply(msg, "BAD Illegal sequence number set");
 			 return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
+			return;
 		}
 
 		if(ts.first() < 1 || ts.last() > lastMessage.getSeqNum()) {
@@ -1564,7 +1576,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return true;
 	}
 
-	private SortedSet<Integer> parseSequenceSet(String seqNum, int maxSeqNum) {
+	private SortedSet<Integer> parseSequenceSet(String seqNum, int maxSeqNum) throws IllegalSequenceNumberException {
 		SortedSet<Integer> result = new TreeSet<Integer>();
 
 		//Split on , to get the ranges
@@ -1587,6 +1599,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			int from = parseSequenceNumber(fromSeqNum, maxSeqNum);
 			int to = parseSequenceNumber(toSeqNum, maxSeqNum);
+			if(from <= 0 || to <= 0) {
+				throw new IllegalSequenceNumberException("Sequence number must be greater than zero");
+			}
 
 			if(from > to) {
 				int temp = from;
@@ -1608,5 +1623,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		return Integer.parseInt(seqNum);
+	}
+
+	private class IllegalSequenceNumberException extends Exception {
+		public IllegalSequenceNumberException(String msg) {
+			super(msg);
+		}
+
+		private static final long serialVersionUID = 5604708058788273676L;
 	}
 }
