@@ -129,8 +129,10 @@ public class FCPFetchException extends FCPException {
 			case TRANSFER_FAILED:
 			case CANCELLED:
 				return true;
+
+			default:
+				return false;
 		}
-		return false;
 	}
 
 	/**
