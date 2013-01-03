@@ -448,6 +448,14 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			handleSearch(command, true);
 			return;
 		}
+		if(msg.args[0].equalsIgnoreCase("copy")) {
+			String[] commandArgs = new String[msg.args.length - 1];
+			System.arraycopy(msg.args, 1, commandArgs, 0, commandArgs.length);
+			IMAPMessage command = new IMAPMessage(msg.tag, msg.args[0], commandArgs);
+
+			handleCopy(command, true);
+			return;
+		}
 
 		//And the rest in the old way for now
 		if(msg.args.length < 3) {
@@ -499,42 +507,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 
 			this.reply(msg, "OK Store completed");
-		} else if(msg.args[0].equalsIgnoreCase("copy")) {
-
-			if(msg.args.length < 3) {
-				this.reply(msg, "BAD Not enough arguments");
-				return;
-			}
-
-			MessageBank target = getMailboxFromPath(trimQuotes(msg.args[2]));
-			if(target == null) {
-				this.reply(msg, "NO [TRYCREATE] No such mailbox.");
-				return;
-			}
-
-			int copied = 0;
-
-			Iterator<Integer> it=ts.iterator();
-
-			while(it.hasNext()) {
-				Integer curuid = it.next();
-
-				MailMessage srcmsg = msgs.get(curuid);
-
-				if(srcmsg!=null) {
-					MailMessage copymsg = target.createMessage();
-					srcmsg.copyTo(copymsg);
-					copymsg.flags.set("\\Recent", true);
-					copymsg.storeFlags();
-
-					copied++;
-				}
-			}
-
-			if(copied > 0)
-				this.reply(msg, "OK COPY completed");
-			else
-				this.reply(msg, "NO No messages copied");
 		} else {
 			this.reply(msg, "BAD Unknown command");
 		}
@@ -1144,6 +1116,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handleCopy(IMAPMessage msg) {
+		handleCopy(msg, false);
+	}
+
+	private void handleCopy(IMAPMessage msg, boolean uid) {
 		if(!this.verifyAuth(msg)) {
 			return;
 		}
@@ -1163,7 +1139,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		SortedSet<Integer> ts;
 		try {
-			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
+			ts = parseSequenceSet(msg.args[0], uid ? lastMessage.getUID() : lastMessage.getSeqNum());
 		} catch(NumberFormatException e) {
 			this.reply(msg, "BAD Illegal sequence number set");
 			return;
@@ -1172,15 +1148,24 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		if(ts.first() < 1 || ts.last() > lastMessage.getSeqNum()) {
-			reply(msg, "NO Invalid message ID");
-			return;
+		if(!uid) {
+			if(ts.first() < 1 || ts.last() > lastMessage.getSeqNum()) {
+				reply(msg, "NO Invalid message ID");
+				return;
+			}
 		}
 
 		Iterator<MailMessage> msgIt = msgs.values().iterator();
 		while(msgIt.hasNext()) {
-			if(!ts.contains(msgIt.next().getSeqNum())) {
-				msgIt.remove();
+			MailMessage message = msgIt.next();
+			if(uid) {
+				if(!ts.contains(message.getUID())) {
+					msgIt.remove();
+				}
+			} else {
+				if(!ts.contains(message.getSeqNum())) {
+					msgIt.remove();
+				}
 			}
 		}
 
