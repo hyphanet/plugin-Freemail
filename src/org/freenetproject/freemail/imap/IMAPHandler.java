@@ -390,8 +390,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			sequenceNumbers = parseSequenceSet(msg.args[0],
 					uid ? lastMessage.getUID() : lastMessage.getSeqNum());
 		} catch(NumberFormatException e) {
-			 this.reply(msg, "BAD Illegal sequence number set");
-			 return;
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
 		} catch (IllegalSequenceNumberException e) {
 			this.reply(msg, "NO Invalid message ID");
 			return;
@@ -479,8 +479,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage lastMessage = msgs.get(msgs.lastKey());
 			ts = parseSequenceSet(msg.args[1], lastMessage.getUID());
 		} catch(NumberFormatException e) {
-			 this.reply(msg, "BAD Illegal sequence number set");
-			 return;
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
 		} catch (IllegalSequenceNumberException e) {
 			this.reply(msg, "NO Invalid message ID");
 			return;
@@ -851,8 +851,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage lastMessage = msgs.get(msgs.lastKey());
 			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
 		} catch(NumberFormatException e) {
-			 this.reply(msg, "BAD Illegal sequence number set");
-			 return;
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
 		} catch (IllegalSequenceNumberException e) {
 			this.reply(msg, "NO Invalid message ID");
 			return;
@@ -1165,8 +1165,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
 		} catch(NumberFormatException e) {
-			 this.reply(msg, "BAD Illegal sequence number set");
-			 return;
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
 		} catch (IllegalSequenceNumberException e) {
 			this.reply(msg, "NO Invalid message ID");
 			return;
