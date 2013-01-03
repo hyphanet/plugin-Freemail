@@ -80,6 +80,9 @@ public class IdentityMatcher {
 				if(matchFullAddress(recipient, wotIdentity.getIdentityID())) {
 					return true;
 				}
+				break;
+			default:
+				throw new AssertionError();
 			}
 		}
 
