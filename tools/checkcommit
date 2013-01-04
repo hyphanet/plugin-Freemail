@@ -50,7 +50,7 @@ set +e
 ant clean &> /dev/null
 ant checkstyle unit &> .checkcommit.prev/build
 grep "\[cs:checkstyle\] " .checkcommit.prev/build | tail -n +2 | sort > .checkcommit.prev/checkstyle
-grep "\[junit\] Testcase: .*FAILED" .checkcommit.prev/build | sort > .checkcommit.prev/junit
+grep "\[junit\] Testcase: .*\(FAILED\|ERROR\)" .checkcommit.prev/build | sort > .checkcommit.prev/junit
 set -e
 
 #Checkout the target
@@ -60,7 +60,7 @@ set +e
 ant clean &> /dev/null
 ant checkstyle unit &> .checkcommit.cur/build
 grep "\[cs:checkstyle\] " .checkcommit.cur/build | tail -n +2 | sort > .checkcommit.cur/checkstyle
-grep "\[junit\] Testcase: .*FAILED" .checkcommit.cur/build | sort > .checkcommit.cur/junit
+grep "\[junit\] Testcase: .*\(FAILED\|ERROR\)" .checkcommit.cur/build | sort > .checkcommit.cur/junit
 set -e
 
 #Count differences
