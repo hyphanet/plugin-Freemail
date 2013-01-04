@@ -457,6 +457,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
+		if(!msg.args[0].equalsIgnoreCase("store")) {
+			this.reply(msg, "BAD Unknown command");
+			return;
+		}
+
 		//And the rest in the old way for now
 		if(msg.args.length < 3) {
 			this.reply(msg, "BAD Not enough arguments for uid command");
@@ -473,12 +478,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
-
 		if(msgs.size() == 0) {
-			if(msg.args[0].toLowerCase().equals("store")) {
-				// hmm...?
-				this.reply(msg, "NO No such message");
-			}
+			this.reply(msg, "NO No such message");
 			return;
 		}
 
@@ -494,22 +495,18 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		if(msg.args[0].equalsIgnoreCase("store")) {
-			Iterator<MailMessage> msgIt = msgs.values().iterator();
-			while(msgIt.hasNext()) {
-				if(!ts.contains(msgIt.next().getUID())) {
-					msgIt.remove();
-				}
+		Iterator<MailMessage> msgIt = msgs.values().iterator();
+		while(msgIt.hasNext()) {
+			if(!ts.contains(msgIt.next().getUID())) {
+				msgIt.remove();
 			}
-
-			if(!this.doStore(msg.args, 2, msgs.values(), msg, true)) {
-				return;
-			}
-
-			this.reply(msg, "OK Store completed");
-		} else {
-			this.reply(msg, "BAD Unknown command");
 		}
+
+		if(!this.doStore(msg.args, 2, msgs.values(), msg, true)) {
+			return;
+		}
+
+		this.reply(msg, "OK Store completed");
 	}
 
 	private boolean fetchSingle(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
