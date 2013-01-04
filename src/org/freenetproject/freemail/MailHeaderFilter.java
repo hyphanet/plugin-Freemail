@@ -47,13 +47,13 @@ public class MailHeaderFilter {
 	private final StringBuffer buffer;
 	private boolean foundEnd;
 	private static final SimpleDateFormat sdf;
-	private static final TimeZone gmt;
+	private static final TimeZone utc;
 
 	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-		gmt = TimeZone.getTimeZone("GMT");
-		sdf.setTimeZone(gmt);
+		utc = TimeZone.getTimeZone("UTC");
+		sdf.setTimeZone(utc);
 	}
 
 	/** List of headers that can be passed though without being checked */

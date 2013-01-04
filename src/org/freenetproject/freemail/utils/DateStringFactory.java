@@ -27,8 +27,8 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
 public class DateStringFactory {
-	private static final TimeZone gmt = TimeZone.getTimeZone("GMT");
-	private static final Calendar cal = Calendar.getInstance(gmt);
+	private static final TimeZone utc = TimeZone.getTimeZone("UTC");
+	private static final Calendar cal = Calendar.getInstance(utc);
 
 	public static String getKeyString() {
 		return getOffsetKeyString(0);
@@ -40,7 +40,7 @@ public class DateStringFactory {
 		cal.add(Calendar.DAY_OF_MONTH, offset);
 
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.ROOT);
-		sdf.setTimeZone(gmt);
+		sdf.setTimeZone(utc);
 
 		return sdf.format(cal.getTime());
 	}
@@ -48,7 +48,7 @@ public class DateStringFactory {
 	public static Date dateFromKeyString(String str) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.ROOT);
-			sdf.setTimeZone(gmt);
+			sdf.setTimeZone(utc);
 
 			sdf.setLenient(false);
 			return sdf.parse(str);
