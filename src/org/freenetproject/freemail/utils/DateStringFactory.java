@@ -20,6 +20,7 @@
 package org.freenetproject.freemail.utils;
 
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -38,7 +39,7 @@ public class DateStringFactory {
 		cal.setTime(new Date());
 		cal.add(Calendar.DAY_OF_MONTH, offset);
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.ROOT);
 		sdf.setTimeZone(gmt);
 
 		return sdf.format(cal.getTime());
@@ -46,7 +47,7 @@ public class DateStringFactory {
 
 	public static Date dateFromKeyString(String str) {
 		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.ROOT);
 			sdf.setTimeZone(gmt);
 
 			sdf.setLenient(false);
