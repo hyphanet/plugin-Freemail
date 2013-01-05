@@ -19,6 +19,8 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -32,19 +34,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import org.freenetproject.freemail.MailMessage;
 
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class MailMessageTest extends TestCase {
+public class MailMessageTest {
 	private static final String MESSAGE_DIR = "msg_dir";
 
 	private File msgDir = null;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		// Create a directory for messages so it is easier to list files, clean up etc.
 		msgDir = new File(MESSAGE_DIR);
 		if(msgDir.exists()) {
@@ -57,8 +61,8 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(msgDir);
 	}
 
@@ -67,7 +71,8 @@ public class MailMessageTest extends TestCase {
 	 * would lose track of the file when storing a different set of flags, so the second attempt
 	 * would fail silently.
 	 */
-	public void testStoreFlagsTwice() throws IOException {
+	@Test
+	public void storeFlagsTwice() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -84,7 +89,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
 	}
 
-	public void testSingleLineReferencesHeader() throws IOException {
+	@Test
+	public void singleLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -100,7 +106,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals("<abc@domain>", msg.getFirstHeader("References"));
 	}
 
-	public void testMultiLineReferencesHeader() throws IOException {
+	@Test
+	public void multiLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -124,23 +131,28 @@ public class MailMessageTest extends TestCase {
 		assertEquals(expected, msg.getFirstHeader("References"));
 	}
 
-	public void testEncodeAsciiHeader() {
+	@Test
+	public void encodeAsciiHeader() {
 		assertEquals("testHeader", MailMessage.encodeHeader("testHeader"));
 	}
 
-	public void testEncodeAsciiHeaderWithSpace() {
+	@Test
+	public void encodeAsciiHeaderWithSpace() {
 		assertEquals("test=?UTF-8?Q?=20?=Header", MailMessage.encodeHeader("test Header"));
 	}
 
-	public void testEncodeHeaderWithSingleUTF8Character() {
+	@Test
+	public void encodeHeaderWithSingleUTF8Character() {
 		assertEquals("test=?UTF-8?Q?=C3=A6?=Header", MailMessage.encodeHeader("testæHeader"));
 	}
 
-	public void testEncodeHeaderWithMultipleUTF8Character() {
+	@Test
+	public void encodeHeaderWithMultipleUTF8Character() {
 		assertEquals("=?UTF-8?Q?=C3=A6?==?UTF-8?Q?=E2=88=80?=", MailMessage.encodeHeader("æ∀"));
 	}
 
-	public void testEncodeDecodeMultipleStrings() throws UnsupportedEncodingException {
+	@Test
+	public void encodeDecodeMultipleStrings() throws UnsupportedEncodingException {
 		List<String> input = new LinkedList<String>();
 		input.add("Test message");
 		input.add("Test message (æøå)");
@@ -178,8 +190,9 @@ public class MailMessageTest extends TestCase {
 	 * The test is run with all available locales.
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
-	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testDecodeDateAllLocales() throws ParseException {
+	//FIXME: Convert to proper parameterized test (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
+	@Test
+	public void decodeDateAllLocales() throws ParseException {
 		final String date = "17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -213,8 +226,9 @@ public class MailMessageTest extends TestCase {
 	 * The test is run with all available locales.
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
-	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testDecodeDateWithDayAllLocales() throws ParseException {
+	//FIXME: Convert to proper parameterized test (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
+	@Test
+	public void decodeDateWithDayAllLocales() throws ParseException {
 		final String date = "Mon, 17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -243,7 +257,8 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
-	public void testDecodeDateMissingTimezone() {
+	@Test
+	public void decodeDateMissingTimezone() {
 		final String date = "17 Oct 2011 10:24:14";
 		Date actual = MailMessage.parseDate(date);
 		assertEquals(null, actual);
