@@ -109,6 +109,9 @@ if [[ ! $QUIET ]]; then
 	if [[ $CHECKSTYLE_ADDED -gt 0 || $VERBOSE ]]; then
 		#Print any new warnings and the count
 		set +e
+		if [[ $VERBOSE ]]; then
+			diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^-"
+		fi
 		#TODO: Remove the initial +
 		diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^+"
 		set -e
@@ -123,6 +126,9 @@ if [[ ! $QUIET ]]; then
 	if [[ $JUNIT_ADDED -gt 0 || $VERBOSE ]]; then
 		#Print any new failures and the count
 		set +e
+		if [[ $VERBOSE ]]; then
+			diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^-"
+		fi
 		#TODO: Remove the initial +
 		diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^+"
 		set -e
