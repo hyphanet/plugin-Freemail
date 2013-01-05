@@ -20,6 +20,8 @@
 
 package org.freenetproject.freemail.imap;
 
+import static org.junit.Assert.*;
+
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -50,8 +52,8 @@ public abstract class IMAPTestWithMessages extends IMAPTestBase {
 	}
 
 	@Override
-	public void setUp() {
-		super.setUp();
+	public void before() {
+		super.before();
 
 		//Add a few messages to the inbox
 		AccountManager temp = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);

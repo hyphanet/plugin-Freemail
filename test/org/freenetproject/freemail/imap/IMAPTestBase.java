@@ -20,6 +20,8 @@
 
 package org.freenetproject.freemail.imap;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +34,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
 
 import org.freenetproject.freemail.AccountManager;
 
@@ -44,7 +47,7 @@ import utils.Utils;
  * Class that handles a lot of the setup needed by all the various IMAP tests.
  * Extend this and add the tests to the subclass.
  */
-public abstract class IMAPTestBase extends TestCase {
+public abstract class IMAPTestBase {
 	protected static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
 	protected static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
 	protected static final String IMAP_USERNAME = "zidel@" + BASE32_USERNAME + ".freemail";
@@ -56,8 +59,8 @@ public abstract class IMAPTestBase extends TestCase {
 	protected final Map<String, File> accountDirs = new HashMap<String, File>();
 	protected File accountManagerDir;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		assertFalse(TEST_DIR.getAbsolutePath() + " exists", TEST_DIR.exists());
 		assertTrue(TEST_DIR.mkdir());
 
@@ -73,8 +76,8 @@ public abstract class IMAPTestBase extends TestCase {
 		return dir;
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(TEST_DIR);
 	}
 
