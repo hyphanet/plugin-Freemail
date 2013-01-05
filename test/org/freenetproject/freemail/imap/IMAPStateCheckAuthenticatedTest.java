@@ -50,7 +50,10 @@ public class IMAPStateCheckAuthenticatedTest extends IMAPTestWithMessages {
 				{"SELECT"},
 				{"STATUS"},
 				{"STORE arg1 arg2"},
-				{"UID arg1 arg2 arg3"},
+				{"UID fetch"},
+				{"UID search"},
+				{"UID copy"},
+				{"UID store arg1 arg2"},
 			};
 		return Arrays.asList(data);
 	}
