@@ -20,6 +20,8 @@
 
 package org.freenetproject.freemail.wot;
 
+import static org.junit.Assert.*;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -27,6 +29,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.junit.Test;
 
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
@@ -36,26 +40,27 @@ import org.freenetproject.freemail.wot.IdentityMatcher.MatchMethod;
 
 import freenet.pluginmanager.PluginNotFoundException;
 
-import junit.framework.TestCase;
-
-public class IdentityMatcherTest extends TestCase {
+public class IdentityMatcherTest {
 	private static final Identity identity = new Identity("D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc", "SSK@D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc,xgddjFHx2S~5U6PeFkwqO5V~1gZngFLoM-xaoMKSBI8,AQACAAE", "zidel");
 
-	public void testFullIdentityMatch() throws PluginNotFoundException {
+	@Test
+	public void fullIdentityMatch() throws PluginNotFoundException {
 		String recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
 		EnumSet<MatchMethod> set = EnumSet.allOf(MatchMethod.class);
 
 		runMatcherTest(recipient, set);
 	}
 
-	public void testFullBase32IdentityMatch() throws PluginNotFoundException {
+	@Test
+	public void fullBase32IdentityMatch() throws PluginNotFoundException {
 		String recipient = identity.getNickname() + "@" + identity.getBase32IdentityID() + ".freemail";
 		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
 
 		runMatcherTest(recipient, set);
 	}
 
-	public void testFullBase32MatchWithOnlyId() throws PluginNotFoundException {
+	@Test
+	public void fullBase32MatchWithOnlyId() throws PluginNotFoundException {
 		String recipient = identity.getBase32IdentityID();
 		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
 
@@ -72,7 +77,8 @@ public class IdentityMatcherTest extends TestCase {
 		assertEquals(identity, matches.get(recipient).get(0));
 	}
 
-	public void testFullMatchWithPartialId() throws PluginNotFoundException {
+	@Test
+	public void fullMatchWithPartialId() throws PluginNotFoundException {
 		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
 
 		//Check an identity string that is missing the last character
