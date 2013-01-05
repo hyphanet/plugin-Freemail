@@ -23,85 +23,102 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
 public class IMAPStateCheckTest extends IMAPTestWithMessages {
 	/* Append is valid in authenticated and selected states */
-	public void testAppend() throws IOException {
+	@Test
+	public void append() throws IOException {
 		assertFailsWithoutLogin("APPEND arg1 arg2");
 	}
 
 	/* Check is only valid in selected state */
-	public void testCheck() throws IOException {
+	@Test
+	public void check() throws IOException {
 		assertFailsWithoutLogin("CHECK");
 		assertFailsWithoutSelect("CHECK");
 	}
 
 	/* Close is only valid in selected state */
-	public void testClose() throws IOException {
+	@Test
+	public void close() throws IOException {
 		assertFailsWithoutLogin("CLOSE");
 		assertFailsWithoutSelect("CLOSE");
 	}
 
 	/* Copy is only valid in selected state */
-	public void testCopy() throws IOException {
+	@Test
+	public void copy() throws IOException {
 		assertFailsWithoutLogin("COPY");
 		assertFailsWithoutSelect("COPY");
 	}
 
 	/* Create is valid in authenticated and selected states */
-	public void testCreate() throws IOException {
+	@Test
+	public void create() throws IOException {
 		assertFailsWithoutLogin("CREATE");
 	}
 
 	/* Delete is valid in authenticated and selected states */
-	public void testDelete() throws IOException {
+	@Test
+	public void delete() throws IOException {
 		assertFailsWithoutLogin("DELETE");
 	}
 
 	/* Expunge is valid in selected state */
-	public void testExpunge() throws IOException {
+	@Test
+	public void expunge() throws IOException {
 		assertFailsWithoutLogin("EXPUNGE");
 		assertFailsWithoutSelect("EXPUNGE");
 	}
 
 	/* Fetch is valid in selected state */
-	public void testFetch() throws IOException {
+	@Test
+	public void fetch() throws IOException {
 		assertFailsWithoutLogin("FETCH");
 		assertFailsWithoutSelect("FETCH");
 	}
 
 	/* List is valid in authenticated and selected states */
-	public void testList() throws IOException {
+	@Test
+	public void list() throws IOException {
 		assertFailsWithoutLogin("LIST");
 	}
 
 	/* Lsub is valid in authenticated and selected states */
-	public void testLsub() throws IOException {
+	@Test
+	public void lsub() throws IOException {
 		assertFailsWithoutLogin("LSUB");
 	}
 
 	/* Namespace is valid in authenticated and selected states */
-	public void testNamespace() throws IOException {
+	@Test
+	public void namespace() throws IOException {
 		assertFailsWithoutLogin("NAMESPACE");
 	}
 
 	/* Select is valid in authenticated and selected states */
-	public void testSelect() throws IOException {
+	@Test
+	public void select() throws IOException {
 		assertFailsWithoutLogin("SELECT");
 	}
 
 	/* Status is valid in authenticated and selected states */
-	public void testStatus() throws IOException {
+	@Test
+	public void status() throws IOException {
 		assertFailsWithoutLogin("STATUS");
 	}
 
 	/* Store is valid in selected state */
-	public void testStore() throws IOException {
+	@Test
+	public void store() throws IOException {
 		assertFailsWithoutLogin("STORE arg1 arg2");
 		assertFailsWithoutSelect("STORE arg1 arg2");
 	}
 
 	/* UID is valid in selected state */
-	public void testUid() throws IOException {
+	@Test
+	public void uid() throws IOException {
 		assertFailsWithoutLogin("UID arg1 arg2 arg3");
 		assertFailsWithoutSelect("UID arg1 arg2 arg3");
 	}
