@@ -46,7 +46,7 @@ public abstract class Postman {
 	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException {
 		MailMessage newmsg = mb.createMessage();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 
 		newmsg.readHeaders(brdr);
 
@@ -97,7 +97,7 @@ public abstract class Postman {
 		try {
 			bmsg = mb.createMessage();
 
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
+			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 			Date currentDate = new Date();
 
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");

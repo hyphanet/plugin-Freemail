@@ -24,6 +24,8 @@ package org.freenetproject.freemail.utils;
 import java.lang.NoClassDefFoundError;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.freenetproject.freemail.config.ConfigClient;
 import org.freenetproject.freemail.config.Configurator;
@@ -60,7 +62,11 @@ public class Logger {
 	// static final private int loglevel=DEBUG|NORMAL|ERROR;
 	private static volatile int loglevel = NORMAL | WARNING | ERROR; // should be ok for normal users
 
-	private static SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
+	private static SimpleDateFormat logDateFormat;
+	static {
+		logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss", Locale.ROOT);
+		logDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+	}
 
 	public static void registerConfig(Configurator config) {
 		config.register(Configurator.LOG_LEVEL, INSTANCE, "normal|warning|error");

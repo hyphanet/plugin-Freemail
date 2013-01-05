@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeSet;
@@ -757,7 +758,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			val = mmsg.getFirstHeader("Date");
 			if(val == null) {
 				// possibly should keep our own dates...
-				SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z");
+				SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 
 				val = sdf.format(new Date());
 			}
