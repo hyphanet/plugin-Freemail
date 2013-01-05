@@ -5,6 +5,6 @@
 	<classpathentry excluding="**/test/|org/bouncycastle/util/AllTests.java|org/bouncycastle/util/IPTest.java" kind="src" path="deps/lcrypto-jdk15on-147/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fred"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
