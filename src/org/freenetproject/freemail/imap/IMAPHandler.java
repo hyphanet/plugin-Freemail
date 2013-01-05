@@ -24,7 +24,6 @@ package org.freenetproject.freemail.imap;
 
 import java.net.Socket;
 import java.net.SocketException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -56,7 +55,6 @@ import freenet.support.Base64;
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
 
-	private final OutputStream os;
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
 	private MessageBank mb;
@@ -66,8 +64,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	IMAPHandler(AccountManager accMgr, Socket client) throws IOException {
 		super(client);
 		accountManager = accMgr;
-		this.os = client.getOutputStream();
-		this.ps = new PrintStream(this.os);
+		this.ps = new PrintStream(client.getOutputStream());
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		this.mb = null;
 	}
