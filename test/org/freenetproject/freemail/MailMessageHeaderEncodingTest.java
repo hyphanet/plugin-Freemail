@@ -19,24 +19,28 @@
 
 package org.freenetproject.freemail;
 
-import org.freenetproject.freemail.MailMessage;
+import static org.junit.Assert.*;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class MailMessageHeaderEncodingTest extends TestCase {
-	public void testEncodeAsciiHeader() {
+public class MailMessageHeaderEncodingTest {
+	@Test
+	public void encodeAsciiHeader() {
 		assertEquals("testHeader", MailMessage.encodeHeader("testHeader"));
 	}
 
-	public void testEncodeAsciiHeaderWithSpace() {
+	@Test
+	public void encodeAsciiHeaderWithSpace() {
 		assertEquals("test=?UTF-8?Q?=20?=Header", MailMessage.encodeHeader("test Header"));
 	}
 
-	public void testEncodeHeaderWithSingleUTF8Character() {
+	@Test
+	public void encodeHeaderWithSingleUTF8Character() {
 		assertEquals("test=?UTF-8?Q?=C3=A6?=Header", MailMessage.encodeHeader("testæHeader"));
 	}
 
-	public void testEncodeHeaderWithMultipleUTF8Character() {
+	@Test
+	public void encodeHeaderWithMultipleUTF8Character() {
 		assertEquals("=?UTF-8?Q?=C3=A6?==?UTF-8?Q?=E2=88=80?=", MailMessage.encodeHeader("æ∀"));
 	}
 }
