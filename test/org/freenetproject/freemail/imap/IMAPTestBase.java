@@ -32,13 +32,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import junit.framework.TestCase;
+
 import org.freenetproject.freemail.AccountManager;
-import org.freenetproject.freemail.imap.IMAPHandler;
 
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
-
-import junit.framework.TestCase;
 import utils.Utils;
 
 /**
