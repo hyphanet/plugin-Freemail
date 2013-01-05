@@ -19,14 +19,16 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
 import org.freenetproject.freemail.FreenetURI;
 
-import junit.framework.TestCase;
-
-public class FreenetURITest extends TestCase {
+public class FreenetURITest {
 	private static final String KEY_HASH = "TJl1G~HtSb5uRWW2ei36yXbilXTehZwXNwTirvpVSQ";
 	private static final String KEY_BODY = KEY_HASH + ",ISYik-w5cLR7n6IzL3GjmHmp~tj7AJaDWtNhrZ5qt-4,AQECAAE";
 
@@ -70,19 +72,22 @@ public class FreenetURITest extends TestCase {
 		validUSKs.add("freenet:USK@" + KEY_BODY + "/testsite/-1/file");
 	}
 
-	public void testCheckSSK() {
+	@Test
+	public void checkSSK() {
 		for(String key : validSSKs) {
 			assertTrue("SSK check failed for " + key, FreenetURI.checkSSK(key));
 		}
 	}
 
-	public void testCheckUSK() {
+	@Test
+	public void checkUSK() {
 		for(String key : validUSKs) {
 			assertTrue("USK check failed for " + key, FreenetURI.checkUSK(key));
 		}
 	}
 
-	public void testCheckSSKHash() {
+	@Test
+	public void checkSSKHash() {
 		assertTrue("SSK hash check failed for " + KEY_HASH, FreenetURI.checkSSKHash(KEY_HASH));
 	}
 }
