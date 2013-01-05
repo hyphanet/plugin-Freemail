@@ -47,12 +47,14 @@
 
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
-		<module name="AvoidStarImport"/>
+		<module name="AvoidStarImport">
+			<property name="excludes" value="org.junit.Assert.*"/>
+		</module>
 		<module name="UnusedImports"/>
 
 		<!-- Avoid static imports except from some classes -->
 		<module name="AvoidStaticImport">
-			<property name="excludes" value="junit.framework.Assert.*"/>
+			<property name="excludes" value="org.junit.Assert.*"/>
 		</module>
 
 		<!-- Blacklist for imports -->
