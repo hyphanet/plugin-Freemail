@@ -19,22 +19,27 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
 import org.freenetproject.freemail.utils.EmailAddress;
 
-import junit.framework.TestCase;
-
-public class EmailAddressTest extends TestCase {
-	public void testSimpleAddress() {
+public class EmailAddressTest {
+	@Test
+	public void simpleAddress() {
 		checkAddressPasing("zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail",
 		                   null, "zidel", "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 	}
 
-	public void testSimpleAddressWithName() {
+	@Test
+	public void simpleAddressWithName() {
 		checkAddressPasing("Zidel <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>",
 		                   "Zidel", "zidel", "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 	}
 
-	public void testAddressWithoutAt() {
+	@Test
+	public void addressWithoutAt() {
 		try {
 			new EmailAddress("zidel");
 			fail("Should not be able to create email address without @");
@@ -43,7 +48,8 @@ public class EmailAddressTest extends TestCase {
 		}
 	}
 
-	public void testAddressWithUTF8() {
+	@Test
+	public void addressWithUTF8() {
 		try {
 			new EmailAddress("æøå@email.com");
 			fail("Should not be able to create email address with UTF-8");
