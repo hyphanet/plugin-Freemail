@@ -583,7 +583,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private boolean sendAttr(MailMessage mmsg, String a) {
-		String attr = a.toLowerCase();
+		String attr = a.toLowerCase(Locale.ROOT);
 		String val = null;
 
 		if(attr.equals("uid")) {
