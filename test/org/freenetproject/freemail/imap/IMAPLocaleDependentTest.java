@@ -57,21 +57,28 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 	}
 
 	private final Locale locale;
+	private final Locale defaultLocale;
 
 	public IMAPLocaleDependentTest(Locale locale) {
 		this.locale = locale;
+		this.defaultLocale = Locale.getDefault();
 	}
 
 	@Before
 	@Override
 	public void before() {
 		super.before();
+		Locale.setDefault(locale);
 	}
 
 	@After
 	@Override
 	public void after() {
-		super.after();
+		try {
+			Locale.setDefault(defaultLocale);
+		} finally {
+			super.after();
+		}
 	}
 
 	/**
@@ -81,52 +88,45 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 	 * @throws ParseException on test failure
 	 */
 	@Test
-	public void internaldateFormatWithLocale() throws IOException, ParseException {
-		Locale orig = Locale.getDefault();
-		try {
-			Locale.setDefault(locale);
+	public void internaldateFormat() throws IOException, ParseException {
+		//Setup
+		FakeSocket sock = new FakeSocket();
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-			//Setup
-			FakeSocket sock = new FakeSocket();
-			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		new Thread(new IMAPHandler(accManager, sock)).start();
 
-			new Thread(new IMAPHandler(accManager, sock)).start();
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
 
-			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+		//Send commands
+		send(toHandler, "0001 LOGIN " + IMAP_USERNAME + " test\r\n");
+		send(toHandler, "0002 SELECT INBOX\r\n");
+		send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
 
-			//Send commands
-			send(toHandler, "0001 LOGIN " + IMAP_USERNAME + " test\r\n");
-			send(toHandler, "0002 SELECT INBOX\r\n");
-			send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
-
-			//Read all the initial responses
-			List<String> expectedResponse = new LinkedList<String>();
-			expectedResponse.addAll(INITIAL_RESPONSES);
-			int lineNum = 0;
-			for(String response : expectedResponse) {
-				String line = fromHandler.readLine();
-				assertEquals("[locale=" + locale + "] Failed at line " + lineNum++, response, line);
-			}
-
-			//Read and parse the INTERNALDATE line which should be of the form:
-			//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
+		//Read all the initial responses
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		int lineNum = 0;
+		for(String response : expectedResponse) {
 			String line = fromHandler.readLine();
-			String[] parts = line.split("\"");
-			assertEquals("[locale=" + locale + "] " + line, 3, parts.length);
-			String date = parts[1];
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-			sdf.parse(date);
-
-			//Read final line of expected output
-			line = fromHandler.readLine();
-			assertEquals("[locale=" + locale + "] Incorrect final output", "0003 OK Fetch completed", line);
-
-			assertFalse("[locale=" + locale + "] IMAP socket has more data", fromHandler.ready());
-			fromHandler.close();
-			toHandler.close();
-		} finally {
-			Locale.setDefault(orig);
+			assertEquals("[locale=" + locale + "] Failed at line " + lineNum++, response, line);
 		}
+
+		//Read and parse the INTERNALDATE line which should be of the form:
+		//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
+		String line = fromHandler.readLine();
+		String[] parts = line.split("\"");
+		assertEquals("[locale=" + locale + "] " + line, 3, parts.length);
+		String date = parts[1];
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+		sdf.parse(date);
+
+		//Read final line of expected output
+		line = fromHandler.readLine();
+		assertEquals("[locale=" + locale + "] Incorrect final output", "0003 OK Fetch completed", line);
+
+		assertFalse("[locale=" + locale + "] IMAP socket has more data", fromHandler.ready());
+		fromHandler.close();
+		toHandler.close();
 	}
 }
