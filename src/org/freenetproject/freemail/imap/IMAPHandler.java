@@ -880,7 +880,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 		}
 
-		if(msg.args[offset].toLowerCase().indexOf("silent") < 0) {
+		if(msg.args[offset].toLowerCase(Locale.ROOT).indexOf("silent") < 0) {
 			for(MailMessage message : mmsgs) {
 				StringBuffer buf = new StringBuffer("");
 
