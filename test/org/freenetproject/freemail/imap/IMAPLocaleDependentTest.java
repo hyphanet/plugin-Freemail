@@ -43,6 +43,9 @@ import org.freenetproject.freemail.AccountManager;
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 
+/**
+ * Contains regression tests for locale dependent bugs that have been found in the IMAP handler code.
+ */
 @RunWith(value = Parameterized.class)
 public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 	@Parameters
