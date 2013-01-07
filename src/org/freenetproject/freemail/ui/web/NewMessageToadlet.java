@@ -391,7 +391,7 @@ public class NewMessageToadlet extends WebPage {
 		} catch(UnsupportedEncodingException e) {
 			subject = msg.getFirstHeader("Subject");
 		}
-		if(!subject.toLowerCase().startsWith("re: ")) {
+		if(!subject.toLowerCase(Locale.ROOT).startsWith("re: ")) {
 			subject = "Re: " + subject;
 		}
 

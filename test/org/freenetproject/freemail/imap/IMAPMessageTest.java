@@ -21,6 +21,8 @@ package org.freenetproject.freemail.imap;
 
 import static org.junit.Assert.*;
 
+import java.util.Locale;
+
 import org.junit.Test;
 
 import org.freenetproject.freemail.imap.IMAPBadMessageException;
@@ -58,7 +60,7 @@ public class IMAPMessageTest {
 	@Test
 	public void parseCommand() throws IMAPBadMessageException {
 		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
-		assertEquals("APPEND", msg.type.toUpperCase());
+		assertEquals("APPEND", msg.type.toUpperCase(Locale.ROOT));
 	}
 
 	@Test

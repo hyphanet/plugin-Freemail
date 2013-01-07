@@ -22,6 +22,8 @@
 package org.freenetproject.freemail.utils;
 
 
+import java.util.Locale;
+
 import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.MailSite;
@@ -54,7 +56,7 @@ public class EmailAddress {
 
 			switch (c) {
 				case '@':
-					this.user = bank.toString().toLowerCase();
+					this.user = bank.toString().toLowerCase(Locale.ROOT);
 					bank = new StringBuffer("");
 					break;
 				case '<':
@@ -62,11 +64,11 @@ public class EmailAddress {
 					bank = new StringBuffer("");
 					break;
 				case '>':
-					this.domain = bank.toString().toLowerCase();
+					this.domain = bank.toString().toLowerCase(Locale.ROOT);
 					bank = new StringBuffer("");
 					break;
 				case '(':
-					this.domain = bank.toString().toLowerCase();
+					this.domain = bank.toString().toLowerCase(Locale.ROOT);
 					bank = new StringBuffer("");
 					break;
 				case ')':
@@ -79,7 +81,7 @@ public class EmailAddress {
 		}
 
 		if(this.realname == null && this.domain == null) {
-			this.domain = bank.toString().toLowerCase();
+			this.domain = bank.toString().toLowerCase(Locale.ROOT);
 		}
 
 		// trim quotes out of the real name field

@@ -24,6 +24,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -102,7 +103,7 @@ public class IdentityMatcher {
 		if(recipient.contains("@")) {
 			String recipientNickname = recipient.substring(0, recipient.indexOf("@"));
 			String recipientDomain = recipient.substring(recipient.indexOf("@") + 1);
-			recipient = recipientNickname + "@" + recipientDomain.toLowerCase();
+			recipient = recipientNickname + "@" + recipientDomain.toLowerCase(Locale.ROOT);
 		}
 
 		return identityAddress.startsWith(recipient);

@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -546,7 +547,7 @@ public class MessageHandler {
 		private AckCallback(String remoteId) {
 			assert (remoteId != null);
 			try {
-				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase();
+				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase(Locale.ROOT);
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}

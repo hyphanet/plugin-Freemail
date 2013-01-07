@@ -32,6 +32,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -779,7 +780,7 @@ class Channel {
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
-			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase());
+			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase(Locale.ROOT));
 			try {
 				executor.schedule(fetcher, delay, unit);
 			} catch(RejectedExecutionException e) {
@@ -1078,7 +1079,7 @@ class Channel {
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
-			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase());
+			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase(Locale.ROOT));
 			try {
 				executor.schedule(this, delay, unit);
 			} catch(RejectedExecutionException e) {
