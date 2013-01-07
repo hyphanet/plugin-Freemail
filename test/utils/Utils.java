@@ -19,11 +19,27 @@
 
 package utils;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 
 import junit.framework.Assert;
 
 public class Utils {
+	public static boolean createDir(File dir) {
+		assertFalse(dir.getAbsolutePath() + " already exists", dir.exists());
+		boolean result = dir.mkdir();
+		assertTrue("Couldn't create " + dir.getAbsolutePath(), result);
+		return result;
+	}
+
+	public static File createDir(File parent, String name) {
+		File dir = new File(parent, name);
+		createDir(dir);
+		return dir;
+	}
+
 	/**
 	 * Deletes a File, including all its contents if it is a directory.
 	 * Prints the path of any Files that can't be deleted to System.out

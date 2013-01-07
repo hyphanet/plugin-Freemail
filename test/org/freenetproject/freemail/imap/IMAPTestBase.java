@@ -61,19 +61,11 @@ public abstract class IMAPTestBase {
 
 	@Before
 	public void before() {
-		assertFalse(TEST_DIR.getAbsolutePath() + " exists", TEST_DIR.exists());
-		assertTrue(TEST_DIR.mkdir());
+		Utils.createDir(TEST_DIR);
 
-		accountManagerDir = createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
-		File accountDir = createDir(TEST_DIR, ACCOUNT_DIR);
+		accountManagerDir = Utils.createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
+		File accountDir = Utils.createDir(TEST_DIR, ACCOUNT_DIR);
 		accountDirs.put(BASE64_USERNAME, accountDir);
-	}
-
-	private File createDir(File parent, String name) {
-		File dir = new File(parent, name);
-		assertFalse(dir + " already exists", dir.exists());
-		assertTrue("Couldn't create " + dir, dir.mkdir());
-		return dir;
 	}
 
 	@After
