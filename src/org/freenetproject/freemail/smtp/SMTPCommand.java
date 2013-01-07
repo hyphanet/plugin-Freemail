@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail.smtp;
 
+import java.util.Locale;
 import java.util.Vector;
 
 public class SMTPCommand {
@@ -57,7 +58,7 @@ public class SMTPCommand {
 		}
 		if(tmp_args.size() == 0) throw new SMTPBadCommandException();
 		String tmpcmd = tmp_args.remove(0);
-		this.command = tmpcmd.toLowerCase();
+		this.command = tmpcmd.toLowerCase(Locale.ROOT);
 		this.args = new String[tmp_args.size()];
 
 		for(int i = 0; i < tmp_args.size(); i++) {
