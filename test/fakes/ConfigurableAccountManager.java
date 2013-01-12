@@ -47,7 +47,9 @@ public class ConfigurableAccountManager extends NullAccountManager {
 		if(failAuth) return null;
 
 		File accountDir = accountDirs.get(username);
-		assertNotNull("No account directory found for " + username, accountDir);
+		if(accountDir == null) {
+			return null;
+		}
 
 		//FreemailAccount constructor is package-protected and
 		//there is no reason to change that, so use reflection
