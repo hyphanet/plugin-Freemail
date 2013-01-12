@@ -19,9 +19,20 @@
 
 package org.freenetproject.freemail.imap;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+
+import org.freenetproject.freemail.AccountManager;
+
+import fakes.ConfigurableAccountManager;
+import fakes.FakeSocket;
 
 import org.junit.Test;
 
@@ -337,5 +348,62 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
+	}
+
+	/**
+	 * Tests that the IMAP server returns an internaldate with the correct format. The actual value
+	 * of the returned date isn't checked.
+	 * @throws IOException on I/O error, should never happen
+	 * @throws ParseException on test failure
+	 */
+	//TODO: Convert to proper parameterized test after moving to jUnit4 so we can run this with
+	//more locale variations (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
+	public void testInternaldateFormatWithFrenchLocale() throws IOException, ParseException {
+		Locale orig = Locale.getDefault();
+		try {
+			Locale.setDefault(Locale.FRENCH);
+
+			//Setup
+			FakeSocket sock = new FakeSocket();
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+
+			new Thread(new IMAPHandler(accManager, sock)).start();
+
+			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+
+			//Send commands
+			send(toHandler, "0001 LOGIN " + IMAP_USERNAME + " test\r\n");
+			send(toHandler, "0002 SELECT INBOX\r\n");
+			send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
+
+			//Read all the initial responses
+			List<String> expectedResponse = new LinkedList<String>();
+			expectedResponse.addAll(INITIAL_RESPONSES);
+			int lineNum = 0;
+			for(String response : expectedResponse) {
+				String line = fromHandler.readLine();
+				assertEquals("Failed at line " + lineNum++, response, line);
+			}
+
+			//Read and parse the INTERNALDATE line which should be of the form:
+			//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
+			String line = fromHandler.readLine();
+			String[] parts = line.split("\"");
+			assertEquals(3, parts.length);
+			String date = parts[1];
+			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+			sdf.parse(date);
+
+			//Read final line of expected output
+			line = fromHandler.readLine();
+			assertEquals("0003 OK Fetch completed", line);
+
+			assertFalse("IMAP socket has more data", fromHandler.ready());
+			fromHandler.close();
+			toHandler.close();
+		} finally {
+			Locale.setDefault(orig);
+		}
 	}
 }

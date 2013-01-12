@@ -73,6 +73,7 @@
 		       source="1.6"
 		       target="1.6"
 		       nowarn="true"
+		       encoding="UTF-8"
 		       includeantruntime="false">
 			<exclude name="**/test/*" />
 			<exclude name="org/bouncycastle/util/IPTest.java" />
@@ -107,6 +108,7 @@
 		       optimize="on"
 		       source="1.6"
 		       target="1.6"
+		       encoding="UTF-8"
 		       includeantruntime="false">
 			<include name="${version.src}"/>
 			<classpath>
@@ -124,6 +126,7 @@
 		       optimize="on"
 		       source="1.6"
 		       target="1.6"
+		       encoding="UTF-8"
 		       includeantruntime="false">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
@@ -150,6 +153,7 @@
 		       optimize="on"
 		       source="1.6"
 		       target="1.6"
+		       encoding="UTF-8"
 		       includeantruntime="false">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
