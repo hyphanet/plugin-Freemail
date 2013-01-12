@@ -43,11 +43,14 @@ import utils.Utils;
  * Extend this and add the tests to the subclass.
  */
 public abstract class SMTPTestBase {
-	protected static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
+	protected static final String[] BASE64_USERNAMES = new String[] {
+		"D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc",
+		"1unnefKX8TOorAm5-c0lc6BGT9-6kBucO5f6dLJ9EZA",
+	};
+	protected static final String BASE64_USERNAME = BASE64_USERNAMES[0];
 
 	private static final File TEST_DIR = new File("smtptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
-	private static final String ACCOUNT_DIR = "account_dir";
 
 	private final Map<String, File> accountDirs = new HashMap<String, File>();
 	private File accountManagerDir;
@@ -57,8 +60,11 @@ public abstract class SMTPTestBase {
 		Utils.createDir(TEST_DIR);
 
 		accountManagerDir = Utils.createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
-		File accountDir = Utils.createDir(TEST_DIR, ACCOUNT_DIR);
-		accountDirs.put(BASE64_USERNAME, accountDir);
+
+		for(int i = 0; i < BASE64_USERNAMES.length; i++) {
+			File accountDir = Utils.createDir(TEST_DIR, "account_" + i + "_dir");
+			accountDirs.put(BASE64_USERNAMES[i], accountDir);
+		}
 	}
 
 	@After
