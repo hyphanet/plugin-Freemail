@@ -224,6 +224,23 @@ public class SMTPAuthTest extends SMTPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	/**
+	 * Checks the server response when the client cancels an auth plain exchange instead of sending the data
+	 */
+	@Test
+	public void clientCancelsPlainAuthAfterChallenge() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH PLAIN");
+		commands.add("*");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("334 ");
+		expectedResponse.add("501 Authentication canceled");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 
 	/* ****************************************** *
 	 * Tests that work with the login auth method *
