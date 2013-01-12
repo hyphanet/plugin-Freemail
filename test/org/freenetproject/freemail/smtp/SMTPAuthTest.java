@@ -169,6 +169,30 @@ public class SMTPAuthTest extends SMTPTestBase {
 	}
 
 	/**
+	 * Tests case where:
+	 *   * authzid is valid
+	 *   * authcid is valid (but != authzid)
+	 *   * passwd is valid (for both user)
+	 *
+	 * This should fail since
+	 *   1. Freemail doesn't support authenticating as one user while authorizing (acting) as another
+	 *   2. Password is invalid
+	 */
+	@Test
+	public void plainAuthTwoUsersValidPassword() throws IOException {
+		String authData = new String(Base64.encode((BASE64_USERNAMES[0] + "\0" + BASE64_USERNAMES[1] + "\0password").getBytes("ASCII")), "ASCII");
+
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH PLAIN " + authData);
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("535 Authentication failed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	/**
 	 * Checks that the server handles receiving AUTH PLAIN data with only the username
 	 */
 	@Test
