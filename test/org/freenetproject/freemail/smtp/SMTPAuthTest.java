@@ -54,6 +54,26 @@ public class SMTPAuthTest extends SMTPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	/**
+	 * Checks that the server rejects the auth command after the client has already been authenticated.
+	 * @see <a href="https://tools.ietf.org/html/rfc4954#section-4">RFC4954 Section 4</a>
+	 */
+	@Test
+	public void rejectsSecondAuth() throws IOException {
+		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
+
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH PLAIN " + authData);
+		commands.add("AUTH PLAIN " + authData);
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("235 Authenticated");
+		expectedResponse.add("503 Already authenticated");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 
 	/* ****************************************** *
 	 * Tests that work with the plain auth method *
