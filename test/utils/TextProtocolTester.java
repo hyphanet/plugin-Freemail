@@ -29,7 +29,7 @@ public class TextProtocolTester {
 		int lineNum = 0;
 		for(String response : expectedResponse) {
 			try {
-				waitForReady(1, TimeUnit.SECONDS);
+				waitForReady(10, TimeUnit.SECONDS);
 			} catch (TimeoutException e) {
 				fail("Test timed out waiting for response");
 			} catch (InterruptedException e) {
