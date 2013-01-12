@@ -207,6 +207,23 @@ public class SMTPAuthTest extends SMTPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	/**
+	 * Tests authentication of a valid username:password combination when using the full email for the username
+	 */
+	@Test
+	public void plainAuthWithEmailAsUsername() throws IOException {
+		String authData = new String(Base64.encode(("\0zidel@" + BASE64_USERNAME + ".freemail\0password").getBytes("ASCII")), "ASCII");
+
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH PLAIN " + authData);
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("535 Authentication failed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 
 	/* ****************************************** *
 	 * Tests that work with the login auth method *
