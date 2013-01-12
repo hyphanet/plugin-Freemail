@@ -108,6 +108,20 @@ public class SMTPAuthTest extends SMTPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	@Test
+	public void plainAuthWithoutAuthzid() throws IOException {
+		List<String> commands = new LinkedList<String>();
+
+		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
+		commands.add("AUTH PLAIN " + authData);
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("235 Authenticated");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 
 	/* ****************************************** *
 	 * Tests that work with the login auth method *
