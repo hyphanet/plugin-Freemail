@@ -61,8 +61,8 @@ public class ConfigurableAccountManager extends NullAccountManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.toString());
-		}
 
-		return null;
+			throw new AssertionError(); //Since the compiler doesn't know fail() never returns
+		}
 	}
 }
