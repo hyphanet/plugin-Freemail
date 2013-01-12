@@ -27,6 +27,34 @@ import org.bouncycastle.util.encoders.Base64;
 import org.junit.Test;
 
 public class SMTPAuthTest extends SMTPTestBase {
+	/* *************************************************** *
+	 * Tests that don't work with any specific auth method *
+	 * *************************************************** */
+	@Test
+	public void authWithoutType() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("504 No auth type given");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void rejectsInvalidAuthMethod() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH Unsupported");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("504 Auth type unimplemented - weren't you listening?");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+
 	/* ****************************************** *
 	 * Tests that work with the plain auth method *
 	 * ****************************************** */
