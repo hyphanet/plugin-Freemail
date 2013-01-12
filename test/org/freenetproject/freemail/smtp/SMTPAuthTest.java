@@ -168,6 +168,21 @@ public class SMTPAuthTest extends SMTPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
+	/**
+	 * Checks that the server handles receiving AUTH PLAIN data with only the username
+	 */
+	@Test
+	public void plainAuthOnlyUsername() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("AUTH PLAIN " + new String(Base64.encode((BASE64_USERNAME).getBytes("ASCII")), "ASCII"));
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.add("220 localhost ready");
+		expectedResponse.add("535 No username/password received");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
 
 	/* ****************************************** *
 	 * Tests that work with the login auth method *
