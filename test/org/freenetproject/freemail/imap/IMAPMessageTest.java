@@ -19,13 +19,16 @@
 
 package org.freenetproject.freemail.imap;
 
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
 import org.freenetproject.freemail.imap.IMAPBadMessageException;
 import org.freenetproject.freemail.imap.IMAPMessage;
 
-import junit.framework.TestCase;
-
-public class IMAPMessageTest extends TestCase {
-	public void testSplit() {
+public class IMAPMessageTest {
+	@Test
+	public void split() {
 		String input = "a 'b c' d";
 		String [] correct = {"a", "'b c'", "d"};
 
@@ -35,7 +38,8 @@ public class IMAPMessageTest extends TestCase {
 		}
 	}
 
-	public void testSplitWithoutClose() {
+	@Test
+	public void splitWithoutClose() {
 		String input = "a 'b c";
 		String [] correct = {"a", "'b c"};
 
@@ -45,22 +49,26 @@ public class IMAPMessageTest extends TestCase {
 		}
 	}
 
-	public void testParseTag() throws IMAPBadMessageException {
+	@Test
+	public void parseTag() throws IMAPBadMessageException {
 		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
 		assertEquals("0003", msg.tag);
 	}
 
-	public void testParseCommand() throws IMAPBadMessageException {
+	@Test
+	public void parseCommand() throws IMAPBadMessageException {
 		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
 		assertEquals("APPEND", msg.type.toUpperCase());
 	}
 
-	public void testParseQuotedString() throws IMAPBadMessageException {
+	@Test
+	public void parseQuotedString() throws IMAPBadMessageException {
 		IMAPMessage msg = new IMAPMessage("0003 APPEND \"IN BOX\"");
 		assertEquals("\"IN BOX\"", msg.args[0]);
 	}
 
-	public void testParseParenthesesList() throws IMAPBadMessageException {
+	@Test
+	public void parseParenthesesList() throws IMAPBadMessageException {
 		IMAPMessage msg = new IMAPMessage("0003 APPEND INBOX (\\Seen custom)");
 		assertEquals(3, msg.args.length);
 		assertEquals("(\\Seen", msg.args[1]);

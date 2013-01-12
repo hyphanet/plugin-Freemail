@@ -19,6 +19,8 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,19 +28,21 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import org.freenetproject.freemail.MailMessage;
 
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class MailMessageTest extends TestCase {
+public class MailMessageTest {
 	private static final String MESSAGE_DIR = "msg_dir";
 
 	private File msgDir = null;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		// Create a directory for messages so it is easier to list files, clean up etc.
 		msgDir = new File(MESSAGE_DIR);
 		if(msgDir.exists()) {
@@ -51,8 +55,8 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(msgDir);
 	}
 
@@ -61,7 +65,8 @@ public class MailMessageTest extends TestCase {
 	 * would lose track of the file when storing a different set of flags, so the second attempt
 	 * would fail silently.
 	 */
-	public void testStoreFlagsTwice() throws IOException {
+	@Test
+	public void storeFlagsTwice() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -78,7 +83,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
 	}
 
-	public void testSingleLineReferencesHeader() throws IOException {
+	@Test
+	public void singleLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -94,7 +100,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals("<abc@domain>", msg.getFirstHeader("References"));
 	}
 
-	public void testMultiLineReferencesHeader() throws IOException {
+	@Test
+	public void multiLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -118,7 +125,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals(expected, msg.getFirstHeader("References"));
 	}
 
-	public void testEncodeDecodeMultipleStrings() throws UnsupportedEncodingException {
+	@Test
+	public void encodeDecodeMultipleStrings() throws UnsupportedEncodingException {
 		List<String> input = new LinkedList<String>();
 		input.add("Test message");
 		input.add("Test message (æøå)");

@@ -20,13 +20,16 @@
 
 package org.freenetproject.freemail.wot;
 
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.OwnIdentity;
 
-import junit.framework.TestCase;
-
-public class OwnIdentityTest extends TestCase {
-	public void testEqualsSymmetricWithIdentity() {
+public class OwnIdentityTest {
+	@Test
+	public void equalsSymmetricWithIdentity() {
 		final String identityID = "test";
 		final String nickname = "test";
 		final String requestURI = "test";

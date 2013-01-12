@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
 public class IMAPCopyTest extends IMAPTestWithMessages {
-	public void testCopySingleMessageToSameFolder() throws IOException {
+	@Test
+	public void copySingleMessageToSameFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -43,7 +46,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithMessageId0() throws IOException {
+	@Test
+	public void copyWithMessageId0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -56,7 +60,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithMessageIdRangeFrom0() throws IOException {
+	@Test
+	public void copyWithMessageIdRangeFrom0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -69,7 +74,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithMessageIdRangeTo0() throws IOException {
+	@Test
+	public void copyWithMessageIdRangeTo0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -82,7 +88,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithTooHighMessageIdFirstInRange() throws IOException {
+	@Test
+	public void copyWithTooHighMessageIdFirstInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -95,7 +102,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithTooHighMessageIdLastInRange() throws IOException {
+	@Test
+	public void copyWithTooHighMessageIdLastInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -108,7 +116,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyToNonexistentMailbox() throws IOException {
+	@Test
+	public void copyToNonexistentMailbox() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -121,7 +130,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopySetsRecentFlag() throws IOException {
+	@Test
+	public void copySetsRecentFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -137,7 +147,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyDoesntCreateMailbox() throws IOException {
+	@Test
+	public void copyDoesntCreateMailbox() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -152,7 +163,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidAfterCopy() throws IOException {
+	@Test
+	public void uidAfterCopy() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -174,7 +186,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyPreservesFlags() throws IOException {
+	@Test
+	public void copyPreservesFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -201,7 +214,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithNoArgs() throws IOException {
+	@Test
+	public void copyWithNoArgs() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -214,7 +228,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithoutDestination() throws IOException {
+	@Test
+	public void copyWithoutDestination() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -227,7 +242,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithIllegalSequenceNumber() throws IOException {
+	@Test
+	public void copyWithIllegalSequenceNumber() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -240,7 +256,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithIllegalSequenceNumberFirstInRange() throws IOException {
+	@Test
+	public void copyWithIllegalSequenceNumberFirstInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -253,7 +270,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithIllegalSequenceNumberLastInRange() throws IOException {
+	@Test
+	public void copyWithIllegalSequenceNumberLastInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -266,7 +284,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithIllegalSequenceNumberFirstInList() throws IOException {
+	@Test
+	public void copyWithIllegalSequenceNumberFirstInList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -279,7 +298,8 @@ public class IMAPCopyTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testCopyWithIllegalSequenceNumberLastInList() throws IOException {
+	@Test
+	public void copyWithIllegalSequenceNumberLastInList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");

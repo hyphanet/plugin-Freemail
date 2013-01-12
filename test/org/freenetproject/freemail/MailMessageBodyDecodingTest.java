@@ -19,24 +19,28 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import org.freenetproject.freemail.MailMessage;
 
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class MailMessageBodyDecodingTest extends TestCase {
+public class MailMessageBodyDecodingTest {
 	private static final String MESSAGE_DIR = "msg_dir";
 
 	private File msgDir = null;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		// Create a directory for messages so it is easier to list files, clean up etc.
 		msgDir = new File(MESSAGE_DIR);
 		if(msgDir.exists()) {
@@ -49,12 +53,13 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		}
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(msgDir);
 	}
 
-	public void testDecodeQpAndAsciiMessageBody() throws IOException {
+	@Test
+	public void decodeQpAndAsciiMessageBody() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -74,7 +79,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeQpAndUtf8MessageBody() throws IOException {
+	@Test
+	public void decodeQpAndUtf8MessageBody() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -94,7 +100,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeQpAndIso8859_1MessageBody() throws IOException {
+	@Test
+	public void decodeQpAndIso8859_1MessageBody() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -112,7 +119,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeQpWithSoftLineBreak() throws IOException {
+	@Test
+	public void decodeQpWithSoftLineBreak() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -131,7 +139,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeBase64AndAsciiMessageBody() throws IOException {
+	@Test
+	public void decodeBase64AndAsciiMessageBody() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -150,7 +159,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeBase64AndUtf8MessageBody() throws IOException {
+	@Test
+	public void decodeBase64AndUtf8MessageBody() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -170,7 +180,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeBase64WithLineBuffering() throws IOException {
+	@Test
+	public void decodeBase64WithLineBuffering() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -195,7 +206,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 	 * Tests that the implementation can handle body lines that don't contain
 	 * hard line breaks when decoded.
 	 */
-	public void testDecodeBase64WithShortBodyLines() throws IOException {
+	@Test
+	public void decodeBase64WithShortBodyLines() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -222,7 +234,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 		assertEquals(null, reader.readLine());
 	}
 
-	public void testDecodeBase64WithoutTrailingHardLinebreak() throws IOException {
+	@Test
+	public void decodeBase64WithoutTrailingHardLinebreak() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -246,7 +259,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 	/**
 	 * 7bit encoding is essentially a no-op and should return the exact content
 	 */
-	public void testDecode7bitBody() throws IOException {
+	@Test
+	public void decode7bitBody() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -272,7 +286,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 	 * Transfer encodings that are unsupported should cause the Reader to
 	 * return the raw content.
 	 */
-	public void testDecodeUnsupportedTransferEncoding() throws IOException {
+	@Test
+	public void decodeUnsupportedTransferEncoding() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -298,7 +313,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 	 * Charsets that are unsupported should cause the Reader to return the raw
 	 * content.
 	 */
-	public void testDecodeUnsupportedCharset() throws IOException {
+	@Test
+	public void decodeUnsupportedCharset() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -323,7 +339,8 @@ public class MailMessageBodyDecodingTest extends TestCase {
 	/**
 	 * Tests reading of messages without the extra MIME headers
 	 */
-	public void testReadPlainRFC822Message() throws IOException {
+	@Test
+	public void readPlainRFC822Message() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
