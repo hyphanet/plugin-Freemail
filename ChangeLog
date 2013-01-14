@@ -12,6 +12,15 @@ Changes from version 0.2.2 to version 0.2.3
     - Mark sent messages as read when sending using web ui
     - Add a new page with email address and server info
 
+Changes from version 0.2.2 to version 0.2.2.1 - 2013-01-05
+  o Security fixes:
+    - Fix a bug in the message date parsing code that make the message filter
+      remove dates from messages based on the senders locale. The affected
+      locales are the ones that use abbreviations for month names that differ
+      from the English names. Note that some months may not trigger the bug
+      for some locales, leaking more information to the recipient. This bug
+      was introduced in commit 87e59ff1cd (released with 0.2.2-rc1).
+
 Changes from version 0.2.1 to version 0.2.2 - 2012-07-13
   o Bugfixes:
     - Fixed bug that stopped In-Reply-To header from being added to replies
