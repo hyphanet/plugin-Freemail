@@ -29,8 +29,6 @@ import org.junit.Test;
 
 import org.freenetproject.freemail.MailMessage;
 
-import utils.Utils;
-
 public class MailMessageBodyEncodingTest {
 	@Test
 	public void encodeAsciiText() throws IOException {
@@ -162,6 +160,6 @@ public class MailMessageBodyEncodingTest {
 		encoder.write(input);
 		encoder.close();
 
-		Utils.assertEquals(expected, output.toByteArray());
+		assertArrayEquals(expected, output.toByteArray());
 	}
 }

@@ -24,8 +24,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import junit.framework.Assert;
-
 public class Utils {
 	public static boolean createDir(File dir) {
 		assertFalse(dir.getAbsolutePath() + " already exists", dir.exists());
@@ -64,13 +62,5 @@ public class Utils {
 		}
 
 		return file.delete();
-	}
-
-	public static void assertEquals(byte[] expected, byte[] actual) {
-		Assert.assertEquals("Length differs", expected.length, actual.length);
-
-		for(int i = 0; i < expected.length; i++) {
-			Assert.assertEquals("Data differs at index " + i, expected[i], actual[i]);
-		}
 	}
 }
