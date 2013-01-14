@@ -1,16 +1,30 @@
 Changes from version 0.2.2 to version 0.2.3
+  This version includes all changes included in 0.2.2.1
+
   o Bugfixes:
     - Print missing [HEADER] in response to IMAP fetch with BODY[HEADER]
     - Fix crash in IMAP on store without arguments
     - Fix return code when uid store fails
     - Various minor IMAP fixes when responding to incorrect client requests
     - Fix bug causing checkcommit to check a commit against itself
+    - Remove invalid From header in received message instead of crashing
+      fetcher thread for that channel
+    - Numerous fixes to IMAP and SMTP when running with Turkish locale
 
   o Improvements:
     - Support for decoding base64 and quoted-printable message body encodings
     - Encode message bodies using quoted-printable when sending via web ui
     - Mark sent messages as read when sending using web ui
     - Add a new page with email address and server info
+
+  o Build improvements:
+    - Output XML from jUnit run if test.xml_output is set
+    - Set includeantruntime=false when compiling
+    - Allow running dist target without running tests
+
+  o Code changes:
+    - Migrate to jUnit 4
+    - Convert a few tests to be parameterized tests
 
 Changes from version 0.2.2 to version 0.2.2.1 - 2013-01-05
   o Security fixes:
