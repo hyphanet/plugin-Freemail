@@ -27,9 +27,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -146,31 +144,11 @@ public class MailMessageTest {
 		}
 	}
 
-	private String join(Collection<?> objs, String separator) {
-		if(objs.isEmpty()) {
-			return "";
-		}
-		if(objs.size() == 1) {
-			return objs.iterator().next().toString();
-		}
-
-		StringBuilder s = new StringBuilder();
-		Iterator<?> it = objs.iterator();
-		while(it.hasNext()) {
-			s.append(it.next().toString());
-			if(it.hasNext()) {
-				s.append(separator);
-			}
-		}
-		return s.toString();
-	}
-
 	/**
 	 * Tests that the parseDate() function parses a valid date without the day of week correctly.
-	 * The test is run with all available locales.
+	 * Test is run with the tr locale, checking for the bug that was fixed in commit 7c14b5f6cd.
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
-	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
 	@Test
 	public void decodeDateAllLocales() throws ParseException {
 		final String date = "17 Oct 2011 10:24:14 +0000";
@@ -181,32 +159,14 @@ public class MailMessageTest {
 			expected = dateFormat.parse(date);
 		}
 
-		Locale orig = Locale.getDefault();
-		try {
-			List<Locale> failed = new LinkedList<Locale>();
-			for(Locale l : Locale.getAvailableLocales()) {
-				Locale.setDefault(l);
-
-				Date actual = MailMessage.parseDate(date);
-				if(!expected.equals(actual)) {
-					failed.add(l);
-				}
-			}
-
-			if(!failed.isEmpty()) {
-				fail("Parsing failed with locale(s): [" + join(failed, ", ") + "]");
-			}
-		} finally {
-			Locale.setDefault(orig);
-		}
+		checkDateWithLocale(expected, date, new Locale("tr"));
 	}
 
 	/**
 	 * Tests that the parseDate() function parses a valid date with the day of week correctly.
-	 * The test is run with all available locales.
+	 * Test is run with the tr locale, checking for the bug that was fixed in commit 7c14b5f6cd.
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
-	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
 	@Test
 	public void decodeDateWithDayAllLocales() throws ParseException {
 		final String date = "Mon, 17 Oct 2011 10:24:14 +0000";
@@ -217,21 +177,16 @@ public class MailMessageTest {
 			expected = dateFormat.parse(date);
 		}
 
+		checkDateWithLocale(expected, date, new Locale("tr"));
+	}
+
+	private void checkDateWithLocale(Date expected, String date, Locale locale) {
 		Locale orig = Locale.getDefault();
 		try {
-			List<Locale> failed = new LinkedList<Locale>();
-			for(Locale l : Locale.getAvailableLocales()) {
-				Locale.setDefault(l);
+			Locale.setDefault(locale);
 
-				Date actual = MailMessage.parseDate(date);
-				if(!expected.equals(actual)) {
-					failed.add(l);
-				}
-			}
-
-			if(!failed.isEmpty()) {
-				fail("Parsing failed with locale(s): [" + join(failed, ", ") + "]");
-			}
+			Date actual = MailMessage.parseDate(date);
+			assertEquals(expected, actual);
 		} finally {
 			Locale.setDefault(orig);
 		}
