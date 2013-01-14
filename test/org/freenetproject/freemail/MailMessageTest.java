@@ -171,7 +171,8 @@ public class MailMessageTest {
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
 	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testDecodeDateAllLocales() throws ParseException {
+	@Test
+	public void decodeDateAllLocales() throws ParseException {
 		final String date = "17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -206,7 +207,8 @@ public class MailMessageTest {
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
 	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testDecodeDateWithDayAllLocales() throws ParseException {
+	@Test
+	public void decodeDateWithDayAllLocales() throws ParseException {
 		final String date = "Mon, 17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -235,7 +237,8 @@ public class MailMessageTest {
 		}
 	}
 
-	public void testDecodeDateMissingTimezone() {
+	@Test
+	public void decodeDateMissingTimezone() {
 		final String date = "17 Oct 2011 10:24:14";
 		Date actual = MailMessage.parseDate(date);
 		assertEquals(null, actual);
