@@ -78,8 +78,9 @@
 			<!--
 			     sun.*      - Sun implementation specific stuff
 			     com.sun.*  -
+			     junit.*    - jUnit 3 stuff, import from org.junit instead
 			-->
-			<property name="illegalPkgs" value="sun, com.sun"/>
+			<property name="illegalPkgs" value="sun, com.sun, junit"/>
 		</module>
 
 		<!-- Whitespace checks -->
