@@ -285,7 +285,7 @@ public class InboxToadlet extends WebPage {
 		Date msgDate = msg.getDate();
 		if(msgDate != null) {
 			DateFormat df = DateFormat.getDateTimeInstance(
-					DateFormat.LONG, DateFormat.LONG, Locale.getDefault());
+					DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.getDefault());
 			date.addChild("#", df.format(msgDate));
 		} else {
 			/* Use the raw date header if possible. If it is null
