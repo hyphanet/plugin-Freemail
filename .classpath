@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test" output="build-test"/>
-	<classpathentry excluding="**/test/|org/bouncycastle/util/AllTests.java|org/bouncycastle/util/IPTest.java" kind="src" path="deps/lcrypto-jdk15on-147/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fred"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/bouncycastle.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
