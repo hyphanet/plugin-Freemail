@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.Locale;
 
 import org.archive.util.Base32;
+import org.freenetproject.freemail.fcp.HighLevelFCPClientFactory;
 import org.freenetproject.freemail.transport.MessageHandler;
 import org.freenetproject.freemail.utils.PropsFile;
 
@@ -53,7 +54,8 @@ public class FreemailAccount {
 		mb = new MessageBank(this);
 
 		File channelDir = new File(accdir, "channel");
-		messageHandler = new MessageHandler(new File(accdir, "outbox"), freemail, channelDir, this);
+		messageHandler = new MessageHandler(new File(accdir, "outbox"), freemail, channelDir, this,
+		                                    new HighLevelFCPClientFactory());
 	}
 
 	public void startTasks() {
