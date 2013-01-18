@@ -294,14 +294,14 @@ public class MessageHandler {
 		}
 	}
 
-	public Channel createChannelFromRTS(PropsFile rtsProps) {
+	public void createChannelFromRTS(PropsFile rtsProps) {
 		//First try to find a channel with the same key
 		String rtsPrivateKey = rtsProps.get("channel");
 		synchronized(channels) {
 			for(Channel c : channels) {
 				if(rtsPrivateKey.equals(c.getPrivateKey())) {
 					c.processRTS(rtsProps);
-					return c;
+					return;
 				}
 			}
 
@@ -310,7 +310,7 @@ public class MessageHandler {
 			File newChannelDir = new File(channelDir, "" + nextChannelNum.getAndIncrement());
 			if(!newChannelDir.mkdir()) {
 				Logger.error(this, "Couldn't create the channel directory");
-				return null;
+				return;
 			}
 
 			String remoteIdentity = rtsProps.get("mailsite");
@@ -328,8 +328,6 @@ public class MessageHandler {
 			channel.processRTS(rtsProps);
 			channel.startTasks();
 			channels.add(channel);
-
-			return channel;
 		}
 	}
 
