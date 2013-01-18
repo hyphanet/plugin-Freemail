@@ -317,6 +317,9 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 					done = true;
 					break;
 				}
+				if(line.startsWith(".")) {
+					line = line.substring(1);
+				}
 				pw.print(line+"\r\n");
 			}
 
