@@ -54,12 +54,11 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.Freemail;
+import org.freenetproject.freemail.Freemail.TaskType;
 import org.freenetproject.freemail.FreemailAccount;
-import org.freenetproject.freemail.FreemailPlugin;
 import org.freenetproject.freemail.FreenetURI;
 import org.freenetproject.freemail.SlotManager;
 import org.freenetproject.freemail.SlotSaveCallback;
-import org.freenetproject.freemail.FreemailPlugin.TaskType;
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.fcp.FCPBadFileException;
 import org.freenetproject.freemail.fcp.FCPException;
@@ -344,7 +343,7 @@ class Channel {
 						}
 					}
 
-					ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+					ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
 					senderExecutor.execute(new AckInserter(entry.getKey(), insertAfter));
 				}
 			}
@@ -1285,7 +1284,7 @@ class Channel {
 		}
 
 		try {
-			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+			ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
 			senderExecutor.execute(new AckInserter(id, ackDelay));
 		} catch(RejectedExecutionException e) {
 			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
@@ -1310,7 +1309,7 @@ class Channel {
 			if(System.currentTimeMillis() < insertAfter) {
 				long remaining = insertAfter - System.currentTimeMillis();
 				Logger.debug(this, "Rescheduling in " + remaining + "ms when inserting is allowed");
-				ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+				ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
 				senderExecutor.schedule(this, remaining, TimeUnit.MILLISECONDS);
 				return;
 			}
@@ -1343,7 +1342,7 @@ class Channel {
 				}
 			} else {
 				try {
-					ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+					ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
 					senderExecutor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				} catch(RejectedExecutionException e) {
 					Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
