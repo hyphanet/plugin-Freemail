@@ -148,6 +148,47 @@ public class SMTPSessionTest {
 	}
 
 	/**
+	 * Tests that the correct message is handed to the MessageHandler when the message contains
+	 * dot padding (see <a href="https://tools.ietf.org/html/rfc5321#section-4.5.2">RFC5321 section 4.5.2</a>).
+	 *
+	 * @throws IOException on IO errors with SMTP thread, should never happen
+	 */
+	@Test
+	public void messageWithDotPadding() throws IOException {
+		Assume.assumeTrue(EXTENSIVE);
+
+		final String message =
+				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
+				+ "From: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "Subject: Freemail SMTP test\r\n"
+				+ "To: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "\r\n"
+				+ "This is a simple SMTP test for Freemail\r\n"
+				+ ".\r\n";
+		final String padded =
+				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
+				+ "From: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "Subject: Freemail SMTP test\r\n"
+				+ "To: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "\r\n"
+				+ "This is a simple SMTP test for Freemail\r\n"
+				+ "..\r\n";
+
+		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		List<Command> commands = new LinkedList<Command>();
+		commands.add(new Command(null, "220 localhost ready"));
+		commands.add(new Command("EHLO", "250-localhost",
+		                                 "250 AUTH LOGIN PLAIN"));
+		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
+		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("DATA", "354 Go crazy"));
+		commands.add(new Command(padded + ".\r\n", "250 So be it"));
+
+		runSimpleSessionTest(commands, true, message);
+	}
+
+	/**
 	 * Sets up the SMTP server and supporting mocks and runs through the commands and the expected
 	 * responses, then quit.
 	 *
