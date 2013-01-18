@@ -86,6 +86,7 @@ public class SMTPSessionTest {
 
 	/**
 	 * Runs through a full session sending a simple message to one recipient.
+	 *
 	 * @throws IOException on IO errors with SMTP thread, should never happen
 	 */
 	@Test
