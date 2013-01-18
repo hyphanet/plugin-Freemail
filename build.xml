@@ -149,7 +149,11 @@
 				<pathelement location="${junit}"/>
 				<pathelement path="${test.lib}"/>
 			</classpath>
+
+			<env key="test.extensive" value="${test.extensive}"/>
+
 			<assertions><enable/></assertions>
+
 			<formatter type="brief" usefile="false"/>
 			<formatter type="xml" if="${test.xml_output}"/>
 			<batchtest>
