@@ -101,6 +101,31 @@ public class SMTPSessionTest {
 				+ "\r\n"
 				+ "This is a simple SMTP test for Freemail\r\n";
 
+		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		List<Command> commands = new LinkedList<Command>();
+		commands.add(new Command(null, "220 localhost ready"));
+		commands.add(new Command("EHLO", "250-localhost",
+		                                 "250 AUTH LOGIN PLAIN"));
+		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
+		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("DATA", "354 Go crazy"));
+		commands.add(new Command(message + ".\r\n", "250 So be it"));
+
+		runSimpleSessionTest(commands, true, message);
+	}
+
+	/**
+	 * Sets up the SMTP server and supporting mocks and runs through the commands and the expected
+	 * responses, then quit.
+	 *
+	 * @param commands the commands to be sent and their responses
+	 * @param sendResult the result that will be returned from MessageHandler.sendMessage()
+	 * @param message the message that the MessageHandler should receive
+	 * @throws IOException on IO errors with SMTP thread, should never happen
+	 */
+	public void runSimpleSessionTest(List<Command> commands, final boolean sendResult, final String message)
+			throws IOException {
 		final Identity recipient = new NullIdentity(BASE64_USERNAME, null, null) {
 			@Override
 			public boolean equals(Object o) {
@@ -120,7 +145,7 @@ public class SMTPSessionTest {
 				assertEquals(recipient, recipients.get(0));
 				assertEquals(message, new String(BucketTools.toByteArray(msg), "ASCII"));
 
-				return true;
+				return sendResult;
 			}
 		};
 
@@ -174,40 +199,16 @@ public class SMTPSessionTest {
 		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
 		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
 
-		//Server greeting
-		assertEquals("220 localhost ready", fromHandler.readLine());
+		for(Command cmd : commands) {
+			if(cmd.command != null) {
+				toHandler.write(cmd.command + "\r\n");
+				toHandler.flush();
+			}
 
-		//EHLO
-		toHandler.write("EHLO\r\n");
-		toHandler.flush();
-		assertEquals("250-localhost", fromHandler.readLine());
-		assertEquals("250 AUTH LOGIN PLAIN", fromHandler.readLine());
-
-		//Authenticate
-		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
-		toHandler.write("AUTH PLAIN " + authData + "\r\n");
-		toHandler.flush();
-		assertEquals("235 Authenticated", fromHandler.readLine());
-
-		//MAIL FROM
-		toHandler.write("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>\r\n");
-		toHandler.flush();
-		assertEquals("250 OK", fromHandler.readLine());
-
-		//RCPT TO
-		toHandler.write("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>\r\n");
-		toHandler.flush();
-		assertEquals("250 OK", fromHandler.readLine());
-
-		//DATA
-		toHandler.write("DATA\r\n");
-		toHandler.flush();
-		assertEquals("354 Go crazy", fromHandler.readLine());
-
-		//Send message data
-		toHandler.write(message + ".\r\n");
-		toHandler.flush();
-		assertEquals("250 So be it", fromHandler.readLine());
+			for(String reply : cmd.replies) {
+				assertEquals(reply, fromHandler.readLine());
+			}
+		}
 
 		//QUIT
 		toHandler.write("QUIT\r\n");
@@ -225,6 +226,18 @@ public class SMTPSessionTest {
 			smtpThread.join();
 		} catch(InterruptedException e) {
 			fail("Caught unexpected InterruptedException");
+		}
+	}
+
+	private class Command {
+		private final String command;
+		private final List<String> replies = new LinkedList<String>();
+
+		private Command(String command, String ... replies) {
+			this.command = command;
+			for(String reply : replies) {
+				this.replies.add(reply);
+			}
 		}
 	}
 }
