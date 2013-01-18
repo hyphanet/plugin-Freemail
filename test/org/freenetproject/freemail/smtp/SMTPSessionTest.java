@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -112,7 +114,8 @@ public class SMTPSessionTest {
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message + ".\r\n", "250 So be it"));
 
-		runSimpleSessionTest(commands, true, message);
+		runSimpleSessionTest(commands, true, Collections.singletonList(message),
+		                     Collections.singletonList("zidel@" + BASE32_USERNAME + ".freemail"));
 	}
 
 	/**
@@ -144,7 +147,8 @@ public class SMTPSessionTest {
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message + ".\r\n", "452 Message sending failed"));
 
-		runSimpleSessionTest(commands, false, message);
+		runSimpleSessionTest(commands, false, Collections.singletonList(message),
+		                Collections.singletonList("zidel@" + BASE32_USERNAME + ".freemail"));
 	}
 
 	/**
@@ -185,20 +189,81 @@ public class SMTPSessionTest {
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(padded + ".\r\n", "250 So be it"));
 
-		runSimpleSessionTest(commands, true, message);
+		runSimpleSessionTest(commands, true, Collections.singletonList(message),
+		                Collections.singletonList("zidel@" + BASE32_USERNAME + ".freemail"));
+	}
+
+	/**
+	 * Sends two messages in the same session to test that the state is reset properly. This checks
+	 * for bugs like the one fixed in 76444b878e where the state isn't cleared properly before the
+	 * second mail transaction starts.
+	 *
+	 * @throws IOException on IO errors with SMTP thread, should never happen
+	 */
+	@Test
+	public void twoMessageInOneSession() throws IOException {
+		Assume.assumeTrue(EXTENSIVE);
+
+		final String message1 =
+				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
+				+ "From: zidel <zidel1@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "Subject: Freemail SMTP test\r\n"
+				+ "To: zidel <zidel1@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "\r\n"
+				+ "This is test message 1.\r\n";
+
+		final String message2 =
+				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
+				+ "From: zidel <zidel2@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "Subject: Freemail SMTP test\r\n"
+				+ "To: zidel <zidel2@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "\r\n"
+				+ "This is test message 2.\r\n";
+
+		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		List<Command> commands = new LinkedList<Command>();
+		commands.add(new Command(null, "220 localhost ready"));
+		commands.add(new Command("EHLO", "250-localhost",
+		                                 "250 AUTH LOGIN PLAIN"));
+		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
+
+		//Message 1
+		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("DATA", "354 Go crazy"));
+		commands.add(new Command(message1 + ".\r\n", "250 So be it"));
+
+		//Message 2
+		commands.add(new Command("MAIL FROM:<zidel2@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("RCPT TO:<zidel2@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("DATA", "354 Go crazy"));
+		commands.add(new Command(message2 + ".\r\n", "250 So be it"));
+
+		List<String> messages = new ArrayList<String>(2);
+		messages.add(message1);
+		messages.add(message2);
+
+		List<String> recipients = new ArrayList<String>(2);
+		recipients.add("zidel@" + BASE32_USERNAME + ".freemail");
+		recipients.add("zidel2@" + BASE32_USERNAME + ".freemail");
+
+		runSimpleSessionTest(commands, true, messages, recipients);
 	}
 
 	/**
 	 * Sets up the SMTP server and supporting mocks and runs through the commands and the expected
-	 * responses, then quit.
+	 * responses, then quit. The list of recipients can only contain one recipient per message.
 	 *
 	 * @param commands the commands to be sent and their responses
 	 * @param sendResult the result that will be returned from MessageHandler.sendMessage()
-	 * @param message the message that the MessageHandler should receive
+	 * @param messages a list of the messages that the MessageHandler should receive
+	 * @param rcpts a list of the recipients that are expected
 	 * @throws IOException on IO errors with SMTP thread, should never happen
 	 */
-	public void runSimpleSessionTest(List<Command> commands, final boolean sendResult, final String message)
-			throws IOException {
+	public void runSimpleSessionTest(List<Command> commands, final boolean sendResult, final List<String> messages,
+	                                 final List<String> rcpts) throws IOException {
+		assertEquals(messages.size(), rcpts.size());
+
 		final Identity recipient = new NullIdentity(BASE64_USERNAME, null, null) {
 			@Override
 			public boolean equals(Object o) {
@@ -212,11 +277,13 @@ public class SMTPSessionTest {
 		};
 
 		final MessageHandler messageHandler = new NullMessageHandler(null, null, channelDir, null, null) {
+			private int offset = 0;
+
 			@Override
 			public boolean sendMessage(List<Identity> recipients, Bucket msg) throws IOException {
 				assertEquals(1, recipients.size());
 				assertEquals(recipient, recipients.get(0));
-				assertEquals(message, new String(BucketTools.toByteArray(msg), "ASCII"));
+				assertEquals(messages.get(offset++), new String(BucketTools.toByteArray(msg), "ASCII"));
 
 				return sendResult;
 			}
@@ -251,16 +318,20 @@ public class SMTPSessionTest {
 		};
 
 		IdentityMatcher matcher = new IdentityMatcher(null) {
+			private int offset = 0;
+
 			@Override
 			public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
+				String curRcpt = rcpts.get(offset++);
+
 				assertEquals(1, recipients.size());
-				assertEquals("zidel@" + BASE32_USERNAME + ".freemail", recipients.iterator().next());
+				assertEquals(curRcpt, recipients.iterator().next());
 				assertEquals(BASE64_USERNAME, wotOwnIdentity);
 
 				Map<String, List<Identity>> result = new HashMap<String, List<Identity>>();
 				List<Identity> ids = new LinkedList<Identity>();
 				ids.add(recipient);
-				result.put("zidel@" + BASE32_USERNAME + ".freemail", ids);
+				result.put(curRcpt, ids);
 				return result;
 			}
 		};
