@@ -41,7 +41,10 @@ public class EmailAddressTest {
 	@Test
 	public void addressWithoutAt() {
 		try {
-			new EmailAddress("zidel");
+			//Unused since the point is to check that the constructor throws
+			@SuppressWarnings("unused")
+			EmailAddress emailAddress = new EmailAddress("zidel");
+
 			fail("Should not be able to create email address without @");
 		} catch(IllegalArgumentException e) {
 			//Expected
@@ -51,7 +54,10 @@ public class EmailAddressTest {
 	@Test
 	public void addressWithUTF8() {
 		try {
-			new EmailAddress("æøå@email.com");
+			//Unused since the point is to check that the constructor throws
+			@SuppressWarnings("unused")
+			EmailAddress emailAddress = new EmailAddress("æøå@email.com");
+
 			fail("Should not be able to create email address with UTF-8");
 		} catch(IllegalArgumentException e) {
 			//Expected
