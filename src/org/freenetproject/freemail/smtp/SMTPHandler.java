@@ -334,12 +334,14 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			MessageHandler messageSender = account.getMessageHandler();
 			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
 			try {
-				messageSender.sendMessage(to, data);
+				if(messageSender.sendMessage(to, data)) {
+					this.ps.print("250 So be it\r\n");
+				} else {
+					this.ps.print("452 Message sending failed\r\n");
+				}
 			} finally {
 				data.free();
 			}
-
-			this.ps.print("250 So be it\r\n");
 		} catch (IOException ioe) {
 			this.ps.print("452 Can't store message\r\n");
 		} finally {
