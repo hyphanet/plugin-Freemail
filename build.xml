@@ -18,7 +18,7 @@
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
 
 	<property name="bouncycastle.location" location="${lib}/bouncycastle.jar"/>
-	<property name="bouncycastle.url" value="http://bouncycastle.org/download/bcprov-jdk15on-147.jar"/>
+	<property name="bouncycastle.url" value="http://downloads.bouncycastle.org/java/bcprov-jdk15on-147.jar"/>
 
 	<exec executable="git"
 		failifexecutionfails="false"
