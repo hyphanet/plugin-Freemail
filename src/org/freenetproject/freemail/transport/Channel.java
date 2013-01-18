@@ -343,7 +343,7 @@ class Channel {
 						}
 					}
 
-					ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
+					ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 					senderExecutor.execute(new AckInserter(entry.getKey(), insertAfter));
 				}
 			}
@@ -1284,7 +1284,7 @@ class Channel {
 		}
 
 		try {
-			ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
+			ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 			senderExecutor.execute(new AckInserter(id, ackDelay));
 		} catch(RejectedExecutionException e) {
 			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
@@ -1309,7 +1309,7 @@ class Channel {
 			if(System.currentTimeMillis() < insertAfter) {
 				long remaining = insertAfter - System.currentTimeMillis();
 				Logger.debug(this, "Rescheduling in " + remaining + "ms when inserting is allowed");
-				ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
+				ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 				senderExecutor.schedule(this, remaining, TimeUnit.MILLISECONDS);
 				return;
 			}
@@ -1342,7 +1342,7 @@ class Channel {
 				}
 			} else {
 				try {
-					ScheduledExecutorService senderExecutor = Freemail.getExecutor(TaskType.SENDER);
+					ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 					senderExecutor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 				} catch(RejectedExecutionException e) {
 					Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");

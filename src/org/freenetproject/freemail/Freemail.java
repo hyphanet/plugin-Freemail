@@ -243,7 +243,7 @@ public abstract class Freemail implements ConfigClient {
 		terminateTimer.log(this, 1, TimeUnit.SECONDS, "Time spent in Freemail.terminate()");
 	}
 
-	public static ScheduledExecutorService getExecutor(TaskType type) {
+	public ScheduledExecutorService getExecutor(TaskType type) {
 		switch (type) {
 		case UNSPECIFIED:
 			return defaultExecutor;
