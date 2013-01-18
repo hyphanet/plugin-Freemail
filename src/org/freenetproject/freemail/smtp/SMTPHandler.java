@@ -133,7 +133,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 	private void handle_ehlo() {
 		this.ps.print("250-"+MY_HOSTNAME+"\r\n");
-		this.ps.print("250 AUTH LOGIN PLAIN \r\n");
+		this.ps.print("250 AUTH LOGIN PLAIN\r\n");
 	}
 
 	private void handle_quit() {
