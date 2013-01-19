@@ -957,6 +957,11 @@ class Channel {
 			//Get RTS KSK
 			PropsFile mailsiteProps = PropsFile.createPropsFile(mailsite, false);
 			String rtsKey = mailsiteProps.get("rtsksk");
+			if(rtsKey == null) {
+				Logger.error(this, "Mailsite is missing RTS KSK");
+				schedule(1, TimeUnit.HOURS);
+				return;
+			}
 
 			//Get the senders mailsite key
 			Logger.debug(this, "Getting sender identity from WoT");
