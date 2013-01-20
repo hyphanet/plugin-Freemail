@@ -358,10 +358,14 @@ public class SMTPSessionTest {
 		toHandler.write("QUIT\r\n");
 		toHandler.flush();
 
-		//Accept null here since the socket might have closed before we read
-		String line = fromHandler.readLine();
-		if(line != null && !line.equals("221 localhost")) {
-			fail("Expected final line to be 221 localhost, but was " + line);
+		//Accept null or exception here since the socket might have closed before we read
+		try {
+			String line = fromHandler.readLine();
+			if(line != null && !line.equals("221 localhost")) {
+				fail("Expected final line to be 221 localhost, but was " + line);
+			}
+		} catch(IOException e) {
+			assertEquals("Pipe closed", e.getMessage());
 		}
 
 		handler.kill();
