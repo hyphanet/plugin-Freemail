@@ -83,9 +83,17 @@ public class OutboxToadlet extends WebPage {
 			String recipient;
 			try {
 				Identity i = wotConnection.getIdentity(message.recipient, account.getIdentity());
-				String domain = i.getBase32IdentityID();
-				recipient = i.getNickname() + "@" + domain + ".freemail";
+				if(i != null) {
+					String domain = i.getBase32IdentityID();
+					recipient = i.getNickname() + "@" + domain + ".freemail";
+				} else {
+					recipient = null;
+				}
 			} catch(PluginNotFoundException e) {
+				recipient = null;
+			}
+
+			if(recipient == null) {
 				//Fall back to only showing the identity id
 				recipient = "unknown@" + message.recipient + ".freemail";
 			}
