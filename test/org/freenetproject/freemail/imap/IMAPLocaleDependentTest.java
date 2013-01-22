@@ -48,12 +48,19 @@ import fakes.FakeSocket;
  */
 @RunWith(value = Parameterized.class)
 public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
+	private static final boolean EXTENSIVE = Boolean.parseBoolean(System.getenv("test.extensive"));
+
 	@Parameters
 	public static List<Locale[]> data() {
 		List<Locale[]> list = new LinkedList<Locale[]>();
 
-		for(Locale l : Locale.getAvailableLocales()) {
-			list.add(new Locale[] {l});
+		if(EXTENSIVE) {
+			for(Locale l : Locale.getAvailableLocales()) {
+				list.add(new Locale[] {l});
+			}
+		} else {
+			list.add(new Locale[] {new Locale("en_GB")});
+			list.add(new Locale[] {new Locale("tr_TR")});
 		}
 
 		return list;
