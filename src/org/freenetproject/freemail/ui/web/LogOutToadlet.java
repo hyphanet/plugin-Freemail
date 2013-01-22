@@ -20,12 +20,10 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.io.IOException;
 import java.net.URI;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.HTTPRequest;
 
@@ -45,14 +43,14 @@ public class LogOutToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		loginManager.deleteSession(ctx);
-		writeTemporaryRedirect(ctx, "Logged out, redirecting to login page", LogInToadlet.getPath());
+		return new HTTPRedirectResponse(ctx, "Logged out, redirecting to login page", LogInToadlet.getPath());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		makeWebPageGet(uri, req, ctx, page);
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
+		return makeWebPageGet(uri, req, ctx, page);
 	}
 
 	@Override

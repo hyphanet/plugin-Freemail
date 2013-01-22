@@ -20,7 +20,6 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.NoSuchElementException;
 
@@ -33,7 +32,6 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -64,7 +62,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -73,7 +71,7 @@ public class LogInToadlet extends WebPage {
 		}
 		addNewAccountBox(contentNode);
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	private void addLoginBox(HTMLNode contentNode) {
@@ -99,7 +97,7 @@ public class LogInToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		String identity;
 		try {
 			identity = req.getPartAsStringThrowing("OwnIdentityID", 64);
@@ -108,19 +106,17 @@ public class LogInToadlet extends WebPage {
 			Logger.error(this, "Got OwnIdentityID that was too long. First 100 bytes: " + req.getPartAsStringFailsafe("OwnIdentityID", 100));
 
 			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", "The request contained bad data. This is probably a bug in Freemail");
 		} catch (NoSuchElementException e) {
 			//Someone is deliberately passing bad data, or there is a bug in the PUT code
 			Logger.error(this, "Got POST request without OwnIdentityID");
 
 			//TODO: Write a better message
-			writeHTMLReply(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", "The request didn't contain the expected data. This is probably a bug in Freemail");
 		}
 
 		loginManager.createSession(ctx, accountManager.getAccount(identity));
-		writeTemporaryRedirect(ctx, "Login successful, redirecting to inbox", InboxToadlet.getPath());
+		return new HTTPRedirectResponse(ctx, "Login successful, redirecting to inbox", InboxToadlet.getPath());
 	}
 
 	@Override

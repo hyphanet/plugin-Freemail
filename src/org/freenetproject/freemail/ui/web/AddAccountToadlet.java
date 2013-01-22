@@ -20,7 +20,6 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +36,6 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
@@ -58,7 +56,7 @@ public class AddAccountToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -67,8 +65,7 @@ public class AddAccountToadlet extends WebPage {
 			ownIdentities = wotConnection.getAllOwnIdentities();
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(contentNode);
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
@@ -81,8 +78,7 @@ public class AddAccountToadlet extends WebPage {
 		if(identitiesWithoutAccount.size() == 0) {
 			HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentitiesTitle"));
 			infobox.addChild("p", FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentities"));
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		HTMLNode boxContent = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.boxTitle"));
@@ -107,26 +103,23 @@ public class AddAccountToadlet extends WebPage {
 
 		addAccountForm.addChild("input", new String[] {"type", "name", "value"}, new String[] {"submit", "submit", FreemailL10n.getString("Freemail.AddAccountToadlet.submit")});
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		//Check the form password
 		String pass;
 		try {
 			pass = req.getPartAsStringThrowing("formPassword", 32);
 		} catch(SizeLimitExceededException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Form password too long");
-			return;
+			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Form password too long");
 		} catch(NoSuchElementException e) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Missing form password");
-			return;
+			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Missing form password");
 		}
 
 		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
-			writeHTMLReply(ctx, 403, "Forbidden", "Invalid form password.");
-			return;
+			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Invalid form password.");
 		}
 
 		//Get the identity id
@@ -138,7 +131,7 @@ public class AddAccountToadlet extends WebPage {
 
 		if(password.equals("") || (!password.equals(password2))) {
 			//FIXME: Write a better error message
-			writeHTMLReply(ctx, 200, "OK", "The passwords were different, or you need to choose a password");
+			return new GenericHTMLResponse(ctx, 200, "OK", "The passwords were different, or you need to choose a password");
 		}
 
 		//Fetch identity from WoT
@@ -148,8 +141,7 @@ public class AddAccountToadlet extends WebPage {
 		} catch(PluginNotFoundException e) {
 			HTMLNode pageNode = page.outer;
 			addWoTNotLoadedMessage(page.content);
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		OwnIdentity ownIdentity = null;
@@ -165,8 +157,7 @@ public class AddAccountToadlet extends WebPage {
 
 			//TODO: Write a better message
 			/* FIXME: L10n */
-			writeHTMLReply(ctx, 200, "OK", "The specified identitiy doesn't exist");
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", "The specified identitiy doesn't exist");
 		}
 
 		List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
@@ -175,7 +166,7 @@ public class AddAccountToadlet extends WebPage {
 		FreemailAccount account = accountManager.getAccount(ownIdentity.getIdentityID());
 		AccountManager.changePassword(account, password);
 
-		writeTemporaryRedirect(ctx, "Account added, redirecting to login page", LogInToadlet.getPath());
+		return new HTTPRedirectResponse(ctx, "Account added, redirecting to login page", LogInToadlet.getPath());
 	}
 
 	@Override

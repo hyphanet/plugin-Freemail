@@ -35,6 +35,8 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
+import freenet.support.MultiValueTable;
+import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
@@ -49,8 +51,8 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		this.pluginRespirator = pluginRespirator;
 	}
 
-	abstract void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException;
-	abstract void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException;
+	abstract HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException;
+	abstract HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException;
 	abstract boolean requiresValidSession();
 
 	public final void handleMethodGET(URI uri, HTTPRequest req, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -68,7 +70,8 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		page.addCustomStyleSheet(StaticToadlet.getPath() + "/css/freemail.css");
 
 		Timer pageGeneration = Timer.start();
-		makeWebPageGet(uri, req, ctx, page);
+		HTTPResponse r = makeWebPageGet(uri, req, ctx, page);
+		r.writeResponse();
 		pageGeneration.log(this, 1, TimeUnit.SECONDS, "Time spent serving get request");
 	}
 
@@ -96,7 +99,8 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		page.addCustomStyleSheet(StaticToadlet.getPath() + "/css/freemail.css");
 
 		Timer pageGeneration = Timer.start();
-		makeWebPagePost(uri, req, ctx, page);
+		HTTPResponse r = makeWebPagePost(uri, req, ctx, page);
+		r.writeResponse();
 
 		long timeout = 1;
 		TimeUnit unit = TimeUnit.SECONDS;
@@ -139,5 +143,69 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
 				new String[] {"link"},
 				new HTMLNode[] {HTMLNode.link("/plugins")});
+	}
+
+	protected abstract class HTTPResponse {
+		public abstract void writeResponse() throws ToadletContextClosedException, IOException;
+	}
+
+	protected class GenericHTMLResponse extends HTTPResponse {
+		private final ToadletContext ctx;
+		private final int returnCode;
+		private final String description;
+		private final String data;
+
+		protected GenericHTMLResponse(ToadletContext ctx, int returnCode, String description, String data) {
+			this.ctx = ctx;
+			this.returnCode = returnCode;
+			this.description = description;
+			this.data = data;
+		}
+
+		@Override
+		public void writeResponse() throws ToadletContextClosedException, IOException {
+			writeHTMLReply(ctx, returnCode, description, data);
+		}
+	}
+
+	protected class HTTPRedirectResponse extends HTTPResponse {
+		private final ToadletContext ctx;
+		private final String msg;
+		private final String path;
+
+		protected HTTPRedirectResponse(ToadletContext ctx, String msg, String path) {
+			this.ctx = ctx;
+			this.msg = msg;
+			this.path = path;
+		}
+
+		@Override
+		public void writeResponse() throws ToadletContextClosedException, IOException {
+			writeTemporaryRedirect(ctx, msg, path);
+		}
+	}
+
+	protected class GenericHTTPResponse extends HTTPResponse {
+		private final ToadletContext ctx;
+		private final int returnCode;
+		private final String mime;
+		private final String description;
+		private final MultiValueTable<String, String> headers;
+		private final Bucket data;
+
+		protected GenericHTTPResponse(ToadletContext ctx, int returnCode, String mime, String description,
+		                              MultiValueTable<String, String> headers, Bucket data) {
+			this.ctx = ctx;
+			this.returnCode = returnCode;
+			this.mime = mime;
+			this.description = description;
+			this.headers = headers;
+			this.data = data;
+		}
+
+		@Override
+		public void writeResponse() throws ToadletContextClosedException, IOException {
+			writeReply(ctx, returnCode, mime, description, headers, data);
+		}
 	}
 }

@@ -19,7 +19,6 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.io.IOException;
 import java.net.URI;
 
 import org.freenetproject.freemail.AccountManager;
@@ -31,7 +30,6 @@ import org.freenetproject.freemail.utils.EmailAddress;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.SessionManager.Session;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -82,8 +80,7 @@ class InfoToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page)
-			throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		//Add account info if one is logged in
 		Session session = loginManager.getSession(ctx);
 		if(session != null) {
@@ -95,13 +92,12 @@ class InfoToadlet extends WebPage {
 		//Add general Freemail server info
 		addServerInfo(page.content);
 
-		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page)
-			throws ToadletContextClosedException, IOException {
-		makeWebPageGet(uri, req, ctx, page);
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
+		return makeWebPageGet(uri, req, ctx, page);
 	}
 
 	@Override

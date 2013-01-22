@@ -47,7 +47,6 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -64,7 +63,7 @@ public class InboxToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -117,7 +116,7 @@ public class InboxToadlet extends WebPage {
 			addMessage(messageTable, message.getKey(), folderName, message.getValue());
 		}
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	private String getSortLink(SortField field, boolean ascending) {
@@ -153,7 +152,7 @@ public class InboxToadlet extends WebPage {
 
 	@Override
 	@SuppressWarnings("deprecation")
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		String identity = loginManager.getSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 
@@ -208,7 +207,7 @@ public class InboxToadlet extends WebPage {
 			}
 		}
 
-		writeTemporaryRedirect(ctx, "", getFolderPath(folderName));
+		return new HTTPRedirectResponse(ctx, "", getFolderPath(folderName));
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox

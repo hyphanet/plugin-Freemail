@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
@@ -45,7 +44,7 @@ public class StaticToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		String path = uri.getPath();
 
 		//Check for path matches
@@ -66,8 +65,7 @@ public class StaticToadlet extends WebPage {
 		}
 
 		if(request == null) {
-			writeHTMLReply(ctx, 403, "Forbidden", "No match found for that path");
-			return;
+			return new GenericHTMLResponse(ctx, 403, "Forbidden", "No match found for that path");
 		}
 
 		InputStream is = getClass().getResourceAsStream(request.source + filename);
@@ -75,12 +73,12 @@ public class StaticToadlet extends WebPage {
 		Bucket b = ctx.getBucketFactory().makeBucket(-1);
 		BucketTools.copyFrom(b, is, -1);
 
-		writeReply(ctx, 200, request.mime, "OK", null, b);
+		return new GenericHTTPResponse(ctx, 200, request.mime, "OK", null, b);
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		makeWebPageGet(uri, req, ctx, page);
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
+		return makeWebPageGet(uri, req, ctx, page);
 	}
 
 	@Override

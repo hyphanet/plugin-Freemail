@@ -57,7 +57,6 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
@@ -82,7 +81,7 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -94,8 +93,7 @@ public class NewMessageToadlet extends WebPage {
 				identity = wotConnection.getIdentity(recipient, loginManager.getSession(ctx).getUserID());
 			} catch(PluginNotFoundException e) {
 				addWoTNotLoadedMessage(contentNode);
-				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-				return;
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 			}
 			recipients.add(identity.getNickname() + "@" + identity.getIdentityID() + ".freemail");
 		} else {
@@ -105,19 +103,17 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), Collections.<String>emptyList());
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		if(req.isPartSet("sendMessage")) {
-			sendMessage(req, ctx, page);
-			return;
+			return sendMessage(req, ctx, page);
 		}
 
 		if(req.isPartSet("reply")) {
-			createReply(req, ctx, page);
-			return;
+			return createReply(req, ctx, page);
 		}
 
 		List<String> recipients = new LinkedList<String>();
@@ -142,8 +138,7 @@ public class NewMessageToadlet extends WebPage {
 			HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 			addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		for(int i = 0; i < recipients.size(); i++) {
@@ -158,8 +153,7 @@ public class NewMessageToadlet extends WebPage {
 				HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 				addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
-				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-				return;
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 			}
 		}
 
@@ -173,7 +167,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode errorBox = addErrorbox(page.content, boxTitle);
 		errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction"));
 
-		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 	}
 
 	private boolean copyMessageToSentFolder(Bucket message, MessageBank parentMb) {
@@ -207,7 +201,7 @@ public class NewMessageToadlet extends WebPage {
 		return true;
 	}
 
-	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	private HTTPResponse sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		//FIXME: Consider how to handle duplicate recipients
 		Timer sendMessageTimer = Timer.start();
 
@@ -266,9 +260,8 @@ public class NewMessageToadlet extends WebPage {
 			matches = messageSender.matchIdentities(recipients.keySet(), loginManager.getSession(ctx).getUserID(), methods);
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
-			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
 			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (WoT not loaded)");
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 		}
 		identityMatching.log(this, "Time spent matching identities");
 
@@ -292,9 +285,8 @@ public class NewMessageToadlet extends WebPage {
 				identityList.addChild("li", s);
 			}
 
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (with failed recipient)");
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		//Build message header
@@ -360,12 +352,12 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueuedTitle"));
 		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueued"));
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-
 		sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message");
+
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void createReply(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	private HTTPResponse createReply(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -427,7 +419,7 @@ public class NewMessageToadlet extends WebPage {
 		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,
 		               bucketFromString(body.toString()), extraHeaders);
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	/**
