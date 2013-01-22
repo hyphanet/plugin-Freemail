@@ -1,5 +1,5 @@
 /*
- * IMAPFetchTest.java
+ * IMAPLocaleDependentTest.java
  * This file is part of Freemail, copyright (C) 2012 Martin Nyhus
  *
  * This program is free software; you can redistribute it and/or modify
