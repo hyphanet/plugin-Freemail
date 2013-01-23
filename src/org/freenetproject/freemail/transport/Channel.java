@@ -1343,7 +1343,7 @@ class Channel {
 				inserted = insertMessage(bucket, "ack" + ackId);
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
-				throw new AssertionError();
+				throw new AssertionError("getInputStream() method of ArrayBucket threw IOException", e);
 			} catch (InterruptedException e) {
 				Logger.debug(this, "AckInserter interrupted, quitting");
 				return;
