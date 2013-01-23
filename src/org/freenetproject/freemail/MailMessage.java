@@ -289,17 +289,19 @@ public class MailMessage {
 		// this is quite arduous since we have to send the message
 		// with \r\n's, and hence it may not be the size it is on disk
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
+		try {
+			long counter = 0;
+			String line;
 
-		long counter = 0;
-		String line;
+			while((line = br.readLine()) != null) {
+				counter += line.getBytes("UTF-8").length;
+				counter += "\r\n".getBytes("UTF-8").length;
+			}
 
-		while((line = br.readLine()) != null) {
-			counter += line.getBytes("UTF-8").length;
-			counter += "\r\n".getBytes("UTF-8").length;
+			return counter;
+		} finally {
+			br.close();
 		}
-
-		br.close();
-		return counter;
 	}
 
 	public void closeStream() {
