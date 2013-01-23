@@ -99,8 +99,8 @@ public class MailMessageBodyEncodingTest {
 
 	@Test
 	public void encodeTab() throws IOException {
-		byte[] input = "Test\tmessage\r\n".getBytes();
-		byte[] expected = "Test\tmessage\r\n".getBytes();
+		byte[] input = "Test\tmessage\r\n".getBytes("UTF-8");
+		byte[] expected = "Test\tmessage\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
