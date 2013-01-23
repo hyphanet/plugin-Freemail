@@ -73,7 +73,8 @@ public class MailSite {
 		try {
 			mailpage = mailsite_s.getBytes("UTF-8");
 		} catch (UnsupportedEncodingException use) {
-			mailpage = mailsite_s.getBytes();
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset", use);
 		}
 
 		String key = this.accprops.get("mailsite.privkey");
