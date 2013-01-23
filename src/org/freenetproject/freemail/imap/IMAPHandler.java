@@ -1243,7 +1243,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			while((line = this.bufrdr.readLine()) != null) {
 				msgps.println(line);
 
-				bytesread += line.getBytes().length;
+				bytesread += line.getBytes("UTF-8").length;
 				bytesread += "\r\n".length();
 
 				if(bytesread >= datalen) break;

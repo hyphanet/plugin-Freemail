@@ -294,8 +294,8 @@ public class MailMessage {
 		String line;
 
 		while((line = br.readLine()) != null) {
-			counter += line.getBytes().length;
-			counter += "\r\n".getBytes().length;
+			counter += line.getBytes("UTF-8").length;
+			counter += "\r\n".getBytes("UTF-8").length;
 		}
 
 		br.close();

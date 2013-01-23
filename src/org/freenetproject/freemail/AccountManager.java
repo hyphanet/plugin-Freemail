@@ -24,6 +24,7 @@ package org.freenetproject.freemail;
 import java.io.File;
 import java.io.PrintStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -138,7 +139,12 @@ public class AccountManager {
 	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
 
-		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
+		try {
+			md5.update(newpassword.getBytes("UTF-8"), 0, newpassword.getBytes("UTF-8").length);
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+		}
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
@@ -221,7 +227,12 @@ public class AccountManager {
 		if(realmd5str == null) return null;
 
 		MD5Digest md5 = new MD5Digest();
-		md5.update(password.getBytes(), 0, password.getBytes().length);
+		try {
+			md5.update(password.getBytes("UTF-8"), 0, password.getBytes("UTF-8").length);
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+		}
 		byte[] givenmd5 = new byte[md5.getDigestSize()];
 		md5.doFinal(givenmd5, 0);
 

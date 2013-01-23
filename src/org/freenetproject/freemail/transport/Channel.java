@@ -296,7 +296,13 @@ class Channel {
 			Logger.debug(this, "CTSInserter running (" + this + ")");
 
 			//Build the header of the inserted message
-			Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
+			Bucket bucket;
+			try {
+				bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			}
 
 			boolean inserted;
 			try {
@@ -433,7 +439,7 @@ class Channel {
 			"messagetype=message\r\n"
 			+ "id=" + messageId + "\r\n"
 			+ "\r\n";
-		Bucket messageHeader = new ArrayBucket(header.getBytes());
+		Bucket messageHeader = new ArrayBucket(header.getBytes("UTF-8"));
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
@@ -1324,7 +1330,13 @@ class Channel {
 				"messagetype=ack\r\n"
 				+ "id=" + ackId + "\r\n"
 				+ "\r\n";
-			Bucket bucket = new ArrayBucket(header.getBytes());
+			Bucket bucket;
+			try {
+				bucket = new ArrayBucket(header.getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			}
 
 			boolean inserted;
 			try {

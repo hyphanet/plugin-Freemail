@@ -192,7 +192,7 @@ public class FCPMessage {
 		}
 		if(buf.length() > 0) {
 			//Logger.normal(this,buf.toString());
-			os.write(buf.toString().getBytes());
+			os.write(buf.toString().getBytes("UTF-8"));
 		}
 		if(this.outData != null) {
 			byte[] bytebuf = new byte[1024];
