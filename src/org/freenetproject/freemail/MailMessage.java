@@ -326,8 +326,12 @@ public class MailMessage {
 		String line;
 		try {
 			PrintStream copyps = msg.getRawStream();
-			while((line = this.readLine()) != null) {
-				copyps.println(line);
+			try {
+				while((line = this.readLine()) != null) {
+					copyps.println(line);
+				}
+			} finally {
+				copyps.close();
 			}
 			msg.commit();
 		} catch (IOException ioe) {
