@@ -175,18 +175,20 @@ public class MessageToadlet extends WebPage {
 		List<String> lines = new LinkedList<String>();
 		try {
 			BufferedReader body = message.getBodyReader();
-			String line = body.readLine();
-			while(line != null) {
-				lines.add(line);
-				line = body.readLine();
+			try {
+				String line = body.readLine();
+				while(line != null) {
+					lines.add(line);
+					line = body.readLine();
+				}
+			} finally {
+				body.close();
 			}
 		} catch(IOException e) {
 			//TODO: Better error message
 			HTMLNode errorBox = addErrorbox(messageContents, "Couldn't read message");
 			errorBox.addChild("p", "Couldn't read the message: " + e);
 			return;
-		} finally {
-			message.closeStream();
 		}
 
 		Iterator<String> lineIterator = lines.iterator();
