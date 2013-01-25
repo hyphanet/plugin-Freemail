@@ -76,15 +76,18 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 		}
 
 		while(System.nanoTime() < timeoutAt) {
+			Logger.debug(this, "Checking " + events.size() + " events");
 			Iterator<T> it = events.iterator();
 			while(it.hasNext()) {
 				T i = it.next();
+				Logger.debug(this, "Checking event " + i);
 				if(key == null || i.key.equals(key)) {
 					it.remove();
 					return i;
 				}
 			}
 
+			Logger.debug(this, "No match found, waiting (key=" + key + ")");
 			wait(TimeUnit.MILLISECONDS.convert(timeoutAt - System.nanoTime(), TimeUnit.NANOSECONDS));
 		}
 
