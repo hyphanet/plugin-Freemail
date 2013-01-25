@@ -146,6 +146,11 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 	@Override
 	public int SlotInsert(File data, String basekey, int minslot, String suffix) throws ConnectionTerminatedException,
 	                                                                                    InterruptedException {
+		Logger.debug(this, "SlotInsert(data=" + data
+		                            + ", basekey=" + basekey
+		                            + ", minslot=" + minslot
+		                            + ", suffix=" + suffix + ")");
+
 		throw new UnsupportedOperationException();
 	}
 
