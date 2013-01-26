@@ -47,6 +47,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import utils.UnitTestParameters;
 import utils.Utils;
 import fakes.NullIdentity;
 import fakes.NullMessageHandler;
@@ -56,7 +57,6 @@ import freenet.support.api.Bucket;
 import freenet.support.io.BucketTools;
 
 public class SMTPSessionTest {
-	private static final boolean EXTENSIVE = Boolean.parseBoolean(System.getenv("test.extensive"));
 	private static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
 	private static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
 	private static final String PASSWORD = "oaJ4Aa1b";
@@ -93,7 +93,7 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void simpleSession() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
@@ -126,7 +126,7 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void simpleSessionSendFails() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
@@ -159,7 +159,7 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void messageWithDotPadding() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
@@ -202,7 +202,7 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void twoMessageInOneSession() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message1 =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
