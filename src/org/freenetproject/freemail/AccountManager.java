@@ -278,7 +278,7 @@ public class AccountManager {
 		ps.println("");
 		ps.println("Don't forget to stay up to date with the Freemail news and latest version at the freesite, which can be found at:");
 		ps.println("");
-		ps.println("USK@xOg49GNltumTJJzj0fVzuGDpo4hJUsy2UsGQkjE7NY4,EtUH5b9gGpp8JiY-Bm-Y9kHX1q-yDjD-9oRzXn21O9k,AQACAAE/freemail/-1/");
+		ps.println("USK@M0d8y6YoLpXOeQGxu0-IDg8sE5Yt~Ky6t~GPyyZe~zo,KlqIjAj3~dA1Zf57VDljkmp3vHUozndpxnH-P2RRugI,AQACAAE/freemail/-8/");
 		ps.println("");
 		ps.println("Happy Freemailing!");
 		ps.println("");
