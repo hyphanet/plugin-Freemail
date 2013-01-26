@@ -82,6 +82,7 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 				T i = it.next();
 				Logger.debug(this, "Checking event " + i);
 				if(key == null || i.key.equals(key)) {
+					Logger.debug(this, "Found matching event: " + i);
 					it.remove();
 					return i;
 				}
@@ -202,6 +203,11 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 			this.result = null;
 			this.exception = e;
 		}
+
+		@Override
+		public String toString() {
+			return "Fetch [key=" + key + "]";
+		}
 	}
 
 	public class Insert extends KeyEvent {
@@ -224,6 +230,11 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 				}
 			}
 			this.data = baos.toByteArray();
+		}
+
+		@Override
+		public String toString() {
+			return "Insert [key=" + key + "]";
 		}
 	}
 }
