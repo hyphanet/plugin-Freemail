@@ -46,9 +46,13 @@ import fakes.MockHighLevelFCPClientFactory;
 import fakes.MockIdentity;
 import fakes.MockWoTConnection;
 import fakes.MockHighLevelFCPClient.Insert;
+import freenet.support.Logger;
+import freenet.support.Logger.LogLevel;
+import freenet.support.LoggerHook.InvalidThresholdException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 
+import utils.UnitTestParameters;
 import utils.Utils;
 
 public class MessageTransportTest {
@@ -67,7 +71,11 @@ public class MessageTransportTest {
 	private final File outboxDir = new File(accountDir, "outbox");
 
 	@Before
-	public void before() {
+	public void before() throws InvalidThresholdException {
+		if(UnitTestParameters.VERBOSE) {
+			Logger.setupStdoutLogging(LogLevel.MINIMAL, null);
+		}
+
 		Utils.createDir(testDir);
 		Utils.createDir(accountManagerDir);
 		Utils.createDir(accountDir);

@@ -151,6 +151,7 @@
 			</classpath>
 
 			<env key="test.extensive" value="${test.extensive}"/>
+			<env key="test.verbose" value="${test.verbose}"/>
 
 			<assertions><enable/></assertions>
 

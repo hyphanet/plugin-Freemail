@@ -21,4 +21,5 @@ package utils;
 
 public class UnitTestParameters {
 	public static final boolean EXTENSIVE = Boolean.parseBoolean(System.getenv("test.extensive"));
+	public static final boolean VERBOSE = Boolean.parseBoolean(System.getenv("test.verbose"));
 }
