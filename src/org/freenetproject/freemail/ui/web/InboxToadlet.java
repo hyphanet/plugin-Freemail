@@ -273,8 +273,13 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
+		String from = msg.getFirstHeader("From");
+		if(from == null) {
+			Logger.warning(this, "Found message without From header: " + msg);
+			from = "";
+		}
 		try {
-			author.addChild("#", MailMessage.decodeHeader(msg.getFirstHeader("From")));
+			author.addChild("#", MailMessage.decodeHeader(from));
 		} catch (UnsupportedEncodingException e) {
 			author.addChild("#", msg.getFirstHeader("From"));
 		}
