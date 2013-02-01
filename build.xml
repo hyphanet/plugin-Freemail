@@ -15,6 +15,9 @@
 	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
 	<property name="version.build" value="org/freenetproject/freemail/Version.class"/>
 
+	<property name="tools.src" location="tools/src"/>
+	<property name="tools.dst" location="tools/build"/>
+
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
 
 	<property name="bouncycastle.location" location="${lib}/bouncycastle.jar"/>
@@ -42,6 +45,7 @@
 	     Convenience targets
 	-->
 
+	<target name="all" depends="unit, dist, checkstyle, compile-tools"/>
 	<target name="default" depends="unit, checkstyle-auto, dist"/>
 
 
@@ -117,6 +121,24 @@
 		</copy>
 	</target>
 
+	<target name="compile-tools" depends="bouncycastle-fetch">
+		<mkdir dir="${tools.dst}"/>
+
+		<javac srcdir="${tools.src}"
+		       destdir="${tools.dst}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       encoding="UTF-8"
+		       includeantruntime="false">
+			<classpath>
+				<pathelement location="${bouncycastle.location}"/>
+			</classpath>
+			<compilerarg value="-Xlint"/>
+		</javac>
+	</target>
+
 	<target name="unit-build" depends="compile" unless="${test.skip}">
 		<mkdir dir="${build-test}"/>
 		<javac srcdir="${test}"
@@ -187,6 +209,7 @@
 		<delete dir="${build-test}"/>
 		<delete dir="${dist}"/>
 		<delete dir="${run}"/>
+		<delete dir="${tools.dst}"/>
 	</target>
 
 	<target name="distclean" depends="clean" description="Delete everything and restore to the original state">
@@ -202,6 +225,7 @@
 				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
+			<fileset dir="${tools.src}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
 	</target>
@@ -214,6 +238,7 @@
 				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
+			<fileset dir="${tools.src}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
 	</target>

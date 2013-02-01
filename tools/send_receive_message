@@ -1,0 +1,65 @@
+#! /bin/bash
+set -e
+
+#Find the path to the tools directory
+if [[ `dirname "$0"` == /* ]]; then
+	DIR=`dirname "$0"`
+elif [[ `dirname "$0"` == . ]]; then
+	DIR=`pwd`
+else
+	DIR=`pwd`/`dirname "$0"`
+fi
+
+#IMAP server info
+read -p "IMAP server address: " imap_address
+read -p "IMAP server port: " imap_port
+read -p "IMAP username: " imap_username
+read -p "IMAP password: " -s imap_password; echo
+
+#SMTP server info
+read -p "SMTP server address: " smtp_address
+read -p "SMTP server port: " smtp_port
+read -p "SMTP username: " smtp_username
+read -p "SMTP password: " -s smtp_password; echo
+
+#Identities
+read -p "From domain: " from
+read -p "To domain: " to
+
+#First generate the message id that we use throughout
+message_id="$RANDOM$RANDOM@$from.freemail"
+
+#File to use for the message content
+message_file=`mktemp freemail-message-XXXXXX`
+
+#Generate a message to send
+echo "Generating message"
+java -cp "$DIR/build:$DIR/../lib/bouncycastle.jar" GenerateMessage \
+	"From" "from@$from.freemail" \
+	"To" "to@$to.freemail" \
+	"Subject" "Automated message" \
+	"Message-ID" "<$message_id>" \
+	"Date" "`date "+%d %b %Y %H:%M:%S %z"`" \
+	> "$message_file" \
+	<<EOM
+This is an automated message generated and sent by the Freemail
+send_receive_message script.
+EOM
+
+#Send the message
+echo "Sending message"
+java -cp "$DIR/build:$DIR/../lib/bouncycastle.jar" SendMessage \
+	"$smtp_address" "$smtp_port" \
+	"$smtp_username" "$smtp_password" \
+	"from@$from.freemail" \
+	"to@$to.freemail" \
+	< "$message_file"
+
+rm "$message_file"
+
+#Wait for the message to show up on the IMAP server
+echo "Waiting to receive message"
+java -cp "$DIR/build:$DIR/../lib/bouncycastle.jar" ReceiveMessage \
+       "$imap_address" "$imap_port" \
+       "$imap_username" "$imap_password" \
+       "$message_id"
