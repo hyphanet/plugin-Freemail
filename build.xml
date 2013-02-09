@@ -52,7 +52,7 @@
 	<!--
 	     Real targets
 	-->
-	<target name="bouncycastle-fetch">
+	<target name="bouncycastle-fetch" if="${bouncycastle.fetch}">
 		<mkdir dir="${lib}"/>
 		<get src="${bouncycastle.url}"
 		     dest="${bouncycastle.location}"
