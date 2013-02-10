@@ -37,6 +37,8 @@ import org.junit.Before;
 
 import org.freenetproject.freemail.AccountManager;
 
+import data.TestId1Data;
+
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 import utils.TextProtocolTester;
@@ -48,9 +50,8 @@ import utils.Utils;
  * Extend this and add the tests to the subclass.
  */
 public abstract class IMAPTestBase {
-	protected static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
-	protected static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
-	protected static final String IMAP_USERNAME = "zidel@" + BASE32_USERNAME + ".freemail";
+	protected static final String BASE64_USERNAME = TestId1Data.Identity.ID;
+	protected static final String IMAP_USERNAME = TestId1Data.FreemailAccount.ADDRESS;
 
 	private static final File TEST_DIR = new File("imaptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
