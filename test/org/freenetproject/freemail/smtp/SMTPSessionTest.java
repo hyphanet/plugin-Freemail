@@ -342,20 +342,32 @@ public class SMTPSessionTest {
 		SMTPHandler handler = new SMTPHandler(accManager, sock, matcher);
 		Thread smtpThread = new Thread(handler);
 		smtpThread.start();
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
 
+		TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+		tester.runProtocolTest(commands);
+
+		//QUIT
+		toHandler.write("QUIT\r\n");
+		toHandler.flush();
+
+		//Accept null or exception here since the socket might have closed before we read
 		try {
-			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-			TextProtocolTester protocolTester = new TextProtocolTester(toHandler, fromHandler);
-			protocolTester.runProtocolTest(commands);
-		} finally {
-			handler.kill();
-			sock.close();
-			try {
-				smtpThread.join();
-			} catch(InterruptedException e) {
-				fail("Caught unexpected InterruptedException");
+			String line = fromHandler.readLine();
+			if(line != null && !line.equals("221 localhost")) {
+				fail("Expected final line to be 221 localhost, but was " + line);
 			}
+		} catch(IOException e) {
+			assertEquals("Pipe closed", e.getMessage());
+		}
+
+		handler.kill();
+		sock.close();
+		try {
+			smtpThread.join();
+		} catch(InterruptedException e) {
+			fail("Caught unexpected InterruptedException");
 		}
 	}
 }
