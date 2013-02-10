@@ -36,6 +36,9 @@ import org.junit.Before;
 
 import org.freenetproject.freemail.AccountManager;
 
+import data.TestId1Data;
+import data.TestId2Data;
+
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 import fakes.NullIdentityMatcher;
@@ -48,10 +51,9 @@ import utils.TextProtocolTester.Command;
  * Extend this and add the tests to the subclass.
  */
 public abstract class SMTPTestBase {
-	//FIXME: Remove these in favor of TestId1Data
 	protected static final String[] BASE64_USERNAMES = new String[] {
-		"D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc",
-		"1unnefKX8TOorAm5-c0lc6BGT9-6kBucO5f6dLJ9EZA",
+		TestId1Data.Identity.ID,
+		TestId2Data.Identity.ID,
 	};
 	protected static final String BASE64_USERNAME = BASE64_USERNAMES[0];
 
