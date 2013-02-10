@@ -56,6 +56,10 @@ public class TestId2Data {
 
 		@SuppressWarnings("hiding")
 		public static final String NICKNAME = TestId2Data.NICKNAME;
+
+		public static org.freenetproject.freemail.wot.Identity newInstance() {
+			return new org.freenetproject.freemail.wot.Identity(ID, REQUEST_URI, NICKNAME);
+		}
 	}
 
 	public static class FreemailAccount {

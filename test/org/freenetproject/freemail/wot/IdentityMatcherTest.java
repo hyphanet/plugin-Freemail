@@ -40,7 +40,7 @@ import fakes.MockWoTConnection;
 import freenet.pluginmanager.PluginNotFoundException;
 
 public class IdentityMatcherTest {
-	private static final Identity identity = new Identity("D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc", "SSK@D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc,xgddjFHx2S~5U6PeFkwqO5V~1gZngFLoM-xaoMKSBI8,AQACAAE", "zidel");
+	private static final Identity identity = TestId1Data.Identity.newInstance();
 
 	@Test
 	public void fullIdentityMatch() throws PluginNotFoundException {

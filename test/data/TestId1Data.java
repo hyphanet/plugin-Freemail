@@ -26,8 +26,8 @@ import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
 
 public class TestId1Data {
-	private static final String BASE64_ID = "vUwUGaBlXbMOWdhSr5BlrxkZfD7bUGOUk6M0HNYKN2A";
-	private static final String BASE32_ID;
+	public static final String BASE64_ID = "vUwUGaBlXbMOWdhSr5BlrxkZfD7bUGOUk6M0HNYKN2A";
+	public static final String BASE32_ID;
 	static {
 		try {
 			BASE32_ID = Base32.encode(Base64.decode(BASE64_ID));
@@ -56,6 +56,10 @@ public class TestId1Data {
 
 		@SuppressWarnings("hiding")
 		public static final String NICKNAME = TestId1Data.NICKNAME;
+
+		public static org.freenetproject.freemail.wot.Identity newInstance() {
+			return new org.freenetproject.freemail.wot.Identity(ID, REQUEST_URI, NICKNAME);
+		}
 	}
 
 	public static class FreemailAccount {

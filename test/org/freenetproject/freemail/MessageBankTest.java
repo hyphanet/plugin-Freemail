@@ -30,10 +30,11 @@ import org.junit.Test;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MessageBank;
 
+import data.TestId1Data;
+
 import utils.Utils;
 
 public class MessageBankTest {
-	private static final String IDENTITY_ID = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
 	private static final String ACCOUNT_DIR = "accdir";
 
 	private File accountDir;
@@ -53,7 +54,7 @@ public class MessageBankTest {
 		}
 
 		//Create the root message bank
-		rootMessageBank = new MessageBank(new FreemailAccount(IDENTITY_ID, accountDir, null, null));
+		rootMessageBank = new MessageBank(new FreemailAccount(TestId1Data.Identity.ID, accountDir, null, null));
 	}
 
 	@After
