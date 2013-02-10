@@ -201,7 +201,7 @@ public class SMTPSessionTest {
 	 * @throws IOException on IO errors with SMTP thread, should never happen
 	 */
 	@Test
-	public void twoMessageInOneSession() throws IOException {
+	public void twoMessagesInOneSession() throws IOException {
 		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message1 =
