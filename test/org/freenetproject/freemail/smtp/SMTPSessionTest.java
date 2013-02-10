@@ -37,8 +37,8 @@ import java.util.Set;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.freenetproject.freemail.AccountManager;
-import org.freenetproject.freemail.NullFreemailAccount;
 import org.freenetproject.freemail.FreemailAccount;
+import org.freenetproject.freemail.NullFreemailAccount;
 import org.freenetproject.freemail.transport.MessageHandler;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
@@ -47,13 +47,13 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
-import utils.TextProtocolTester.Command;
 import utils.TextProtocolTester;
+import utils.TextProtocolTester.Command;
 import utils.UnitTestParameters;
 import utils.Utils;
+import fakes.FakeSocket;
 import fakes.NullIdentity;
 import fakes.NullMessageHandler;
-import fakes.FakeSocket;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.BucketTools;
