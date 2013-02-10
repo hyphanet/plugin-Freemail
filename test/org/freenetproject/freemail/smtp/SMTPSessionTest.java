@@ -21,8 +21,11 @@ package org.freenetproject.freemail.smtp;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -341,7 +344,9 @@ public class SMTPSessionTest {
 		smtpThread.start();
 
 		try {
-			TextProtocolTester protocolTester = new TextProtocolTester(sock);
+			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+			TextProtocolTester protocolTester = new TextProtocolTester(toHandler, fromHandler);
 			protocolTester.runProtocolTest(commands);
 		} finally {
 			handler.kill();

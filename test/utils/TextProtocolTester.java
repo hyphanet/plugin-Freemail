@@ -4,22 +4,19 @@ import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import fakes.FakeSocket;
-
 public class TextProtocolTester {
 	private final PrintWriter toHandler;
 	private final BufferedReader fromHandler;
 
-	public TextProtocolTester(FakeSocket socket) {
-		toHandler = new PrintWriter(socket.getOutputStreamOtherSide());
-		fromHandler = new BufferedReader(new InputStreamReader(socket.getInputStreamOtherSide()));
+	public TextProtocolTester(PrintWriter toHandler, BufferedReader fromHandler) {
+		this.toHandler = toHandler;
+		this.fromHandler = fromHandler;
 	}
 
 	/**
