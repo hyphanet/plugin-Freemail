@@ -21,11 +21,8 @@ package org.freenetproject.freemail.smtp;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -47,6 +44,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import utils.TextProtocolTester.Command;
+import utils.TextProtocolTester;
 import utils.UnitTestParameters;
 import utils.Utils;
 import fakes.NullIdentity;
@@ -340,51 +339,17 @@ public class SMTPSessionTest {
 		SMTPHandler handler = new SMTPHandler(accManager, sock, matcher);
 		Thread smtpThread = new Thread(handler);
 		smtpThread.start();
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
 
-		for(Command cmd : commands) {
-			if(cmd.command != null) {
-				toHandler.write(cmd.command + "\r\n");
-				toHandler.flush();
-			}
-
-			for(String reply : cmd.replies) {
-				assertEquals(reply, fromHandler.readLine());
-			}
-		}
-
-		//QUIT
-		toHandler.write("QUIT\r\n");
-		toHandler.flush();
-
-		//Accept null or exception here since the socket might have closed before we read
 		try {
-			String line = fromHandler.readLine();
-			if(line != null && !line.equals("221 localhost")) {
-				fail("Expected final line to be 221 localhost, but was " + line);
-			}
-		} catch(IOException e) {
-			assertEquals("Pipe closed", e.getMessage());
-		}
-
-		handler.kill();
-		sock.close();
-		try {
-			smtpThread.join();
-		} catch(InterruptedException e) {
-			fail("Caught unexpected InterruptedException");
-		}
-	}
-
-	private class Command {
-		private final String command;
-		private final List<String> replies = new LinkedList<String>();
-
-		private Command(String command, String ... replies) {
-			this.command = command;
-			for(String reply : replies) {
-				this.replies.add(reply);
+			TextProtocolTester protocolTester = new TextProtocolTester(sock);
+			protocolTester.runProtocolTest(commands);
+		} finally {
+			handler.kill();
+			sock.close();
+			try {
+				smtpThread.join();
+			} catch(InterruptedException e) {
+				fail("Caught unexpected InterruptedException");
 			}
 		}
 	}
