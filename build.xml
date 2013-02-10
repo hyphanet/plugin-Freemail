@@ -181,7 +181,7 @@
 			<formatter type="xml" if="${test.xml_output}"/>
 			<batchtest>
 				<fileset dir="${build-test}">
-					<include name="**/*Test.class"/>
+					<include name="org/freenetproject/freemail/**/*Test.class"/>
 				</fileset>
 			</batchtest>
 		</junit>
