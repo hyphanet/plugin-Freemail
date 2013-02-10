@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +40,7 @@ import org.freenetproject.freemail.AccountManager;
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 import utils.TextProtocolTester;
+import utils.TextProtocolTester.Command;
 import utils.Utils;
 
 /**
@@ -84,7 +86,20 @@ public abstract class IMAPTestBase {
 		return line;
 	}
 
+	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
+		List<Command> combined = new LinkedList<Command>();
+
+		//Add all the commands first, then the replies, ensuring all the
+		//commands will be sent before checking the replies
+		for(String cmd : commands) {
+			combined.add(new Command(cmd));
+		}
+		combined.add(new Command(null, expectedResponse));
+		runSimpleTest(combined);
+	}
+
+	protected void runSimpleTest(List<Command> commands) throws IOException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
@@ -96,7 +111,7 @@ public abstract class IMAPTestBase {
 			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
 			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
 			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
-			tester.runSimpleTest(commands, expectedResponse);
+			tester.runProtocolTest(commands);
 		} finally {
 			handler.kill();
 			sock.close();
