@@ -40,6 +40,8 @@ import org.junit.runners.Parameterized.Parameters;
 
 import org.freenetproject.freemail.AccountManager;
 
+import utils.LocaleDependentTest;
+
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 
@@ -48,44 +50,33 @@ import fakes.FakeSocket;
  */
 @RunWith(value = Parameterized.class)
 public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
-	private static final boolean EXTENSIVE = Boolean.parseBoolean(System.getenv("test.extensive"));
+	private final LocaleDependentTest localeDependentTest;
 
 	@Parameters
 	public static List<Locale[]> data() {
-		List<Locale[]> list = new LinkedList<Locale[]>();
-
-		if(EXTENSIVE) {
-			for(Locale l : Locale.getAvailableLocales()) {
-				list.add(new Locale[] {l});
-			}
-		} else {
-			list.add(new Locale[] {new Locale("en_GB")});
-			list.add(new Locale[] {new Locale("tr_TR")});
+		List<Locale[]> data = new LinkedList<Locale[]>();
+		for(Locale l : LocaleDependentTest.data()) {
+			data.add(new Locale[] {l});
 		}
-
-		return list;
+		return data;
 	}
 
-	private final Locale locale;
-	private final Locale defaultLocale;
-
 	public IMAPLocaleDependentTest(Locale locale) {
-		this.locale = locale;
-		this.defaultLocale = Locale.getDefault();
+		this.localeDependentTest = new LocaleDependentTest(locale);
 	}
 
 	@Before
 	@Override
 	public void before() {
 		super.before();
-		Locale.setDefault(locale);
+		localeDependentTest.before();
 	}
 
 	@After
 	@Override
 	public void after() {
 		try {
-			Locale.setDefault(defaultLocale);
+			localeDependentTest.after();
 		} finally {
 			super.after();
 		}
@@ -119,23 +110,23 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 		int lineNum = 0;
 		for(String response : expectedResponse) {
 			String line = fromHandler.readLine();
-			assertEquals("[locale=" + locale + "] Failed at line " + lineNum++, response, line);
+			assertEquals("[locale=" + Locale.getDefault() + "] Failed at line " + lineNum++, response, line);
 		}
 
 		//Read and parse the INTERNALDATE line which should be of the form:
 		//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
 		String line = fromHandler.readLine();
 		String[] parts = line.split("\"");
-		assertEquals("[locale=" + locale + "] " + line, 3, parts.length);
+		assertEquals("[locale=" + Locale.getDefault() + "] " + line, 3, parts.length);
 		String date = parts[1];
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 		sdf.parse(date);
 
 		//Read final line of expected output
 		line = fromHandler.readLine();
-		assertEquals("[locale=" + locale + "] Incorrect final output", "0003 OK Fetch completed", line);
+		assertEquals("[locale=" + Locale.getDefault() + "] Incorrect final output", "0003 OK Fetch completed", line);
 
-		assertFalse("[locale=" + locale + "] IMAP socket has more data", fromHandler.ready());
+		assertFalse("[locale=" + Locale.getDefault() + "] IMAP socket has more data", fromHandler.ready());
 		fromHandler.close();
 		toHandler.close();
 	}
