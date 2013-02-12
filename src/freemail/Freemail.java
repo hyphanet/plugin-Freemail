@@ -65,29 +65,29 @@ public abstract class Freemail implements ConfigClient {
 	protected Freemail(String cfgfile) throws IOException {
 		configurator = new Configurator(new File(cfgfile));
 		
-		configurator.register("loglevel", new Logger(), "normal|error");
+		configurator.register(Configurator.LOG_LEVEL, new Logger(), "normal|error");
 		
-		configurator.register("datadir", this, Freemail.DEFAULT_DATADIR);
+		configurator.register(Configurator.DATA_DIR, this, Freemail.DEFAULT_DATADIR);
 		if (!datadir.exists() && !datadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
-		configurator.register("globaldatadir", this, GLOBALDATADIR);
+		configurator.register(Configurator.GLOBAL_DATA_DIR, this, GLOBALDATADIR);
 		if (!globaldatadir.exists() && !globaldatadir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create global data directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
-		configurator.register("tempdir", this, Freemail.TEMPDIRNAME);
+		configurator.register(Configurator.TEMP_DIR, this, Freemail.TEMPDIRNAME);
 		if (!tempdir.exists() && !tempdir.mkdirs()) {
 			Logger.error(this,"Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
 		
 		FCPContext fcpctx = new FCPContext();
-		configurator.register("fcp_host", fcpctx, "localhost");
-		configurator.register("fcp_port", fcpctx, "9481");
+		configurator.register(Configurator.FCP_HOST, fcpctx, "localhost");
+		configurator.register(Configurator.FCP_PORT, fcpctx, "9481");
 		
 		Freemail.fcpconn = new FCPConnection(fcpctx);
 		
@@ -117,11 +117,11 @@ public abstract class Freemail implements ConfigClient {
 	}
 
 	public void setConfigProp(String key, String val) {
-		if (key.equalsIgnoreCase("datadir")) {
+		if (key.equalsIgnoreCase(Configurator.DATA_DIR)) {
 			datadir = new File(val);
-		} else if (key.equalsIgnoreCase("tempdir")) {
+		} else if (key.equalsIgnoreCase(Configurator.TEMP_DIR)) {
 			tempdir = new File(val);
-		} else if (key.equalsIgnoreCase("globaldatadir")) {
+		} else if (key.equalsIgnoreCase(Configurator.GLOBAL_DATA_DIR)) {
 			globaldatadir = new File(val);
 		}
 	}

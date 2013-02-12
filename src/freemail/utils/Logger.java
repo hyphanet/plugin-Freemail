@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import freemail.config.ConfigClient;
+import freemail.config.Configurator;
 
 public class Logger implements ConfigClient {
 
@@ -54,7 +55,7 @@ public class Logger implements ConfigClient {
 	static private SimpleDateFormat logDateFormat = new SimpleDateFormat("d/MM/yyyy HH:mm:ss");
 	
 	public void setConfigProp(String key, String val) {
-		if (key.equals("loglevel")) {
+		if (key.equals(Configurator.LOG_LEVEL)) {
 			String[] levels = val.split("\\s*\\|\\s*");
 			
 			loglevel = 0;

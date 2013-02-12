@@ -31,6 +31,17 @@ import freemail.utils.PropsFile;
  */
 
 public class Configurator {
+	public static final String DATA_DIR = "datadir";
+	public static final String FCP_HOST = "fcp_host";
+	public static final String FCP_PORT = "fcp_port";
+	public static final String GLOBAL_DATA_DIR = "globaldatadir";
+	public static final String IMAP_BIND_ADDRESS = "imap_bind_address";
+	public static final String IMAP_BIND_PORT = "imap_bind_port";
+	public static final String LOG_LEVEL = "loglevel";
+	public static final String SMTP_BIND_ADDRESS = "smtp_bind_address";
+	public static final String SMTP_BIND_PORT = "smtp_bind_port";
+	public static final String TEMP_DIR = "tempdir";
+
 	private final PropsFile props;
 	private final HashMap callbacks;
 
