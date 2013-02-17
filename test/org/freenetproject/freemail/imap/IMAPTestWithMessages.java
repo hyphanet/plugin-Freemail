@@ -31,6 +31,8 @@ import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MailMessage;
 
+import utils.TextProtocolTester.Command;
+
 import fakes.ConfigurableAccountManager;
 
 /**
@@ -49,6 +51,31 @@ public abstract class IMAPTestWithMessages extends IMAPTestBase {
 		backing.add("* OK [UIDVALIDITY 1] Ok");
 		backing.add("0002 OK [READ-WRITE] Done");
 		INITIAL_RESPONSES = Collections.unmodifiableList(backing);
+	}
+
+	protected static List<Command> connectSequence() {
+		List<Command> commands = new LinkedList<Command>();
+		commands.add(new Command(null, "* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick."));
+		return commands;
+	}
+
+	protected static List<Command> loginSequence(String tag) {
+		List<Command> commands = new LinkedList<Command>();
+		commands.add(new Command(tag + "-1 LOGIN " + IMAP_USERNAME + " test",
+		                         tag + "-1 OK Logged in"));
+		return commands;
+	}
+
+	protected static List<Command> selectInboxSequence(String tag) {
+		List<Command> commands = new LinkedList<Command>();
+		commands.add(new Command(tag + "-1 SELECT INBOX",
+		                         "* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)",
+		                         "* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited",
+		                         "* 9 EXISTS",
+		                         "* 9 RECENT",
+		                         "* OK [UIDVALIDITY 1] Ok",
+		                         tag + "-1 OK [READ-WRITE] Done"));
+		return commands;
 	}
 
 	@Override
