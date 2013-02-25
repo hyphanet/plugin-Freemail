@@ -110,17 +110,7 @@ public class MailHeaderFilterTest {
 	}
 
 	private void runSimpleTest(List<String> inputLines, List<String> outputLines) throws IOException {
-		StringBuilder inputBuilder = new StringBuilder();
-		for(String input : inputLines) {
-			inputBuilder.append(input + "\r\n");
-		}
-		inputBuilder.append("\r\n");
-
-		byte[] data = inputBuilder.toString().getBytes("UTF-8");
-		ByteArrayInputStream is = new ByteArrayInputStream(data);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-
-		MailHeaderFilter filter = new MailHeaderFilter(reader);
+		MailHeaderFilter filter = setupFilter(inputLines);
 		for(String header : outputLines) {
 			String filteredLine = filter.readHeader();
 			if(filteredLine == null) {
@@ -139,5 +129,19 @@ public class MailHeaderFilterTest {
 			}
 			fail("Output lines ended before filtered lines");
 		}
+	}
+
+	private MailHeaderFilter setupFilter(List<String> inputLines) throws IOException {
+		StringBuilder inputBuilder = new StringBuilder();
+		for(String input : inputLines) {
+			inputBuilder.append(input + "\r\n");
+		}
+		inputBuilder.append("\r\n");
+
+		byte[] data = inputBuilder.toString().getBytes("UTF-8");
+		ByteArrayInputStream is = new ByteArrayInputStream(data);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+		return new MailHeaderFilter(reader);
 	}
 }
