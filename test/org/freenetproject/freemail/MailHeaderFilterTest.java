@@ -142,6 +142,6 @@ public class MailHeaderFilterTest {
 		ByteArrayInputStream is = new ByteArrayInputStream(data);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
-		return new MailHeaderFilter(reader);
+		return new MailHeaderFilter(reader, "domain.freemail");
 	}
 }
