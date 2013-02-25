@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -109,6 +110,30 @@ public class MailHeaderFilterTest {
 		runSimpleTest(input, output);
 	}
 
+	@Test
+	public void messageIdWithFreemailDomain() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("Message-ID: <message-id1@domain.freemail>");
+
+		List<String> output = new LinkedList<String>();
+		output.add("Message-ID: <message-id1@domain.freemail>");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
+	public void messageIdWithRealDomain() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("Message-ID: <20130225001826.78db4f15@example.com>");
+
+		List<Pattern> output = new LinkedList<Pattern>();
+
+		//The message id should have been replaced with a completely new one
+		output.add(Pattern.compile("Message-ID: <-?[0-9]+\\.-?[0-9]+@domain\\.freemail>"));
+
+		runRegexTest(input, output);
+	}
+
 	private void runSimpleTest(List<String> inputLines, List<String> outputLines) throws IOException {
 		MailHeaderFilter filter = setupFilter(inputLines);
 		for(String header : outputLines) {
@@ -118,6 +143,28 @@ public class MailHeaderFilterTest {
 			}
 
 			assertEquals(header, filteredLine);
+		}
+
+		String filteredLine = filter.readHeader();
+		if(filteredLine != null) {
+			System.err.println("More filtered lines left after output ended:");
+			while(filteredLine != null) {
+				System.err.println(filteredLine);
+				filteredLine = filter.readHeader();
+			}
+			fail("Output lines ended before filtered lines");
+		}
+	}
+
+	private void runRegexTest(List<String> inputLines, List<Pattern> outputExpressions) throws IOException {
+		MailHeaderFilter filter = setupFilter(inputLines);
+		for(Pattern regex : outputExpressions) {
+			String filteredLine = filter.readHeader();
+			if(filteredLine == null) {
+				fail("Reached end of filtered headers before end of output lines");
+			}
+
+			assertTrue("Filter output [" + filteredLine + "] didn't match " + regex, regex.matcher(filteredLine).matches());
 		}
 
 		String filteredLine = filter.readHeader();
