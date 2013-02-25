@@ -535,19 +535,18 @@ public class MailMessage {
 	}
 
 	/**
-	 * Generated a message-id from the specified domain and date. The generated message-id will be
-	 * of the form &lt;local part&gt;@&lt;domain&gt;, where the local part is generated using the
-	 * specified date and a random number large enough that collisions are unlikely.
+	 * Generated a message-id from the specified domain. The generated message-id will be of the
+	 * form &lt;local part&gt;@&lt;domain&gt;, where the local part is generated using a random
+	 * number large enough that collisions are unlikely.
 	 * @param domain the domain part of the message-id
-	 * @param date the date used in the message-id
 	 * @return the generated message-id
 	 */
-	public static String generateMessageID(String domain, Date date) {
+	public static String generateMessageID(String domain) {
 		if(domain == null) {
 			Logger.error(MailMessage.class, "Domain passed to generateMessageID() was null", new Exception());
 		}
 
-		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
+		return messageIdRandom.nextLong() + "." + messageIdRandom.nextLong() + "@" + domain;
 	}
 
 	public static String encodeHeader(String header) {
