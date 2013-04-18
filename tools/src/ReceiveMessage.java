@@ -241,6 +241,9 @@ public class ReceiveMessage {
 
 		private String readLine() throws IOException {
 			String line = input.readLine();
+			if(line == null) {
+				throw new IOException("Input closed unexpectedly");
+			}
 			System.out.println("<<< " + line);
 			return line;
 		}
