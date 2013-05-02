@@ -179,7 +179,7 @@
 
 			<formatter type="brief" usefile="false"/>
 			<formatter type="xml" if="${test.xml_output}"/>
-			<batchtest>
+			<batchtest todir="${build-test}">
 				<fileset dir="${build-test}">
 					<include name="org/freenetproject/freemail/**/*Test.class"/>
 				</fileset>
