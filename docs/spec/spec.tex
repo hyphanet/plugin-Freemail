@@ -51,7 +51,7 @@ The following pieces of information are required in a mailpage:
 \end{description}
 
 \subsection{RTS Messages}
-Once Alice has retrieved the recipient's mailpage, she sends an RTS message to Bob. This RTS message
+Once Alice has retrieved the recipient's mailpage, she sends an RTS (Request To Send) message to Bob. This RTS message
 is, again, a props file, with the following keys:
 
 \begin{description}
@@ -103,7 +103,7 @@ Bob then records the public and private key so that he can poll the key for new 
 Before doing so, Bob inserts a props file containing messagetype=cts to the first availiable slot.
 This completes Bob's part of the channel setup procedure.
 
-Alice should check periodically for the insertion of this CTS message. If it does not arrive, Alice
+Alice should check periodically for the insertion of this CTS (Clear To Send) message. If it does not arrive, Alice
 should re-send the RTS message. The client may try several times before declaring the message
 undeliverable.
 
