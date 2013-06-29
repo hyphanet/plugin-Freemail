@@ -27,11 +27,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.utils.Logger;
-import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTProperties;
 
 import freenet.pluginmanager.PluginNotFoundException;
+import freenet.support.Timer;
 
 public class SingleAccountWatcher implements Runnable {
 	/**

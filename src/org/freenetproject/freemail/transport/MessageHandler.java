@@ -51,11 +51,11 @@ import org.freenetproject.freemail.transport.Channel.ChannelEventCallback;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
-import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 
 import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
+import freenet.support.Timer;
 import freenet.support.api.Bucket;
 import freenet.support.io.Closer;
 import freenet.support.io.FileBucket;

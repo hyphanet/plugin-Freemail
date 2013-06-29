@@ -29,13 +29,13 @@ import java.util.Set;
 
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.SimpleFieldSetFactory;
-import org.freenetproject.freemail.utils.Timer;
 
 import freenet.pluginmanager.FredPluginTalker;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.pluginmanager.PluginTalker;
 import freenet.support.SimpleFieldSet;
+import freenet.support.Timer;
 import freenet.support.api.Bucket;
 
 class WoTConnectionImpl implements WoTConnection {

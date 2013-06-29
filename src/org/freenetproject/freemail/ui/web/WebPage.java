@@ -25,7 +25,6 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.l10n.FreemailL10n;
-import org.freenetproject.freemail.utils.Timer;
 
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
@@ -35,6 +34,7 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
+import freenet.support.Timer;
 import freenet.support.api.HTTPRequest;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {

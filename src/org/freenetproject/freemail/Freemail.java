@@ -33,9 +33,9 @@ import org.freenetproject.freemail.fcp.FCPContext;
 import org.freenetproject.freemail.imap.IMAPListener;
 import org.freenetproject.freemail.smtp.SMTPListener;
 import org.freenetproject.freemail.utils.Logger;
-import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.WoTConnection;
 
+import freenet.support.Timer;
 
 public abstract class Freemail implements ConfigClient {
 	private static final String BASEDIR = "freemail-wot";

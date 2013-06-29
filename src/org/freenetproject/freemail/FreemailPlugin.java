@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.ui.web.WebInterface;
 import org.freenetproject.freemail.utils.Logger;
-import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.OwnIdentity;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTConnections;
@@ -48,6 +47,7 @@ import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.Timer;
 
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.

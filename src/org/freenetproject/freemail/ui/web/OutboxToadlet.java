@@ -30,7 +30,6 @@ import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.FreemailPlugin;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.transport.MessageHandler.OutboxMessage;
-import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.WoTConnection;
 
@@ -40,6 +39,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
+import freenet.support.Timer;
 import freenet.support.api.HTTPRequest;
 
 public class OutboxToadlet extends WebPage {

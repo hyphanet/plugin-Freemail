@@ -69,13 +69,13 @@ import org.freenetproject.freemail.fcp.SSKKeyPair;
 import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
-import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTProperties;
 
 import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
+import freenet.support.Timer;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketChainBucket;
