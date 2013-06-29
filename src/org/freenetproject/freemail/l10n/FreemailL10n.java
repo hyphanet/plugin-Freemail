@@ -28,7 +28,7 @@ import freenet.pluginmanager.FredPluginBaseL10n;
 import freenet.support.HTMLNode;
 
 public class FreemailL10n {
-	private static PluginL10n pluginL10n;
+	private static volatile PluginL10n pluginL10n;
 
 	public static String getString(String key) {
 		return pluginL10n.getBase().getString(key);
