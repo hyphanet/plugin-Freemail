@@ -15,8 +15,8 @@
 	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
 	<property name="version.build" value="org/freenetproject/freemail/Version.class"/>
 
-	<property name="bcdist" value="lcrypto-jdk15on-147"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
+	<property name="bcprov.location" location="../fred/lib/bcprov.jar"/>
 
 	<exec executable="git"
 		failifexecutionfails="false"
@@ -36,31 +36,7 @@
 		</and>
 	</condition>
 
-	<target name="bouncycastle-check">
-		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
-		<available file="${build}/org/bouncycastle" property="bouncycastle-bin.present" />
-	</target>
-
-	<target name="bouncycastle-fetch" depends="bouncycastle-check" unless="bouncycastle-dist.present">
-		<mkdir dir="${deps}" />
-		<get src="http://www.bouncycastle.org/download/${bcdist}.zip"
-		dest="${deps}/${bcdist}.zip"
-		verbose="true"
-		usetimestamp="true" />
-
-		<unzip src="${deps}/${bcdist}.zip" dest="${deps}" />
-	</target>
-
-	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
-		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" nowarn="true">
-			<exclude name="**/test/*" />
-			<exclude name="org/bouncycastle/util/IPTest.java" />
-			<exclude name="org/bouncycastle/util/AllTests.java" />
-		</javac>
-	</target>
-
-	<target name="compile" depends="bouncycastle-compile">
+	<target name="compile">
 		<mkdir dir="${build}"/>
 
 		<tstamp/>
@@ -79,6 +55,7 @@
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
+				<pathelement location="${bcprov.location}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -89,6 +66,7 @@
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
+				<pathelement location="${bcprov.location}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -108,6 +86,7 @@
 		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.6" target="1.6">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement location="${bcprov.location}"/>
 				<pathelement location="${build}"/>
 				<pathelement location="${junit}"/>
 				<pathelement path="${test.lib}"/>
@@ -121,6 +100,7 @@
 		<junit fork="yes" dir="${test.run}">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement location="${bcprov.location}"/>
 				<pathelement location="${build}"/>
 				<pathelement location="${build-test}"/>
 				<pathelement location="${junit}"/>

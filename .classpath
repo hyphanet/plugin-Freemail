@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="test" output="build-test"/>
-	<classpathentry excluding="**/test/|org/bouncycastle/util/AllTests.java|org/bouncycastle/util/IPTest.java" kind="src" path="deps/lcrypto-jdk15on-147/src"/>
+	<classpathentry kind="src" output="build-test" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fred"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="lib" path="/fred/lib/bcprov.jar"/>
+	<classpathentry kind="lib" path="/fred/lib/freenet/freenet-ext.jar" sourcepath="/Contrib/db4o/src/db4oj"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
