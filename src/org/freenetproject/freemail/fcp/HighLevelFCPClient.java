@@ -40,6 +40,7 @@ public class HighLevelFCPClient implements FCPClient {
 
 	private FCPConnection conn;
 
+	// FIXME use a map?
 	private final List<FCPMessage> doneMsgs = new LinkedList<FCPMessage>();
 
 	public HighLevelFCPClient() {
