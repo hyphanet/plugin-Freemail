@@ -55,23 +55,23 @@ public class EmailAddress {
 			switch (c) {
 				case '@':
 					this.user = bank.toString().toLowerCase();
-					bank = new StringBuffer("");
+					bank.setLength(0);
 					break;
 				case '<':
 					this.realname = bank.toString();
-					bank = new StringBuffer("");
+					bank.setLength(0);
 					break;
 				case '>':
 					this.domain = bank.toString().toLowerCase();
-					bank = new StringBuffer("");
+					bank.setLength(0);
 					break;
 				case '(':
 					this.domain = bank.toString().toLowerCase();
-					bank = new StringBuffer("");
+					bank.setLength(0);
 					break;
 				case ')':
 					this.realname = bank.toString();
-					bank = new StringBuffer("");
+					bank.setLength(0);
 					break;
 				default:
 					bank.append(c);
