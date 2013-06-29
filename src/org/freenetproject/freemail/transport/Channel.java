@@ -1248,7 +1248,9 @@ class Channel {
 		try {
 			id = Long.parseLong(s_id);
 		} catch (NumberFormatException nfe) {
-			/* FIXME: Id doesn't have to be an integer */
+			// FIXME old comment said id doesn't have to be an integer.
+			// This seems very dubious, this is internal to Freemail isn't it?
+			// It's certainly safer and cleaner if we limit to to a long...
 			Logger.error(this, "Got a message with an invalid (non-integer) id. Discarding.");
 			msgprops.closeReader();
 			return true;
