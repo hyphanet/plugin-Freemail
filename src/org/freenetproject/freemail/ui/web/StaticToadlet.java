@@ -35,6 +35,7 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
+// FIXME duplicate of fproxy StaticToadlet?
 public class StaticToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/static";
 
