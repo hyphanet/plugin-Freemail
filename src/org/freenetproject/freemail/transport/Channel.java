@@ -78,6 +78,7 @@ import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
+import freenet.support.io.BucketChainBucket;
 import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
 
@@ -434,17 +435,8 @@ class Channel {
 			+ "id=" + messageId + "\r\n"
 			+ "\r\n";
 		Bucket messageHeader = new ArrayBucket(header.getBytes());
-
-		//Now combine them in a single bucket
-		ArrayBucket fullMessage = new ArrayBucket();
-		OutputStream messageOutputStream = null;
-		try {
-			messageOutputStream = fullMessage.getOutputStream();
-			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
-			BucketTools.copyTo(message, messageOutputStream, -1);
-		} finally {
-			Closer.close(messageOutputStream);
-		}
+		
+		Bucket fullMessage = BucketChainBucket.constructReadOnly(new Bucket[] { messageHeader, message });
 
 		return insertMessage(fullMessage, "msg" + messageId);
 	}
