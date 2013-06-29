@@ -261,10 +261,10 @@ class WoTConnectionImpl implements WoTConnection {
 	private Message sendBlocking(final Message msg, Set<String> expectedMessageTypes) {
 		assert (msg != null);
 
-		//Synchronize on pluginTalker so only one message can be sent at a time
+		//Synchronize on this so only one message can be sent at a time
 		final Message retValue;
 		Timer requestTimer;
-		synchronized(pluginTalker) {
+		synchronized(this) {
 			synchronized(replyLock) {
 				requestTimer = Timer.start();
 
