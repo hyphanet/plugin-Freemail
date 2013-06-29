@@ -94,6 +94,8 @@ public class EmailAddress {
 				this.realname = this.realname.substring(0, this.realname.length() - 1);
 			}
 		}
+		if(user == null || domain == null)
+			throw new IllegalArgumentException();
 	}
 
 	public boolean is_freemail_address() {
