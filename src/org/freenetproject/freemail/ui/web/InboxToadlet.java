@@ -348,16 +348,11 @@ public class InboxToadlet extends WebPage {
 		}
 
 		public static SortField fromString(String field) {
-			if("subject".equals(field)) {
-				return SUBJECT;
+			try {
+				return SortField.fromString(field.toUpperCase());
+			} catch (IllegalArgumentException e) {
+				return null;
 			}
-			if("from".equals(field)) {
-				return FROM;
-			}
-			if("date".equals(field)) {
-				return DATE;
-			}
-			return null;
 		}
 	}
 
