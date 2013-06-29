@@ -173,9 +173,9 @@ public class MessageToadlet extends WebPage {
 	private void addMessageContents(HTMLNode messageNode, MailMessage message) {
 		HTMLNode messageContents = messageNode.addChild("div", "class", "message-content").addChild("p");
 
-		List<String> lines = new LinkedList<String>();
 		try {
 			boolean inHeader = true;
+			boolean added = false;
 			while(true) {
 				String line = message.readLine();
 				if(line == null) break;
@@ -188,23 +188,18 @@ public class MessageToadlet extends WebPage {
 					continue;
 				}
 
-				lines.add(line);
+				if(added) messageContents.addChild("br");
+				messageContents.addChild("#", line);
+				added = true;
 			}
 		} catch(IOException e) {
 			//TODO: Better error message
+			messageContents.removeChildren();
 			HTMLNode errorBox = addErrorbox(messageContents, "Couldn't read message");
 			errorBox.addChild("p", "Couldn't read the message: " + e);
 			return;
 		} finally {
 			message.closeStream();
-		}
-
-		Iterator<String> lineIterator = lines.iterator();
-		while(lineIterator.hasNext()) {
-			messageContents.addChild("#", lineIterator.next());
-			if(lineIterator.hasNext()) {
-				messageContents.addChild("br");
-			}
 		}
 	}
 
