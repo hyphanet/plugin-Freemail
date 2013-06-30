@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
-import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.RejectedExecutionException;
@@ -586,8 +585,7 @@ class Channel {
 	private String generateRandomSlot() {
 		SHA256Digest sha256 = new SHA256Digest();
 		byte[] buf = new byte[sha256.getDigestSize()];
-		SecureRandom rnd = new SecureRandom();
-		rnd.nextBytes(buf);
+		Freemail.getRNG().nextBytes(buf);
 		return Base32.encode(buf);
 	}
 
@@ -1156,8 +1154,7 @@ class Channel {
 		private byte[] encryptMessage(byte[] signedMessage, String keyModulus, String keyExponent) {
 			//Make a new symmetric key for the message
 			byte[] aesKeyAndIV = new byte[32 + 16];
-			SecureRandom rnd = new SecureRandom();
-			rnd.nextBytes(aesKeyAndIV);
+			Freemail.getRNG().nextBytes(aesKeyAndIV);
 
 			//Encrypt the message with the new symmetric key
 			PaddedBufferedBlockCipher aesCipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
