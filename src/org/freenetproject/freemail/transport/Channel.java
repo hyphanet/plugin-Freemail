@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -55,10 +54,10 @@ import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.FreemailPlugin;
+import org.freenetproject.freemail.FreemailPlugin.TaskType;
 import org.freenetproject.freemail.FreenetURI;
 import org.freenetproject.freemail.SlotManager;
 import org.freenetproject.freemail.SlotSaveCallback;
-import org.freenetproject.freemail.FreemailPlugin.TaskType;
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.fcp.FCPBadFileException;
 import org.freenetproject.freemail.fcp.FCPException;
@@ -79,7 +78,6 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketChainBucket;
-import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
