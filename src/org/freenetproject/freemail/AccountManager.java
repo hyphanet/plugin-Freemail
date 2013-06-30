@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -168,7 +169,8 @@ public class AccountManager {
 
 	private static boolean initAccFile(PropsFile accfile, OwnIdentity oid) {
 		//Initialise RTS KSK
-		Random rnd = new Random();
+		// Use a secure RNG for this too.
+		SecureRandom rnd = Freemail.getRNG();
 		String rtskey = new String();
 
 		int i;
