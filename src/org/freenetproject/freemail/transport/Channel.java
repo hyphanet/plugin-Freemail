@@ -72,6 +72,7 @@ import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTProperties;
 
+import freenet.crypt.SHA256;
 import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
@@ -575,11 +576,7 @@ class Channel {
 
 	private String calculateNextSlot(String slot) {
 		byte[] buf = Base32.decode(slot);
-		SHA256Digest sha256 = new SHA256Digest();
-		sha256.update(buf, 0, buf.length);
-		sha256.doFinal(buf, 0);
-
-		return Base32.encode(buf);
+		return Base32.encode(SHA256.digest(buf));
 	}
 
 	private String generateRandomSlot() {
