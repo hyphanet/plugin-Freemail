@@ -24,6 +24,7 @@ package org.freenetproject.freemail;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.config.ConfigClient;
@@ -57,6 +58,8 @@ public abstract class Freemail implements ConfigClient {
 	private final IMAPListener imapl;
 
 	protected final Configurator configurator;
+	
+	private static SecureRandom srng;
 
 	protected Freemail(String cfgfile) throws IOException {
 		configurator = new Configurator(new File(cfgfile));
@@ -116,6 +119,16 @@ public abstract class Freemail implements ConfigClient {
 		fcpThread = new Thread(fcpconn, "Freemail FCP Connection");
 		fcpThread.setDaemon(true);
 		fcpThread.start();
+	}
+	
+	/** Set once on startup */
+	synchronized static void setRNG(SecureRandom random) {
+		srng = random;
+	}
+	
+	public synchronized static SecureRandom getRNG() {
+		if(srng == null) throw new NullPointerException();
+		return srng;
 	}
 
 	// note that this relies on sender being initialized

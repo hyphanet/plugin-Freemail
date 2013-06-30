@@ -106,6 +106,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		startWorkers();
 		workers.log(this, 1, TimeUnit.SECONDS, "Time spent starting workers");
 
+		Freemail.setRNG(pr.getNode().secureRandom);
 		startServers(true);
 		startIdentityFetch(pr, getAccountManager());
 
