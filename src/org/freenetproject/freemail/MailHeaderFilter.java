@@ -49,7 +49,7 @@ public class MailHeaderFilter {
 	private static final SimpleDateFormat sdf;
 	private static final TimeZone gmt;
 
-	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@])*\\@([^>]*)>?");
+	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@>])*\\@([^>]*)>?");
 	static {
 		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 		gmt = TimeZone.getTimeZone("GMT");
