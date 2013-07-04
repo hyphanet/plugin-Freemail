@@ -36,35 +36,7 @@
 		</and>
 	</condition>
 
-<<<<<<< HEAD
 	<target name="compile">
-=======
-	<target name="bouncycastle-check">
-		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
-		<available file="${build}/org/bouncycastle" property="bouncycastle-bin.present" />
-	</target>
-
-	<target name="bouncycastle-fetch" depends="bouncycastle-check" unless="bouncycastle-dist.present">
-		<mkdir dir="${deps}" />
-		<get src="http://www.bouncycastle.org/download/${bcdist}.zip"
-		dest="${deps}/${bcdist}.zip"
-		verbose="true"
-		usetimestamp="true" />
-
-		<unzip src="${deps}/${bcdist}.zip" dest="${deps}" />
-	</target>
-
-	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
-		<mkdir dir="build" />
-		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" nowarn="true" encoding="UTF-8">
-			<exclude name="**/test/*" />
-			<exclude name="org/bouncycastle/util/IPTest.java" />
-			<exclude name="org/bouncycastle/util/AllTests.java" />
-		</javac>
-	</target>
-
-	<target name="compile" depends="bouncycastle-compile">
->>>>>>> zidel/master
 		<mkdir dir="${build}"/>
 
 		<tstamp/>
