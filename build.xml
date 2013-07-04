@@ -36,7 +36,35 @@
 		</and>
 	</condition>
 
+<<<<<<< HEAD
 	<target name="compile">
+=======
+	<target name="bouncycastle-check">
+		<available file="${deps}/${bcdist}" property="bouncycastle-dist.present" />
+		<available file="${build}/org/bouncycastle" property="bouncycastle-bin.present" />
+	</target>
+
+	<target name="bouncycastle-fetch" depends="bouncycastle-check" unless="bouncycastle-dist.present">
+		<mkdir dir="${deps}" />
+		<get src="http://www.bouncycastle.org/download/${bcdist}.zip"
+		dest="${deps}/${bcdist}.zip"
+		verbose="true"
+		usetimestamp="true" />
+
+		<unzip src="${deps}/${bcdist}.zip" dest="${deps}" />
+	</target>
+
+	<target name="bouncycastle-compile" depends="bouncycastle-fetch" unless="bouncycastle-bin.present">
+		<mkdir dir="build" />
+		<javac srcdir="${deps}/${bcdist}/src" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" nowarn="true" encoding="UTF-8">
+			<exclude name="**/test/*" />
+			<exclude name="org/bouncycastle/util/IPTest.java" />
+			<exclude name="org/bouncycastle/util/AllTests.java" />
+		</javac>
+	</target>
+
+	<target name="compile" depends="bouncycastle-compile">
+>>>>>>> zidel/master
 		<mkdir dir="${build}"/>
 
 		<tstamp/>
@@ -50,7 +78,7 @@
 		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
 
 		<!-- Compile the patched version file -->
-		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
+		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" encoding="UTF-8">
 			<include name="${version.src}"/>
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
@@ -62,7 +90,7 @@
 
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
+		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6" encoding="UTF-8">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
@@ -83,7 +111,7 @@
 
 	<target name="unit-build" depends="compile" unless="${test.skip}">
 		<mkdir dir="${build-test}"/>
-		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.6" target="1.6">
+		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.6" target="1.6" encoding="UTF-8">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>

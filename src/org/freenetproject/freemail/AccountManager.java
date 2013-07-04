@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
+import java.util.TimeZone;
 
 import org.archive.util.Base32;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -233,6 +233,7 @@ public class AccountManager {
 
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		MailMessage m = account.getMessageBank().createMessage();
 		Date currentDate = new Date();
