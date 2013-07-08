@@ -28,6 +28,7 @@ import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -1295,6 +1296,41 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} catch(IOException e) {
 			sendState("BAD Internal server error while searching messages");
 			reply(msg, "NO Internal server error while searching messages");
+		}
+
+		{
+			/*
+			 * If there is only a single parenthetical expression which encloses the entire search,
+			 * it is only syntactic and does not increase the complexity. Therefore allow it by removing the
+			 * parentheses before further processing.
+			 * Commons Lang StringUtils.countMatches() would make this nicer.
+			 */
+			int parenthesisCount = 0;
+			for (final String arg : msg.args) {
+				for (final char character : arg.toCharArray()) {
+					if (character == '(' || character == ')') {
+						parenthesisCount++;
+					}
+				}
+			}
+
+			final String firstArg = msg.args[0];
+			final int lastArgIndex = msg.args.length - 1;
+			final String lastArg = msg.args[lastArgIndex];
+			if (parenthesisCount == 2 && firstArg.startsWith("(") && lastArg.endsWith(")")) {
+				// Remove parenthesis: first character from first arg, last from last.
+				msg.args[0] = firstArg.substring(1);
+				msg.args[lastArgIndex] = lastArg.substring(0, lastArg.length() - 1);
+
+				/*
+				 * If anything were parsed such that it's only a parenthesis, it would be empty now. That's not
+				 * desirable, so remove it from the argument list.
+				 */
+				final boolean firstEmpty = msg.args[0].isEmpty();
+				final boolean lastEmpty = msg.args[lastArgIndex].isEmpty();
+				msg = new IMAPMessage(msg.tag, msg.type, Arrays.copyOfRange(msg.args, firstEmpty ? 1 : 0,
+						lastEmpty ? lastArgIndex : msg.args.length));
+			}
 		}
 
 		//Index of the next search key
