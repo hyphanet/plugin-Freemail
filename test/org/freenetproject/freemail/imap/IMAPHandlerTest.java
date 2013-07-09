@@ -400,4 +400,45 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	@Test
+	public void searchWithExtraParansAndOneKey() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 SEARCH (ALL)",
+				"* SEARCH 1 2 3 4 5 6 7 8 9",
+				"0003 OK Search completed"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void searchWithExtraParansAndTwoKeys() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 SEARCH (ALL ALL)",
+				"* SEARCH 1 2 3 4 5 6 7 8 9",
+				"0003 OK Search completed"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void searchWithExtraParansAndIllegalWhitespace() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 SEARCH ( ALL ALL )",
+				"0003 NO Criteria ( hasn't been implemented"));
+
+		runSimpleTest(commands);
+	}
 }
