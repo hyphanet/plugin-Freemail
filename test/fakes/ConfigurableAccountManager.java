@@ -20,8 +20,7 @@
 
 package fakes;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
