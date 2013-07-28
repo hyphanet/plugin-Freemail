@@ -64,7 +64,7 @@
 			     sun.*      - Sun implementation specific stuff
 			     com.sun.*  -
 			-->
-			<property name="illegalPkgs" value="sun, com.sun"/>
+			<property name="illegalPkgs" value="sun, com.sun, junit.framework"/>
 		</module>
 
 		<!-- Whitespace checks -->
