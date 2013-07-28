@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
 public class IMAPAppendTest extends IMAPTestWithMessages {
-	public void testBasicAppendFromSelectedState() throws IOException {
+	@Test
+	public void basicAppendFromSelectedState() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -43,7 +46,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testAppendWithFlag() throws IOException {
+	@Test
+	public void appendWithFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -66,7 +70,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 * The expectation here is that the custom flag is ignored since they aren't supported, but the
 	 * \Seen flag should still be saved.
 	 */
-	public void testAppendWithCustomFlag() throws IOException {
+	@Test
+	public void appendWithCustomFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -85,7 +90,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testAppendWithTwoStandardFlags() throws IOException {
+	@Test
+	public void appendWithTwoStandardFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -104,7 +110,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testAppendWithFlagAndDate() throws IOException {
+	@Test
+	public void appendWithFlagAndDate() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -125,7 +132,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testAppendWithBadLiteralLength() throws IOException {
+	@Test
+	public void appendWithBadLiteralLength() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -138,7 +146,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testMultilineAppend() throws IOException {
+	@Test
+	public void multilineAppend() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -155,7 +164,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testMultilineAppendWithTwoFlags() throws IOException {
+	@Test
+	public void multilineAppendWithTwoFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -177,7 +187,8 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 * The IMAP handler thread would crash with a NullPointerException if
 	 * append was called with a subfolder of index before logging in.
 	 */
-	public void testAppend() throws IOException {
+	@Test
+	public void append() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 APPEND inbox.folder arg2");
 
