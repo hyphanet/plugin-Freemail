@@ -47,12 +47,15 @@
 
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
-		<module name="AvoidStarImport"/>
+		<module name="AvoidStarImport">
+			<property name="excludes" value="org.junit.Assert.*"/>
+		</module>
 		<module name="UnusedImports"/>
 
 		<!-- Avoid static imports except from some classes -->
 		<module name="AvoidStaticImport">
 			<property name="excludes" value="junit.framework.Assert.*"/>
+			<property name="excludes" value="org.junit.Assert.*"/>
 		</module>
 
 		<!-- Blacklist for imports -->
@@ -60,8 +63,10 @@
 			<!--
 			     sun.*      - Sun implementation specific stuff
 			     com.sun.*  -
+
+			     junit.framework - jUnit 3 classes
 			-->
-			<property name="illegalPkgs" value="sun, com.sun"/>
+			<property name="illegalPkgs" value="sun, com.sun, junit.framework"/>
 		</module>
 
 		<!-- Whitespace checks -->

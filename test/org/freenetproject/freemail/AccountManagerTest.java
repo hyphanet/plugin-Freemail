@@ -19,24 +19,28 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
 
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class AccountManagerTest extends TestCase {
+public class AccountManagerTest {
 	private static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
 	private static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
 
 	private File dataDir;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		dataDir = new File("data");
 		if(dataDir.exists()) {
 			System.out.println("WARNING: Account manager directory exists, deleting");
@@ -48,12 +52,13 @@ public class AccountManagerTest extends TestCase {
 		}
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(dataDir);
 	}
 
-	public void testAuthenticateSimpleUsername() throws IOException {
+	@Test
+	public void authenticateSimpleUsername() throws IOException {
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
 		// node, so we have to do it the hard way
 		File accDir = new File(dataDir, BASE32_USERNAME);
@@ -68,7 +73,8 @@ public class AccountManagerTest extends TestCase {
 		assertNotNull(manager.authenticate(BASE64_USERNAME, "test"));
 	}
 
-	public void testAccountManager() {
+	@Test
+	public void accountManager() {
 		AccountManager manager = new AccountManager(dataDir, null);
 		assertTrue(manager.getAllAccounts().isEmpty());
 	}
@@ -78,7 +84,8 @@ public class AccountManagerTest extends TestCase {
 	 * AccountManager used two different methods for validating usernames, so accounts with - in the
 	 * username could be created, but couldn't be authenticated.
 	 */
-	public void testAuthenticateUsernameWithMinus() throws IOException {
+	@Test
+	public void authenticateUsernameWithMinus() throws IOException {
 		final String ACCOUNT_PASSWORD = "test-user";
 
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
