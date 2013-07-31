@@ -1,7 +1,6 @@
 /*
- * OwnIdentityTest.java
+ * NullIdentityMatcher.java
  * This file is part of Freemail
- * Copyright (C) 2011 Martin Nyhus
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,27 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.freenetproject.freemail.wot;
+package fakes;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.freenetproject.freemail.wot.Identity;
-import org.freenetproject.freemail.wot.OwnIdentity;
+import org.freenetproject.freemail.wot.IdentityMatcher;
+import org.freenetproject.freemail.wot.WoTConnection;
 
-public class OwnIdentityTest {
-	@Test
-	public void equalsSymmetricWithIdentity() {
-		final String identityID = "test";
-		final String nickname = "test";
-		final String requestURI = "test";
-		final String insertURI = "test";
+import freenet.pluginmanager.PluginNotFoundException;
 
-		Identity identity = new Identity(identityID, requestURI, nickname);
-		OwnIdentity ownIdentity = new OwnIdentity(identityID, requestURI, insertURI, nickname);
+public class NullIdentityMatcher extends IdentityMatcher {
+	public NullIdentityMatcher() {
+		super(null);
+	}
 
-		assertTrue(identity.equals(ownIdentity));
-		assertTrue(ownIdentity.equals(identity));
+	public NullIdentityMatcher(WoTConnection wotConnection) {
+		super(wotConnection);
+	}
+
+	@Override
+	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
+		throw new UnsupportedOperationException();
 	}
 }

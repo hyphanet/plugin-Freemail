@@ -583,7 +583,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private boolean sendAttr(MailMessage mmsg, String a) {
-		String attr = a.toLowerCase();
+		String attr = a.toLowerCase(Locale.ROOT);
 		String val = null;
 
 		if(attr.equals("uid")) {
@@ -840,7 +840,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private boolean doStore(String[] args, int offset, Collection<MailMessage> mmsgs, IMAPMessage msg, boolean senduid) {
-		if(args[offset].toLowerCase().indexOf("flags") < 0) {
+		if(args[offset].toLowerCase(Locale.ROOT).indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
@@ -880,7 +880,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 		}
 
-		if(msg.args[offset].toLowerCase().indexOf("silent") < 0) {
+		if(msg.args[offset].toLowerCase(Locale.ROOT).indexOf("silent") < 0) {
 			for(MailMessage message : mmsgs) {
 				StringBuffer buf = new StringBuffer("");
 
@@ -1465,7 +1465,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		while(it.hasNext()) {
 			boolean found = false;
 			for(String headerValue : it.next().getHeadersByName(headerName)) {
-				if(headerValue.toLowerCase().contains(searchString.toLowerCase())) {
+				if(headerValue.toLowerCase(Locale.ROOT).contains(searchString.toLowerCase(Locale.ROOT))) {
 					found = true;
 					break;
 				}

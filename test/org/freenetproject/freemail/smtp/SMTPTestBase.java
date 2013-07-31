@@ -1,7 +1,6 @@
 /*
- * IMAPTestBase.java
+ * SMTPTestBase.java
  * This file is part of Freemail
- * Copyright (C) 2011,2012 Martin Nyhus
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.freenetproject.freemail.imap;
+package org.freenetproject.freemail.smtp;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,32 +34,37 @@ import org.freenetproject.freemail.AccountManager;
 
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
+import fakes.NullIdentityMatcher;
 import utils.TextProtocolTester;
 import utils.Utils;
 
 /**
- * Class that handles a lot of the setup needed by all the various IMAP tests.
+ * Class that handles a lot of the setup needed by all the various SMTP tests.
  * Extend this and add the tests to the subclass.
  */
-public abstract class IMAPTestBase {
-	protected static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
-	protected static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
-	protected static final String IMAP_USERNAME = "zidel@" + BASE32_USERNAME + ".freemail";
+public abstract class SMTPTestBase {
+	protected static final String[] BASE64_USERNAMES = new String[] {
+		"D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc",
+		"1unnefKX8TOorAm5-c0lc6BGT9-6kBucO5f6dLJ9EZA",
+	};
+	protected static final String BASE64_USERNAME = BASE64_USERNAMES[0];
 
-	private static final File TEST_DIR = new File("imaptest");
+	private static final File TEST_DIR = new File("smtptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
-	private static final String ACCOUNT_DIR = "account_dir";
 
-	protected final Map<String, File> accountDirs = new HashMap<String, File>();
-	protected File accountManagerDir;
+	private final Map<String, File> accountDirs = new HashMap<String, File>();
+	private File accountManagerDir;
 
 	@Before
 	public void before() {
 		Utils.createDir(TEST_DIR);
 
 		accountManagerDir = Utils.createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
-		File accountDir = Utils.createDir(TEST_DIR, ACCOUNT_DIR);
-		accountDirs.put(BASE64_USERNAME, accountDir);
+
+		for(int i = 0; i < BASE64_USERNAMES.length; i++) {
+			File accountDir = Utils.createDir(TEST_DIR, "account_" + i + "_dir");
+			accountDirs.put(BASE64_USERNAMES[i], accountDir);
+		}
 	}
 
 	@After
@@ -70,26 +72,13 @@ public abstract class IMAPTestBase {
 		Utils.delete(TEST_DIR);
 	}
 
-	protected static void send(PrintWriter out, String msg) {
-		out.print(msg);
-		out.flush();
-	}
-
-	protected static String readTaggedResponse(BufferedReader in) throws IOException {
-		String line = in.readLine();
-		while(line.startsWith("*")) {
-			line = in.readLine();
-		}
-		return line;
-	}
-
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		IMAPHandler handler = new IMAPHandler(accManager, sock);
-		Thread imapThread = new Thread(handler);
-		imapThread.start();
+		SMTPHandler handler = new SMTPHandler(accManager, sock, new NullIdentityMatcher());
+		Thread smtpThread = new Thread(handler);
+		smtpThread.start();
 
 		try {
 			TextProtocolTester tester = new TextProtocolTester(sock);
@@ -98,7 +87,7 @@ public abstract class IMAPTestBase {
 			handler.kill();
 			sock.close();
 			try {
-				imapThread.join();
+				smtpThread.join();
 			} catch(InterruptedException e) {
 				fail("Caught unexpected InterruptedException");
 			}

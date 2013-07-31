@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
 public class IMAPEmptyMailboxTest extends IMAPTestBase {
-	public void testFetchFromEmptyFolder() throws IOException {
+	@Test
+	public void fetchFromEmptyFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -44,7 +47,8 @@ public class IMAPEmptyMailboxTest extends IMAPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchFromEmptyFolder() throws IOException {
+	@Test
+	public void uidFetchFromEmptyFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -64,7 +68,8 @@ public class IMAPEmptyMailboxTest extends IMAPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreInEmptyFolder() throws IOException {
+	@Test
+	public void uidStoreInEmptyFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -84,7 +89,8 @@ public class IMAPEmptyMailboxTest extends IMAPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testBadUidCommandInEmptyFolder() throws IOException {
+	@Test
+	public void badUidCommandInEmptyFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");

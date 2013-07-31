@@ -19,6 +19,8 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,10 +28,11 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class MailHeaderFilterTest extends TestCase {
-	public void testFilteringOfWhitelistedHeader() throws IOException {
+public class MailHeaderFilterTest {
+	@Test
+	public void filteringOfWhitelistedHeader() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Subject: Test message");
 
@@ -39,7 +42,8 @@ public class MailHeaderFilterTest extends TestCase {
 		runSimpleTest(input, output);
 	}
 
-	public void testFilteringOfBlacklistedHeader() throws IOException {
+	@Test
+	public void filteringOfBlacklistedHeader() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("BCC: local@domain.freemail");
 
@@ -48,7 +52,8 @@ public class MailHeaderFilterTest extends TestCase {
 		runSimpleTest(input, output);
 	}
 
-	public void testDateWithCorrectFormat() throws IOException {
+	@Test
+	public void dateWithCorrectFormat() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Date: Tue, 10 Jul 2012 16:37:19 +0000");
 
@@ -58,7 +63,8 @@ public class MailHeaderFilterTest extends TestCase {
 		runSimpleTest(input, output);
 	}
 
-	public void testDateWithMissingDay() throws IOException {
+	@Test
+	public void dateWithMissingDay() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Date: 10 Jul 2012 16:37:19 +0000");
 
@@ -68,7 +74,8 @@ public class MailHeaderFilterTest extends TestCase {
 		runSimpleTest(input, output);
 	}
 
-	public void testDateHeaderWithTimezone() throws IOException {
+	@Test
+	public void dateHeaderWithTimezone() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Date: Tue, 10 Jul 2012 16:37:19 +0200");
 
@@ -78,7 +85,8 @@ public class MailHeaderFilterTest extends TestCase {
 		runSimpleTest(input, output);
 	}
 
-	public void testInvalidDateHeader() throws IOException {
+	@Test
+	public void invalidDateHeader() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Date: Thu, 10 Juli 2012 16:37:19 +0200");
 
@@ -87,7 +95,8 @@ public class MailHeaderFilterTest extends TestCase {
 		runSimpleTest(input, output);
 	}
 
-	public void testMultilineReferencesHeader() throws IOException {
+	@Test
+	public void multilineReferencesHeader() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("References:");
 		input.add(" <message-id1@domain.freemail>");

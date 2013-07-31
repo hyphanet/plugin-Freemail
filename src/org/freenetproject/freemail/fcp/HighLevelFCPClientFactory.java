@@ -1,7 +1,6 @@
 /*
- * OwnIdentityTest.java
+ * HighLevelFCPClientFactory.java
  * This file is part of Freemail
- * Copyright (C) 2011 Martin Nyhus
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,27 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.freenetproject.freemail.wot;
+package org.freenetproject.freemail.fcp;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
-
-import org.freenetproject.freemail.wot.Identity;
-import org.freenetproject.freemail.wot.OwnIdentity;
-
-public class OwnIdentityTest {
-	@Test
-	public void equalsSymmetricWithIdentity() {
-		final String identityID = "test";
-		final String nickname = "test";
-		final String requestURI = "test";
-		final String insertURI = "test";
-
-		Identity identity = new Identity(identityID, requestURI, nickname);
-		OwnIdentity ownIdentity = new OwnIdentity(identityID, requestURI, insertURI, nickname);
-
-		assertTrue(identity.equals(ownIdentity));
-		assertTrue(ownIdentity.equals(identity));
+public class HighLevelFCPClientFactory {
+	public HighLevelFCPClient newInstance() {
+		return new HighLevelFCPClient();
 	}
 }

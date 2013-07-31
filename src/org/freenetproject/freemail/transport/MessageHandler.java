@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -46,7 +47,7 @@ import org.freenetproject.freemail.MailHeaderFilter;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.Postman;
 import org.freenetproject.freemail.FreemailPlugin.TaskType;
-import org.freenetproject.freemail.fcp.HighLevelFCPClient;
+import org.freenetproject.freemail.fcp.HighLevelFCPClientFactory;
 import org.freenetproject.freemail.transport.Channel.ChannelEventCallback;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
@@ -96,12 +97,15 @@ public class MessageHandler {
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
 	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
+	private final HighLevelFCPClientFactory hlFcpClientFactory;
 
-	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
+	public MessageHandler(File outbox, Freemail freemail, File channelDir,
+	                      FreemailAccount freemailAccount, HighLevelFCPClientFactory hlFcpClientFactory) {
 		this.outbox = outbox;
 		this.freemail = freemail;
 		this.channelDir = channelDir;
 		this.freemailAccount = freemailAccount;
+		this.hlFcpClientFactory = hlFcpClientFactory;
 
 		//Create and start all the channels
 		if(!channelDir.exists()) {
@@ -128,7 +132,7 @@ public class MessageHandler {
 
 			Logger.debug(this, "Initializing channel from directory " + f);
 			try {
-				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, null);
+				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), hlFcpClientFactory.newInstance(), freemail, freemailAccount, null);
 				channel.setCallback(new AckCallback(channel.getRemoteIdentity()));
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
@@ -277,7 +281,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, remoteIdentity);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), hlFcpClientFactory.newInstance(), freemail, freemailAccount, remoteIdentity);
 				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
@@ -315,7 +319,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, remoteIdentity);
+				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), hlFcpClientFactory.newInstance(), freemail, freemailAccount, remoteIdentity);
 				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
@@ -546,7 +550,7 @@ public class MessageHandler {
 		private AckCallback(String remoteId) {
 			assert (remoteId != null);
 			try {
-				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase();
+				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase(Locale.ROOT);
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}

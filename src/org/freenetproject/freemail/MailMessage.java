@@ -562,7 +562,7 @@ public class MailMessage {
 			while(bytes.hasRemaining()) {
 				byte b = bytes.get();
 				result.append("=");
-				String encodedString = new String(Hex.encode(new byte[] {b}), utf8).toUpperCase();
+				String encodedString = new String(Hex.encode(new byte[] {b}), utf8).toUpperCase(Locale.ROOT);
 				result.append(encodedString);
 			}
 			result.append("?=");

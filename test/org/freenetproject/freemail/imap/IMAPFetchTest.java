@@ -19,23 +19,15 @@
 
 package org.freenetproject.freemail.imap;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
-import org.freenetproject.freemail.AccountManager;
-
-import fakes.ConfigurableAccountManager;
-import fakes.FakeSocket;
+import org.junit.Test;
 
 public class IMAPFetchTest extends IMAPTestWithMessages {
-	public void testFetchBodyPeek() throws IOException {
+	@Test
+	public void fetchBodyPeek() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -52,7 +44,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchBodyStartRange() throws IOException {
+	@Test
+	public void fetchBodyStartRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -67,7 +60,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchBodyMiddleRange() throws IOException {
+	@Test
+	public void fetchBodyMiddleRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -82,7 +76,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchBodyEndRange() throws IOException {
+	@Test
+	public void fetchBodyEndRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -99,7 +94,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchSequenceNumberRangeWithWildcard() throws IOException {
+	@Test
+	public void fetchSequenceNumberRangeWithWildcard() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -113,7 +109,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithSequenceNumberRange() throws IOException {
+	@Test
+	public void fetchWithSequenceNumberRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -128,7 +125,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithOutOfBoundsSequenceNumber() throws IOException {
+	@Test
+	public void fetchWithOutOfBoundsSequenceNumber() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -141,7 +139,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithInvalidSequenceNumberRange() throws IOException {
+	@Test
+	public void fetchWithInvalidSequenceNumberRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -154,7 +153,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithOnlyUid() throws IOException {
+	@Test
+	public void fetchWithOnlyUid() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -168,7 +168,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithUnterminatedArgumentList() throws IOException {
+	@Test
+	public void fetchWithUnterminatedArgumentList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -185,7 +186,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithLongArgumentList() throws IOException {
+	@Test
+	public void fetchWithLongArgumentList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -200,7 +202,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchDataItem() throws IOException {
+	@Test
+	public void fetchDataItem() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -223,7 +226,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 	 * the same as 20:10 in this case which is illegal since the highest
 	 * message id is 10.
 	 */
-	public void testSequenceNumberRangeWithFirstAboveMax() throws IOException {
+	@Test
+	public void sequenceNumberRangeWithFirstAboveMax() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -236,7 +240,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSequenceNumberRangeWithWildcardFirst() throws IOException {
+	@Test
+	public void sequenceNumberRangeWithWildcardFirst() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -250,7 +255,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithoutArguments() throws IOException {
+	@Test
+	public void fetchWithoutArguments() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -263,7 +269,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithoutDataItems() throws IOException {
+	@Test
+	public void fetchWithoutDataItems() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -276,7 +283,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithMessageId0() throws IOException {
+	@Test
+	public void fetchWithMessageId0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -289,7 +297,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithRangeFrom0() throws IOException {
+	@Test
+	public void fetchWithRangeFrom0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -302,7 +311,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithRangeTo0() throws IOException {
+	@Test
+	public void fetchWithRangeTo0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -315,7 +325,8 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFetchWithInvalidMessageNumberFirst() throws IOException {
+	@Test
+	public void fetchWithInvalidMessageNumberFirst() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -326,62 +337,5 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
-	}
-
-	/**
-	 * Tests that the IMAP server returns an internaldate with the correct format. The actual value
-	 * of the returned date isn't checked.
-	 * @throws IOException on I/O error, should never happen
-	 * @throws ParseException on test failure
-	 */
-	//TODO: Convert to proper parameterized test after moving to jUnit4 so we can run this with
-	//more locale variations (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testInternaldateFormatWithFrenchLocale() throws IOException, ParseException {
-		Locale orig = Locale.getDefault();
-		try {
-			Locale.setDefault(Locale.FRENCH);
-
-			//Setup
-			FakeSocket sock = new FakeSocket();
-			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
-
-			new Thread(new IMAPHandler(accManager, sock)).start();
-
-			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-
-			//Send commands
-			send(toHandler, "0001 LOGIN " + IMAP_USERNAME + " test\r\n");
-			send(toHandler, "0002 SELECT INBOX\r\n");
-			send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
-
-			//Read all the initial responses
-			List<String> expectedResponse = new LinkedList<String>();
-			expectedResponse.addAll(INITIAL_RESPONSES);
-			int lineNum = 0;
-			for(String response : expectedResponse) {
-				String line = fromHandler.readLine();
-				assertEquals("Failed at line " + lineNum++, response, line);
-			}
-
-			//Read and parse the INTERNALDATE line which should be of the form:
-			//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
-			String line = fromHandler.readLine();
-			String[] parts = line.split("\"");
-			assertEquals(3, parts.length);
-			String date = parts[1];
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-			sdf.parse(date);
-
-			//Read final line of expected output
-			line = fromHandler.readLine();
-			assertEquals("0003 OK Fetch completed", line);
-
-			assertFalse("IMAP socket has more data", fromHandler.ready());
-			fromHandler.close();
-			toHandler.close();
-		} finally {
-			Locale.setDefault(orig);
-		}
 	}
 }

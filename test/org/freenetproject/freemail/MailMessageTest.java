@@ -19,32 +19,34 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import org.freenetproject.freemail.MailMessage;
 
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class MailMessageTest extends TestCase {
+public class MailMessageTest {
 	private static final String MESSAGE_DIR = "msg_dir";
 
 	private File msgDir = null;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		// Create a directory for messages so it is easier to list files, clean up etc.
 		msgDir = new File(MESSAGE_DIR);
 		if(msgDir.exists()) {
@@ -57,8 +59,8 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(msgDir);
 	}
 
@@ -67,7 +69,8 @@ public class MailMessageTest extends TestCase {
 	 * would lose track of the file when storing a different set of flags, so the second attempt
 	 * would fail silently.
 	 */
-	public void testStoreFlagsTwice() throws IOException {
+	@Test
+	public void storeFlagsTwice() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -84,7 +87,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
 	}
 
-	public void testSingleLineReferencesHeader() throws IOException {
+	@Test
+	public void singleLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -100,7 +104,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals("<abc@domain>", msg.getFirstHeader("References"));
 	}
 
-	public void testMultiLineReferencesHeader() throws IOException {
+	@Test
+	public void multiLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -124,7 +129,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals(expected, msg.getFirstHeader("References"));
 	}
 
-	public void testEncodeDecodeMultipleStrings() throws UnsupportedEncodingException {
+	@Test
+	public void encodeDecodeMultipleStrings() throws UnsupportedEncodingException {
 		List<String> input = new LinkedList<String>();
 		input.add("Test message");
 		input.add("Test message (æøå)");
@@ -138,32 +144,13 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
-	private String join(Collection<?> objs, String separator) {
-		if(objs.isEmpty()) {
-			return "";
-		}
-		if(objs.size() == 1) {
-			return objs.iterator().next().toString();
-		}
-
-		StringBuilder s = new StringBuilder();
-		Iterator<?> it = objs.iterator();
-		while(it.hasNext()) {
-			s.append(it.next().toString());
-			if(it.hasNext()) {
-				s.append(separator);
-			}
-		}
-		return s.toString();
-	}
-
 	/**
 	 * Tests that the parseDate() function parses a valid date without the day of week correctly.
-	 * The test is run with all available locales.
+	 * Test is run with the tr locale, checking for the bug that was fixed in commit 7c14b5f6cd.
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
-	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testDecodeDateAllLocales() throws ParseException {
+	@Test
+	public void decodeDateAllLocales() throws ParseException {
 		final String date = "17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -172,33 +159,16 @@ public class MailMessageTest extends TestCase {
 			expected = dateFormat.parse(date);
 		}
 
-		Locale orig = Locale.getDefault();
-		try {
-			List<Locale> failed = new LinkedList<Locale>();
-			for(Locale l : Locale.getAvailableLocales()) {
-				Locale.setDefault(l);
-
-				Date actual = MailMessage.parseDate(date);
-				if(!expected.equals(actual)) {
-					failed.add(l);
-				}
-			}
-
-			if(!failed.isEmpty()) {
-				fail("Parsing failed with locale(s): [" + join(failed, ", ") + "]");
-			}
-		} finally {
-			Locale.setDefault(orig);
-		}
+		checkDateWithLocale(expected, date, new Locale("tr"));
 	}
 
 	/**
 	 * Tests that the parseDate() function parses a valid date with the day of week correctly.
-	 * The test is run with all available locales.
+	 * Test is run with the tr locale, checking for the bug that was fixed in commit 7c14b5f6cd.
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
-	//FIXME: Convert to proper parameterized test after moving to jUnit4 (see http://junit.sourceforge.net/javadoc/org/junit/runners/Parameterized.html)
-	public void testDecodeDateWithDayAllLocales() throws ParseException {
+	@Test
+	public void decodeDateWithDayAllLocales() throws ParseException {
 		final String date = "Mon, 17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -207,27 +177,23 @@ public class MailMessageTest extends TestCase {
 			expected = dateFormat.parse(date);
 		}
 
+		checkDateWithLocale(expected, date, new Locale("tr"));
+	}
+
+	private void checkDateWithLocale(Date expected, String date, Locale locale) {
 		Locale orig = Locale.getDefault();
 		try {
-			List<Locale> failed = new LinkedList<Locale>();
-			for(Locale l : Locale.getAvailableLocales()) {
-				Locale.setDefault(l);
+			Locale.setDefault(locale);
 
-				Date actual = MailMessage.parseDate(date);
-				if(!expected.equals(actual)) {
-					failed.add(l);
-				}
-			}
-
-			if(!failed.isEmpty()) {
-				fail("Parsing failed with locale(s): [" + join(failed, ", ") + "]");
-			}
+			Date actual = MailMessage.parseDate(date);
+			assertEquals(expected, actual);
 		} finally {
 			Locale.setDefault(orig);
 		}
 	}
 
-	public void testDecodeDateMissingTimezone() {
+	@Test
+	public void decodeDateMissingTimezone() {
 		final String date = "17 Oct 2011 10:24:14";
 		Date actual = MailMessage.parseDate(date);
 		assertEquals(null, actual);

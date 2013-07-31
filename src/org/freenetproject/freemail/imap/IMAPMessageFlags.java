@@ -21,6 +21,7 @@
 
 package org.freenetproject.freemail.imap;
 
+import java.util.Locale;
 import java.util.Vector;
 
 public class IMAPMessageFlags {
@@ -154,7 +155,7 @@ public class IMAPMessageFlags {
 		String realFlag = null;
 
 		for(int i = 0; i < allFlags.length; i++) {
-			if(allFlags[i].toLowerCase().equals(flag.toLowerCase())) {
+			if(allFlags[i].toLowerCase(Locale.ROOT).equals(flag.toLowerCase(Locale.ROOT))) {
 				realFlag = allFlags[i];
 			}
 		}

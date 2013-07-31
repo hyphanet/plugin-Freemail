@@ -19,16 +19,19 @@
 
 package org.freenetproject.freemail.utils;
 
+import static org.junit.Assert.*;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class DateStringFactoryTest extends TestCase {
-	public void testOffsetKeyString() throws ParseException {
+public class DateStringFactoryTest {
+	@Test
+	public void offsetKeyString() throws ParseException {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.ROOT);
 		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		String s = DateStringFactory.getOffsetKeyString(0);
@@ -42,7 +45,8 @@ public class DateStringFactoryTest extends TestCase {
 		}
 	}
 
-	public void testOffsetKeyStringWithFrenchLocale() throws ParseException {
+	@Test
+	public void offsetKeyStringWithFrenchLocale() throws ParseException {
 		Locale orig = Locale.getDefault();
 		try {
 			Locale.setDefault(Locale.FRENCH);

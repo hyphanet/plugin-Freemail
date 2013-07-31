@@ -19,52 +19,59 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.junit.Test;
+
 import org.freenetproject.freemail.MailMessage;
 
-import utils.Utils;
-
-import junit.framework.TestCase;
-
-public class MailMessageBodyEncodingTest extends TestCase {
-	public void testEncodeAsciiText() throws IOException {
+public class MailMessageBodyEncodingTest {
+	@Test
+	public void encodeAsciiText() throws IOException {
 		byte[] input = "Test message 123".getBytes("UTF-8");
 		runEncoderTest(input, input);
 	}
 
-	public void testEncodeTrailingLineBreak() throws IOException {
+	@Test
+	public void encodeTrailingLineBreak() throws IOException {
 		byte[] input = "Test message\r\n".getBytes("UTF-8");
 		runEncoderTest(input, input);
 	}
 
-	public void testEncodeEOLWhitespace() throws IOException {
+	@Test
+	public void encodeEOLWhitespace() throws IOException {
 		byte[] input = "Test message \r\n".getBytes("UTF-8");
 		byte[] expected = "Test message=20\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeUTF8() throws IOException {
+	@Test
+	public void encodeUTF8() throws IOException {
 		byte[] input = "æ∀\r\n".getBytes("UTF-8");
 		byte[] expected = "=C3=A6=E2=88=80\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeSingleCarriageReturn() throws IOException {
+	@Test
+	public void encodeSingleCarriageReturn() throws IOException {
 		byte[] input = "Test\r\r\n".getBytes("UTF-8");
 		byte[] expected = "Test=0D\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeSingleNewline() throws IOException {
+	@Test
+	public void encodeSingleNewline() throws IOException {
 		byte[] input = "Test\n\r\n".getBytes("UTF-8");
 		byte[] expected = "Test=0A\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeLongLine() throws IOException {
+	@Test
+	public void encodeLongLine() throws IOException {
 		byte[] input = (
 				"Test of a long line that will require a soft line break because it is more "
 				+ "than 78 characters long").getBytes("UTF-8");
@@ -74,13 +81,15 @@ public class MailMessageBodyEncodingTest extends TestCase {
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeEquals() throws IOException {
+	@Test
+	public void encodeEquals() throws IOException {
 		byte[] input = "Test=message\r\n".getBytes("UTF-8");
 		byte[] expected = "Test=3Dmessage\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeAsciiDel() throws IOException {
+	@Test
+	public void encodeAsciiDel() throws IOException {
 		byte[] input = "Test?message\r\n".getBytes("UTF-8");
 		input[4] = 0x7F;
 
@@ -88,38 +97,44 @@ public class MailMessageBodyEncodingTest extends TestCase {
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeTab() throws IOException {
+	@Test
+	public void encodeTab() throws IOException {
 		byte[] input = "Test\tmessage\r\n".getBytes();
 		byte[] expected = "Test\tmessage\r\n".getBytes();
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeTabAtEOL() throws IOException {
+	@Test
+	public void encodeTabAtEOL() throws IOException {
 		byte[] input = "Test message\t\r\n".getBytes("UTF-8");
 		byte[] expected = "Test message=09\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testEncodeSpaceAndNewline() throws IOException {
+	@Test
+	public void encodeSpaceAndNewline() throws IOException {
 		byte[] input = " \n\r\n".getBytes("UTF-8");
 		byte[] expected = " =0A\r\n".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testBufferExpansionWhileEncoding() throws IOException {
+	@Test
+	public void bufferExpansionWhileEncoding() throws IOException {
 		byte[] input = "          ".getBytes("UTF-8");
 		byte[] expected = "         =20".getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testInsertSoftLineBreakBeforeEncodedChar() throws IOException {
+	@Test
+	public void insertSoftLineBreakBeforeEncodedChar() throws IOException {
 		byte[] input = "Test of a long line that will require a soft line before the encoded char: æ".getBytes("UTF-8");
 		byte[] expected = ("Test of a long line that will require a soft line before the encoded char: "
 		                 + "=\r\n=C3=A6").getBytes("UTF-8");
 		runEncoderTest(expected, input);
 	}
 
-	public void testHardLineBreakResetsOutputCharCount() throws IOException {
+	@Test
+	public void hardLineBreakResetsOutputCharCount() throws IOException {
 		byte[] input = ("This test checks for the bug that was fixed in \r\n"
 				+ "commit 4d6245a3921c3711e68c419856edd47fb2404e19, where \r\n"
 				+ "writing a hard line break wouldn't reset the output \r\n"
@@ -145,6 +160,6 @@ public class MailMessageBodyEncodingTest extends TestCase {
 		encoder.write(input);
 		encoder.close();
 
-		Utils.assertEquals(expected, output.toByteArray());
+		assertArrayEquals(expected, output.toByteArray());
 	}
 }

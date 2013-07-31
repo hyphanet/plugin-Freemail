@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
 public class IMAPUidStoreTest extends IMAPTestWithMessages {
-	public void testUidStoreWithoutArguments() throws IOException {
+	@Test
+	public void uidStoreWithoutArguments() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -37,7 +40,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithoutFlags() throws IOException {
+	@Test
+	public void uidStoreWithoutFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -50,7 +54,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithoutFlagsList() throws IOException {
+	@Test
+	public void uidStoreWithoutFlagsList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -63,7 +68,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSimpleUidStore() throws IOException {
+	@Test
+	public void simpleUidStore() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -77,7 +83,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testAddMessageFlags() throws IOException {
+	@Test
+	public void addMessageFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -91,7 +98,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithEmptySet() throws IOException {
+	@Test
+	public void uidStoreWithEmptySet() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -104,7 +112,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithBadRangeStart() throws IOException {
+	@Test
+	public void uidStoreWithBadRangeStart() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -117,7 +126,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithBadRangeEnd() throws IOException {
+	@Test
+	public void uidStoreWithBadRangeEnd() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -130,7 +140,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreToMsgWithDifferentSeqNumAndUid() throws IOException {
+	@Test
+	public void uidStoreToMsgWithDifferentSeqNumAndUid() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -148,7 +159,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 	 * This tests for the bug fixed in commit 6219756e where \Seen was added
 	 * automatically when \Deleted was added
 	 */
-	public void testUidStoreDeleteFlag() throws IOException {
+	@Test
+	public void uidStoreDeleteFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -162,7 +174,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithUidsThatDontExist() throws IOException {
+	@Test
+	public void uidStoreWithUidsThatDontExist() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -179,7 +192,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreOtherThanFlag() throws IOException {
+	@Test
+	public void uidStoreOtherThanFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -192,7 +206,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreRemoveFlags() throws IOException {
+	@Test
+	public void uidStoreRemoveFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -209,7 +224,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreRemoveNonexistentFlag() throws IOException {
+	@Test
+	public void uidStoreRemoveNonexistentFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -223,7 +239,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSilentUidStore() throws IOException {
+	@Test
+	public void silentUidStore() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -236,7 +253,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithMessageId0() throws IOException {
+	@Test
+	public void uidStoreWithMessageId0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -249,7 +267,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithMessageIdRangeFrom0() throws IOException {
+	@Test
+	public void uidStoreWithMessageIdRangeFrom0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -262,7 +281,8 @@ public class IMAPUidStoreTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithMessageIdRangeTo0() throws IOException {
+	@Test
+	public void uidStoreWithMessageIdRangeTo0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");

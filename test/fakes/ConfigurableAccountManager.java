@@ -20,8 +20,7 @@
 
 package fakes;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -48,7 +47,9 @@ public class ConfigurableAccountManager extends NullAccountManager {
 		if(failAuth) return null;
 
 		File accountDir = accountDirs.get(username);
-		assertNotNull("No account directory found for " + username, accountDir);
+		if(accountDir == null) {
+			return null;
+		}
 
 		//FreemailAccount constructor is package-protected and
 		//there is no reason to change that, so use reflection
@@ -62,8 +63,8 @@ public class ConfigurableAccountManager extends NullAccountManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.toString());
-		}
 
-		return null;
+			throw new AssertionError(); //Since the compiler doesn't know fail() never returns
+		}
 	}
 }
