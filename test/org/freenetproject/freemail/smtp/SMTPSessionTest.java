@@ -37,8 +37,8 @@ import java.util.Set;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.freenetproject.freemail.AccountManager;
-import org.freenetproject.freemail.NullFreemailAccount;
 import org.freenetproject.freemail.FreemailAccount;
+import org.freenetproject.freemail.NullFreemailAccount;
 import org.freenetproject.freemail.transport.MessageHandler;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
@@ -47,18 +47,20 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import data.TestId1Data;
+
+import utils.TextProtocolTester;
+import utils.TextProtocolTester.Command;
+import utils.UnitTestParameters;
 import utils.Utils;
+import fakes.FakeSocket;
 import fakes.NullIdentity;
 import fakes.NullMessageHandler;
-import fakes.FakeSocket;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.BucketTools;
 
 public class SMTPSessionTest {
-	private static final boolean EXTENSIVE = Boolean.parseBoolean(System.getenv("test.extensive"));
-	private static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
-	private static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
 	private static final String PASSWORD = "oaJ4Aa1b";
 
 	/*
@@ -93,29 +95,29 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void simpleSession() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
-				+ "From: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "From: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "Subject: Freemail SMTP test\r\n"
-				+ "To: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "To: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "\r\n"
 				+ "This is a simple SMTP test for Freemail\r\n";
 
-		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
 		List<Command> commands = new LinkedList<Command>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
 		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
-		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
-		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("MAIL FROM:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
+		commands.add(new Command("RCPT TO:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message + ".\r\n", "250 So be it"));
 
 		runSimpleSessionTest(commands, true, Collections.singletonList(message),
-		                     Collections.singletonList("zidel@" + BASE32_USERNAME + ".freemail"));
+		                     Collections.singletonList(TestId1Data.FreemailAccount.ADDRESS));
 	}
 
 	/**
@@ -126,29 +128,29 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void simpleSessionSendFails() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
-				+ "From: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "From: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "Subject: Freemail SMTP test\r\n"
-				+ "To: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "To: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "\r\n"
 				+ "This is a simple SMTP test for Freemail\r\n";
 
-		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
 		List<Command> commands = new LinkedList<Command>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
 		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
-		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
-		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("MAIL FROM:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
+		commands.add(new Command("RCPT TO:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message + ".\r\n", "452 Message sending failed"));
 
 		runSimpleSessionTest(commands, false, Collections.singletonList(message),
-		                Collections.singletonList("zidel@" + BASE32_USERNAME + ".freemail"));
+		                Collections.singletonList(TestId1Data.FreemailAccount.ADDRESS));
 	}
 
 	/**
@@ -159,38 +161,38 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void messageWithDotPadding() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
-				+ "From: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "From: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "Subject: Freemail SMTP test\r\n"
-				+ "To: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "To: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "\r\n"
 				+ "This is a simple SMTP test for Freemail\r\n"
 				+ ".\r\n";
 		final String padded =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
-				+ "From: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "From: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "Subject: Freemail SMTP test\r\n"
-				+ "To: zidel <zidel@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "To: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "\r\n"
 				+ "This is a simple SMTP test for Freemail\r\n"
 				+ "..\r\n";
 
-		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
 		List<Command> commands = new LinkedList<Command>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
 		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
-		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
-		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("MAIL FROM:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
+		commands.add(new Command("RCPT TO:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(padded + ".\r\n", "250 So be it"));
 
 		runSimpleSessionTest(commands, true, Collections.singletonList(message),
-		                Collections.singletonList("zidel@" + BASE32_USERNAME + ".freemail"));
+		                Collections.singletonList(TestId1Data.FreemailAccount.ADDRESS));
 	}
 
 	/**
@@ -201,26 +203,26 @@ public class SMTPSessionTest {
 	 * @throws IOException on IO errors with SMTP thread, should never happen
 	 */
 	@Test
-	public void twoMessageInOneSession() throws IOException {
-		Assume.assumeTrue(EXTENSIVE);
+	public void twoMessagesInOneSession() throws IOException {
+		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message1 =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
-				+ "From: zidel <zidel1@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "From: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "Subject: Freemail SMTP test\r\n"
-				+ "To: zidel <zidel1@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "To: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "\r\n"
 				+ "This is test message 1.\r\n";
 
 		final String message2 =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
-				+ "From: zidel <zidel2@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "From: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "Subject: Freemail SMTP test\r\n"
-				+ "To: zidel <zidel2@" + BASE32_USERNAME + ".freemail>\r\n"
+				+ "To: " + TestId1Data.FreemailAccount.ADDRESS_WITH_ANGLE + "\r\n"
 				+ "\r\n"
 				+ "This is test message 2.\r\n";
 
-		String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
+		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
 		List<Command> commands = new LinkedList<Command>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
@@ -228,14 +230,14 @@ public class SMTPSessionTest {
 		commands.add(new Command("AUTH PLAIN " + authData, "235 Authenticated"));
 
 		//Message 1
-		commands.add(new Command("MAIL FROM:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
-		commands.add(new Command("RCPT TO:<zidel@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("MAIL FROM:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
+		commands.add(new Command("RCPT TO:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message1 + ".\r\n", "250 So be it"));
 
 		//Message 2
-		commands.add(new Command("MAIL FROM:<zidel2@" + BASE32_USERNAME + ".freemail>", "250 OK"));
-		commands.add(new Command("RCPT TO:<zidel2@" + BASE32_USERNAME + ".freemail>", "250 OK"));
+		commands.add(new Command("MAIL FROM:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
+		commands.add(new Command("RCPT TO:<" + TestId1Data.FreemailAccount.ADDRESS + ">", "250 OK"));
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message2 + ".\r\n", "250 So be it"));
 
@@ -244,8 +246,8 @@ public class SMTPSessionTest {
 		messages.add(message2);
 
 		List<String> recipients = new ArrayList<String>(2);
-		recipients.add("zidel@" + BASE32_USERNAME + ".freemail");
-		recipients.add("zidel2@" + BASE32_USERNAME + ".freemail");
+		recipients.add(TestId1Data.FreemailAccount.ADDRESS);
+		recipients.add(TestId1Data.FreemailAccount.ADDRESS);
 
 		runSimpleSessionTest(commands, true, messages, recipients);
 	}
@@ -264,7 +266,7 @@ public class SMTPSessionTest {
 	                                 final List<String> rcpts) throws IOException {
 		assertEquals(messages.size(), rcpts.size());
 
-		final Identity recipient = new NullIdentity(BASE64_USERNAME, null, null) {
+		final Identity recipient = new NullIdentity(TestId1Data.Identity.ID, null, null) {
 			@Override
 			public boolean equals(Object o) {
 				return o == this;
@@ -289,7 +291,7 @@ public class SMTPSessionTest {
 			}
 		};
 
-		final FreemailAccount account = new NullFreemailAccount(BASE64_USERNAME, null, null, null) {
+		final FreemailAccount account = new NullFreemailAccount(TestId1Data.Identity.ID, null, null, null) {
 			@Override
 			public MessageHandler getMessageHandler() {
 				return messageHandler;
@@ -302,14 +304,14 @@ public class SMTPSessionTest {
 
 			@Override
 			public String getIdentity() {
-				return BASE64_USERNAME;
+				return TestId1Data.Identity.ID;
 			}
 		};
 
 		AccountManager accManager = new AccountManager(accountManagerDir, null) {
 			@Override
 			public FreemailAccount authenticate(String username, String password) {
-				if(username.equals(BASE64_USERNAME) && password.equals(PASSWORD)) {
+				if(username.equals(TestId1Data.Identity.ID) && password.equals(PASSWORD)) {
 					return account;
 				}
 
@@ -326,7 +328,7 @@ public class SMTPSessionTest {
 
 				assertEquals(1, recipients.size());
 				assertEquals(curRcpt, recipients.iterator().next());
-				assertEquals(BASE64_USERNAME, wotOwnIdentity);
+				assertEquals(TestId1Data.Identity.ID, wotOwnIdentity);
 
 				Map<String, List<Identity>> result = new HashMap<String, List<Identity>>();
 				List<Identity> ids = new LinkedList<Identity>();
@@ -343,16 +345,8 @@ public class SMTPSessionTest {
 		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
 		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
 
-		for(Command cmd : commands) {
-			if(cmd.command != null) {
-				toHandler.write(cmd.command + "\r\n");
-				toHandler.flush();
-			}
-
-			for(String reply : cmd.replies) {
-				assertEquals(reply, fromHandler.readLine());
-			}
-		}
+		TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+		tester.runProtocolTest(commands);
 
 		//QUIT
 		toHandler.write("QUIT\r\n");
@@ -374,18 +368,6 @@ public class SMTPSessionTest {
 			smtpThread.join();
 		} catch(InterruptedException e) {
 			fail("Caught unexpected InterruptedException");
-		}
-	}
-
-	private class Command {
-		private final String command;
-		private final List<String> replies = new LinkedList<String>();
-
-		private Command(String command, String ... replies) {
-			this.command = command;
-			for(String reply : replies) {
-				this.replies.add(reply);
-			}
 		}
 	}
 }

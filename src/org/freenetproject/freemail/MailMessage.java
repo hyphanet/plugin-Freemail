@@ -289,17 +289,19 @@ public class MailMessage {
 		// this is quite arduous since we have to send the message
 		// with \r\n's, and hence it may not be the size it is on disk
 		BufferedReader br = new BufferedReader(new FileReader(this.file));
+		try {
+			long counter = 0;
+			String line;
 
-		long counter = 0;
-		String line;
+			while((line = br.readLine()) != null) {
+				counter += line.getBytes("UTF-8").length;
+				counter += "\r\n".getBytes("UTF-8").length;
+			}
 
-		while((line = br.readLine()) != null) {
-			counter += line.getBytes().length;
-			counter += "\r\n".getBytes().length;
+			return counter;
+		} finally {
+			br.close();
 		}
-
-		br.close();
-		return counter;
 	}
 
 	public void closeStream() {
@@ -324,8 +326,12 @@ public class MailMessage {
 		String line;
 		try {
 			PrintStream copyps = msg.getRawStream();
-			while((line = this.readLine()) != null) {
-				copyps.println(line);
+			try {
+				while((line = this.readLine()) != null) {
+					copyps.println(line);
+				}
+			} finally {
+				copyps.close();
 			}
 			msg.commit();
 		} catch (IOException ioe) {
@@ -529,19 +535,18 @@ public class MailMessage {
 	}
 
 	/**
-	 * Generated a message-id from the specified domain and date. The generated message-id will be
-	 * of the form &lt;local part&gt;@&lt;domain&gt;, where the local part is generated using the
-	 * specified date and a random number large enough that collisions are unlikely.
+	 * Generated a message-id from the specified domain. The generated message-id will be of the
+	 * form &lt;local part&gt;@&lt;domain&gt;, where the local part is generated using a random
+	 * number large enough that collisions are unlikely.
 	 * @param domain the domain part of the message-id
-	 * @param date the date used in the message-id
 	 * @return the generated message-id
 	 */
-	public static String generateMessageID(String domain, Date date) {
+	public static String generateMessageID(String domain) {
 		if(domain == null) {
 			Logger.error(MailMessage.class, "Domain passed to generateMessageID() was null", new Exception());
 		}
 
-		return date.getTime() + messageIdRandom.nextLong() + "@" + domain;
+		return messageIdRandom.nextLong() + "." + messageIdRandom.nextLong() + "@" + domain;
 	}
 
 	public static String encodeHeader(String header) {

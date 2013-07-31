@@ -31,49 +31,40 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import utils.LocaleDependentTest;
+
 /**
  * Contains regression tests for locale dependent bugs that have been found in the SMTP code.
  */
 @RunWith(value = Parameterized.class)
 public class SMTPLocaleDependentTest extends SMTPTestBase {
-	private static final boolean EXTENSIVE = Boolean.parseBoolean(System.getenv("test.extensive"));
+	private final LocaleDependentTest localeDependentTest;
 
 	@Parameters
 	public static List<Locale[]> data() {
-		List<Locale[]> list = new LinkedList<Locale[]>();
-
-		if(EXTENSIVE) {
-			for(Locale l : Locale.getAvailableLocales()) {
-				list.add(new Locale[] {l});
-			}
-		} else {
-			list.add(new Locale[] {new Locale("en_GB")});
-			list.add(new Locale[] {new Locale("tr_TR")});
+		List<Locale[]> data = new LinkedList<Locale[]>();
+		for(Locale l : LocaleDependentTest.data()) {
+			data.add(new Locale[] {l});
 		}
-
-		return list;
+		return data;
 	}
 
-	private final Locale locale;
-	private final Locale defaultLocale;
-
 	public SMTPLocaleDependentTest(Locale locale) {
-		this.locale = locale;
-		this.defaultLocale = Locale.getDefault();
+		this.localeDependentTest = new LocaleDependentTest(locale);
 	}
 
 	@Before
 	@Override
 	public void before() {
 		super.before();
-		Locale.setDefault(locale);
+		localeDependentTest.before();
 	}
 
 	@After
 	@Override
 	public void after() {
 		try {
-			Locale.setDefault(defaultLocale);
+			localeDependentTest.after();
 		} finally {
 			super.after();
 		}

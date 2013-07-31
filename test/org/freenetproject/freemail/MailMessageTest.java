@@ -150,7 +150,7 @@ public class MailMessageTest {
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
 	@Test
-	public void decodeDateAllLocales() throws ParseException {
+	public void decodeDateTurkishLocale() throws ParseException {
 		final String date = "17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{
@@ -168,7 +168,7 @@ public class MailMessageTest {
 	 * @throws ParseException if the static date string can't be parsed, should never happen
 	 */
 	@Test
-	public void decodeDateWithDayAllLocales() throws ParseException {
+	public void decodeDateWithDayTurkishLocale() throws ParseException {
 		final String date = "Mon, 17 Oct 2011 10:24:14 +0000";
 		final Date expected;
 		{

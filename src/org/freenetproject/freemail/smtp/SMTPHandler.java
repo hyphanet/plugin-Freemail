@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -157,7 +158,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			this.ps.print("504 No auth type given\r\n");
 			return;
 		} else if(cmd.args[0].equalsIgnoreCase("login")) {
-			this.ps.print("334 "+new String(Base64.encode("Username:".getBytes()))+"\r\n");
+			try {
+				this.ps.print("334 "+new String(Base64.encode("Username:".getBytes("UTF-8")))+"\r\n");
+			} catch(UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			}
 
 			String b64username;
 			String b64password;
@@ -168,7 +174,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if(b64username == null) return;
 
-			this.ps.print("334 "+new String(Base64.encode("Password:".getBytes()))+"\r\n");
+			try {
+				this.ps.print("334 "+new String(Base64.encode("Password:".getBytes("UTF-8")))+"\r\n");
+			} catch(UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			}
 			try {
 				b64password = this.bufrdr.readLine();
 			} catch (IOException ioe) {
@@ -176,8 +187,13 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if(b64password == null) return;
 
-			uname = new String(Base64.decode(b64username.getBytes()));
-			password = new String(Base64.decode(b64password.getBytes()));
+			try {
+				uname = new String(Base64.decode(b64username.getBytes("UTF-8")));
+				password = new String(Base64.decode(b64password.getBytes("UTF-8")));
+			} catch(UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			}
 		} else if(cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
 
@@ -193,7 +209,13 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				}
 			}
 
-			String creds_plain = new String(Base64.decode(b64creds.getBytes()));
+			String creds_plain;
+			try {
+				creds_plain = new String(Base64.decode(b64creds.getBytes("UTF-8")));
+			} catch (UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			}
 			String[] creds = creds_plain.split("\0");
 
 			if(creds.length < 2) return;

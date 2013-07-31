@@ -31,12 +31,11 @@ import org.junit.Test;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
 
+import data.TestId1Data;
+
 import utils.Utils;
 
 public class AccountManagerTest {
-	private static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
-	private static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
-
 	private File dataDir;
 
 	@Before
@@ -61,16 +60,16 @@ public class AccountManagerTest {
 	public void authenticateSimpleUsername() throws IOException {
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
 		// node, so we have to do it the hard way
-		File accDir = new File(dataDir, BASE32_USERNAME);
+		File accDir = new File(dataDir, TestId1Data.BASE32_ID);
 		accDir.mkdir();
 		File accProps = new File(accDir, AccountManager.ACCOUNT_FILE);
 		accProps.createNewFile();
 
 		AccountManager manager = new AccountManager(dataDir, null);
-		FreemailAccount acc = manager.getAccount(BASE64_USERNAME);
+		FreemailAccount acc = manager.getAccount(TestId1Data.BASE64_ID);
 		AccountManager.changePassword(acc, "test");
 
-		assertNotNull(manager.authenticate(BASE64_USERNAME, "test"));
+		assertNotNull(manager.authenticate(TestId1Data.BASE64_ID, "test"));
 	}
 
 	@Test
@@ -90,15 +89,15 @@ public class AccountManagerTest {
 
 		// Creating accounts the real way doesn't work because there is no fcp connection to the
 		// node, so we have to do it the hard way
-		File accDir = new File(dataDir, BASE32_USERNAME);
+		File accDir = new File(dataDir, TestId1Data.BASE32_ID);
 		accDir.mkdir();
 		File accProps = new File(accDir, AccountManager.ACCOUNT_FILE);
 		accProps.createNewFile();
 
 		AccountManager manager = new AccountManager(dataDir, null);
-		FreemailAccount acc = manager.getAccount(BASE64_USERNAME);
+		FreemailAccount acc = manager.getAccount(TestId1Data.BASE64_ID);
 		AccountManager.changePassword(acc, ACCOUNT_PASSWORD);
 
-		assertNotNull(manager.authenticate(BASE64_USERNAME, ACCOUNT_PASSWORD));
+		assertNotNull(manager.authenticate(TestId1Data.BASE64_ID, ACCOUNT_PASSWORD));
 	}
 }

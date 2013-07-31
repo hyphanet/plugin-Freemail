@@ -228,7 +228,7 @@ public class MessageHandler {
 			PrintWriter pw = new PrintWriter(os);
 			InputStream messageStream = message.getInputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream));
-			MailHeaderFilter filter = new MailHeaderFilter(reader);
+			MailHeaderFilter filter = new MailHeaderFilter(reader, freemailAccount.getDomain());
 			try {
 				//Copy headers
 				String header = filter.readHeader();

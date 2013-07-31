@@ -262,6 +262,14 @@ class WoTConnectionImpl implements WoTConnection {
 		assert (msg != null);
 
 		//Synchronize on this so only one message can be sent at a time
+		//Log the contents of the message before sending (debug because of private keys etc)
+		Iterator<String> msgContentIterator = msg.sfs.keyIterator();
+		while(msgContentIterator.hasNext()) {
+			String key = msgContentIterator.next();
+			Logger.debug(this, key + "=" + msg.sfs.get(key));
+		}
+
+		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
 		Timer requestTimer;
 		synchronized(this) {

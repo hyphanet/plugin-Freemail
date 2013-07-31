@@ -34,11 +34,13 @@ import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
 import org.freenetproject.freemail.wot.IdentityMatcher.MatchMethod;
 
+import data.TestId1Data;
+
 import fakes.MockWoTConnection;
 import freenet.pluginmanager.PluginNotFoundException;
 
 public class IdentityMatcherTest {
-	private static final Identity identity = new Identity("D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc", "SSK@D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc,xgddjFHx2S~5U6PeFkwqO5V~1gZngFLoM-xaoMKSBI8,AQACAAE", "zidel");
+	private static final Identity identity = TestId1Data.Identity.newInstance();
 
 	@Test
 	public void fullIdentityMatch() throws PluginNotFoundException {
@@ -101,5 +103,59 @@ public class IdentityMatcherTest {
 
 		assertEquals(1, matches.size());
 		assertEquals(0, matches.get(id).size());
+	}
+
+	@Test
+	public void errorReturnFromTrusted() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(null);
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
+
+		Set<String> recipients = Collections.singleton(TestId1Data.FreemailAccount.ADDRESS);
+		Map<String, List<Identity>> matches;
+
+		//Matcher shouldn't return any matches in case of failure
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), EnumSet.of(MatchMethod.FULL_BASE32));
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(TestId1Data.FreemailAccount.ADDRESS).size());
+	}
+
+	@Test
+	public void errorReturnFromUntrusted() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setUntrustedIdentities(null);
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
+
+		Set<String> recipients = Collections.singleton(TestId1Data.FreemailAccount.ADDRESS);
+		Map<String, List<Identity>> matches;
+
+		//Matcher shouldn't return any matches in case of failure
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), EnumSet.of(MatchMethod.FULL_BASE32));
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(TestId1Data.FreemailAccount.ADDRESS).size());
+	}
+
+	@Test
+	public void errorReturnFromOwnIds() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(null);
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
+
+		Set<String> recipients = Collections.singleton(TestId1Data.FreemailAccount.ADDRESS);
+		Map<String, List<Identity>> matches;
+
+		//Matcher shouldn't return any matches in case of failure
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), EnumSet.of(MatchMethod.FULL_BASE32));
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(TestId1Data.FreemailAccount.ADDRESS).size());
 	}
 }

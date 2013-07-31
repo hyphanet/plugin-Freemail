@@ -546,7 +546,12 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private Bucket bucketFromString(String data) {
-		return new ArrayBucket(data.getBytes());
+		try {
+			return new ArrayBucket(data.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+		}
 	}
 
 	private List<String> readExtraHeaders(HTTPRequest req) {

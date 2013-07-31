@@ -27,6 +27,7 @@ import java.io.PrintStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -137,7 +138,12 @@ public class AccountManager {
 	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
 
-		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
+		try {
+			md5.update(newpassword.getBytes("UTF-8"), 0, newpassword.getBytes("UTF-8").length);
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+		}
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
@@ -219,7 +225,12 @@ public class AccountManager {
 		if(realmd5str == null) return null;
 
 		MD5Digest md5 = new MD5Digest();
-		md5.update(password.getBytes(), 0, password.getBytes().length);
+		try {
+			md5.update(password.getBytes("UTF-8"), 0, password.getBytes("UTF-8").length);
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+		}
 		byte[] givenmd5 = new byte[md5.getDigestSize()];
 		md5.doFinal(givenmd5, 0);
 
@@ -265,7 +276,7 @@ public class AccountManager {
 		ps.println("");
 		ps.println("Don't forget to stay up to date with the Freemail news and latest version at the freesite, which can be found at:");
 		ps.println("");
-		ps.println("USK@xOg49GNltumTJJzj0fVzuGDpo4hJUsy2UsGQkjE7NY4,EtUH5b9gGpp8JiY-Bm-Y9kHX1q-yDjD-9oRzXn21O9k,AQACAAE/freemail/-1/");
+		ps.println("USK@M0d8y6YoLpXOeQGxu0-IDg8sE5Yt~Ky6t~GPyyZe~zo,KlqIjAj3~dA1Zf57VDljkmp3vHUozndpxnH-P2RRugI,AQACAAE/freemail/-8/");
 		ps.println("");
 		ps.println("Happy Freemailing!");
 		ps.println("");

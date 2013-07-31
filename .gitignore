@@ -3,3 +3,4 @@ lib/
 dist/
 override.properties
 build-test/
+tools/build/

@@ -21,9 +21,13 @@ package org.freenetproject.freemail.smtp;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,11 +36,15 @@ import org.junit.Before;
 
 import org.freenetproject.freemail.AccountManager;
 
+import data.TestId1Data;
+import data.TestId2Data;
+
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 import fakes.NullIdentityMatcher;
 import utils.TextProtocolTester;
 import utils.Utils;
+import utils.TextProtocolTester.Command;
 
 /**
  * Class that handles a lot of the setup needed by all the various SMTP tests.
@@ -44,8 +52,8 @@ import utils.Utils;
  */
 public abstract class SMTPTestBase {
 	protected static final String[] BASE64_USERNAMES = new String[] {
-		"D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc",
-		"1unnefKX8TOorAm5-c0lc6BGT9-6kBucO5f6dLJ9EZA",
+		TestId1Data.Identity.ID,
+		TestId2Data.Identity.ID,
 	};
 	protected static final String BASE64_USERNAME = BASE64_USERNAMES[0];
 
@@ -72,7 +80,20 @@ public abstract class SMTPTestBase {
 		Utils.delete(TEST_DIR);
 	}
 
+	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
+		List<Command> combined = new LinkedList<Command>();
+
+		//Add all the commands first, then the replies, ensuring all the
+		//commands will be sent before checking the replies
+		for(String cmd : commands) {
+			combined.add(new Command(cmd));
+		}
+		combined.add(new Command(null, expectedResponse));
+		runSimpleTest(combined);
+	}
+
+	protected void runSimpleTest(List<Command> commands) throws IOException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
@@ -81,8 +102,10 @@ public abstract class SMTPTestBase {
 		smtpThread.start();
 
 		try {
-			TextProtocolTester tester = new TextProtocolTester(sock);
-			tester.runSimpleTest(commands, expectedResponse);
+			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+			tester.runProtocolTest(commands);
 		} finally {
 			handler.kill();
 			sock.close();

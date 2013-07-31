@@ -46,9 +46,13 @@ import fakes.MockHighLevelFCPClientFactory;
 import fakes.MockIdentity;
 import fakes.MockWoTConnection;
 import fakes.MockHighLevelFCPClient.Insert;
+import freenet.support.Logger;
+import freenet.support.Logger.LogLevel;
+import freenet.support.LoggerHook.InvalidThresholdException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 
+import utils.UnitTestParameters;
 import utils.Utils;
 
 public class MessageTransportTest {
@@ -67,7 +71,11 @@ public class MessageTransportTest {
 	private final File outboxDir = new File(accountDir, "outbox");
 
 	@Before
-	public void before() {
+	public void before() throws InvalidThresholdException {
+		if(UnitTestParameters.VERBOSE) {
+			Logger.setupStdoutLogging(LogLevel.MINIMAL, null);
+		}
+
 		Utils.createDir(testDir);
 		Utils.createDir(accountManagerDir);
 		Utils.createDir(accountDir);
@@ -144,14 +152,14 @@ public class MessageTransportTest {
 		handler.sendMessage(recipients, message);
 
 		//First we wait for the mailsite fetch request
-		fcpClient.awaitFetch(TestId1Data.Mailsite.REQUEST_KEY, 1, TimeUnit.MINUTES);
+		fcpClient.awaitFetch(TestId1Data.Mailsite.REQUEST_KEY, 10, TimeUnit.MINUTES);
 
 		//Then the RTS key insert
-		fcpClient.awaitInsert(TestId1Data.RTSKEY + "-1", 1, TimeUnit.MINUTES);
+		fcpClient.awaitInsert(TestId1Data.RTSKEY + "-1", 10, TimeUnit.MINUTES);
 
 		//Then an insert of any key, which should be the message. Since we don't bother to decrypt
 		//the RTS we don't actually know which key this is inserted to.
-		Insert i = fcpClient.awaitInsert(null, 1, TimeUnit.MINUTES);
+		Insert i = fcpClient.awaitInsert(null, 10, TimeUnit.MINUTES);
 		assertEquals(new String(i.data, "UTF-8"),
 				  "messagetype=message\r\n"
 				+ "id=0\r\n"
