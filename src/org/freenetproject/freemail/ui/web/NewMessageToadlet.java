@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -198,8 +199,9 @@ public class NewMessageToadlet extends WebPage {
 			msg.cancel();
 			return false;
 		}
-
 		Closer.close(ps);
+
+		msg.flags.set("\\Seen", true);
 		msg.commit();
 
 		return true;
@@ -317,6 +319,8 @@ public class NewMessageToadlet extends WebPage {
 		header.append("Subject: " + MailMessage.encodeHeader(getBucketAsString(req.getPart("subject"))) + "\r\n");
 		header.append("Date: " + sdf.format(new Date()) + "\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
+		header.append("Content-Type: text/plain; charset=UTF-8\r\n");
+		header.append("Content-Transfer-Encoding: quoted-printable\r\n");
 
 		//Add extra headers from request. Very little checking is done here since we want flexibility, and anything
 		//that can be added here could also be sent using the SMTP server, so security should not be an issue.
@@ -336,7 +340,7 @@ public class NewMessageToadlet extends WebPage {
 		Bucket message = new ArrayBucket();
 		OutputStream messageOutputStream = message.getOutputStream();
 		BucketTools.copyTo(messageHeader, messageOutputStream, -1);
-		BucketTools.copyTo(messageText, messageOutputStream, -1);
+		BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
 		messageOutputStream.close();
 
 		List<Identity> identities = new LinkedList<Identity>();
@@ -392,22 +396,15 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		StringBuilder body = new StringBuilder();
-
+		BufferedReader bodyReader = msg.getBodyReader();
 		try {
-			//First we have to read past the header
-			String line = msg.readLine();
-			while((line != null) && (!line.equals(""))) {
-				line = msg.readLine();
-			}
-
-			//Now add the actual message content
-			line = msg.readLine();
+			String line = bodyReader.readLine();
 			while(line != null) {
 				body.append(">" + line + "\r\n");
-				line = msg.readLine();
+				line = bodyReader.readLine();
 			}
 		} finally {
-			msg.closeStream();
+			bodyReader.close();
 		}
 
 		List<String> extraHeaders = readExtraHeaders(req);

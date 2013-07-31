@@ -82,7 +82,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while(!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
 					//Logger.normal(this,line);
@@ -104,39 +104,39 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 	private void dispatch(SMTPCommand cmd) {
 		if(cmd.command.equals("helo")) {
-			this.handle_helo(cmd);
+			this.handle_helo();
 		} else if(cmd.command.equals("ehlo")) {
-			this.handle_ehlo(cmd);
+			this.handle_ehlo();
 		} else if(cmd.command.equals("quit")) {
-			this.handle_quit(cmd);
+			this.handle_quit();
 		} else if(cmd.command.equals("turn")) {
-			this.handle_turn(cmd);
+			this.handle_turn();
 		} else if(cmd.command.equals("auth")) {
 			this.handle_auth(cmd);
 		} else if(cmd.command.equals("mail")) {
-			this.handle_mail(cmd);
+			this.handle_mail();
 		} else if(cmd.command.equals("rcpt")) {
 			this.handle_rcpt(cmd);
 		} else if(cmd.command.equals("data")) {
-			this.handle_data(cmd);
+			this.handle_data();
 		} else if(cmd.command.equals("rset")) {
-			this.handle_rset(cmd);
+			this.handle_rset();
 		} else {
 			Logger.normal(this, "Unknown command: " + cmd.command);
 			this.ps.print("502 Unimplemented\r\n");
 		}
 	}
 
-	private void handle_helo(SMTPCommand cmd) {
+	private void handle_helo() {
 		this.ps.print("250 "+MY_HOSTNAME+"\r\n");
 	}
 
-	private void handle_ehlo(SMTPCommand cmd) {
+	private void handle_ehlo() {
 		this.ps.print("250-"+MY_HOSTNAME+"\r\n");
 		this.ps.print("250 AUTH LOGIN PLAIN \r\n");
 	}
 
-	private void handle_quit(SMTPCommand cmd) {
+	private void handle_quit() {
 		this.ps.print("221 "+MY_HOSTNAME+"\r\n");
 		try {
 			this.client.close();
@@ -145,7 +145,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_turn(SMTPCommand cmd) {
+	private void handle_turn() {
 		this.ps.print("502 No\r\n");
 	}
 
@@ -232,7 +232,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_mail(SMTPCommand cmd) {
+	private void handle_mail() {
 		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
@@ -292,7 +292,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.ps.print("250 OK\r\n");
 	}
 
-	private void handle_data(SMTPCommand cmd) {
+	private void handle_data() {
 		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
@@ -346,7 +346,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_rset(SMTPCommand cmd) {
+	private void handle_rset() {
 		this.to.clear();
 		this.ps.print("250 Reset\r\n");
 	}

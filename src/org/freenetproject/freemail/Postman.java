@@ -59,16 +59,23 @@ public abstract class Postman {
 
 		boolean first = true;
 		for(String from : froms) {
-			EmailAddress addr = new EmailAddress(from);
+			EmailAddress addr = null;
+			try {
+				addr = new EmailAddress(from);
+			} catch (IllegalArgumentException e) {
+				//Invalid address, remove it and keep going
+				Logger.warning(this, "Ignoring invalid address from received message: " + from);
+				newmsg.removeHeader("From", from);
+				continue;
+			}
 
 			if(first) {
 				if(!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", from);
-					EmailAddress e = new EmailAddress(from);
-					if(e.realname == null) e.realname = "";
-					e.realname = "**SPOOFED** "+e.realname;
-					e.realname = e.realname.trim();
-					newmsg.addHeader("From", e.toLongString());
+					if(addr.realname == null) addr.realname = "";
+					addr.realname = "**SPOOFED** "+addr.realname;
+					addr.realname = addr.realname.trim();
+					newmsg.addHeader("From", addr.toLongString());
 				}
 			} else {
 				newmsg.removeHeader("From", from);

@@ -1,4 +1,18 @@
-Changes from version 0.2.1 to version 0.2.2
+Changes from version 0.2.2 to version 0.2.3
+  o Bugfixes:
+    - Print missing [HEADER] in response to IMAP fetch with BODY[HEADER]
+    - Fix crash in IMAP on store without arguments
+    - Fix return code when uid store fails
+    - Various minor IMAP fixes when responding to incorrect client requests
+    - Fix bug causing checkcommit to check a commit against itself
+
+  o Improvements:
+    - Support for decoding base64 and quoted-printable message body encodings
+    - Encode message bodies using quoted-printable when sending via web ui
+    - Mark sent messages as read when sending using web ui
+    - Add a new page with email address and server info
+
+Changes from version 0.2.1 to version 0.2.2 - 2012-07-13
   o Bugfixes:
     - Fixed bug that stopped In-Reply-To header from being added to replies
       when using the web interface

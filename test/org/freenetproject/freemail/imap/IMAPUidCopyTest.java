@@ -1,5 +1,5 @@
 /*
- * IMAPUidStoreTest.java
+ * IMAPUidCopyTest.java
  * This file is part of Freemail, copyright (C) 2012
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,254 +23,275 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IMAPUidStoreTest extends IMAPTestWithMessages {
-	public void testUidStoreWithoutArguments() throws IOException {
+public class IMAPUidCopyTest extends IMAPTestWithMessages {
+	public void testUidCopySingleMessageToSameFolder() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE");
+		commands.add("0003 SEARCH ALL");
+		commands.add("0004 UID COPY 1 INBOX");
+		commands.add("0005 SEARCH ALL");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments for uid command");
+		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9");
+		expectedResponse.add("0003 OK Search completed");
+		expectedResponse.add("0004 OK COPY completed");
+		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9 10");
+		expectedResponse.add("0005 OK Search completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithoutFlags() throws IOException {
+	public void testUidCopyWithMessageId0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 1");
+		commands.add("0003 UID COPY 0 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments for uid command");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithoutFlagsList() throws IOException {
+	public void testUidCopyWithMessageIdRangeFrom0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 1 FLAGS");
+		commands.add("0003 UID COPY 0:* INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments to store flags");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSimpleUidStore() throws IOException {
+	public void testUidCopyWithMessageIdRangeTo0() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 1 FLAGS \\Seen");
+		commands.add("0003 UID COPY *:0 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (UID 1 FLAGS (\\Seen))");
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testAddMessageFlags() throws IOException {
+	public void testUidCopyWithTooHighMessageIdFirstInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 1 +FLAGS (\\Seen \\Flagged \\Answered)");
+		commands.add("0003 UID COPY 11:10 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 1 FETCH (UID 1 FLAGS (\\Seen \\Answered \\Flagged))");
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0003 OK COPY completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithEmptySet() throws IOException {
+	public void testUidCopyWithTooHighMessageIdLastInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 11:12 +FLAGS (\\Seen \\Flagged \\Answered)");
+		commands.add("0003 UID COPY 10:11 INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0003 OK COPY completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithBadRangeStart() throws IOException {
+	public void testUidCopyToNonexistentMailbox() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE BAD:12 +FLAGS (\\Seen \\Flagged \\Answered)");
+		commands.add("0003 UID COPY 1 INBOX.abc");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Illegal sequence number set");
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithBadRangeEnd() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 11:BAD +FLAGS (\\Seen \\Flagged \\Answered)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Illegal sequence number set");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidStoreToMsgWithDifferentSeqNumAndUid() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 7 Flags (\\Seen)");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 6 FETCH (UID 7 FLAGS (\\Seen))");
-		expectedResponse.add("0003 OK Store completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/*
-	 * This tests for the bug fixed in commit 6219756e where \Seen was added
-	 * automatically when \Deleted was added
+	/**
+	 * Check that the \Recent flag is set on the message that results from a
+	 * uid copy command, as specified in RFC3501 section 6.4.7.
 	 */
-	public void testUidStoreDeleteFlag() throws IOException {
+	public void testUidCopySetsRecentFlag() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 7 +FLAGS (\\Deleted)");
+		commands.add("0003 UID COPY 1 INBOX");
+		commands.add("0004 FETCH * FLAGS");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 6 FETCH (UID 7 FLAGS (\\Deleted))");
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0003 OK COPY completed");
+		expectedResponse.add("* 10 FETCH (FLAGS (\\Recent))");
+		expectedResponse.add("0004 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithUidsThatDontExist() throws IOException {
+	public void testUidCopyDoesntCreateMailbox() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 3:7 +Flags (\\Seen)");
+		commands.add("0003 UID COPY 1 INBOX.abc");
+		commands.add("0004 SELECT INBOX.abc");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 3 FETCH (UID 3 FLAGS (\\Seen))");
-		expectedResponse.add("* 4 FETCH (UID 4 FLAGS (\\Seen))");
-		expectedResponse.add("* 5 FETCH (UID 6 FLAGS (\\Seen))");
-		expectedResponse.add("* 6 FETCH (UID 7 FLAGS (\\Seen))");
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
+		expectedResponse.add("0004 NO No such mailbox");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreOtherThanFlag() throws IOException {
+	public void testUidAfterUidCopy() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 3:7 Message");
+		commands.add("0003 UID SEARCH ALL");
+		commands.add("0004 UID COPY 1 INBOX");
+		commands.add("0005 UID SEARCH ALL");
+		commands.add("0005 FETCH 10 (UID)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Can't store that");
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
+		expectedResponse.add("0003 OK Search completed");
+		expectedResponse.add("0004 OK COPY completed");
+		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10 11");
+		expectedResponse.add("0005 OK Search completed");
+		expectedResponse.add("* 10 FETCH (UID 11)");
+		expectedResponse.add("0005 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreRemoveFlags() throws IOException {
+	public void testUidCopyPreservesFlags() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 3 FLAGS (\\Seen)");
-		commands.add("0004 UID STORE 3 -FLAGS (\\Seen)");
+		commands.add("0003 STORE 1 FLAGS (\\Seen)");
+		commands.add("0004 STORE 2 FLAGS (\\Deleted)");
+		commands.add("0005 STORE 3 FLAGS (\\Recent)");
+		commands.add("0006 UID COPY 1:3 INBOX");
+		commands.add("0007 UID FETCH 11:* (UID FLAGS)");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 3 FETCH (UID 3 FLAGS (\\Seen))");
+		expectedResponse.add("* 1 FETCH FLAGS (\\Seen)");
 		expectedResponse.add("0003 OK Store completed");
-		expectedResponse.add("* 3 FETCH (UID 3 FLAGS ())");
+		expectedResponse.add("* 2 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0004 OK Store completed");
+		expectedResponse.add("* 3 FETCH FLAGS (\\Recent)");
+		expectedResponse.add("0005 OK Store completed");
+		expectedResponse.add("0006 OK COPY completed");
+		expectedResponse.add("* 10 FETCH (UID 11 FLAGS (\\Seen \\Recent))");
+		expectedResponse.add("* 11 FETCH (UID 12 FLAGS (\\Deleted \\Recent))");
+		expectedResponse.add("* 12 FETCH (UID 13 FLAGS (\\Recent))");
+		expectedResponse.add("0007 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreRemoveNonexistentFlag() throws IOException {
+	public void testUidCopyWithNoArgs() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 3 -FLAGS (\\Seen)");
+		commands.add("0006 UID COPY");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* 3 FETCH (UID 3 FLAGS ())");
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0006 BAD Not enough arguments");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSilentUidStore() throws IOException {
+	public void testUidCopyWithoutDestination() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 3 +FLAGS.SILENT (\\Seen)");
+		commands.add("0006 UID COPY *");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 OK Store completed");
+		expectedResponse.add("0006 BAD Not enough arguments");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithMessageId0() throws IOException {
+	public void testUidCopyWithIllegalSequenceNumber() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 0 FLAGS \\Seen");
+		commands.add("0003 UID COPY BAD INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 NO Invalid message ID");
+		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithMessageIdRangeFrom0() throws IOException {
+	public void testUidCopyWithIllegalSequenceNumberFirstInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE 0:* FLAGS \\Seen");
+		commands.add("0003 UID COPY BAD:* INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 NO Invalid message ID");
+		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidStoreWithMessageIdRangeTo0() throws IOException {
+	public void testUidCopyWithIllegalSequenceNumberLastInRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID STORE *:0 FLAGS \\Seen");
+		commands.add("0003 UID COPY *:BAD INBOX");
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 NO Invalid message ID");
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidCopyWithIllegalSequenceNumberFirstInList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID COPY BAD,* INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	public void testUidCopyWithIllegalSequenceNumberLastInList() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID COPY *,BAD INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
 	}

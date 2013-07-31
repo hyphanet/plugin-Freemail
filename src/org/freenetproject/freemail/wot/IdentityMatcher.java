@@ -80,6 +80,9 @@ public class IdentityMatcher {
 				if(matchFullAddress(recipient, wotIdentity.getIdentityID())) {
 					return true;
 				}
+				break;
+			default:
+				throw new AssertionError();
 			}
 		}
 
@@ -108,7 +111,7 @@ public class IdentityMatcher {
 	/**
 	 * Matches addresses of the format [local part@]&lt;identityId&gt;[.freemail]
 	 * @param recipient the address to check
-	 * @param identity the identity to check against
+	 * @param identityId the identity to check against
 	 * @return {@code true} if recipient matches identity
 	 */
 	private boolean matchFullAddress(String recipient, String identityId) {

@@ -1,0 +1,49 @@
+#!/bin/sh
+set -e
+
+INSTRUMENT_BIN="cobertura-instrument"
+REPORT_BIN="cobertura-report"
+
+#Instrument the code
+echo "Instrumenting code"
+if ! ant clean > /dev/null 2> /dev/null; then
+	echo "ant clean failed"
+	exit 1
+fi
+if ! ant compile > /dev/null 2> /dev/null; then
+	echo "Compilation failed"
+	exit 1
+fi
+rm -f cobertura.ser
+if ! $INSTRUMENT_BIN --basedir build/ org/freenetproject/freemail/; then
+	echo "Instrumentation failed"
+	exit 1
+fi
+
+#Setup environment so it works when running with Ant
+rm -fr run
+mkdir run
+cd run
+ln -s ../cobertura.ser .
+cd ..
+
+#Run tests
+echo "Running tests"
+if ! ant unit > /dev/null 2> /dev/null; then
+	echo "Failed while running tests"
+	exit 1
+fi
+
+#Generate and open report
+echo "Generating report"
+rm -fr cobertura
+if ! $REPORT_BIN --format html --destination cobertura src/; then
+	echo "Failed while generating report"
+	exit 1
+fi
+
+#Clean up the instrumented code as leaving it tends to break other things
+if ! ant clean > /dev/null 2> /dev/null; then
+	echo "Cleanup after running failed"
+	exit 1
+fi

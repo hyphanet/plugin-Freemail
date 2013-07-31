@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -174,24 +175,15 @@ public class MessageToadlet extends WebPage {
 		HTMLNode messageContents = messageNode.addChild("div", "class", "message-content").addChild("p");
 
 		try {
-			boolean inHeader = true;
-			boolean added = false;
-			while(true) {
-				String line = message.readLine();
-				if(line == null) break;
-
-				if((line.equals("")) && inHeader) {
-					inHeader = false;
-					continue;
-				}
-				if(inHeader) {
-					continue;
-				}
-
-				if(added) messageContents.addChild("br");
-				messageContents.addChild("#", line);
-				added = true;
-			}
+            BufferedReader body = message.getBodyReader();
+            String line = body.readLine();
+            boolean added = false;
+            while(line != null) {
+                if(added) messageContents.addChild("br");
+                messageContents.addChild("#", line);
+                added = true;
+                line = body.readLine();
+            }
 		} catch(IOException e) {
 			//TODO: Better error message
 			messageContents.removeChildren();

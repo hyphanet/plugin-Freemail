@@ -23,7 +23,7 @@
 package org.freenetproject.freemail.imap;
 
 import java.net.Socket;
-import java.io.OutputStream;
+import java.net.SocketException;
 import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -34,7 +34,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.lang.NumberFormatException;
 import java.text.SimpleDateFormat;
@@ -54,7 +56,6 @@ import freenet.support.Base64;
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
 
-	private final OutputStream os;
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
 	private MessageBank mb;
@@ -64,8 +65,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	IMAPHandler(AccountManager accMgr, Socket client) throws IOException {
 		super(client);
 		accountManager = accMgr;
-		this.os = client.getOutputStream();
-		this.ps = new PrintStream(this.os);
+		this.ps = new PrintStream(client.getOutputStream());
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		this.mb = null;
 	}
@@ -76,7 +76,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while(!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				IMAPMessage msg = null;
 				try {
 					msg = new IMAPMessage(line);
@@ -89,7 +89,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			this.client.close();
 		} catch (IOException ioe) {
-			Logger.error(this, "Caught IOException while reading imap data: " + ioe.getMessage(), ioe);
+			//If we are stopping and get a SocketException it is probable that
+			//the socket was closed while readLine() was blocked, so don't log
+			if(!(stopping && ioe instanceof SocketException)) {
+				Logger.error(this, "Caught IOException while reading imap data: " + ioe.getMessage(), ioe);
+			}
 		}
 	}
 
@@ -357,9 +361,6 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handleFetch(IMAPMessage msg, boolean uid) {
-		int from;
-		int to;
-
 		if(!this.verifyAuth(msg)) {
 			return;
 		}
@@ -381,76 +382,36 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		String[] parts = msg.args[0].split(":");
-		if(parts[0].equals("*")) {
-			if(uid) {
-				from = msgs.get(msgs.lastKey()).getUID();
-			} else {
-				from = msgs.size();
-			}
-		} else {
-			try {
-				from = Integer.parseInt(parts[0]);
-			} catch (NumberFormatException nfe) {
-				this.reply(msg, "BAD Bad number: "+parts[0]+". Please report this error!");
-				return;
-			}
-		}
-
-		if(parts.length < 2) {
-			to = from;
-		} else if(parts[1].equals("*")) {
-			if(uid) {
-				to = msgs.get(msgs.lastKey()).getUID();
-			} else {
-				to = msgs.size();
-			}
-		} else {
-			try {
-				to = Integer.parseInt(parts[1]);
-			} catch (NumberFormatException nfe) {
-				this.reply(msg, "BAD Bad number: "+parts[1]+". Please report this error!");
-				return;
-			}
+		MailMessage lastMessage = msgs.get(msgs.lastKey());
+		SortedSet<Integer> sequenceNumbers;
+		try {
+			sequenceNumbers = parseSequenceSet(msg.args[0],
+					uid ? lastMessage.getUID() : lastMessage.getSeqNum());
+		} catch(NumberFormatException e) {
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
+			return;
 		}
 
 		if(!uid) {
-			//Check message ids and convert them to UIDs
-			if(from == 0 || to == 0 || from > msgs.size() || to > msgs.size()) {
-				this.reply(msg, "NO Invalid message ID");
+			if(sequenceNumbers.first() < 1 || sequenceNumbers.last() > lastMessage.getSeqNum()) {
+				reply(msg, "NO Invalid message ID");
 				return;
 			}
-
-			for(MailMessage message : msgs.values()) {
-				if(message.getSeqNum() == to) {
-					to = message.getUID();
-					break;
-				}
-			}
-			for(MailMessage message : msgs.values()) {
-				if(message.getSeqNum() == from) {
-					from = message.getUID();
-					break;
-				}
-			}
 		}
 
-		//Swap if needed so from is always smaller or equal to to
-		if(from > to) {
-			int temp = from;
-			from = to;
-			to = temp;
-		}
-
-		//Return the messages in the UID range. The continue and break
-		//statements work because the map is sorted on message ids which always
-		//means that the UIDs will be sorted too.
+		//Return the messages in the range
 		for(MailMessage message : msgs.values()) {
-			if(message.getUID() < from) {
-				continue;
-			}
-			if(message.getUID() > to) {
-				break;
+			if(uid) {
+				if(!sequenceNumbers.contains(message.getUID())) {
+					continue;
+				}
+			} else {
+				if(!sequenceNumbers.contains(message.getSeqNum())) {
+					continue;
+				}
 			}
 
 			if(!this.fetchSingle(message, msg.args, 1, uid)) {
@@ -464,7 +425,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 	private void handleUid(IMAPMessage msg) {
 		if(msg.args == null || msg.args.length < 1) {
-			this.reply(msg, "BAD Not enough arguments to uid command");
+			this.reply(msg, "BAD Not enough arguments for uid command");
 			return;
 		}
 
@@ -485,15 +446,25 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			handleSearch(command, true);
 			return;
 		}
+		if(msg.args[0].equalsIgnoreCase("copy")) {
+			String[] commandArgs = new String[msg.args.length - 1];
+			System.arraycopy(msg.args, 1, commandArgs, 0, commandArgs.length);
+			IMAPMessage command = new IMAPMessage(msg.tag, msg.args[0], commandArgs);
 
-		//And the rest in the old way for now
-		if(msg.args == null || msg.args.length < 3) {
-			this.reply(msg, "BAD Not enough arguments to uid command");
+			handleCopy(command, true);
 			return;
 		}
 
-		int from;
-		int to;
+		if(!msg.args[0].equalsIgnoreCase("store")) {
+			this.reply(msg, "BAD Unknown command");
+			return;
+		}
+
+		//And the rest in the old way for now
+		if(msg.args.length < 3) {
+			this.reply(msg, "BAD Not enough arguments for uid command");
+			return;
+		}
 
 		if(!this.verifyAuth(msg)) {
 			return;
@@ -505,128 +476,35 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
-
 		if(msgs.size() == 0) {
-			if(msg.args[0].toLowerCase().equals("store")) {
-				// hmm...?
-				this.reply(msg, "NO No such message");
-			}
+			this.reply(msg, "NO No such message");
 			return;
 		}
 
-		// until a proper search function is implemented we could return an empty
-		// result, but this confuses Thunderbird
-//		if(msg.args[0].toLowerCase().equals("search")) {
-//			// return a dummy result
-//			this.sendState("SEARCH");
-//			this.reply(msg, "OK SEARCH completed");
-//			return;
-//		}
-
-		// build a set from the uid ranges, first separated by , then by :
-		// if that fails, its probably an unsupported command
-
-		TreeSet<Integer> ts=new TreeSet<Integer>();
+		Set<Integer> ts;
 		try {
-			String[] rangeparts = msg.args[1].split(",");
-
-			for(int i=0; i<rangeparts.length; i++) {
-				String vals[]=rangeparts[i].split(":");
-				if(vals.length==1) {
-					ts.add(new Integer(vals[0]));
-				} else {
-					int maxMsgNum = msgs.lastKey().intValue();
-					from = parseSequenceNumber(vals[0], maxMsgNum);
-					to = parseSequenceNumber(vals[1], maxMsgNum);
-
-					if(from > to) {
-						int temp = to;
-						to = from;
-						from = temp;
-					}
-
-					for(int j=from; j<=to; j++) {
-						ts.add(new Integer(j));
-					}
-				}
-			}
-		}
-		catch(NumberFormatException ex) {
-			this.reply(msg, "BAD Unknown command");
+			MailMessage lastMessage = msgs.get(msgs.lastKey());
+			ts = parseSequenceSet(msg.args[1], lastMessage.getUID());
+		} catch(NumberFormatException e) {
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
 			return;
 		}
 
-		if(msg.args[0].equalsIgnoreCase("store")) {
-			MailMessage[] targetmsgs = new MailMessage[ts.size()];
-
-			Iterator<Integer> it=ts.iterator();
-
-			int count=0;
-			while(it.hasNext()) {
-				Integer curuid = it.next();
-				MailMessage m=msgs.get(curuid);
-				if(m!=null) {
-					targetmsgs[count] = m;
-					count++;
-				}
+		Iterator<MailMessage> msgIt = msgs.values().iterator();
+		while(msgIt.hasNext()) {
+			if(!ts.contains(msgIt.next().getUID())) {
+				msgIt.remove();
 			}
-			if(count>0) {
-				if(count<ts.size()) {
-					MailMessage[] t = new MailMessage[count];
-					for(int i=0; i<count; i++) {
-						t[i]=targetmsgs[i];
-					}
-					targetmsgs=t;
-				}
-				this.doStore(msg.args, 2, targetmsgs, msg, true);
-			}
-
-			this.reply(msg, "OK Store completed");
-		} else if(msg.args[0].equalsIgnoreCase("copy")) {
-
-			if(msg.args.length < 3) {
-				this.reply(msg, "BAD Not enough arguments");
-				return;
-			}
-
-			MessageBank target = getMailboxFromPath(trimQuotes(msg.args[2]));
-			if(target == null) {
-				this.reply(msg, "NO [TRYCREATE] No such mailbox.");
-				return;
-			}
-
-			int copied = 0;
-
-			Iterator<Integer> it=ts.iterator();
-
-			while(it.hasNext()) {
-				Integer curuid = it.next();
-
-				MailMessage srcmsg = msgs.get(curuid);
-
-				if(srcmsg!=null) {
-					MailMessage copymsg = target.createMessage();
-					srcmsg.copyTo(copymsg);
-
-					copied++;
-				}
-			}
-
-			if(copied > 0)
-				this.reply(msg, "OK COPY completed");
-			else
-				this.reply(msg, "NO No messages copied");
-		} else {
-			this.reply(msg, "BAD Unknown command");
 		}
-	}
 
-	private int parseSequenceNumber(String seqNum, int maxMessageNum) {
-		if(seqNum.equals("*")) {
-			return maxMessageNum;
-		} else {
-			return Integer.parseInt(seqNum);
+		if(!this.doStore(msg.args, 2, msgs.values(), msg, true)) {
+			return;
 		}
+
+		this.reply(msg, "OK Store completed");
 	}
 
 	private boolean fetchSingle(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
@@ -880,6 +758,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				}
 				buf.append("\r\n");
 			} else if(parts[0].equalsIgnoreCase("header")) {
+				this.ps.print("[HEADER]");
+
 				// send all the header fields
 				try {
 					mmsg.readHeaders();
@@ -931,59 +811,44 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		String rangeparts[] = msg.args[0].split(":");
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
 
-		Object[] allmsgs = this.mb.listMessages().values().toArray();
-
-		int from;
-		int to;
+		Set<Integer> ts;
 		try {
-			from = Integer.parseInt(rangeparts[0]);
-		} catch (NumberFormatException nfe) {
-			this.reply(msg, "BAD That's not a number!");
+			MailMessage lastMessage = msgs.get(msgs.lastKey());
+			ts = parseSequenceSet(msg.args[0], lastMessage.getUID());
+		} catch(NumberFormatException e) {
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
 			return;
 		}
-		if(rangeparts.length > 1) {
-			if(rangeparts[1].equals("*")) {
-				to = allmsgs.length;
-			} else {
-				try {
-					to = Integer.parseInt(rangeparts[1]);
-				} catch (NumberFormatException nfe) {
-					this.reply(msg, "BAD That's not a number!");
-					return;
-				}
+
+		Iterator<MailMessage> msgIt = msgs.values().iterator();
+		while(msgIt.hasNext()) {
+			if(!ts.contains(msgIt.next().getSeqNum())) {
+				msgIt.remove();
 			}
-		} else {
-			to = from;
 		}
 
-		// convert to zero based array
-		from--;
-		to--;
-
-		if(from < 0 || to < 0 || from > allmsgs.length || to > allmsgs.length) {
-			this.reply(msg, "NO No such message");
-			return;
-		}
-
-		MailMessage[] msgs = new MailMessage[(to - from) + 1];
-		for(int i = from; i <= to; i++) {
-			msgs[i - from] = (MailMessage) allmsgs[i];
-		}
-
-		if(!doStore(msg.args, 1, msgs, msg, false)) {
+		if(!doStore(msg.args, 1, msgs.values(), msg, false)) {
 			return;
 		}
 
 		this.reply(msg, "OK Store completed");
 	}
 
-	private boolean doStore(String[] args, int offset, MailMessage[] mmsgs, IMAPMessage msg, boolean senduid) {
+	private boolean doStore(String[] args, int offset, Collection<MailMessage> mmsgs, IMAPMessage msg, boolean senduid) {
 		if(args[offset].toLowerCase().indexOf("flags") < 0) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
+			return false;
+		}
+
+		if(args.length - offset < 2) {
+			this.reply(msg, "BAD Not enough arguments to store flags");
 			return false;
 		}
 
@@ -996,8 +861,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} else if(args[offset].startsWith("+")) {
 			setFlagTo = true;
 		} else {
-			for(int i = 0; i < mmsgs.length; i++) {
-				mmsgs[i].flags.clear();
+			for(MailMessage message : mmsgs) {
+				message.flags.clear();
 			}
 			setFlagTo = true;
 		}
@@ -1009,27 +874,27 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				flag = flag.substring(0, flag.length() - 1);
 			}
 
-			for(int j = 0; j < mmsgs.length; j++) {
-				mmsgs[j].flags.set(flag, setFlagTo);
-				mmsgs[j].storeFlags();
+			for(MailMessage message : mmsgs) {
+				message.flags.set(flag, setFlagTo);
+				message.storeFlags();
 			}
 		}
 
 		if(msg.args[offset].toLowerCase().indexOf("silent") < 0) {
-			for(int i = 0; i < mmsgs.length; i++) {
+			for(MailMessage message : mmsgs) {
 				StringBuffer buf = new StringBuffer("");
 
-				buf.append(mmsgs[i].getSeqNum());
+				buf.append(message.getSeqNum());
 				if(senduid) {
 					buf.append(" FETCH (UID ");
-					buf.append(mmsgs[i].getUID());
+					buf.append(message.getUID());
 					buf.append(" FLAGS (");
-					buf.append(mmsgs[i].flags.getFlags());
+					buf.append(message.flags.getFlags());
 					buf.append("))");
 				} else {
 
 					buf.append(" FETCH FLAGS (");
-					buf.append(mmsgs[i].flags.getFlags());
+					buf.append(message.flags.getFlags());
 					buf.append(")");
 				}
 
@@ -1176,7 +1041,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args == null || msg.args.length < 1) {
-			this.reply(msg, "NO Not enough arguments");
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
@@ -1222,7 +1087,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args == null || msg.args.length < 1) {
-			this.reply(msg, "NO Not enough arguments");
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
@@ -1246,6 +1111,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void handleCopy(IMAPMessage msg) {
+		handleCopy(msg, false);
+	}
+
+	private void handleCopy(IMAPMessage msg, boolean uid) {
 		if(!this.verifyAuth(msg)) {
 			return;
 		}
@@ -1256,43 +1125,43 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(msg.args == null || msg.args.length < 2) {
-			this.reply(msg, "NO Not enough arguments");
+			this.reply(msg, "BAD Not enough arguments");
 			return;
 		}
 
-		Object[] allmsgs = this.mb.listMessages().values().toArray();
-		String rangeparts[] = msg.args[0].split(":");
+		SortedMap<Integer, MailMessage> msgs = this.mb.listMessages();
+		MailMessage lastMessage = msgs.get(msgs.lastKey());
 
-		int from;
-		int to;
+		SortedSet<Integer> ts;
 		try {
-			from = Integer.parseInt(rangeparts[0]);
-		} catch (NumberFormatException nfe) {
-			this.reply(msg, "BAD That's not a number!");
+			ts = parseSequenceSet(msg.args[0], uid ? lastMessage.getUID() : lastMessage.getSeqNum());
+		} catch(NumberFormatException e) {
+			this.reply(msg, "BAD Illegal sequence number set");
+			return;
+		} catch (IllegalSequenceNumberException e) {
+			this.reply(msg, "NO Invalid message ID");
 			return;
 		}
-		if(rangeparts.length > 1) {
-			if(rangeparts[1].equals("*")) {
-				to = allmsgs.length;
+
+		if(!uid) {
+			if(ts.first() < 1 || ts.last() > lastMessage.getSeqNum()) {
+				reply(msg, "NO Invalid message ID");
+				return;
+			}
+		}
+
+		Iterator<MailMessage> msgIt = msgs.values().iterator();
+		while(msgIt.hasNext()) {
+			MailMessage message = msgIt.next();
+			if(uid) {
+				if(!ts.contains(message.getUID())) {
+					msgIt.remove();
+				}
 			} else {
-				try {
-					to = Integer.parseInt(rangeparts[1]);
-				} catch (NumberFormatException nfe) {
-					this.reply(msg, "BAD That's not a number!");
-					return;
+				if(!ts.contains(message.getSeqNum())) {
+					msgIt.remove();
 				}
 			}
-		} else {
-			to = from;
-		}
-
-		// convert to zero based array
-		from--;
-		to--;
-
-		if(from < 0 || to < 0 || from > allmsgs.length || to > allmsgs.length) {
-			this.reply(msg, "NO No such message");
-			return;
 		}
 
 		MessageBank target = getMailboxFromPath(trimQuotes(msg.args[1]));
@@ -1301,11 +1170,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		for(int i = from; i <= to; i++) {
-			MailMessage src = (MailMessage)allmsgs[i];
+		for(MailMessage src : msgs.values()) {
 			MailMessage copy = target.createMessage();
 
 			src.copyTo(copy);
+			copy.flags.set("\\Recent", true);
+			copy.storeFlags();
 		}
 		this.reply(msg, "OK COPY completed");
 	}
@@ -1684,5 +1554,62 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return false;
 		}
 		return true;
+	}
+
+	private SortedSet<Integer> parseSequenceSet(String seqNum, int maxSeqNum) throws IllegalSequenceNumberException {
+		SortedSet<Integer> result = new TreeSet<Integer>();
+
+		//Split on , to get the ranges
+		for(String range : seqNum.split(",")) {
+			String fromSeqNum;
+			String toSeqNum;
+
+			if(!range.contains(":")) {
+				fromSeqNum = range;
+				toSeqNum = range;
+			} else {
+				String[] parts = range.split(":");
+				if(parts.length != 2) {
+					throw new NumberFormatException();
+				}
+
+				fromSeqNum = parts[0];
+				toSeqNum = parts[1];
+			}
+
+			int from = parseSequenceNumber(fromSeqNum, maxSeqNum);
+			int to = parseSequenceNumber(toSeqNum, maxSeqNum);
+			if(from <= 0 || to <= 0) {
+				throw new IllegalSequenceNumberException("Sequence number must be greater than zero");
+			}
+
+			if(from > to) {
+				int temp = from;
+				from = to;
+				to = temp;
+			}
+
+			for(int i = from; i <= to; i++) {
+				result.add(i);
+			}
+		}
+
+		return result;
+	}
+
+	private int parseSequenceNumber(String seqNum, int maxSeqNum) {
+		if(seqNum.equals("*")) {
+			return maxSeqNum;
+		}
+
+		return Integer.parseInt(seqNum);
+	}
+
+	private class IllegalSequenceNumberException extends Exception {
+		public IllegalSequenceNumberException(String msg) {
+			super(msg);
+		}
+
+		private static final long serialVersionUID = 5604708058788273676L;
 	}
 }
