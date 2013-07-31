@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -46,6 +47,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
@@ -54,6 +56,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.imap.IMAPMessageFlags;
 import org.freenetproject.freemail.utils.Logger;
+
+import freenet.support.MediaType;
 
 
 public class MailMessage {
@@ -639,22 +643,25 @@ public class MailMessage {
 			if(contentType == null) {
 				contentType = "text/plain; charset=us-ascii";
 			}
-			String[] parts = contentType.split(";");
-			if(!parts[0].equalsIgnoreCase("text/plain")) {
-				throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
-						+ parts[0]);
-			}
-
-			String[] charsetParts = parts[1].trim().split("=", 2);
-			if(!charsetParts[0].equalsIgnoreCase("charset")) {
+			MediaType parsedType;
+			try {
+                parsedType = new MediaType(contentType);
+            } catch (MalformedURLException e) {
+                throw new UnsupportedEncodingException("Can't handle content type: \""+contentType+"\" : "+e.getMessage());
+            }
+            if(!(parsedType.getType().equals("text") && parsedType.getSubtype().equals("plain"))) {
+                throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
+                        + parsedType);
+            }
+            String charsetName = parsedType.getParameter("charset");
+            if(charsetName == null) charsetName = "us-ascii";
+            Map<String,String> params = parsedType.getParameters();
+            params.remove("charset");
+            if(!params.isEmpty()) {
 				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
-						+ "Parameter was " + charsetParts[0]);
+						+ "Unrecognised parameters were: " + params);
 			}
 
-			String charsetName = charsetParts[1];
-			if(charsetName.startsWith("\"") && charsetName.endsWith("\"")) {
-				charsetName = charsetName.substring(1, charsetName.length() - 1);
-			}
 			charset = Charset.forName(charsetName);
 		}
 
@@ -955,4 +962,5 @@ public class MailMessage {
 			bufOffset = 0;
 		}
 	}
+
 }
