@@ -139,7 +139,8 @@ public class AccountManager {
 		MD5Digest md5 = new MD5Digest();
 
 		try {
-			md5.update(newpassword.getBytes("UTF-8"), 0, newpassword.getBytes("UTF-8").length);
+		    byte[] passwordBytes = newpassword.getBytes("UTF-8");
+			md5.update(passwordBytes, 0, passwordBytes.length);
 		} catch (UnsupportedEncodingException e) {
 			//JVMs are required to support UTF-8, so we can assume it is always available
 			throw new AssertionError("JVM doesn't support UTF-8 charset");
