@@ -300,7 +300,7 @@ class Channel {
 				bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes("UTF-8"));
 			} catch (UnsupportedEncodingException e) {
 				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 
 			boolean inserted;
@@ -1332,7 +1332,7 @@ class Channel {
 				bucket = new ArrayBucket(header.getBytes("UTF-8"));
 			} catch (UnsupportedEncodingException e) {
 				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 
 			boolean inserted;
@@ -1340,7 +1340,7 @@ class Channel {
 				inserted = insertMessage(bucket, "ack" + ackId);
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
-				throw new AssertionError("getInputStream() method of ArrayBucket threw IOException", e);
+				throw new AssertionError("getInputStream() method of ArrayBucket threw IOException");
 			} catch (InterruptedException e) {
 				Logger.debug(this, "AckInserter interrupted, quitting");
 				return;

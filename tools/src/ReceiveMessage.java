@@ -74,7 +74,7 @@ public class ReceiveMessage {
 			try {
 				Thread.sleep(TimeUnit.MILLISECONDS.convert(15, TimeUnit.SECONDS));
 			} catch(InterruptedException e) {
-				throw new AssertionError("Unexpected InterruptedException", e);
+				throw new AssertionError("Unexpected InterruptedException");
 			}
 		}
 	}

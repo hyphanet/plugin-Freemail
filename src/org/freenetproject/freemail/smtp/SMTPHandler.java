@@ -162,7 +162,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				this.ps.print("334 "+new String(Base64.encode("Username:".getBytes("UTF-8")))+"\r\n");
 			} catch(UnsupportedEncodingException e) {
 				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 
 			String b64username;
@@ -178,7 +178,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				this.ps.print("334 "+new String(Base64.encode("Password:".getBytes("UTF-8")))+"\r\n");
 			} catch(UnsupportedEncodingException e) {
 				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 			try {
 				b64password = this.bufrdr.readLine();
@@ -192,7 +192,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				password = new String(Base64.decode(b64password.getBytes("UTF-8")));
 			} catch(UnsupportedEncodingException e) {
 				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 		} else if(cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
@@ -214,7 +214,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				creds_plain = new String(Base64.decode(b64creds.getBytes("UTF-8")));
 			} catch (UnsupportedEncodingException e) {
 				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 			String[] creds = creds_plain.split("\0");
 

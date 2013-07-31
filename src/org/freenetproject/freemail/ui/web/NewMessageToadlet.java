@@ -550,7 +550,7 @@ public class NewMessageToadlet extends WebPage {
 			return new ArrayBucket(data.getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			throw new AssertionError("JVM doesn't support UTF-8 charset");
 		}
 	}
 

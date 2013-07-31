@@ -142,7 +142,7 @@ public class AccountManager {
 			md5.update(newpassword.getBytes("UTF-8"), 0, newpassword.getBytes("UTF-8").length);
 		} catch (UnsupportedEncodingException e) {
 			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			throw new AssertionError("JVM doesn't support UTF-8 charset");
 		}
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
@@ -229,7 +229,7 @@ public class AccountManager {
 			md5.update(password.getBytes("UTF-8"), 0, password.getBytes("UTF-8").length);
 		} catch (UnsupportedEncodingException e) {
 			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset", e);
+			throw new AssertionError("JVM doesn't support UTF-8 charset");
 		}
 		byte[] givenmd5 = new byte[md5.getDigestSize()];
 		md5.doFinal(givenmd5, 0);
