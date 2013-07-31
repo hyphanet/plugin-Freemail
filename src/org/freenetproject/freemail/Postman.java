@@ -28,7 +28,8 @@ import java.util.Locale;
 import java.util.Random;
 import java.io.File;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.IOException;
 
@@ -143,7 +144,7 @@ public abstract class Postman {
 			ps.println("Content-Disposition: inline");
 			ps.println("");
 
-			BufferedReader br = new BufferedReader(new FileReader(origmsg));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg),"UTF-8"));
 
 			String line;
 			if(isFreemailFormat) {
@@ -177,7 +178,7 @@ public abstract class Postman {
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new FileReader(msg));
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(msg),"UTF-8"));
 
 			String line;
 			if(isFreemailFormat) {
