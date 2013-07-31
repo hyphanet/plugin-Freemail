@@ -24,8 +24,6 @@ import static org.junit.Assert.*;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,10 +32,9 @@ import org.junit.Test;
 
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
-import org.freenetproject.freemail.wot.OwnIdentity;
-import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.IdentityMatcher.MatchMethod;
 
+import fakes.MockWoTConnection;
 import freenet.pluginmanager.PluginNotFoundException;
 
 public class IdentityMatcherTest {
@@ -68,7 +65,12 @@ public class IdentityMatcherTest {
 	}
 
 	private void runMatcherTest(String recipient, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
-		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.singleton(identity));
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
 		Set<String> recipients = Collections.singleton(recipient);
 		Map<String, List<Identity>> matches;
 		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), methods);
@@ -79,7 +81,12 @@ public class IdentityMatcherTest {
 
 	@Test
 	public void fullMatchWithPartialId() throws PluginNotFoundException {
-		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.singleton(identity));
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
 
 		//Check an identity string that is missing the last character
 		String id = identity.getBase32IdentityID();
@@ -94,44 +101,5 @@ public class IdentityMatcherTest {
 
 		assertEquals(1, matches.size());
 		assertEquals(0, matches.get(id).size());
-	}
-
-	private class FakeWoTConnection implements WoTConnection {
-		@Override
-		public List<OwnIdentity> getAllOwnIdentities() {
-			return new LinkedList<OwnIdentity>();
-		}
-
-		@Override
-		public Set<Identity> getAllTrustedIdentities(String trusterId) {
-			Set<Identity> set = new HashSet<Identity>();
-			set.add(identity);
-			return set;
-		}
-
-		@Override
-		public Set<Identity> getAllUntrustedIdentities(String trusterId) {
-			return new HashSet<Identity>();
-		}
-
-		@Override
-		public Identity getIdentity(String identityID, String trusterID) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public boolean setProperty(String identityID, String key, String value) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public String getProperty(String identityID, String key) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public boolean setContext(String identity, String context) {
-			throw new UnsupportedOperationException();
-		}
 	}
 }

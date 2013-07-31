@@ -25,11 +25,13 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.FreemailPlugin;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.transport.MessageHandler.OutboxMessage;
+import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.WoTConnection;
@@ -38,7 +40,9 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.Base64;
 import freenet.support.HTMLNode;
+import freenet.support.IllegalBase64Exception;
 import freenet.support.api.HTTPRequest;
 
 public class OutboxToadlet extends WebPage {
@@ -83,11 +87,28 @@ public class OutboxToadlet extends WebPage {
 			String recipient;
 			try {
 				Identity i = wotConnection.getIdentity(message.recipient, account.getIdentity());
-				String domain = i.getBase32IdentityID();
-				recipient = i.getNickname() + "@" + domain + ".freemail";
+				if(i != null) {
+					String domain = i.getBase32IdentityID();
+					recipient = i.getNickname() + "@" + domain + ".freemail";
+				} else {
+					recipient = null;
+				}
 			} catch(PluginNotFoundException e) {
-				//Fall back to only showing the identity id
-				recipient = "unknown@" + message.recipient + ".freemail";
+				recipient = null;
+			}
+
+			if(recipient == null) {
+				//Fall back to showing the address without the nickname
+				String id;
+				try {
+					id = Base32.encode(Base64.decode(message.recipient));
+				} catch (IllegalBase64Exception e) {
+					//This should never happen since we couldn't possibly have sent the message if
+					//the id couldn't be decoded
+					Logger.error(this, "Couldn't decode base64 id of message recipient: " + message.recipient);
+					id = message.recipient;
+				}
+				recipient = "unknown@" + id + ".freemail";
 			}
 
 			String firstSendTime;

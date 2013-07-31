@@ -44,14 +44,21 @@ public class WebInterface {
 	private final Set<Toadlet> registeredToadlets = new HashSet<Toadlet>();
 	private final ToadletContainer container;
 	private final PluginRespirator pluginRespirator;
+	private final FreemailPlugin freemail;
+	private final LoginManager loginManager;
+	private final Configurator config;
 
 	public WebInterface(ToadletContainer container, PluginRespirator pluginRespirator, FreemailPlugin freemail,
 			Configurator config) {
 		this.container = container;
 		this.pluginRespirator = pluginRespirator;
-		LoginManager loginManager = new LoginManager(freemail.getAccountManager(),
-		                                             pluginRespirator.getSessionManager(COOKIE_NAMESPACE));
+		loginManager = new LoginManager(freemail.getAccountManager(),
+		                                pluginRespirator.getSessionManager(COOKIE_NAMESPACE));
+		this.freemail = freemail;
+		this.config = config;
+	}
 
+	public void registerToadlets() {
 		//Register our menu
 		pluginRespirator.getPageMaker().addNavigationCategory(InboxToadlet.getPath(), FREEMAIL_CATEGORY_NAME, CATEGORY_TITLE, freemail);
 

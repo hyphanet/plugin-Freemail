@@ -34,24 +34,50 @@ public class MockWoTConnection implements WoTConnection {
 	private final Map<String, Map<String, Identity>> identityMap;
 	private final Map<String, Map<String, String>> properties;
 
+	private List<OwnIdentity> ownIdentities = null;
+	private Set<Identity> trustedIdentities = null;
+	private Set<Identity> untrustedIdentities = null;
+
 	public MockWoTConnection(Map<String, Map<String, Identity>> identityMap, Map<String, Map<String, String>> properties) {
 		this.identityMap = identityMap;
 		this.properties = properties;
 	}
 
+
+	/*
+	 * Functions for controlling the return value of the overridden ones
+	 */
+
+	public void setOwnIdentities(List<OwnIdentity> ownIdentities) {
+		this.ownIdentities = ownIdentities;
+	}
+
+	public void setTrustedIdentities(Set<Identity> trustedIdentities) {
+		this.trustedIdentities = trustedIdentities;
+	}
+
+	public void setUntrustedIdentities(Set<Identity> untrustedIdentities) {
+		this.untrustedIdentities = untrustedIdentities;
+	}
+
+
+	/*
+	 * The overridden functions
+	 */
+
 	@Override
 	public List<OwnIdentity> getAllOwnIdentities() throws PluginNotFoundException {
-		throw new UnsupportedOperationException();
+		return ownIdentities;
 	}
 
 	@Override
 	public Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException {
-		throw new UnsupportedOperationException();
+		return trustedIdentities;
 	}
 
 	@Override
 	public Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException {
-		throw new UnsupportedOperationException();
+		return untrustedIdentities;
 	}
 
 	@Override
