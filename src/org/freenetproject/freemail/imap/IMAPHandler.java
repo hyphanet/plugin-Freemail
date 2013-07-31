@@ -322,11 +322,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage m =msgs.get(msgs.firstKey());
 
 			// if it's recent, add to the tally
-			if(m.flags.get("\\Recent")) numrecent++;
+			if(m.flags.get("\\Recent")) {
+				numrecent++;
 
-			// remove the recent flag
-			m.flags.set("\\Recent", false);
-			m.storeFlags();
+				// remove the recent flag
+				m.flags.set("\\Recent", false);
+				m.storeFlags();
+			}
 
 			msgs = msgs.tailMap(new Integer(current.intValue()+1));
 		}

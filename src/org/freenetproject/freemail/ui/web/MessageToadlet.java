@@ -38,7 +38,6 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -54,7 +53,7 @@ public class MessageToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -85,8 +84,7 @@ public class MessageToadlet extends WebPage {
 			/* FIXME: L10n */
 			HTMLNode infobox = addErrorbox(container, "Message doesn't exist");
 			infobox.addChild("p", "The message you requested doesn't exist");
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		HTMLNode messageNode = container.addChild("div", "class", "message");
@@ -101,12 +99,12 @@ public class MessageToadlet extends WebPage {
 			msg.storeFlags();
 		}
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		makeWebPageGet(uri, req, ctx, page);
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
+		return makeWebPageGet(uri, req, ctx, page);
 	}
 
 	private void addMessageButtons(ToadletContext ctx, HTMLNode parent, String folderName, int uid) {

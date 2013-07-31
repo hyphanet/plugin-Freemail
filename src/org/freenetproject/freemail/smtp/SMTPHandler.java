@@ -133,7 +133,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 	private void handle_ehlo() {
 		this.ps.print("250-"+MY_HOSTNAME+"\r\n");
-		this.ps.print("250 AUTH LOGIN PLAIN \r\n");
+		this.ps.print("250 AUTH LOGIN PLAIN\r\n");
 	}
 
 	private void handle_quit() {
@@ -317,6 +317,9 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 					done = true;
 					break;
 				}
+				if(line.startsWith(".")) {
+					line = line.substring(1);
+				}
 				pw.print(line+"\r\n");
 			}
 
@@ -331,12 +334,14 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			MessageHandler messageSender = account.getMessageHandler();
 			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
 			try {
-				messageSender.sendMessage(to, data);
+				if(messageSender.sendMessage(to, data)) {
+					this.ps.print("250 So be it\r\n");
+				} else {
+					this.ps.print("452 Message sending failed\r\n");
+				}
 			} finally {
 				data.free();
 			}
-
-			this.ps.print("250 So be it\r\n");
 		} catch (IOException ioe) {
 			this.ps.print("452 Can't store message\r\n");
 		} finally {

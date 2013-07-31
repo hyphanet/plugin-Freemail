@@ -25,11 +25,7 @@ package org.freenetproject.freemail;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.ui.web.WebInterface;
@@ -54,37 +50,12 @@ import freenet.pluginmanager.PluginRespirator;
 public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBaseL10n,
                                                         FredPluginThreadless, FredPluginVersioned,
                                                         FredPluginRealVersioned, FredPluginL10n {
-	private static final ScheduledThreadPoolExecutor defaultExecutor =
-			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail executor thread"));
-	private static final ScheduledThreadPoolExecutor senderExecutor =
-			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail sender thread"));
-
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
 	private WoTConnection wotConnection = null;
 
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
-
-		/*
-		 * We want the executor to vary the pool size even if the queue isn't
-		 * full since the queue is unbounded. We do this by setting
-		 * corePoolSize == maximumPoolSize and allowing core threads to time
-		 * out. Allowing all the threads to time out is fine since none of the
-		 * tasks are sensitive to the additional thread creation delay.
-		 *
-		 * Note: if there are queued tasks at least 1 thread will be alive, but
-		 * unfortunately the timeout still applies to this thread so every time
-		 * the timeout expires the executor creates a new thread. Because of
-		 * this the timeout for the sender executor should be large to avoid
-		 * creating a large amount of threads, and for the default it should be
-		 * > Channel.TASK_RETRY_DELAY (since that makes the thread that runs
-		 * the Fetcher never time out).
-		 */
-		defaultExecutor.setKeepAliveTime(10, TimeUnit.MINUTES);
-		defaultExecutor.allowCoreThreadTimeOut(true);
-		senderExecutor.setKeepAliveTime(1, TimeUnit.HOURS);
-		senderExecutor.allowCoreThreadTimeOut(true);
 	}
 
 	@Override
@@ -113,17 +84,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		webInterface = new WebInterface(pr.getToadletContainer(), pr, this, configurator);
 
 		runTime.log(this, 1, TimeUnit.SECONDS, "Time spent in runPlugin()");
-	}
-
-	public static ScheduledExecutorService getExecutor(TaskType type) {
-		switch (type) {
-		case UNSPECIFIED:
-			return defaultExecutor;
-		case SENDER:
-			return senderExecutor;
-		default:
-			throw new AssertionError("Missing case " + type);
-		}
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
@@ -185,9 +145,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		Timer terminateTimer = Timer.start();
 
 		Logger.minor(this, "terminate() called");
-		defaultExecutor.shutdownNow();
-		senderExecutor.shutdownNow();
-
 		Timer webUITermination = terminateTimer.startSubTimer();
 		webInterface.terminate();
 		webUITermination.log(this, 1, TimeUnit.SECONDS, "Time spent terminating web interface");
@@ -195,15 +152,6 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		Timer normalTermination = terminateTimer.startSubTimer();
 		super.terminate();
 		normalTermination.log(this, 1, TimeUnit.SECONDS, "Time spent in normal termination");
-
-		Timer executorTermination = terminateTimer.startSubTimer();
-		try {
-			defaultExecutor.awaitTermination(1, TimeUnit.HOURS);
-			senderExecutor.awaitTermination(1, TimeUnit.HOURS);
-		} catch(InterruptedException e) {
-			Logger.minor(this, "Thread was interrupted while waiting for excutors to terminate.");
-		}
-		executorTermination.log(this, 1, TimeUnit.SECONDS, "Time spent waiting for executor termination");
 
 		terminateTimer.log(this, 1, TimeUnit.SECONDS, "Time spent terminating plugin");
 	}
@@ -236,26 +184,5 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	@Override
 	public ClassLoader getPluginClassLoader() {
 		return FreemailPlugin.class.getClassLoader();
-	}
-
-	private static class FreemailThreadFactory implements ThreadFactory {
-		private final String prefix;
-		AtomicInteger threadCount = new AtomicInteger();
-
-		public FreemailThreadFactory(String prefix) {
-			this.prefix = prefix;
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			String name = prefix + " " + threadCount.getAndIncrement();
-			Logger.debug(this, "Creating new thread: " + name);
-			return new Thread(runnable, name);
-		}
-	}
-
-	public static enum TaskType {
-		UNSPECIFIED,
-		SENDER
 	}
 }

@@ -36,7 +36,6 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
@@ -56,7 +55,7 @@ public class OutboxToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		Timer outboxTimer = Timer.start();
 
 		String identity = loginManager.getSession(ctx).getUserID();
@@ -112,14 +111,14 @@ public class OutboxToadlet extends WebPage {
 		}
 		messageListing.log(this, "Time spent adding messages to page");
 
-		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
-
 		outboxTimer.log(this, 1, TimeUnit.SECONDS, "Time spent generating outbox page");
+
+		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		makeWebPageGet(uri, req, ctx, page);
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
+		return makeWebPageGet(uri, req, ctx, page);
 	}
 
 	@Override
