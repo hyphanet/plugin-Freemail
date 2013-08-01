@@ -53,9 +53,9 @@ public class IdentityMatcher {
 		}
 
 		Set<Identity> wotIdentities = new HashSet<Identity>();
-		wotIdentities.addAll(trustedIds);
-		wotIdentities.addAll(untrustedIds);
-		wotIdentities.addAll(ownIds);
+		if(trustedIds != null) wotIdentities.addAll(trustedIds);
+		if(untrustedIds != null) wotIdentities.addAll(untrustedIds);
+		if(ownIds != null) wotIdentities.addAll(ownIds);
 
 		for(Identity wotIdentity : wotIdentities) {
 			for(String recipient : recipients) {
