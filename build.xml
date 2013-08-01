@@ -111,8 +111,7 @@
 		</copy>
 	</target>
 
-	<target name="compile-tools" depends="bouncycastle-fetch"
-	        description="Compiles the supporting tools">
+	<target name="compile-tools" description="Compiles the supporting tools">
 		<mkdir dir="${tools.dst}"/>
 
 		<javac srcdir="${tools.src}"
