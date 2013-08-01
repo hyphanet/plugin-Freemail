@@ -47,7 +47,7 @@ class MailLog {
 
 		InputStream frdr;
 		try {
-		    frdr = new FileInputStream(this.logfile);
+			frdr = new FileInputStream(this.logfile);
 
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"));

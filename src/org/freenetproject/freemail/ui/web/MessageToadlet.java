@@ -170,19 +170,19 @@ public class MessageToadlet extends WebPage {
 		HTMLNode messageContents = messageNode.addChild("div", "class", "message-content").addChild("p");
 
 		try {
-		    BufferedReader body = message.getBodyReader();
-            try {
-                String line = body.readLine();
-                boolean added = false;
-                while(line != null) {
-                    if(added) messageContents.addChild("br");
-                    messageContents.addChild("#", line);
-                    added = true;
-                    line = body.readLine();
-                }
-            } finally {
-                body.close();
-            }
+			BufferedReader body = message.getBodyReader();
+			try {
+				String line = body.readLine();
+				boolean added = false;
+				while(line != null) {
+					if(added) messageContents.addChild("br");
+					messageContents.addChild("#", line);
+					added = true;
+					line = body.readLine();
+				}
+			} finally {
+				body.close();
+			}
 		} catch(IOException e) {
 			//TODO: Better error message
 			messageContents.removeChildren();
