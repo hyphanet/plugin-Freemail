@@ -1306,9 +1306,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			 * Commons Lang StringUtils.countMatches() would make this nicer.
 			 */
 			int parenthesisCount = 0;
-			for (final String arg : msg.args) {
-				for (final char character : arg.toCharArray()) {
-					if (character == '(' || character == ')') {
+			for(final String arg : msg.args) {
+				for(final char character : arg.toCharArray()) {
+					if(character == '(' || character == ')') {
 						parenthesisCount++;
 					}
 				}
@@ -1317,7 +1317,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			final String firstArg = msg.args[0];
 			final int lastArgIndex = msg.args.length - 1;
 			String lastArg = msg.args[lastArgIndex];
-			if (parenthesisCount == 2 && firstArg.startsWith("(") && lastArg.endsWith(")")) {
+			if(parenthesisCount == 2 && firstArg.startsWith("(") && lastArg.endsWith(")")) {
 				// Remove parenthesis: first character from first arg, last from last.
 				msg.args[0] = firstArg.substring(1);
 

@@ -50,7 +50,7 @@ class MailLog {
 		    frdr = new FileInputStream(this.logfile);
 
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(frdr,"UTF-8"));
+			BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"));
 			String line;
 
 			while((line = br.readLine()) != null) {

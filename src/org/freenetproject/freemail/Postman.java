@@ -144,7 +144,7 @@ public abstract class Postman {
 			ps.println("Content-Disposition: inline");
 			ps.println("");
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg),"UTF-8"));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg), "UTF-8"));
 
 			String line;
 			if(isFreemailFormat) {
@@ -178,7 +178,7 @@ public abstract class Postman {
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(msg),"UTF-8"));
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(msg), "UTF-8"));
 
 			String line;
 			if(isFreemailFormat) {
