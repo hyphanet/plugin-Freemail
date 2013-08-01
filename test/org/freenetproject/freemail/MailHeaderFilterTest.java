@@ -27,11 +27,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import data.TestId1Data;
+
 public class MailHeaderFilterTest {
+	private static FreemailAccount sender;
+
+	@Before
+	public void before() {
+		sender = new FreemailAccount(TestId1Data.BASE64_ID, null, null, null);
+	}
+
 	@Test
 	public void filteringOfWhitelistedHeader() throws IOException {
 		List<String> input = new LinkedList<String>();
@@ -129,7 +140,8 @@ public class MailHeaderFilterTest {
 		List<Pattern> output = new LinkedList<Pattern>();
 
 		//The message id should have been replaced with a completely new one
-		output.add(Pattern.compile("Message-ID: <-?[0-9]+\\.-?[0-9]+@domain\\.freemail>"));
+		output.add(Pattern.compile("Message-ID: <-?[0-9]+\\.-?[0-9]+@"
+				+ TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + "\\.freemail>"));
 
 		runRegexTest(input, output);
 	}
@@ -189,6 +201,6 @@ public class MailHeaderFilterTest {
 		ByteArrayInputStream is = new ByteArrayInputStream(data);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
-		return new MailHeaderFilter(reader, "domain.freemail");
+		return new MailHeaderFilter(reader, sender);
 	}
 }
