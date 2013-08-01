@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import data.TestId1Data;
+import data.TestId2Data;
 
 public class MailHeaderFilterTest {
 	private static FreemailAccount sender;
@@ -144,6 +145,64 @@ public class MailHeaderFilterTest {
 				+ TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + "\\.freemail>"));
 
 		runRegexTest(input, output);
+	}
+
+	/**
+	 * Checks that a From header with a non-Freemail address is filtered. Related to bug 5834.
+	 */
+	@Test
+	public void nonFreemailFromAddress() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("From: example@example.com");
+
+		List<String> output = new LinkedList<String>();
+		output.add("From: null@" + TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + ".freemail");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
+	public void invalidFromAddress() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("From: example.com");
+
+		List<String> output = new LinkedList<String>();
+		output.add("From: null@" + TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + ".freemail");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
+	public void fromAddressWrongDomain() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("From: " + TestId2Data.FreemailAccount.ADDRESS);
+
+		List<String> output = new LinkedList<String>();
+		output.add("From: null@" + TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + ".freemail");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
+	public void fromAddressUppercaseDomain() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("From: " + TestId1Data.Identity.NICKNAME + "@" + TestId1Data.BASE32_ID.toUpperCase(Locale.ROOT) + ".freemail");
+
+		List<String> output = new LinkedList<String>();
+		output.add("From: " + TestId1Data.Identity.NICKNAME + "@" + TestId1Data.BASE32_ID.toUpperCase(Locale.ROOT) + ".freemail");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
+	public void fromAddressIgnoresLocalPart() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("From: garbage@" + TestId1Data.BASE32_ID + ".freemail");
+
+		List<String> output = new LinkedList<String>();
+		output.add("From: garbage@" + TestId1Data.BASE32_ID + ".freemail");
+
+		runSimpleTest(input, output);
 	}
 
 	private void runSimpleTest(List<String> inputLines, List<String> outputLines) throws IOException {
