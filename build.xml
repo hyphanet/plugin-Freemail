@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <project name="Freemail" default="default" basedir="." xmlns:cs="antlib:com.puppycrawl.tools.checkstyle">
+	<!--
+	     build.properties holds the default values for the properties that
+	     people might want to change. Use override.properties to set new
+	     values without getting in trouble with Git.
+	-->
 	<property name="override" location="override.properties" />
 	<property file="${override}"/>
 	<property file="build.properties"/>
@@ -17,9 +22,6 @@
 
 	<property name="tools.src" location="tools/src"/>
 	<property name="tools.dst" location="tools/build"/>
-
-	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
-	<property name="bcprov.location" location="../fred/lib/bcprov.jar"/>
 
 	<exec executable="git"
 		failifexecutionfails="false"
