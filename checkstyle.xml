@@ -128,9 +128,6 @@
 		<!-- Check for equals(SomethingNotObject) without equals(Object) -->
 		<module name="CovariantEquals"/>
 
-		<!-- Check for broken double checked locking pattern -->
-		<module name="DoubleCheckedLocking"/>
-
 		<!-- Check for empty statements -->
 		<module name="EmptyStatement"/>
 
