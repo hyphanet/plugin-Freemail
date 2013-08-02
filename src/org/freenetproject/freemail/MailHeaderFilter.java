@@ -192,7 +192,7 @@ public class MailHeaderFilter {
 			// we need to make sure the mail client hasn't put in a real hostname, as some have been
 			// known to.
 			Matcher m = messageIdPattern.matcher(val);
-			if(m.matches() && m.groupCount() == 2 && m.group(2).endsWith("freemail")) {
+			if(m.matches() && m.groupCount() == 2 && m.group(2).endsWith(".freemail")) {
 				// okay, the hostname part ends with .freemail, so it's a fake Freemail domain and
 				// not a real one
 				return val;
