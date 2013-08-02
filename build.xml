@@ -111,7 +111,7 @@
 		</copy>
 	</target>
 
-	<target name="compile-tools" depends="bouncycastle-fetch"
+	<target name="compile-tools" 
 	        description="Compiles the supporting tools">
 		<mkdir dir="${tools.dst}"/>
 
