@@ -66,12 +66,6 @@ fi
 FROM=`git describe --always $FROM`
 TO=`git describe --always $TO`
 
-#Save the current branch / commit
-ORIG=`git branch | grep '*' | cut -d" " -f2-`
-if [[ $ORIG == "(no branch)" ]]; then
-	ORIG=`git describe`
-fi
-
 #Checkout the parent of the target
 git checkout "$FROM" &> /dev/null
 mkdir -p .checkcommit.prev
@@ -138,9 +132,6 @@ fi
 
 #Cleanup
 rm -fr .checkcommit.prev/ .checkcommit.cur/
-
-#Checkout original branch
-git checkout "$ORIG" &> /dev/null
 
 #Exit with failure if warnings were added
 if [[ $CHECKSTYLE_ADDED == "0" && $JUNIT_ADDED == "0" ]]; then
