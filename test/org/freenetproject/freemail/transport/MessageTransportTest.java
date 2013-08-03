@@ -88,7 +88,7 @@ public class MessageTransportTest {
 		Utils.delete(testDir);
 	}
 
-	@Test
+	@Test(timeout=10 * 1000)
 	public void messageHandlerTest() throws IOException, InterruptedException, TimeoutException {
 		//Set up the fake FCP client
 		Map<String, File> fetchResults = new HashMap<String, File>();
