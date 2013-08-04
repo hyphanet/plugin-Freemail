@@ -111,6 +111,20 @@ public class MailHeaderFilterTest {
 	}
 
 	@Test
+	public void multilineWithTab() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("References:");
+		input.add("\t<message-id1@domain.freemail>");
+		input.add("\t<message-id2@domain.freemail>");
+
+		List<String> output = new LinkedList<String>();
+		output.add("References: <message-id1@domain.freemail>\r\n"
+				+ " <message-id2@domain.freemail>");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
 	public void messageIdWithFreemailDomain() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Message-ID: <message-id1@domain.freemail>");
