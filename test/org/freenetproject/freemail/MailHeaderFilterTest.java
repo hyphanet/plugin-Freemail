@@ -148,6 +148,16 @@ public class MailHeaderFilterTest {
 		runRegexTest(input, output);
 	}
 
+	@Test
+	public void dropsUnknownHeader() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("header: value");
+
+		List<String> output = new LinkedList<String>();
+
+		runSimpleTest(input, output);
+	}
+
 	private void runSimpleTest(List<String> inputLines, List<String> outputLines) throws IOException {
 		MailHeaderFilter filter = setupFilter(inputLines);
 		for(String header : outputLines) {
