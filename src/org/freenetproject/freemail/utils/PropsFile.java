@@ -118,7 +118,7 @@ public class PropsFile {
 	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
 		this.data = new HashMap<String, String>();
 
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file),"UTF-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
 
 		String line = null;
 		while((line = br.readLine()) != null) {

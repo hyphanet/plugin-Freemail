@@ -139,7 +139,7 @@ public class AccountManager {
 		MD5Digest md5 = new MD5Digest();
 
 		try {
-		    byte[] passwordBytes = newpassword.getBytes("UTF-8");
+			byte[] passwordBytes = newpassword.getBytes("UTF-8");
 			md5.update(passwordBytes, 0, passwordBytes.length);
 		} catch (UnsupportedEncodingException e) {
 			//JVMs are required to support UTF-8, so we can assume it is always available
