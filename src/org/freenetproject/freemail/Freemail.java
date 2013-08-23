@@ -67,7 +67,7 @@ public abstract class Freemail implements ConfigClient {
 	private final IMAPListener imapl;
 
 	protected final Configurator configurator;
-	
+
 	private static SecureRandom srng;
 
 	protected Freemail(String cfgfile) throws IOException {
@@ -149,13 +149,13 @@ public abstract class Freemail implements ConfigClient {
 		fcpThread.setDaemon(true);
 		fcpThread.start();
 	}
-	
+
 	/** Set once on startup */
-	synchronized static void setRNG(SecureRandom random) {
+	static synchronized void setRNG(SecureRandom random) {
 		srng = random;
 	}
-	
-	public synchronized static SecureRandom getRNG() {
+
+	public static synchronized SecureRandom getRNG() {
 		if(srng == null) throw new NullPointerException();
 		return srng;
 	}

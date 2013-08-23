@@ -57,7 +57,7 @@ public class EmailAddress {
 			switch (c) {
 				case '@':
 					this.user = bank.toString().toLowerCase(Locale.ROOT);
-                    bank.setLength(0);
+					bank.setLength(0);
 					break;
 				case '<':
 					this.realname = bank.toString();

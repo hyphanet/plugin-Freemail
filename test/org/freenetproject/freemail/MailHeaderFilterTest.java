@@ -123,6 +123,20 @@ public class MailHeaderFilterTest {
 	}
 
 	@Test
+	public void multilineWithTab() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("References:");
+		input.add("\t<message-id1@domain.freemail>");
+		input.add("\t<message-id2@domain.freemail>");
+
+		List<String> output = new LinkedList<String>();
+		output.add("References: <message-id1@domain.freemail>\r\n"
+				+ " <message-id2@domain.freemail>");
+
+		runSimpleTest(input, output);
+	}
+
+	@Test
 	public void messageIdWithFreemailDomain() throws IOException {
 		List<String> input = new LinkedList<String>();
 		input.add("Message-ID: <message-id1@domain.freemail>");
@@ -201,6 +215,16 @@ public class MailHeaderFilterTest {
 
 		List<String> output = new LinkedList<String>();
 		output.add("From: garbage@" + TestId1Data.BASE32_ID + ".freemail");
+		
+        runSimpleTest(input, output);
+    }
+
+	@Test
+	public void dropsUnknownHeader() throws IOException {
+		List<String> input = new LinkedList<String>();
+		input.add("header: value");
+
+		List<String> output = new LinkedList<String>();
 
 		runSimpleTest(input, output);
 	}

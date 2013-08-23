@@ -238,7 +238,7 @@ public class MailMessage {
 	}
 
 	public void readHeaders() throws IOException {
-		BufferedReader bufrdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file),"UTF-8"));
+		BufferedReader bufrdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
 
 		this.readHeaders(bufrdr);
 		bufrdr.close();
@@ -289,7 +289,7 @@ public class MailMessage {
 	public long getSize() throws IOException {
 		// this is quite arduous since we have to send the message
 		// with \r\n's, and hence it may not be the size it is on disk
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file),"UTF-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
 		try {
 			long counter = 0;
 			String line;
@@ -316,7 +316,7 @@ public class MailMessage {
 
 	public String readLine() throws IOException {
 		if(this.brdr == null) {
-			this.brdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file),"UTF-8"));
+			this.brdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
 		}
 
 		return this.brdr.readLine();
@@ -580,7 +580,7 @@ public class MailMessage {
 	}
 
 	public BufferedReader getBodyReader() throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
 
 		//Read past the headers and store them if they haven't been read
 		//already

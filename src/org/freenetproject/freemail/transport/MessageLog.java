@@ -94,7 +94,7 @@ class MessageLog {
 		if(!logfile.exists()) {
 			logfile.createNewFile();
 		}
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.logfile),"UTF-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.logfile), "UTF-8"));
 
 		String line;
 		while((line = br.readLine()) != null) {
