@@ -39,6 +39,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
 
@@ -60,7 +61,6 @@ public class MailHeaderFilter {
 	private static final Set<String> headerWhitelist;
 	static {
 		Set<String> backing = new HashSet<String>();
-		backing.add("From");
 		backing.add("To");
 		backing.add("CC");
 		backing.add("Subject");
@@ -80,14 +80,13 @@ public class MailHeaderFilter {
 		headerBlacklist = Collections.unmodifiableSet(backing);
 	}
 
-	/** Used if the message-id must be replaced */
-	private final String domain;
+	private final FreemailAccount sender;
 
-	public MailHeaderFilter(BufferedReader rdr, String domain) {
+	public MailHeaderFilter(BufferedReader rdr, FreemailAccount sender) {
 		this.reader = rdr;
 		this.buffer = new StringBuffer();
 		this.foundEnd = false;
-		this.domain = domain;
+		this.sender = sender;
 	}
 
 	public String readHeader() throws IOException {
@@ -200,7 +199,22 @@ public class MailHeaderFilter {
 
 			// It's something else, so just replace it with a new message-id
 			Logger.normal(this, "Replacing message id header");
-			return "<" + MailMessage.generateMessageID(domain) + ">";
+			return "<" + MailMessage.generateMessageID(sender.getDomain()) + ">";
+		} else if(name.equalsIgnoreCase("From")) {
+			EmailAddress address;
+			try {
+				address = new EmailAddress(val);
+			} catch (IllegalArgumentException e) {
+				Logger.minor(this, "From header didn't contain a valid email, dropping");
+				return sender.getNickname() + "@" + sender.getDomain();
+			}
+
+			if(!address.domain.equalsIgnoreCase(sender.getDomain())) {
+				Logger.minor(this,  "");
+				return sender.getNickname() + "@" + sender.getDomain();
+			}
+
+			return val;
 		} else {
 			Logger.warning(this, "Dropping unknown header " + name);
 			return null;
