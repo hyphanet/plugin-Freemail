@@ -1,30 +1,80 @@
-Changes from version 0.2.2 to version 0.2.3
-  This version includes all changes included in 0.2.2.1
+Changes from version 0.2.3.2 to version 0.2.4
 
   o Bugfixes:
     - Print missing [HEADER] in response to IMAP fetch with BODY[HEADER]
     - Fix crash in IMAP on store without arguments
     - Fix return code when uid store fails
     - Various minor IMAP fixes when responding to incorrect client requests
-    - Fix bug causing checkcommit to check a commit against itself
     - Remove invalid From header in received message instead of crashing
       fetcher thread for that channel
     - Numerous fixes to IMAP and SMTP when running with Turkish locale
+    - Set the Recent flag when copying messages
+    - Don't try to remove recent flag if not set. (IMAP)
+    - Another flags-related fix
+    - SMTP fixes
 
   o Improvements:
     - Support for decoding base64 and quoted-printable message body encodings
     - Encode message bodies using quoted-printable when sending via web ui
     - Mark sent messages as read when sending using web ui
     - Add a new page with email address and server info
+    - Use medium format for date+time on web interface
+    - Don't show nickname if identity not in the WoT
+    - Improve the specification slightly
+    - IMAP: Support single parenthesis around entire search (important for imaplib e.g. for pyFreenetHg)
+    - Generate message ID's randomly, rather than based on date
+    - Replace the whole message ID, not just the domain, if the domain is not allowed
+    - Update freesite link in welcome mail
+
+  o Localisation / internationalisation:
+    - French translation
+    - Fix lots of minor internationalisation bugs (e.g. getBytes())
+    - Don't fallback to a possibly invalid charset in MailSite
 
   o Build improvements:
     - Output XML from jUnit run if test.xml_output is set
     - Set includeantruntime=false when compiling
     - Allow running dist target without running tests
+    - Unit test coverage report (cobertura)
+    - checkstyle improvements
+    - Add support for tests.extensive flag.
+    - Describe "clean" targets
+    - Fix bug causing checkcommit to check a commit against itself
+    - Fix more checkcommit bugs
+    - Minor cleanups
+    - Remove a broken dependency
 
   o Code changes:
     - Migrate to jUnit 4
     - Convert a few tests to be parameterized tests
+    - Add a timeout for a heavy test
+    - Refactor web interface, return an HTTPResponse
+    - Lots and lots of work on unit tests, mocks, new tests, SMTP tests, some minor refactoring supporting tests, etc
+    - Don't register toadlets in the constructor (web interface)
+    - Logging, indenting, imports, comments, javadocs, copyright headers, etc.
+    - Get rid of some duplicated code
+    - Simplify copying code (IMAP)
+    - Missing closing of streams etc
+    - Various checks for impossible cases and future changes
+
+Changes from version 0.2.2.1 to version 0.2.3.2 - 2013-07-02
+  (The changelog gets a bit messy until 0.2.4, sorry, my fault - Toad)
+  o Security fixes:
+    - Use a global SecureRandom, rather than creating it each time. Use fred's SecureRandom if running as a plugin. Create the RTS KSK securely.
+
+  o Misc
+    - Trivial optimisations.
+    - Fix build for recent fred.
+
+  o Stability fixes
+    - Synchronization fix.
+    - Make FreemailL10n.pluginL10n volatile.
+    - Fix unit test, reject email addresses without @.
+
+  o Mostly non-functional internal code changes and stability fixes
+    - Stricter regex for FreenetURIs.
+    - Simplify some code
+    - Add FIXMEs/comments.
 
 Changes from version 0.2.2 to version 0.2.2.1 - 2013-01-05
   o Security fixes:
