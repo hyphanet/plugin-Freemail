@@ -25,6 +25,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import utils.TextProtocolTester.Command;
+
 public class IMAPUidFetchTest extends IMAPTestWithMessages {
 	@Test
 	public void uidFetchBodyPeek() throws IOException {
@@ -42,6 +44,21 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidFetchBodyPeekText() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 UID FETCH 1 (BODY.PEEK[TEXT])",
+				"* 1 FETCH (BODY[TEXT] {0}",
+				" UID 1)",
+				"0003 OK Fetch completed"));
+
+		runSimpleTest(commands);
 	}
 
 	@Test
