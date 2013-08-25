@@ -164,6 +164,11 @@ public class MessageToadlet extends WebPage {
 			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}
 		subjectPara.addChild("#", " " + subject);
+
+		HTMLNode datePara = headerBox.addChild("p");
+		datePara.addChild("strong", FreemailL10n.getString("Freemail.MessageToadlet.date"));
+		datePara.addChild("#", " " + getMessageDateAsString(message,
+				FreemailL10n.getString("Freemail.MessageToadlet.dateMissing")));
 	}
 
 	private void addMessageContents(HTMLNode messageNode, MailMessage message) {
