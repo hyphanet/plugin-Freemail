@@ -21,6 +21,7 @@ Freemail.InboxToadlet.move=Flytt
 Freemail.InboxToadlet.subject=Emne
 Freemail.InboxToadlet.from=Fra
 Freemail.InboxToadlet.date=Dato
+Freemail.InboxToadlet.dateMissing=Mangler dato
 Freemail.NewMessageToadlet.boxTitle=Ny melding
 Freemail.NewMessageToadlet.to=Til
 Freemail.NewMessageToadlet.subject=Emne
