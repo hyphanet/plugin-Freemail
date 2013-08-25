@@ -605,7 +605,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
 			a = a.substring("body.peek".length());
-			return this.sendBody(mmsg, a);
+			return this.sendBody(mmsg, a, false);
 		} else if(attr.startsWith("bodystructure")) {
 			// TODO: we blatantly lie about the message structure
 			this.ps.print(a.substring(0, "bodystructure".length()));
@@ -618,7 +618,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
 			a = a.substring("body".length());
-			if(this.sendBody(mmsg, a)) {
+			if(this.sendBody(mmsg, a, false)) {
 				mmsg.flags.set("\\Seen", true);
 				mmsg.storeFlags();
 				return true;
@@ -627,7 +627,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		} else if(attr.startsWith("rfc822.header")) {
 			this.ps.print(a.substring(0, "rfc822.header".length()));
 			this.ps.flush();
-			return this.sendBody(mmsg, "header");
+			return this.sendBody(mmsg, "header", true);
 		} else if(attr.startsWith("internaldate")) {
 			/*
 			 * FIXME: Internaldate should not return Date from the message
@@ -652,7 +652,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return true;
 	}
 
-	private boolean sendBody(MailMessage mmsg, String attr) {
+	private boolean sendBody(MailMessage mmsg, String attr, boolean hasSentDataName) {
 		if(attr.length() < 1) return false;
 
 		// handle byte ranges (e.g. body.peek[]<0.10240>
@@ -682,7 +682,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		if(attr.trim().length() == 0) {
 			try {
-				this.ps.print("[]");
+				if(!hasSentDataName) {
+					this.ps.print("[]");
+				}
 				if(range_start!=-1) {
 					this.ps.print("<"+range_start+">");
 				}
@@ -742,7 +744,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		String[] parts = IMAPMessage.doSplit(attr, '(', ')');
 		if(parts.length > 0) {
 			if(parts[0].equalsIgnoreCase("header.fields")) {
-				this.ps.print("[HEADER.FIELDS "+parts[1]+"]");
+				if(!hasSentDataName) {
+					this.ps.print("[HEADER.FIELDS "+parts[1]+"]");
+				}
 				if(parts[1].charAt(0) == '(')
 					parts[1] = parts[1].substring(1);
 				if(parts[1].charAt(parts[1].length() - 1) == ')')
@@ -761,7 +765,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				}
 				buf.append("\r\n");
 			} else if(parts[0].equalsIgnoreCase("header")) {
-				this.ps.print("[HEADER]");
+				if(!hasSentDataName) {
+					this.ps.print("[HEADER]");
+				}
 
 				// send all the header fields
 				try {
@@ -774,7 +780,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				buf.append(mmsg.getAllHeadersAsString());
 				buf.append("\r\n");
 			} else if(parts[0].equalsIgnoreCase("text")) {
-				this.ps.print("[TEXT]");
+				if(!hasSentDataName) {
+					this.ps.print("[TEXT]");
+				}
 
 				// just send the text of the message without headers
 				mmsg.closeStream();
