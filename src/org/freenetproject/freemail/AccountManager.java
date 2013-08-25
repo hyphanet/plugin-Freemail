@@ -263,8 +263,7 @@ public class AccountManager {
 
 		ps.println("Welcome to Freemail!");
 		ps.println("");
-		ps.println("Thanks for downloading and testing Freemail. You can get started and send me a Freemail now by hitting 'reply'.");
-		ps.println("Your new Freemail address is:");
+		ps.println("Thanks for downloading and testing Freemail. Your new Freemail address is:");
 		ps.println("");
 		ps.println(to);
 		ps.println("");
@@ -274,6 +273,7 @@ public class AccountManager {
 		ps.println(" * The bug tracker: https://bugs.freenetproject.org/ (select 'Freemail' in the top right).");
 		ps.println(" * #freenet on irc.freenode.net");
 		ps.println(" * The mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
+		ps.println(" * Send an email to zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 		ps.println("");
 		ps.println("Don't forget to stay up to date with the Freemail news and latest version at the freesite, which can be found at:");
 		ps.println("");
