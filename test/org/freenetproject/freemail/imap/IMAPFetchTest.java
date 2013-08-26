@@ -25,6 +25,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import utils.TextProtocolTester.Command;
+
 public class IMAPFetchTest extends IMAPTestWithMessages {
 	@Test
 	public void fetchBodyPeek() throws IOException {
@@ -42,6 +44,38 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		expectedResponse.add("0003 OK Fetch completed");
 
 		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void fetchBodyPeekHeader() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 FETCH 1 (BODY.PEEK[HEADER])",
+				"* 1 FETCH (BODY[HEADER] {32}",
+				"Subject: IMAP test message 0",
+				"",
+				")",
+				"0003 OK Fetch completed"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void fetchBodyPeekText() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 FETCH 1 (BODY.PEEK[TEXT])",
+				"* 1 FETCH (BODY[TEXT] {0}",
+				")",
+				"0003 OK Fetch completed"));
+
+		runSimpleTest(commands);
 	}
 
 	@Test
@@ -337,5 +371,36 @@ public class IMAPFetchTest extends IMAPTestWithMessages {
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void fetchRfc822Header() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 FETCH 1 (RFC822.HEADER)",
+				"* 1 FETCH (RFC822.HEADER {32}",
+				"Subject: IMAP test message 0",
+				"",
+				")",
+				"0003 OK Fetch completed"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void fetchRfc822Size() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 FETCH 1 (RFC822.SIZE)",
+				"* 1 FETCH (RFC822.SIZE 32)",
+				"0003 OK Fetch completed"));
+
+		runSimpleTest(commands);
 	}
 }
