@@ -28,6 +28,7 @@ Changes from version 0.2.3.2 to version 0.2.4
     - Generate message ID's randomly, rather than based on date
     - Replace the whole message ID, not just the domain, if the domain is not allowed
     - Update freesite link in welcome mail
+    - IMAP: Fixes re BODY[TEXT], RFC822.HEADER; fixes KMail regression.
 
   o Localisation / internationalisation:
     - French translation
