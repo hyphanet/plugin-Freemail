@@ -116,7 +116,7 @@ class WoTConnectionImpl implements WoTConnection {
 		 * support recipients without the Freemail context.
 		 * FIXME: Restrict this to Freemail context a few months after 0.2.1 has become mandatory
 		 */
-		sfs.putOverwrite("Context", "");
+		sfs.putOverwrite("Context", "Freemail");
 
 		Message response = sendBlocking(new Message(sfs, null), "Identities");
 		if(response == null) {
