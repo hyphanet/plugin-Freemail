@@ -73,7 +73,7 @@ class InfoToadlet extends WebPage {
 				config.get(Configurator.IMAP_BIND_ADDRESS), "imapAddr");
 		addInfoLine(serverBox, FreemailL10n.getString("Freemail.InfoToadlet.imap-port.title"),
 				config.get(Configurator.IMAP_BIND_PORT), "imapPort");
-		addInfoLine(serverBox, FreemailL10n.getString("Freemail.InfoToadlet.imap-addr.title"),
+		addInfoLine(serverBox, FreemailL10n.getString("Freemail.InfoToadlet.smtp-addr.title"),
 				config.get(Configurator.SMTP_BIND_ADDRESS), "imapPort");
 		addInfoLine(serverBox, FreemailL10n.getString("Freemail.InfoToadlet.smtp-port.title"),
 				config.get(Configurator.SMTP_BIND_PORT), "smtpPort");
