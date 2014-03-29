@@ -1,3 +1,17 @@
+Changes from version 0.2.4 to version 0.2.5
+
+  o Build improvements:
+    - Clean up build.xml and build.properties
+	- Improve some tests
+
+  o Translation:
+    - Fixes and updates in the French and Norwegian translations
+	- Add German, Italian, Brazilian Portuguese, Portuguese, and Simplified Chinese translations
+
+  o Improvements:
+    - Fix LCWoT compatibility
+	- Fix a label in the configuration page
+
 Changes from version 0.2.3.2 to version 0.2.4
 
   o Security:
