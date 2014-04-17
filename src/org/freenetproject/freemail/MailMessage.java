@@ -505,6 +505,10 @@ public class MailMessage {
 	}
 
 	public static String decodeHeader(String rawHeader) throws UnsupportedEncodingException {
+		if(rawHeader == null) {
+			return null;
+		}
+
 		StringBuffer subject = new StringBuffer();
 
 		int offset = 0;

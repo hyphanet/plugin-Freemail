@@ -134,7 +134,12 @@ public class MessageToadlet extends WebPage {
 		HTMLNode fromPara = headerBox.addChild("p");
 		fromPara.addChild("strong", "From:");
 		try {
-			fromPara.addChild("#", " " + MailMessage.decodeHeader(message.getFirstHeader("from")));
+			String from = MailMessage.decodeHeader(message.getFirstHeader("from"));
+			if(from == null) {
+				from = FreemailL10n.getString("Freemail.MessageToadlet.fromMissing");
+			}
+
+			fromPara.addChild("#", " " + from);
 		} catch (UnsupportedEncodingException e1) {
 			fromPara.addChild("#", " " + message.getFirstHeader("from"));
 		}
