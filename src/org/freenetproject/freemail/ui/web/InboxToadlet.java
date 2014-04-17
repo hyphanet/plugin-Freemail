@@ -102,11 +102,18 @@ public class InboxToadlet extends WebPage {
 
 		//Sort the messages correctly
 		SortedMap<MailMessage, Integer> messages = new TreeMap<MailMessage, Integer>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
-		for(Entry<Integer, MailMessage> message : messageBank.listMessages().entrySet()) {
-			//FIXME: Initialization of MailMessage should be in MailMessage
-			message.getValue().readHeaders();
+		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
+			Integer messageNum = messageEntry.getKey();
+			MailMessage message = messageEntry.getValue();
 
-			messages.put(message.getValue(), message.getKey());
+			//FIXME: Initialization of MailMessage should be in MailMessage
+			message.readHeaders();
+
+			if(message.flags.get("\\Deleted")) {
+				continue;
+			}
+
+			messages.put(message, messageNum);
 		}
 
 		//Add messages
