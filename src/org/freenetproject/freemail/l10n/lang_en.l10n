@@ -23,6 +23,7 @@ Freemail.InboxToadlet.delete=Delete
 Freemail.InboxToadlet.move=Move
 Freemail.InboxToadlet.subject=Subject
 Freemail.InboxToadlet.from=From
+Freemail.InboxToadlet.fromMissing=Sender missing
 Freemail.InboxToadlet.date=Date
 Freemail.InboxToadlet.dateMissing=Date missing
 Freemail.NewMessageToadlet.boxTitle=New message

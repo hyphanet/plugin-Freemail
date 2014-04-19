@@ -20,6 +20,7 @@ Freemail.InboxToadlet.delete=Slett
 Freemail.InboxToadlet.move=Flytt
 Freemail.InboxToadlet.subject=Emne
 Freemail.InboxToadlet.from=Fra
+Freemail.InboxToadlet.fromMissing=Mangler avsender
 Freemail.InboxToadlet.date=Dato
 Freemail.InboxToadlet.dateMissing=Mangler dato
 Freemail.NewMessageToadlet.boxTitle=Ny melding
