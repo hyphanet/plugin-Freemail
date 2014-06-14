@@ -4,3 +4,6 @@ dist/
 override.properties
 build-test/
 tools/build/
+out/
+deps/
+run/
