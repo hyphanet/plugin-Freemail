@@ -51,19 +51,6 @@ public class EmailAddressTest {
 		}
 	}
 
-	@Test
-	public void addressWithUTF8() {
-		try {
-			//Unused since the point is to check that the constructor throws
-			@SuppressWarnings("unused")
-			EmailAddress emailAddress = new EmailAddress("æøå@email.com");
-
-			fail("Should not be able to create email address with UTF-8");
-		} catch(IllegalArgumentException e) {
-			//Expected
-		}
-	}
-
 	private void checkAddressPasing(String address, String expectedName, String expectedLocal, String expectedDomain) {
 		EmailAddress email = new EmailAddress(address);
 		assertEquals(expectedName, email.realname);

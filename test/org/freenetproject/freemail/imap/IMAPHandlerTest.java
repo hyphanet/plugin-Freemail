@@ -306,32 +306,6 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	@Test
-	public void literalWithoutEndingLinebreak() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-
-		/*
-		 * Now send the literal that doesn't end with \r\n. Note that the 'A' belongs to the
-		 * literal, not to the tag of the logout command. If the logout command is read as part of
-		 * the literal (which is a bug) the last command will be read instead and the test will fail
-		 * due to the unexpected output ("0004 NO Sorry - not implemented").
-		 */
-		commands.add("0002 APPEND INBOX {1}");
-		commands.add("A0003 LOGOUT");
-		commands.add("0004 ShouldNotRun");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 OK Logged in");
-		expectedResponse.add("+ OK");
-		expectedResponse.add("0002 OK APPEND completed");
-		expectedResponse.add("* BYE");
-		expectedResponse.add("0003 OK Bye");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 	/**
 	 * Attempt to emulate the behavior of Thunderbird when storing a draft
 	 * message, including the search to check that it was stored. See bug 5399

@@ -1,5 +1,5 @@
 /*
- * MessageTransportTest.java
+ * BadMessageTransportTest.java
  * This file is part of Freemail
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@ import freenet.support.io.ArrayBucket;
 import utils.UnitTestParameters;
 import utils.Utils;
 
-public class MessageTransportTest {
+public class BadMessageTransportTest {
 	/*
 	 * Directory structure:
 	 * smtptest/
