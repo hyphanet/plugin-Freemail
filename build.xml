@@ -179,7 +179,7 @@
 	<target name="unit" depends="unit-build" unless="${test.skip}"
 	        description="Runs the unit tests">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" dir="${test.run}" haltonfailure="true">
+		<junit fork="yes" forkmode="once" dir="${test.run}" haltonfailure="true">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>
@@ -208,7 +208,7 @@
 	<target name="unit-bad" depends="unit-build-bad"
 	        description="Runs the bad unit tests">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" dir="${test.run}">
+		<junit fork="yes" forkmode="once" dir="${test.run}">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>
