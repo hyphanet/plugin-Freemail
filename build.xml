@@ -179,7 +179,7 @@
 	<target name="unit" depends="unit-build" unless="${test.skip}"
 	        description="Runs the unit tests">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" dir="${test.run}">
+		<junit fork="yes" dir="${test.run}" haltonfailure="true">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>
@@ -235,7 +235,7 @@
 		<delete dir="${test.run}"/>
 	</target>
 
-	<target name="dist" depends="compile" description="Generates the Freemail jar">
+	<target name="dist" depends="compile, unit" description="Generates the Freemail jar">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
