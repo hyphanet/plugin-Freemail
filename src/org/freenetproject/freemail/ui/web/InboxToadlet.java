@@ -23,13 +23,11 @@ package org.freenetproject.freemail.ui.web;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.text.DateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -104,11 +102,18 @@ public class InboxToadlet extends WebPage {
 
 		//Sort the messages correctly
 		SortedMap<MailMessage, Integer> messages = new TreeMap<MailMessage, Integer>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
-		for(Entry<Integer, MailMessage> message : messageBank.listMessages().entrySet()) {
-			//FIXME: Initialization of MailMessage should be in MailMessage
-			message.getValue().readHeaders();
+		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
+			Integer messageNum = messageEntry.getKey();
+			MailMessage message = messageEntry.getValue();
 
-			messages.put(message.getValue(), message.getKey());
+			//FIXME: Initialization of MailMessage should be in MailMessage
+			message.readHeaders();
+
+			if(message.flags.get("\\Deleted")) {
+				continue;
+			}
+
+			messages.put(message, messageNum);
 		}
 
 		//Add messages
@@ -242,6 +247,18 @@ public class InboxToadlet extends WebPage {
 		return folderDiv;
 	}
 
+	private String getFromHeaderForDisplay(MailMessage msg) {
+		String from = msg.getFirstHeader("From");
+		if (from == null) {
+			return FreemailL10n.getString("Freemail.InboxToadlet.fromMissing");
+		}
+		try {
+			return MailMessage.decodeHeader(from);
+		} catch (UnsupportedEncodingException e) {
+			return from;
+		}
+	}
+
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
 		String msgClass = "message";
@@ -273,34 +290,11 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		String from = msg.getFirstHeader("From");
-		if(from == null) {
-			Logger.warning(this, "Found message without From header: " + msg);
-			from = "";
-		}
-		try {
-			author.addChild("#", MailMessage.decodeHeader(from));
-		} catch (UnsupportedEncodingException e) {
-			author.addChild("#", msg.getFirstHeader("From"));
-		}
+		author.addChild("#", getFromHeaderForDisplay(msg));
 
 		HTMLNode date = message.addChild("td", "class", "date");
-
-		Date msgDate = msg.getDate();
-		if(msgDate != null) {
-			DateFormat df = DateFormat.getDateTimeInstance(
-					DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.getDefault());
-			date.addChild("#", df.format(msgDate));
-		} else {
-			/* Use the raw date header if possible. If it is null
-			 * the field will  simply be left blank */
-			//TODO: This should probably be removed once getDate() has been tested with real world messages
-			String rawDate = msg.getFirstHeader("Date");
-			if(rawDate != null) {
-				Logger.error(this, "Displaying raw date: " + rawDate);
-				date.addChild("#", rawDate);
-			}
-		}
+		date.addChild("#", getMessageDateAsString(msg,
+				FreemailL10n.getString("Freemail.InboxToadlet.dateMissing")));
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {

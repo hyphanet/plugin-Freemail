@@ -22,9 +22,14 @@ package org.freenetproject.freemail.ui.web;
 
 import java.io.IOException;
 import java.net.URI;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
 
 import freenet.clients.http.LinkEnabledCallback;
@@ -135,6 +140,33 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		HTMLNode infobox = parent.addChild("div", "class", "infobox infobox-alert");
 		infobox.addChild("div", "class", "infobox-header", title);
 		return infobox.addChild("div", "class", "infobox-content");
+	}
+
+	/**
+	 * Returns the date of the given message, properly formatted for display.
+	 * If the message is missing the date header, {@code fallback} is returned.
+	 * @param message the message to format the date for
+	 * @param fallback the string returned if no date was found
+	 * @return the formatted date, or the fallback date
+	 */
+	static String getMessageDateAsString(MailMessage message, String fallback) {
+		Date msgDate = message.getDate();
+		if(msgDate != null) {
+			DateFormat df = DateFormat.getDateTimeInstance(
+					DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.getDefault());
+			return df.format(msgDate);
+		}
+
+		/* Use the raw date header if possible. If it is null
+		 * the field will  simply be left blank */
+		//TODO: This should probably be removed once getDate() has been tested with real world messages
+		String rawDate = message.getFirstHeader("Date");
+		if(rawDate != null) {
+			Logger.error(WebPage.class, "Displaying raw date: " + rawDate);
+			return rawDate;
+		}
+
+		return fallback;
 	}
 
 	protected void addWoTNotLoadedMessage(HTMLNode parent) {

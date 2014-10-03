@@ -134,7 +134,12 @@ public class MessageToadlet extends WebPage {
 		HTMLNode fromPara = headerBox.addChild("p");
 		fromPara.addChild("strong", "From:");
 		try {
-			fromPara.addChild("#", " " + MailMessage.decodeHeader(message.getFirstHeader("from")));
+			String from = MailMessage.decodeHeader(message.getFirstHeader("from"));
+			if(from == null) {
+				from = FreemailL10n.getString("Freemail.MessageToadlet.fromMissing");
+			}
+
+			fromPara.addChild("#", " " + from);
 		} catch (UnsupportedEncodingException e1) {
 			fromPara.addChild("#", " " + message.getFirstHeader("from"));
 		}
@@ -164,6 +169,11 @@ public class MessageToadlet extends WebPage {
 			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}
 		subjectPara.addChild("#", " " + subject);
+
+		HTMLNode datePara = headerBox.addChild("p");
+		datePara.addChild("strong", FreemailL10n.getString("Freemail.MessageToadlet.date"));
+		datePara.addChild("#", " " + getMessageDateAsString(message,
+				FreemailL10n.getString("Freemail.MessageToadlet.dateMissing")));
 	}
 
 	private void addMessageContents(HTMLNode messageNode, MailMessage message) {
