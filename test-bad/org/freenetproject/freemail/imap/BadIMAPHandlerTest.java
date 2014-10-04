@@ -26,6 +26,10 @@ import java.util.List;
 import org.junit.Test;
 
 public class BadIMAPHandlerTest extends IMAPTestWithMessages {
+	/**
+	 * In the bad set because the IMAP code currently reads literals line by
+	 * line which is incorrect, breaking this test.
+	 */
 	@Test
 	public void literalWithoutEndingLinebreak() throws IOException {
 		List<String> commands = new LinkedList<String>();

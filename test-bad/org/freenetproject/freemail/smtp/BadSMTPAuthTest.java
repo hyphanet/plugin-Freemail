@@ -26,6 +26,10 @@ import java.util.List;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.Test;
 
+/**
+ * All tests in this class fail because the smtp code can't handle certain
+ * corner cases of the spec.
+ */
 public class BadSMTPAuthTest extends SMTPTestBase {
 	/* *************************************************** *
 	 * Tests that don't work with any specific auth method *

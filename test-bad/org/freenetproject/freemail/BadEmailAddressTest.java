@@ -26,6 +26,12 @@ import org.junit.Test;
 import org.freenetproject.freemail.utils.EmailAddress;
 
 public class BadEmailAddressTest {
+	/**
+	 * In bad set because EmailAddress accepts UTF-8 characters due to
+	 * backwards compatibility issues. The code needs to be reviewed to make
+	 * sure we handle utf8 correctly from remote sources, but don't emit it
+	 * ourselves.
+	 */
 	@Test
 	public void addressWithUTF8() {
 		try {
