@@ -54,26 +54,6 @@ public class SMTPAuthTest extends SMTPTestBase {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	/**
-	 * Checks that the server rejects the auth command after the client has already been authenticated.
-	 * @see <a href="https://tools.ietf.org/html/rfc4954#section-4">RFC4954 Section 4</a>
-	 */
-	@Test
-	public void rejectsSecondAuth() throws IOException {
-		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
-
-		List<String> commands = new LinkedList<String>();
-		commands.add("AUTH PLAIN " + authData);
-		commands.add("AUTH PLAIN " + authData);
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("220 localhost ready");
-		expectedResponse.add("235 Authenticated");
-		expectedResponse.add("503 Already authenticated");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 
 	/* ****************************************** *
 	 * Tests that work with the plain auth method *
@@ -145,69 +125,6 @@ public class SMTPAuthTest extends SMTPTestBase {
 	}
 
 	/**
-	 * Tests case where:
-	 *   * authzid is valid
-	 *   * authcid is invalid
-	 *   * passwd is valid (for authzid)
-	 *
-	 * This should fail since
-	 *   1. Freemail doesn't support authenticating as one user while authorizing (acting) as another
-	 *   2. Authenticating user is invalid
-	 */
-	@Test
-	public void plainAuthWithValidAuthzidInValidAuthcid() throws IOException {
-		String authData = new String(Base64.encode((BASE64_USERNAME + "\0nosuchuser\0password").getBytes("ASCII")), "ASCII");
-
-		List<String> commands = new LinkedList<String>();
-		commands.add("AUTH PLAIN " + authData);
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("220 localhost ready");
-		expectedResponse.add("535 Authentication failed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/**
-	 * Tests case where:
-	 *   * authzid is valid
-	 *   * authcid is valid (but != authzid)
-	 *   * passwd is valid (for both user)
-	 *
-	 * This should fail since
-	 *   1. Freemail doesn't support authenticating as one user while authorizing (acting) as another
-	 *   2. Password is invalid
-	 */
-	@Test
-	public void plainAuthTwoUsersValidPassword() throws IOException {
-		String authData = new String(Base64.encode((BASE64_USERNAMES[0] + "\0" + BASE64_USERNAMES[1] + "\0password").getBytes("ASCII")), "ASCII");
-
-		List<String> commands = new LinkedList<String>();
-		commands.add("AUTH PLAIN " + authData);
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("220 localhost ready");
-		expectedResponse.add("535 Authentication failed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/**
-	 * Checks that the server handles receiving AUTH PLAIN data with only the username
-	 */
-	@Test
-	public void plainAuthOnlyUsername() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("AUTH PLAIN " + new String(Base64.encode((BASE64_USERNAME).getBytes("ASCII")), "ASCII"));
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("220 localhost ready");
-		expectedResponse.add("535 No username/password received");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/**
 	 * Tests authentication of a valid username:password combination when using the full email for the username
 	 */
 	@Test
@@ -220,23 +137,6 @@ public class SMTPAuthTest extends SMTPTestBase {
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("535 Authentication failed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	/**
-	 * Checks the server response when the client cancels an auth plain exchange instead of sending the data
-	 */
-	@Test
-	public void clientCancelsPlainAuthAfterChallenge() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("AUTH PLAIN");
-		commands.add("*");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("220 localhost ready");
-		expectedResponse.add("334 ");
-		expectedResponse.add("501 Authentication canceled");
 
 		runSimpleTest(commands, expectedResponse);
 	}

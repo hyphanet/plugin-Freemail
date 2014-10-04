@@ -12,9 +12,11 @@
 	<!-- set global properties for this build -->
 	<property name="src" location="src"/>
 	<property name="test" location="test"/>
+	<property name="test-bad" location="test-bad"/>
 	<property name="test.run" location="run"/>
 	<property name="build" location="build"/>
 	<property name="build-test" location="build-test"/>
+	<property name="build-test-bad" location="build-test-bad"/>
 	<property name="dist" location="dist"/>
 	<property name="lib" location="lib"/>
 	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
@@ -45,7 +47,7 @@
 	     Convenience targets
 	-->
 
-	<target name="all" depends="unit, dist, checkstyle, compile-tools"/>
+	<target name="all" depends="unit, unit-bad, dist, checkstyle, compile-tools"/>
 	<target name="default" depends="unit, dist"/>
 
 	<!--
@@ -152,10 +154,32 @@
 		</javac>
 	</target>
 
+	<target name="unit-build-bad" depends="compile, unit-build">
+		<mkdir dir="${build-test-bad}"/>
+		<javac srcdir="${test-bad}"
+		       destdir="${build-test-bad}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       encoding="UTF-8"
+		       includeantruntime="false">
+			<classpath>
+				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement location="${bcprov.location}"/>
+				<pathelement location="${build}"/>
+				<pathelement location="${build-test}"/>
+				<pathelement location="${junit}"/>
+				<pathelement path="${test.lib}"/>
+			</classpath>
+			<compilerarg line="-Xlint"/>
+		</javac>
+	</target>
+
 	<target name="unit" depends="unit-build" unless="${test.skip}"
 	        description="Runs the unit tests">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" dir="${test.run}">
+		<junit fork="yes" forkmode="once" dir="${test.run}" haltonfailure="true">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>
@@ -181,7 +205,37 @@
 		<delete dir="${test.run}"/>
 	</target>
 
-	<target name="dist" depends="compile" description="Generates the Freemail jar">
+	<target name="unit-bad" depends="unit-build-bad"
+	        description="Runs the bad unit tests">
+		<mkdir dir="${test.run}"/>
+		<junit fork="yes" forkmode="once" dir="${test.run}">
+			<classpath>
+				<pathelement location="${freenet-cvs-snapshot.location}"/>
+				<pathelement location="${bcprov.location}"/>
+				<pathelement location="${build}"/>
+				<pathelement location="${build-test}"/>
+				<pathelement location="${build-test-bad}"/>
+				<pathelement location="${junit}"/>
+				<pathelement path="${test.lib}"/>
+			</classpath>
+
+			<env key="test.extensive" value="${test.extensive}"/>
+			<env key="test.verbose" value="${test.verbose}"/>
+
+			<assertions><enable/></assertions>
+
+			<formatter type="brief" usefile="false"/>
+			<formatter type="xml" if="${test.xml_output}"/>
+			<batchtest todir="${build-test-bad}">
+				<fileset dir="${build-test-bad}">
+					<include name="org/freenetproject/freemail/**/*Test.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		<delete dir="${test.run}"/>
+	</target>
+
+	<target name="dist" depends="compile, unit" description="Generates the Freemail jar">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
@@ -200,6 +254,7 @@
 	<target name="clean" description="Removes all generated files">
 		<delete dir="${build}"/>
 		<delete dir="${build-test}"/>
+		<delete dir="${build-test-bad}"/>
 		<delete dir="${dist}"/>
 		<delete dir="${run}"/>
 		<delete dir="${tools.dst}"/>
@@ -219,6 +274,7 @@
 				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
+			<fileset dir="${test-bad}" includes="**/*.java"/>
 			<fileset dir="${tools.src}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
@@ -232,6 +288,7 @@
 				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
+			<fileset dir="${test-bad}" includes="**/*.java"/>
 			<fileset dir="${tools.src}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>

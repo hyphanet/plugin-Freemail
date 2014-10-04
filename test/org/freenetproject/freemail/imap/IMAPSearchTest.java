@@ -100,17 +100,4 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands);
 	}
-
-	@Test
-	public void searchWithExtraParansAndIllegalWhitespace() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
-		commands.addAll(connectSequence());
-		commands.addAll(loginSequence("0001"));
-		commands.addAll(selectInboxSequence("0002"));
-
-		commands.add(new Command("0003 SEARCH ( ALL ALL )",
-				"0003 NO Criteria ( hasn't been implemented"));
-
-		runSimpleTest(commands);
-	}
 }

@@ -3,6 +3,7 @@ lib/
 dist/
 override.properties
 build-test/
+build-test-bad/
 tools/build/
 out/
 deps/

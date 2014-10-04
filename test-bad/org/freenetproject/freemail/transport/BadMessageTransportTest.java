@@ -1,5 +1,5 @@
 /*
- * MessageTransportTest.java
+ * BadMessageTransportTest.java
  * This file is part of Freemail
  *
  * This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@ import freenet.support.io.ArrayBucket;
 import utils.UnitTestParameters;
 import utils.Utils;
 
-public class MessageTransportTest {
+public class BadMessageTransportTest {
 	/*
 	 * Directory structure:
 	 * smtptest/
@@ -88,6 +88,13 @@ public class MessageTransportTest {
 		Utils.delete(testDir);
 	}
 
+	/**
+	 * In the bad set because timing issues can cause the Sender task to check
+	 * for the private key before the RTSSender task generates it. If this
+	 * happens the Sender task retries after 5 minutes which is far too long
+	 * for a unit test. The Freemail mock should return an executor that can be
+	 * controlled by the test code so task run in a deterministic order.
+	 */
 	@Test(timeout=10 * 1000)
 	public void messageHandlerTest() throws IOException, InterruptedException, TimeoutException {
 		//Set up the fake FCP client

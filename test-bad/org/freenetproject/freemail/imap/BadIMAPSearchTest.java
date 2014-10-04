@@ -1,5 +1,5 @@
 /*
- * UnitTestParameters.java
+ * BadIMAPSearchTest.java
  * This file is part of Freemail
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,8 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package utils;
+package org.freenetproject.freemail.imap;
 
-public class UnitTestParameters {
-	public static final boolean VERBOSE = Boolean.parseBoolean(System.getenv("test.verbose"));
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.junit.Test;
+
+import utils.TextProtocolTester.Command;
+
+public class BadIMAPSearchTest extends IMAPTestWithMessages {
+	@Test
+	public void searchWithExtraParansAndIllegalWhitespace() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 SEARCH ( ALL ALL )",
+				"0003 NO Criteria ( hasn't been implemented"));
+
+		runSimpleTest(commands);
+	}
 }
