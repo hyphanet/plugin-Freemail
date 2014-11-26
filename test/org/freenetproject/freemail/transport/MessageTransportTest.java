@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.utils.PropsFile;
 import org.freenetproject.freemail.wot.Identity;
 import org.junit.After;
@@ -135,6 +137,8 @@ public class MessageTransportTest {
 			pw.close();
 			account = new MockFreemailAccount(TestId1Data.FreemailAccount.IDENTITY, accountDir, PropsFile.createPropsFile(accProps), freemail);
 		}
+
+		Freemail.setRNG(new SecureRandom());
 
 		MessageHandler handler = new MessageHandler(outboxDir, freemail, channelDir, account, hlFcpClientFactory);
 

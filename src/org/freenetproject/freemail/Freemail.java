@@ -151,7 +151,7 @@ public abstract class Freemail implements ConfigClient {
 	}
 
 	/** Set once on startup */
-	static synchronized void setRNG(SecureRandom random) {
+	public static synchronized void setRNG(SecureRandom random) {
 		srng = random;
 	}
 
