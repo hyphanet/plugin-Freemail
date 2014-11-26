@@ -29,6 +29,7 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 public class MockFreemail extends Freemail {
 	private final WoTConnection wotConnection;
+	private ScheduledExecutorService executor;
 
 	public MockFreemail(String cfgfile, WoTConnection wotConnection) throws IOException {
 		super(cfgfile);
@@ -39,6 +40,15 @@ public class MockFreemail extends Freemail {
 	public WoTConnection getWotConnection() {
 		Logger.debug(this, "getWotConnection()");
 		return wotConnection;
+	}
+
+	@Override
+	public ScheduledExecutorService getExecutor(TaskType type) {
+		Logger.debug(this, "getExecutor(type=" + type + ")");
+		if (executor != null) {
+			return executor;
+		}
+		return super.getExecutor(type);
 	}
 
 	@Override
@@ -81,9 +91,7 @@ public class MockFreemail extends Freemail {
 		super.terminate();
 	}
 
-	@Override
-	public ScheduledExecutorService getExecutor(TaskType type) {
-		Logger.debug(this, "getExecutor(type=" + type + ")");
-		return super.getExecutor(type);
+	public void setExecutor(ScheduledExecutorService executor) {
+		this.executor = executor;
 	}
 }
