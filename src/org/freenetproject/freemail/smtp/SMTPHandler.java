@@ -209,6 +209,11 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				}
 			}
 
+			if(b64creds.equals("*")) {
+				this.ps.print("501 Authentication canceled\r\n");
+				return;
+			}
+
 			String creds_plain;
 			try {
 				creds_plain = new String(Base64.decode(b64creds.getBytes("UTF-8")));
