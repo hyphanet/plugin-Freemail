@@ -67,7 +67,7 @@ public class SMTPStateTest extends SMTPTestBase {
 	public void dataWithoutRcpt() throws IOException {
 		final String username = BASE64_USERNAME;
 		final String password = "password";
-		final byte[] concatedBytes = (username + "\0" + password).getBytes("ASCII");
+		final byte[] concatedBytes = ("\0" + username + "\0" + password).getBytes("ASCII");
 		final String encoded = new String(Base64.encode(concatedBytes), "ASCII");
 
 		List<String> commands = new LinkedList<String>();

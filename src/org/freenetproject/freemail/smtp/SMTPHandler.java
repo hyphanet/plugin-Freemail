@@ -217,25 +217,21 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 			String[] creds = creds_plain.split("\0");
+			if (creds.length != 3) {
+				this.ps.print("501 Invalid arguments to plain auth\r\n");
+				return;
+			}
 
-			if(creds.length < 2) return;
+			String authzid = creds[0];
+			uname = creds[1];
+			password = creds[2];
 
-			if(creds.length == 3 && !creds[0].isEmpty()) {
-				if(!creds[0].equals(creds[1])) {
+			if(!authzid.isEmpty()) {
+				if(!authzid.equals(uname)) {
 					this.ps.print("535 Authentication failed\r\n");
 					return;
 				}
 			}
-
-			// most documents seem to reckon you send the
-			// username twice. Some think only once.
-			// This will work either way.
-			uname = creds[0];
-			// there may be a null first (is this always the case?)
-			if(uname.length() < 1) {
-				uname = creds[1];
-			}
-			password = creds[creds.length - 1];
 		} else {
 			this.ps.print("504 Auth type unimplemented - weren't you listening?\r\n");
 			return;

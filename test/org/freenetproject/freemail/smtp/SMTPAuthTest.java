@@ -202,7 +202,7 @@ public class SMTPAuthTest extends SMTPTestBase {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("220 localhost ready");
-		expectedResponse.add("535 No username/password received");
+		expectedResponse.add("501 Invalid arguments to plain auth");
 
 		runSimpleTest(commands, expectedResponse);
 	}
