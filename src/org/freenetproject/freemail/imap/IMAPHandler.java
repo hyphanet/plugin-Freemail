@@ -1249,15 +1249,26 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			PrintStream msgps = newmsg.getRawStream();
 
-			String line;
 			int bytesread = 0;
-			while((line = this.bufrdr.readLine()) != null) {
-				msgps.println(line);
+			while(bytesread < datalen) {
+				int bytesToRead = Math.min(4096, datalen - bytesread);
+				char buf[] = new char[bytesToRead];
+				int read = this.bufrdr.read(buf, 0, bytesToRead);
+				if(read == -1) {
+					this.reply(msg, "NO Failed to read entire message");
+					newmsg.cancel();
+					return;
+				}
+				bytesread += read;
 
-				bytesread += line.getBytes("UTF-8").length;
-				bytesread += "\r\n".length();
+				if(read < bytesToRead) {
+					//Shrink the buffer to avoid printing to much
+					char new_buf[] = new char[read];
+					System.arraycopy(buf, 0, new_buf, 0, read);
+					buf = new_buf;
+				}
 
-				if(bytesread >= datalen) break;
+				msgps.print(buf);
 			}
 
 			newmsg.commit();
