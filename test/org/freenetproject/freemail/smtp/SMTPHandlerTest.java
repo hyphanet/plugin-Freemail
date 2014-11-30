@@ -67,7 +67,7 @@ public class SMTPHandlerTest extends SMTPTestBase {
 	@Test
 	public void mailAfterAuth() throws IOException {
 		List<String> commands = new LinkedList<String>();
-		final String authData = new String(Base64.encode((BASE64_USERNAME + "\0nouser\0password").getBytes("ASCII")), "ASCII");
+		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 		commands.add("AUTH PLAIN " + authData);
 		commands.add("MAIL");
 

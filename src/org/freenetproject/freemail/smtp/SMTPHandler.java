@@ -220,6 +220,13 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 			if(creds.length < 2) return;
 
+			if(creds.length == 3 && !creds[0].isEmpty()) {
+				if(!creds[0].equals(creds[1])) {
+					this.ps.print("535 Authentication failed\r\n");
+					return;
+				}
+			}
+
 			// most documents seem to reckon you send the
 			// username twice. Some think only once.
 			// This will work either way.
