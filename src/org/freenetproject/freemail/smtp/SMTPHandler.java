@@ -157,7 +157,14 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		if(cmd.args.length == 0) {
 			this.ps.print("504 No auth type given\r\n");
 			return;
-		} else if(cmd.args[0].equalsIgnoreCase("login")) {
+		}
+
+		if(this.account != null) {
+			this.ps.print("503 Already authenticated\r\n");
+			return;
+		}
+
+		if(cmd.args[0].equalsIgnoreCase("login")) {
 			try {
 				this.ps.print("334 "+new String(Base64.encode("Username:".getBytes("UTF-8")))+"\r\n");
 			} catch(UnsupportedEncodingException e) {
