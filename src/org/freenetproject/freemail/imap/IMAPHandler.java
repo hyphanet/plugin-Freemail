@@ -1345,14 +1345,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				lastArg = msg.args[lastArgIndex];
 				msg.args[lastArgIndex] = lastArg.substring(0, lastArg.length() - 1);
 
-				/*
-				 * If anything were parsed such that it's only a parenthesis, it would be empty now. That's not
-				 * desirable, so remove it from the argument list.
-				 */
 				final boolean firstEmpty = msg.args[0].isEmpty();
 				final boolean lastEmpty = msg.args[lastArgIndex].isEmpty();
-				msg = new IMAPMessage(msg.tag, msg.type, Arrays.copyOfRange(msg.args, firstEmpty ? 1 : 0,
-						lastEmpty ? lastArgIndex : msg.args.length));
+				if(firstEmpty || lastEmpty) {
+					reply(msg, "BAD Extra space between paranthesis and search-key");
+					return;
+				}
 			}
 		}
 
