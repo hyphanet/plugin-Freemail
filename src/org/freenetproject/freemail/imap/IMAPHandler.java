@@ -953,7 +953,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		int count_correction=0;
 		for(int i = 0; i < mmsgs.length; i++) {
-			if(mmsgs[i].flags.get("\\Deleted")) {
+			if(mmsgs[i].flags.isDeleted()) {
 				mmsgs[i].delete();
 				if(verbose) this.sendState((i+1-count_correction)+" EXPUNGE");
 				count_correction++;

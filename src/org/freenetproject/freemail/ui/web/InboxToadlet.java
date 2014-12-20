@@ -109,7 +109,7 @@ public class InboxToadlet extends WebPage {
 			//FIXME: Initialization of MailMessage should be in MailMessage
 			message.readHeaders();
 
-			if(message.flags.get("\\Deleted")) {
+			if(message.flags.isDeleted()) {
 				continue;
 			}
 
