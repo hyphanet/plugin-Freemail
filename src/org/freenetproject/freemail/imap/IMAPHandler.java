@@ -1187,7 +1187,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage copy = target.createMessage();
 
 			src.copyTo(copy);
-			copy.flags.set("\\Recent", true);
+			copy.flags.setRecent();
 			copy.storeFlags();
 		}
 		this.reply(msg, "OK COPY completed");

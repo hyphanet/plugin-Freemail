@@ -178,4 +178,8 @@ public class IMAPMessageFlags {
 		return get("\\Recent");
 	}
 
+	public void setRecent() {
+		set("\\Recent", true);
+	}
+
 }
