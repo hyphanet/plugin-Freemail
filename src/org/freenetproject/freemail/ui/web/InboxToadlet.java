@@ -262,7 +262,7 @@ public class InboxToadlet extends WebPage {
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
 		String msgClass = "message";
-		if(!msg.flags.get("\\Seen")) {
+		if(!msg.flags.isSeen()) {
 			msgClass += " message-unread";
 		}
 		if(msg.flags.get("\\Recent")) {

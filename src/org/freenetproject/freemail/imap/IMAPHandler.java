@@ -1004,7 +1004,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			if(m.flags.get("\\Recent")) numrecent++;
 
 			// is it unseen?
-			if(!m.flags.get("\\Seen")) numunseen++;
+			if(!m.flags.isSeen()) numunseen++;
 
 			if(m.getUID() > lastuid) lastuid = m.getUID();
 

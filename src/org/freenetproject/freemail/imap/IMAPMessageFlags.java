@@ -161,4 +161,9 @@ public class IMAPMessageFlags {
 		}
 		return realFlag;
 	}
+
+	public boolean isSeen() {
+		return get("\\Seen");
+	}
+
 }
