@@ -512,7 +512,7 @@ public class MessageHandler {
 			boolean inserted;
 			while(true) {
 				c = getChannel(recipient);
-				Bucket message = new FileBucket(new File(rcptOutbox, identifier), false, false, false, false, false);
+				Bucket message = new FileBucket(new File(rcptOutbox, identifier), false, false, false, false);
 				try {
 					inserted = c.sendMessage(message, msgNum);
 				} catch(ChannelTimedOutException e) {
