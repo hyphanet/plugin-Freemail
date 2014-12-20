@@ -174,6 +174,10 @@ public class IMAPMessageFlags {
 		return get("\\Deleted");
 	}
 
+	public void setDeleted() {
+		set("\\Deleted", true);
+	}
+
 	public boolean isRecent() {
 		return get("\\Recent");
 	}

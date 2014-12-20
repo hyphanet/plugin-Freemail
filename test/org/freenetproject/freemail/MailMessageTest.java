@@ -82,7 +82,7 @@ public class MailMessageTest {
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,S"), msgDir.listFiles()[0]);
 
-		msg.flags.set("\\Deleted", true);
+		msg.flags.setDeleted();
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
 	}
