@@ -36,6 +36,7 @@ import java.util.TreeMap;
 
 import javax.naming.SizeLimitExceededException;
 
+import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MailMessage;
@@ -46,6 +47,7 @@ import org.freenetproject.freemail.utils.Logger;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.Base64;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
@@ -291,10 +293,28 @@ public class InboxToadlet extends WebPage {
 
 		HTMLNode author = message.addChild("td", "class", "author");
 		author.addChild("#", getFromHeaderForDisplay(msg));
+		appendWoTLinkForSender(author, msg);
 
 		HTMLNode date = message.addChild("td", "class", "date");
 		date.addChild("#", getMessageDateAsString(msg,
 				FreemailL10n.getString("Freemail.InboxToadlet.dateMissing")));
+	}
+
+	private void appendWoTLinkForSender(HTMLNode parentNode, MailMessage message) {
+		try {
+			String sender = MailMessage.decodeHeader(message.getFirstHeader("From"));
+			int atSign = sender.indexOf('@');
+			int freemailSuffix = sender.indexOf(".freemail", atSign);
+			if ((atSign != -1) && (freemailSuffix != -1) && (atSign < freemailSuffix)) {
+				String base32EncodedId = sender.substring(atSign + 1, freemailSuffix);
+				String base64EncodedId = Base64.encode(Base32.decode(base32EncodedId));
+				parentNode.addChild("#", " ");
+				String linkToWebOfTrust = "/WebOfTrust/ShowIdentity?id=" + base64EncodedId;
+				parentNode.addChild("a", "href", linkToWebOfTrust, "web of trust");
+			}
+		} catch (UnsupportedEncodingException e) {
+			return;
+		}
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {
