@@ -1362,67 +1362,67 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			//Check the various flag state filters
 			if(msg.args[offset].equalsIgnoreCase("ANSWERED")) {
-				filterMessagesOnFlag(messages.values(), "\\Answered", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_ANSWERED, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("DELETED")) {
-				filterMessagesOnFlag(messages.values(), "\\Deleted", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DELETED, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("FLAGGED")) {
-				filterMessagesOnFlag(messages.values(), "\\Flagged", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_FLAGGED, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("RECENT")) {
-				filterMessagesOnFlag(messages.values(), "\\Recent", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_RECENT, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("SEEN")) {
-				filterMessagesOnFlag(messages.values(), "\\Seen", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_SEEN, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNANSWERED")) {
-				filterMessagesOnFlag(messages.values(), "\\Answered", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_ANSWERED, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNDELETED")) {
-				filterMessagesOnFlag(messages.values(), "\\Deleted", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DELETED, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNFLAGGED")) {
-				filterMessagesOnFlag(messages.values(), "\\Flagged", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_FLAGGED, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNSEEN")) {
-				filterMessagesOnFlag(messages.values(), "\\Seen", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_SEEN, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("DRAFT")) {
-				filterMessagesOnFlag(messages.values(), "\\Draft", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DRAFT, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNDRAFT")) {
-				filterMessagesOnFlag(messages.values(), "\\Draft", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DRAFT, false);
 				offset++;
 				continue;
 			}
