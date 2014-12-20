@@ -36,18 +36,17 @@ import java.util.TreeMap;
 
 import javax.naming.SizeLimitExceededException;
 
-import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.pluginmanager.PluginRespirator;
-import freenet.support.Base64;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
 
@@ -249,18 +248,6 @@ public class InboxToadlet extends WebPage {
 		return folderDiv;
 	}
 
-	private String getFromHeaderForDisplay(MailMessage msg) {
-		String from = msg.getFirstHeader("From");
-		if (from == null) {
-			return FreemailL10n.getString("Freemail.InboxToadlet.fromMissing");
-		}
-		try {
-			return MailMessage.decodeHeader(from);
-		} catch (UnsupportedEncodingException e) {
-			return from;
-		}
-	}
-
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
 		String msgClass = "message";
@@ -292,29 +279,44 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		author.addChild("#", getFromHeaderForDisplay(msg));
-		appendWoTLinkForSender(author, msg);
+		author.addChild(createSenderCell(msg));
 
 		HTMLNode date = message.addChild("td", "class", "date");
 		date.addChild("#", getMessageDateAsString(msg,
 				FreemailL10n.getString("Freemail.InboxToadlet.dateMissing")));
 	}
 
-	private void appendWoTLinkForSender(HTMLNode parentNode, MailMessage message) {
+	private HTMLNode createSenderCell(MailMessage message) {
+		String rawSender = message.getFirstHeader("From");
 		try {
-			String sender = MailMessage.decodeHeader(message.getFirstHeader("From"));
-			int atSign = sender.indexOf('@');
-			int freemailSuffix = sender.indexOf(".freemail", atSign);
-			if ((atSign != -1) && (freemailSuffix != -1) && (atSign < freemailSuffix)) {
-				String base32EncodedId = sender.substring(atSign + 1, freemailSuffix);
-				String base64EncodedId = Base64.encode(Base32.decode(base32EncodedId));
-				parentNode.addChild("#", " ");
-				String linkToWebOfTrust = "/WebOfTrust/ShowIdentity?id=" + base64EncodedId;
-				parentNode.addChild("a", "href", linkToWebOfTrust, "web of trust");
+			String sender = MailMessage.decodeHeader(rawSender);
+			if (sender == null) {
+				return new HTMLNode("#", FreemailL10n.getString("Freemail.InboxToadlet.fromMissing"));
 			}
-		} catch (UnsupportedEncodingException e) {
-			return;
+			HTMLNode senderCell = new HTMLNode("div");
+			EmailAddress emailAddress = new EmailAddress(sender);
+			if (emailAddress.hasRealname()) {
+				HTMLNode realnameNode = senderCell.addChild("div", emailAddress.getRealname());
+				realnameNode.addAttribute("class", "realname");
+				realnameNode.addAttribute("title", emailAddress.getAddress());
+			} else {
+				HTMLNode addressNode = senderCell.addChild("div", emailAddress.getAddress());
+				addressNode.addAttribute("class", "address");
+			}
+			if (emailAddress.isFreemailAddress()) {
+				HTMLNode wotLinkNode = senderCell.addChild("div", "class", "wot-link");
+				wotLinkNode.addChild("#", "(");
+				String linkToWebOfTrust = "/WebOfTrust/ShowIdentity?id=" + emailAddress.getIdentity();
+				wotLinkNode.addChild("a", "href", linkToWebOfTrust, "web of trust");
+				wotLinkNode.addChild("#", ")");
+			}
+			return senderCell;
+		} catch (IllegalArgumentException iae1) {
+			Logger.minor(this, "Not a valid email address: " + rawSender);
+		} catch (UnsupportedEncodingException uee1) {
+			Logger.minor(this, "Invalid encoding in: " + rawSender);
 		}
+		return new HTMLNode("#", rawSender);
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {
