@@ -100,14 +100,14 @@ public class EmailAddress {
 			throw new IllegalArgumentException();
 	}
 
-	public boolean is_freemail_address() {
+	public boolean isFreemailAddress() {
 		if(this.domain == null) return false;
 		if(!this.domain.endsWith(".freemail")) return false;
 		return true;
 	}
 
 	public boolean is_ssk_address() {
-		if(!this.is_freemail_address()) return false;
+		if(!this.isFreemailAddress()) return false;
 		String key;
 		try {
 			key = new String(Base32.decode(this.getSubDomain()));
