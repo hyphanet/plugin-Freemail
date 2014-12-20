@@ -78,7 +78,7 @@ public class MailMessageTest {
 		MailMessage msg = new MailMessage(messageFile, 0);
 		msg.flags.clear();
 
-		msg.flags.set("\\Seen", true);
+		msg.flags.setSeen();
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,S"), msgDir.listFiles()[0]);
 

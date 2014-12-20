@@ -613,13 +613,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return true;
 		} else if(attr.startsWith("body")) {
 			// TODO: this is not quite right since it will match bodyanything
-			mmsg.flags.set("\\Seen", true);
+			mmsg.flags.setSeen();
 
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
 			a = a.substring("body".length());
 			if(this.sendBody(mmsg, a, false)) {
-				mmsg.flags.set("\\Seen", true);
+				mmsg.flags.setSeen();
 				mmsg.storeFlags();
 				return true;
 			}

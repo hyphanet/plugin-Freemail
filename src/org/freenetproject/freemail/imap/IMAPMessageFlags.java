@@ -166,6 +166,10 @@ public class IMAPMessageFlags {
 		return get("\\Seen");
 	}
 
+	public void setSeen() {
+		set("\\Seen", true);
+	}
+
 	public boolean isDeleted() {
 		return get("\\Deleted");
 	}

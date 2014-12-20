@@ -92,7 +92,7 @@ public class MessageToadlet extends WebPage {
 
 		//Mark message as read
 		if(!msg.flags.isSeen()) {
-			msg.flags.set("\\seen", true);
+			msg.flags.setSeen();
 			msg.storeFlags();
 		}
 
