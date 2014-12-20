@@ -122,6 +122,14 @@ public class EmailAddress {
 		return true;
 	}
 
+	public boolean hasRealname() {
+		return realname != null;
+	}
+
+	public String getRealname() {
+		return realname;
+	}
+
 	// get the part of the domain before the '.freemail'
 	// note that the domain may contain additional dots, so we cannot use split
 	public String getSubDomain() {
