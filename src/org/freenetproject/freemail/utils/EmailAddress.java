@@ -130,6 +130,10 @@ public class EmailAddress {
 		return realname;
 	}
 
+	public String getAddress() {
+		return String.format("%s@%s", user, domain);
+	}
+
 	// get the part of the domain before the '.freemail'
 	// note that the domain may contain additional dots, so we cannot use split
 	public String getSubDomain() {
@@ -147,7 +151,7 @@ public class EmailAddress {
 
 	@Override
 	public String toString() {
-		return this.user+"@"+this.domain;
+		return getAddress();
 	}
 
 	public String toLongString() {
