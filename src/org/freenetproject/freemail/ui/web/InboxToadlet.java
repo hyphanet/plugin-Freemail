@@ -267,7 +267,7 @@ public class InboxToadlet extends WebPage {
 		}
 		if(msg.flags.isRecent()) {
 			msgClass += " message-recent";
-			msg.flags.set("\\Recent", false);
+			msg.flags.clearRecent();
 			msg.storeFlags();
 		}
 		HTMLNode message = parent.addChild("tr", "class", msgClass);

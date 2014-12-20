@@ -182,4 +182,8 @@ public class IMAPMessageFlags {
 		set("\\Recent", true);
 	}
 
+	public void clearRecent() {
+		set("\\Recent", false);
+	}
+
 }

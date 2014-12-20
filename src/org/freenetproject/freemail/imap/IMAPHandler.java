@@ -327,7 +327,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				numrecent++;
 
 				// remove the recent flag
-				m.flags.set("\\Recent", false);
+				m.flags.clearRecent();
 				m.storeFlags();
 			}
 
