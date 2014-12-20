@@ -24,6 +24,8 @@ package org.freenetproject.freemail.utils;
 
 import java.util.Locale;
 
+import freenet.support.Base64;
+
 import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.MailSite;
@@ -104,6 +106,13 @@ public class EmailAddress {
 		if(this.domain == null) return false;
 		if(!this.domain.endsWith(".freemail")) return false;
 		return true;
+	}
+
+	public String getIdentity() {
+		if (!isFreemailAddress()) {
+			return null;
+		}
+		return Base64.encode(Base32.decode(getSubDomain()));
 	}
 
 	public boolean is_ssk_address() {
