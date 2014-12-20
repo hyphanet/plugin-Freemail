@@ -323,7 +323,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage m =msgs.get(msgs.firstKey());
 
 			// if it's recent, add to the tally
-			if(m.flags.get("\\Recent")) {
+			if(m.flags.isRecent()) {
 				numrecent++;
 
 				// remove the recent flag
@@ -1001,7 +1001,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage m =msgs.get(msgs.firstKey());
 
 			// if it's recent, add to the tally
-			if(m.flags.get("\\Recent")) numrecent++;
+			if(m.flags.isRecent()) numrecent++;
 
 			// is it unseen?
 			if(!m.flags.isSeen()) numunseen++;

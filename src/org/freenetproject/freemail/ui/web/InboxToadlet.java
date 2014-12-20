@@ -265,7 +265,7 @@ public class InboxToadlet extends WebPage {
 		if(!msg.flags.isSeen()) {
 			msgClass += " message-unread";
 		}
-		if(msg.flags.get("\\Recent")) {
+		if(msg.flags.isRecent()) {
 			msgClass += " message-recent";
 			msg.flags.set("\\Recent", false);
 			msg.storeFlags();
