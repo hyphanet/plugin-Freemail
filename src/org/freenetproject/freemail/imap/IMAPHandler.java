@@ -24,6 +24,7 @@ package org.freenetproject.freemail.imap;
 
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.CharBuffer;
 import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -1250,10 +1251,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			PrintStream msgps = newmsg.getRawStream();
 
 			int bytesread = 0;
+			CharBuffer buf = CharBuffer.allocate(4096);
 			while(bytesread < datalen) {
-				int bytesToRead = Math.min(4096, datalen - bytesread);
-				char buf[] = new char[bytesToRead];
-				int read = this.bufrdr.read(buf, 0, bytesToRead);
+				if (datalen - bytesread < 4096) {
+					buf.limit(datalen - bytesread);
+				}
+
+				int read = this.bufrdr.read(buf);
 				if(read == -1) {
 					this.reply(msg, "NO Failed to read entire message");
 					newmsg.cancel();
@@ -1261,14 +1265,8 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				}
 				bytesread += read;
 
-				if(read < bytesToRead) {
-					//Shrink the buffer to avoid printing to much
-					char new_buf[] = new char[read];
-					System.arraycopy(buf, 0, new_buf, 0, read);
-					buf = new_buf;
-				}
-
-				msgps.print(buf);
+				buf.rewind();
+				msgps.append(buf, 0, read);
 			}
 
 			newmsg.commit();
