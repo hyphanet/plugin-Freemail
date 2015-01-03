@@ -28,6 +28,7 @@ import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -75,19 +76,28 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	public void run() {
 		this.sendWelcome();
 
+		try {
+			client.setSoTimeout(5000);
+		} catch (SocketException se1) {
+			Logger.warning(this, "Could not set timeout on client socket!", se1);
+		}
+
 		String line;
 		try {
-			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
-				IMAPMessage msg = null;
+			while (!stopping && !this.client.isClosed()) {
 				try {
-					msg = new IMAPMessage(line);
+					line = this.bufrdr.readLine();
+					if (line == null) {
+						break;
+					}
+					IMAPMessage msg = new IMAPMessage(line);
+					dispatch(msg);
 				} catch (IMAPBadMessageException bme) {
 					continue;
+				} catch (SocketTimeoutException ste1) {
+					continue;
 				}
-
-				this.dispatch(msg);
 			}
-
 			this.client.close();
 		} catch (IOException ioe) {
 			//If we are stopping and get a SocketException it is probable that
