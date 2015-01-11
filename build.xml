@@ -155,7 +155,7 @@
 	<target name="unit" depends="unit-build" unless="${test.skip}"
 	        description="Runs the unit tests">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" dir="${test.run}">
+		<junit fork="yes" dir="${test.run}" haltonfailure="true">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>

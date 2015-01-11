@@ -69,7 +69,5 @@ public class FakeSocket extends Socket {
 		super.close();
 		toTested.close();
 		toTester.close();
-		fromTested.close();
-		fromTester.close();
 	}
 }

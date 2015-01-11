@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.utils.PropsFile;
 import org.freenetproject.freemail.wot.Identity;
 import org.junit.After;
@@ -39,6 +41,7 @@ import org.junit.Test;
 
 import data.TestId1Data;
 
+import fakes.MockExecutor;
 import fakes.MockFreemail;
 import fakes.MockFreemailAccount;
 import fakes.MockHighLevelFCPClient;
@@ -136,6 +139,11 @@ public class MessageTransportTest {
 			account = new MockFreemailAccount(TestId1Data.FreemailAccount.IDENTITY, accountDir, PropsFile.createPropsFile(accProps), freemail);
 		}
 
+		final MockExecutor executor = new MockExecutor();
+		freemail.setExecutor(executor);
+
+		Freemail.setRNG(new SecureRandom());
+
 		MessageHandler handler = new MessageHandler(outboxDir, freemail, channelDir, account, hlFcpClientFactory);
 
 		//Now send the actual message
@@ -151,11 +159,16 @@ public class MessageTransportTest {
 
 		handler.sendMessage(recipients, message);
 
+		executor.runNext(); // Initial SenderTask that starts the RTSSender
+		executor.runNext(); // RTSSender that generates the keys
+
 		//First we wait for the mailsite fetch request
 		fcpClient.awaitFetch(TestId1Data.Mailsite.REQUEST_KEY, 10, TimeUnit.MINUTES);
 
 		//Then the RTS key insert
 		fcpClient.awaitInsert(TestId1Data.RTSKEY + "-1", 10, TimeUnit.MINUTES);
+
+		executor.runNext(); // SenderTask that actually sends the message
 
 		//Then an insert of any key, which should be the message. Since we don't bother to decrypt
 		//the RTS we don't actually know which key this is inserted to.

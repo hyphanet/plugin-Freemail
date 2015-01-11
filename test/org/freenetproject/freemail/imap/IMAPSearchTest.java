@@ -109,7 +109,7 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 		commands.addAll(selectInboxSequence("0002"));
 
 		commands.add(new Command("0003 SEARCH ( ALL ALL )",
-				"0003 NO Criteria ( hasn't been implemented"));
+				"0003 BAD Extra space between paranthesis and search-key"));
 
 		runSimpleTest(commands);
 	}

@@ -24,6 +24,7 @@ package org.freenetproject.freemail.imap;
 
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.CharBuffer;
 import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -1249,15 +1250,23 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		try {
 			PrintStream msgps = newmsg.getRawStream();
 
-			String line;
 			int bytesread = 0;
-			while((line = this.bufrdr.readLine()) != null) {
-				msgps.println(line);
+			CharBuffer buf = CharBuffer.allocate(4096);
+			while(bytesread < datalen) {
+				if (datalen - bytesread < 4096) {
+					buf.limit(datalen - bytesread);
+				}
 
-				bytesread += line.getBytes("UTF-8").length;
-				bytesread += "\r\n".length();
+				int read = this.bufrdr.read(buf);
+				if(read == -1) {
+					this.reply(msg, "NO Failed to read entire message");
+					newmsg.cancel();
+					return;
+				}
+				bytesread += read;
 
-				if(bytesread >= datalen) break;
+				buf.rewind();
+				msgps.append(buf, 0, read);
 			}
 
 			newmsg.commit();
@@ -1334,14 +1343,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				lastArg = msg.args[lastArgIndex];
 				msg.args[lastArgIndex] = lastArg.substring(0, lastArg.length() - 1);
 
-				/*
-				 * If anything were parsed such that it's only a parenthesis, it would be empty now. That's not
-				 * desirable, so remove it from the argument list.
-				 */
 				final boolean firstEmpty = msg.args[0].isEmpty();
 				final boolean lastEmpty = msg.args[lastArgIndex].isEmpty();
-				msg = new IMAPMessage(msg.tag, msg.type, Arrays.copyOfRange(msg.args, firstEmpty ? 1 : 0,
-						lastEmpty ? lastArgIndex : msg.args.length));
+				if(firstEmpty || lastEmpty) {
+					reply(msg, "BAD Extra space between paranthesis and search-key");
+					return;
+				}
 			}
 		}
 

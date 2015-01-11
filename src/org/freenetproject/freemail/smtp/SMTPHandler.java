@@ -157,7 +157,14 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		if(cmd.args.length == 0) {
 			this.ps.print("504 No auth type given\r\n");
 			return;
-		} else if(cmd.args[0].equalsIgnoreCase("login")) {
+		}
+
+		if(this.account != null) {
+			this.ps.print("503 Already authenticated\r\n");
+			return;
+		}
+
+		if(cmd.args[0].equalsIgnoreCase("login")) {
 			try {
 				this.ps.print("334 "+new String(Base64.encode("Username:".getBytes("UTF-8")))+"\r\n");
 			} catch(UnsupportedEncodingException e) {
@@ -209,6 +216,11 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				}
 			}
 
+			if(b64creds.equals("*")) {
+				this.ps.print("501 Authentication canceled\r\n");
+				return;
+			}
+
 			String creds_plain;
 			try {
 				creds_plain = new String(Base64.decode(b64creds.getBytes("UTF-8")));
@@ -217,18 +229,21 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				throw new AssertionError("JVM doesn't support UTF-8 charset");
 			}
 			String[] creds = creds_plain.split("\0");
-
-			if(creds.length < 2) return;
-
-			// most documents seem to reckon you send the
-			// username twice. Some think only once.
-			// This will work either way.
-			uname = creds[0];
-			// there may be a null first (is this always the case?)
-			if(uname.length() < 1) {
-				uname = creds[1];
+			if (creds.length != 3) {
+				this.ps.print("501 Invalid arguments to plain auth\r\n");
+				return;
 			}
-			password = creds[creds.length - 1];
+
+			String authzid = creds[0];
+			uname = creds[1];
+			password = creds[2];
+
+			if(!authzid.isEmpty()) {
+				if(!authzid.equals(uname)) {
+					this.ps.print("535 Authentication failed\r\n");
+					return;
+				}
+			}
 		} else {
 			this.ps.print("504 Auth type unimplemented - weren't you listening?\r\n");
 			return;

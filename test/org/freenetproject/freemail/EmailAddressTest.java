@@ -53,15 +53,16 @@ public class EmailAddressTest {
 
 	@Test
 	public void addressWithUTF8() {
-		try {
-			//Unused since the point is to check that the constructor throws
-			@SuppressWarnings("unused")
-			EmailAddress emailAddress = new EmailAddress("æøå@email.com");
-
-			fail("Should not be able to create email address with UTF-8");
-		} catch(IllegalArgumentException e) {
-			//Expected
-		}
+		/*
+		 * Non-ascii characters are not allowed in email addresses, but we need
+		 * to support them anyway since we used to generate them for users due
+		 * to a bug.
+		 *
+		 * The useless assignment is there so we have something to attach the
+		 * suppression to.
+		 */
+		@SuppressWarnings("unused")
+		EmailAddress address = new EmailAddress("æøå@email.com");
 	}
 
 	private void checkAddressPasing(String address, String expectedName, String expectedLocal, String expectedDomain) {
