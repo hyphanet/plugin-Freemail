@@ -24,6 +24,8 @@ package org.freenetproject.freemail.utils;
 
 import java.util.Locale;
 
+import freenet.support.Base64;
+
 import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.MailSite;
@@ -100,14 +102,21 @@ public class EmailAddress {
 			throw new IllegalArgumentException();
 	}
 
-	public boolean is_freemail_address() {
+	public boolean isFreemailAddress() {
 		if(this.domain == null) return false;
 		if(!this.domain.endsWith(".freemail")) return false;
 		return true;
 	}
 
+	public String getIdentity() {
+		if (!isFreemailAddress()) {
+			return null;
+		}
+		return Base64.encode(Base32.decode(getSubDomain()));
+	}
+
 	public boolean is_ssk_address() {
-		if(!this.is_freemail_address()) return false;
+		if(!this.isFreemailAddress()) return false;
 		String key;
 		try {
 			key = new String(Base32.decode(this.getSubDomain()));
@@ -120,6 +129,18 @@ public class EmailAddress {
 		if(parts.length < 3) return false;
 		if(parts[0].length() != SSK_PART_LENGTH || parts[1].length() != SSK_PART_LENGTH) return false;
 		return true;
+	}
+
+	public boolean hasRealname() {
+		return realname != null;
+	}
+
+	public String getRealname() {
+		return realname;
+	}
+
+	public String getAddress() {
+		return String.format("%s@%s", user, domain);
 	}
 
 	// get the part of the domain before the '.freemail'
@@ -139,7 +160,7 @@ public class EmailAddress {
 
 	@Override
 	public String toString() {
-		return this.user+"@"+this.domain;
+		return getAddress();
 	}
 
 	public String toLongString() {

@@ -41,6 +41,7 @@ import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
@@ -109,7 +110,7 @@ public class InboxToadlet extends WebPage {
 			//FIXME: Initialization of MailMessage should be in MailMessage
 			message.readHeaders();
 
-			if(message.flags.get("\\Deleted")) {
+			if(message.flags.isDeleted()) {
 				continue;
 			}
 
@@ -247,27 +248,15 @@ public class InboxToadlet extends WebPage {
 		return folderDiv;
 	}
 
-	private String getFromHeaderForDisplay(MailMessage msg) {
-		String from = msg.getFirstHeader("From");
-		if (from == null) {
-			return FreemailL10n.getString("Freemail.InboxToadlet.fromMissing");
-		}
-		try {
-			return MailMessage.decodeHeader(from);
-		} catch (UnsupportedEncodingException e) {
-			return from;
-		}
-	}
-
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
 		String msgClass = "message";
-		if(!msg.flags.get("\\Seen")) {
+		if(!msg.flags.isSeen()) {
 			msgClass += " message-unread";
 		}
-		if(msg.flags.get("\\Recent")) {
+		if(msg.flags.isRecent()) {
 			msgClass += " message-recent";
-			msg.flags.set("\\Recent", false);
+			msg.flags.clearRecent();
 			msg.storeFlags();
 		}
 		HTMLNode message = parent.addChild("tr", "class", msgClass);
@@ -290,11 +279,44 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		author.addChild("#", getFromHeaderForDisplay(msg));
+		author.addChild(createSenderCell(msg));
 
 		HTMLNode date = message.addChild("td", "class", "date");
 		date.addChild("#", getMessageDateAsString(msg,
 				FreemailL10n.getString("Freemail.InboxToadlet.dateMissing")));
+	}
+
+	private HTMLNode createSenderCell(MailMessage message) {
+		String rawSender = message.getFirstHeader("From");
+		try {
+			String sender = MailMessage.decodeHeader(rawSender);
+			if (sender == null) {
+				return new HTMLNode("#", FreemailL10n.getString("Freemail.InboxToadlet.fromMissing"));
+			}
+			HTMLNode senderCell = new HTMLNode("div");
+			EmailAddress emailAddress = new EmailAddress(sender);
+			if (emailAddress.hasRealname()) {
+				HTMLNode realnameNode = senderCell.addChild("div", emailAddress.getRealname());
+				realnameNode.addAttribute("class", "realname");
+				realnameNode.addAttribute("title", emailAddress.getAddress());
+			} else {
+				HTMLNode addressNode = senderCell.addChild("div", emailAddress.getAddress());
+				addressNode.addAttribute("class", "address");
+			}
+			if (emailAddress.isFreemailAddress()) {
+				HTMLNode wotLinkNode = senderCell.addChild("div", "class", "wot-link");
+				wotLinkNode.addChild("#", "(");
+				String linkToWebOfTrust = "/WebOfTrust/ShowIdentity?id=" + emailAddress.getIdentity();
+				wotLinkNode.addChild("a", "href", linkToWebOfTrust, "web of trust");
+				wotLinkNode.addChild("#", ")");
+			}
+			return senderCell;
+		} catch (IllegalArgumentException iae1) {
+			Logger.minor(this, "Not a valid email address: " + rawSender);
+		} catch (UnsupportedEncodingException uee1) {
+			Logger.minor(this, "Invalid encoding in: " + rawSender);
+		}
+		return new HTMLNode("#", rawSender);
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {

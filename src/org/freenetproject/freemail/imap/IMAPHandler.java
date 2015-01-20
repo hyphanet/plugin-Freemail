@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -76,19 +77,28 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	public void run() {
 		this.sendWelcome();
 
+		try {
+			client.setSoTimeout(5000);
+		} catch (SocketException se1) {
+			Logger.warning(this, "Could not set timeout on client socket!", se1);
+		}
+
 		String line;
 		try {
-			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
-				IMAPMessage msg = null;
+			while (!stopping && !this.client.isClosed()) {
 				try {
-					msg = new IMAPMessage(line);
+					line = this.bufrdr.readLine();
+					if (line == null) {
+						break;
+					}
+					IMAPMessage msg = new IMAPMessage(line);
+					dispatch(msg);
 				} catch (IMAPBadMessageException bme) {
 					continue;
+				} catch (SocketTimeoutException ste1) {
+					continue;
 				}
-
-				this.dispatch(msg);
 			}
-
 			this.client.close();
 		} catch (IOException ioe) {
 			//If we are stopping and get a SocketException it is probable that
@@ -324,11 +334,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage m =msgs.get(msgs.firstKey());
 
 			// if it's recent, add to the tally
-			if(m.flags.get("\\Recent")) {
+			if(m.flags.isRecent()) {
 				numrecent++;
 
 				// remove the recent flag
-				m.flags.set("\\Recent", false);
+				m.flags.clearRecent();
 				m.storeFlags();
 			}
 
@@ -614,13 +624,13 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return true;
 		} else if(attr.startsWith("body")) {
 			// TODO: this is not quite right since it will match bodyanything
-			mmsg.flags.set("\\Seen", true);
+			mmsg.flags.setSeen();
 
 			this.ps.print(a.substring(0, "body".length()));
 			this.ps.flush();
 			a = a.substring("body".length());
 			if(this.sendBody(mmsg, a, false)) {
-				mmsg.flags.set("\\Seen", true);
+				mmsg.flags.setSeen();
 				mmsg.storeFlags();
 				return true;
 			}
@@ -954,7 +964,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		int count_correction=0;
 		for(int i = 0; i < mmsgs.length; i++) {
-			if(mmsgs[i].flags.get("\\Deleted")) {
+			if(mmsgs[i].flags.isDeleted()) {
 				mmsgs[i].delete();
 				if(verbose) this.sendState((i+1-count_correction)+" EXPUNGE");
 				count_correction++;
@@ -1002,10 +1012,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage m =msgs.get(msgs.firstKey());
 
 			// if it's recent, add to the tally
-			if(m.flags.get("\\Recent")) numrecent++;
+			if(m.flags.isRecent()) numrecent++;
 
 			// is it unseen?
-			if(!m.flags.get("\\Seen")) numunseen++;
+			if(!m.flags.isSeen()) numunseen++;
 
 			if(m.getUID() > lastuid) lastuid = m.getUID();
 
@@ -1188,7 +1198,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			MailMessage copy = target.createMessage();
 
 			src.copyTo(copy);
-			copy.flags.set("\\Recent", true);
+			copy.flags.setRecent();
 			copy.storeFlags();
 		}
 		this.reply(msg, "OK COPY completed");
@@ -1369,67 +1379,67 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			//Check the various flag state filters
 			if(msg.args[offset].equalsIgnoreCase("ANSWERED")) {
-				filterMessagesOnFlag(messages.values(), "\\Answered", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_ANSWERED, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("DELETED")) {
-				filterMessagesOnFlag(messages.values(), "\\Deleted", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DELETED, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("FLAGGED")) {
-				filterMessagesOnFlag(messages.values(), "\\Flagged", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_FLAGGED, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("RECENT")) {
-				filterMessagesOnFlag(messages.values(), "\\Recent", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_RECENT, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("SEEN")) {
-				filterMessagesOnFlag(messages.values(), "\\Seen", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_SEEN, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNANSWERED")) {
-				filterMessagesOnFlag(messages.values(), "\\Answered", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_ANSWERED, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNDELETED")) {
-				filterMessagesOnFlag(messages.values(), "\\Deleted", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DELETED, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNFLAGGED")) {
-				filterMessagesOnFlag(messages.values(), "\\Flagged", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_FLAGGED, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNSEEN")) {
-				filterMessagesOnFlag(messages.values(), "\\Seen", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_SEEN, false);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("DRAFT")) {
-				filterMessagesOnFlag(messages.values(), "\\Draft", true);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DRAFT, true);
 				offset++;
 				continue;
 			}
 
 			if(msg.args[offset].equalsIgnoreCase("UNDRAFT")) {
-				filterMessagesOnFlag(messages.values(), "\\Draft", false);
+				filterMessagesOnFlag(messages.values(), IMAPMessageFlags.FLAG_DRAFT, false);
 				offset++;
 				continue;
 			}

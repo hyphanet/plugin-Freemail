@@ -84,7 +84,7 @@ public class MailMessage {
 		if(parts.length < 2 && !f.getName().endsWith(",")) {
 			// treat it as a new message
 			this.flags = new IMAPMessageFlags();
-			this.flags.set("\\Recent", true);
+			this.flags.setRecent();
 		} else if(parts.length < 2) {
 			// just doesn't have any flags set
 			this.flags = new IMAPMessageFlags();

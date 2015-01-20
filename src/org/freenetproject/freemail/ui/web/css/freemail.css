@@ -63,3 +63,7 @@ input.removeRcpt {
 	width: 1em;
 	height: 1em;
 }
+
+td.author div {
+	display: inline;
+}

@@ -34,24 +34,31 @@ public class IMAPMessageFlags {
 		'R',
 	};
 
+	public static final String FLAG_SEEN = "\\Seen";
+	public static final String FLAG_ANSWERED = "\\Answered";
+	public static final String FLAG_FLAGGED = "\\Flagged";
+	public static final String FLAG_DELETED = "\\Deleted";
+	public static final String FLAG_DRAFT = "\\Draft";
+	public static final String FLAG_RECENT = "\\Recent";
+
 	// these should be in the same order as the last so it's possible
 	// to cross-reference
 	public static final String[] allFlags = {
-		"\\Seen",
-		"\\Answered",
-		"\\Flagged",
-		"\\Deleted",
-		"\\Draft",
-		"\\Recent",
+			FLAG_SEEN,
+			FLAG_ANSWERED,
+			FLAG_FLAGGED,
+			FLAG_DELETED,
+			FLAG_DRAFT,
+			FLAG_RECENT,
 	};
 
 	public static final String[] permanentFlags = {
-		"\\Seen",
-		"\\Answered",
-		"\\Flagged",
-		"\\Deleted",
-		"\\Draft",
-		"\\Recent",
+			FLAG_SEEN,
+			FLAG_ANSWERED,
+			FLAG_FLAGGED,
+			FLAG_DELETED,
+			FLAG_DRAFT,
+			FLAG_RECENT,
 	};
 
 	public static String getAllFlagsAsString() {
@@ -161,4 +168,33 @@ public class IMAPMessageFlags {
 		}
 		return realFlag;
 	}
+
+	public boolean isSeen() {
+		return get(FLAG_SEEN);
+	}
+
+	public void setSeen() {
+		set(FLAG_SEEN, true);
+	}
+
+	public boolean isDeleted() {
+		return get(FLAG_DELETED);
+	}
+
+	public void setDeleted() {
+		set(FLAG_DELETED, true);
+	}
+
+	public boolean isRecent() {
+		return get(FLAG_RECENT);
+	}
+
+	public void setRecent() {
+		set(FLAG_RECENT, true);
+	}
+
+	public void clearRecent() {
+		set(FLAG_RECENT, false);
+	}
+
 }

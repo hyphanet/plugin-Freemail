@@ -78,11 +78,11 @@ public class MailMessageTest {
 		MailMessage msg = new MailMessage(messageFile, 0);
 		msg.flags.clear();
 
-		msg.flags.set("\\Seen", true);
+		msg.flags.setSeen();
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,S"), msgDir.listFiles()[0]);
 
-		msg.flags.set("\\Deleted", true);
+		msg.flags.setDeleted();
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
 	}
