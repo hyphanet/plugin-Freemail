@@ -44,6 +44,7 @@ import java.util.TreeSet;
 import java.lang.NumberFormatException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
@@ -78,7 +79,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.sendWelcome();
 
 		try {
-			client.setSoTimeout(5000);
+			client.setSoTimeout((int) TimeUnit.MINUTES.toMillis(30));
 		} catch (SocketException se1) {
 			Logger.warning(this, "Could not set timeout on client socket!", se1);
 		}
@@ -96,6 +97,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				} catch (IMAPBadMessageException bme) {
 					continue;
 				} catch (SocketTimeoutException ste1) {
+					sendState("BYE Automatically disconnected, too much idleness");
+					ps.flush();
+					stopping = true;
 					continue;
 				}
 			}
