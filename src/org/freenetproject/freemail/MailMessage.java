@@ -637,7 +637,7 @@ public class MailMessage {
 
 			String contentType = msg.getFirstHeader("Content-Type");
 			if(contentType == null) {
-				contentType = "text/plain; charset=us-ascii";
+				contentType = "text/plain; charset=utf-8";
 			}
 			String[] parts = contentType.split(";");
 			if(!parts[0].equalsIgnoreCase("text/plain")) {
@@ -645,7 +645,12 @@ public class MailMessage {
 						+ parts[0]);
 			}
 
-			String[] charsetParts = parts[1].trim().split("=", 2);
+			String[] charsetParts;
+			if(parts.length > 1) {
+				charsetParts = parts[1].trim().split("=", 2);
+			} else {
+				charsetParts = new String[]{"charset", "utf-8"};
+			}
 			if(!charsetParts[0].equalsIgnoreCase("charset")) {
 				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
 						+ "Parameter was " + charsetParts[0]);
