@@ -7,6 +7,18 @@ Using Freemail
 You can compile from source:
 
 compile: (however you compile Java, an ant buildfile is supplied)
+
+To build with ant, create a file override.properties with content similar to the following:
+
+freenet-s-snapshot.location = ../freenet/freenet.jar
+freenet-ext.location = ../freenet/freenet-ext.jar
+bcprov.location = ../fred-staging/lib/bcprov.jar
+test.skip = true
+
+Now run `ant clean; ant`
+(if you have a working junit.jar, remove the test.skip line)
+
+
 run with --newaccount <account name> to create an account, eg:
 
 ...or you can fetch the most recent Freemail jar from: http://downloads.freenetproject.org/alpha/Freemail/Freemail.jar
@@ -23,16 +35,11 @@ Run:
 
 java -jar Freemail.jar
 
-(You can also specify the address and port of your Freenet node using -h and -p
-respectively, if they are not the defaults).
+(You can also specify the address (host) and port of your Freenet node
+using -h and -p respectively, if they are not the defaults).
 
 Set up your email client to point at IMAP port 3143 and SMTP port 3025.
 
-You can get a short address by doing:
-
-java -jar Freemail.jar --shortaddress bob bobshome
-
-...which will give you the address <anything>@bobshome.freemail
 
 
 Feel free to Freemail me on dave@dbkr.freemail! If that doesn't work, my real email address is dbkr@freenetproject.org.
