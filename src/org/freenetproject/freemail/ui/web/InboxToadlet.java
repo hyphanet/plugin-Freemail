@@ -69,7 +69,7 @@ public class InboxToadlet extends WebPage {
 		HTMLNode container = contentNode.addChild("div", "class", "container");
 
 		//Add the list of folders
-		HTMLNode folderList = container.addChild("div", "class", "folderlist");
+		HTMLNode aside = container.addChild("div", "class", "aside");
 
 		String identity = loginManager.getSession(ctx).getUserID();
 
@@ -77,7 +77,8 @@ public class InboxToadlet extends WebPage {
 		FreemailAccount account = accountManager.getAccount(identity);
 
 		MessageBank topLevelMessageBank = account.getMessageBank();
-		addMessageBank(folderList, topLevelMessageBank, "inbox");
+		addMessageBank(aside, topLevelMessageBank, "inbox");
+		addActionLinks(aside);
 
 		//Add the container for the message list and the buttons
 		String folderName = req.getParam("folder", "inbox");
@@ -246,6 +247,17 @@ public class InboxToadlet extends WebPage {
 		}
 
 		return folderDiv;
+	}
+
+	private HTMLNode addActionLinks(HTMLNode parent) {
+		HTMLNode actionDiv = parent.addChild("div", "class", "actions");
+		HTMLNode actionPara = actionDiv.addChild("p");
+
+        // FIXME: The path is duplicated from NewMessageToadlet.java
+		actionPara.addChild("a", "href", WebInterface.PATH + "/NewMessage",
+                            FreemailL10n.getString("Freemail.InboxToadlet.createNewMessageShort"));
+
+		return actionDiv;
 	}
 
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
