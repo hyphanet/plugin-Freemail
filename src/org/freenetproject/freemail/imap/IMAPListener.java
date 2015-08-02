@@ -23,6 +23,7 @@ package org.freenetproject.freemail.imap;
 
 import java.net.ServerSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.io.IOException;
 
@@ -68,8 +69,9 @@ public class IMAPListener extends ServerListener implements Runnable, ConfigClie
 		sock.setSoTimeout(60000);
 		while(!sock.isClosed()) {
 			try {
-				IMAPHandler newcli = new IMAPHandler(accountManager, sock.accept());
-				Thread newthread = new Thread(newcli);
+				Socket clientSocket = sock.accept();
+				IMAPHandler newcli = new IMAPHandler(accountManager, clientSocket);
+				Thread newthread = new Thread(newcli, "Freemail IMAP Handler for " + clientSocket.getInetAddress());
 				newthread.setDaemon(true);
 				newthread.start();
 				addHandler(newcli, newthread);
