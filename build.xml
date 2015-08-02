@@ -146,6 +146,7 @@
 				<pathelement location="${bcprov.location}"/>
 				<pathelement location="${build}"/>
 				<pathelement location="${junit}"/>
+				<pathelement location="${hamcrest}"/>
 				<pathelement path="${test.lib}"/>
 			</classpath>
 			<compilerarg line="-Xlint"/>
@@ -162,6 +163,7 @@
 				<pathelement location="${build}"/>
 				<pathelement location="${build-test}"/>
 				<pathelement location="${junit}"/>
+				<pathelement location="${hamcrest}"/>
 				<pathelement path="${test.lib}"/>
 			</classpath>
 
