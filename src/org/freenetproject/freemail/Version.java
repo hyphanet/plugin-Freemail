@@ -21,7 +21,7 @@ package org.freenetproject.freemail;
 
 public class Version {
 	/** The human readable version */
-	public static final String VERSION = "0.2.6";
+	public static final String VERSION = "0.2.7";
 
 	/**
 	 * The build number, used by the plugin auto-updater. This must always
