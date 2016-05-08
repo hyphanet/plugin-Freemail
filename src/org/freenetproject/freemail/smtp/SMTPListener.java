@@ -24,6 +24,7 @@ package org.freenetproject.freemail.smtp;
 import java.net.ServerSocket;
 import java.net.InetAddress;
 import java.io.IOException;
+import java.net.Socket;
 
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.Freemail;
@@ -71,8 +72,9 @@ public class SMTPListener extends ServerListener implements Runnable, ConfigClie
 		while(!sock.isClosed()) {
 			try {
 				IdentityMatcher matcher = new IdentityMatcher(freemail.getWotConnection());
-				SMTPHandler newcli = new SMTPHandler(accountManager, sock.accept(), matcher);
-				Thread newthread = new Thread(newcli);
+				Socket clientSocket = sock.accept();
+				SMTPHandler newcli = new SMTPHandler(accountManager, clientSocket, matcher);
+				Thread newthread = new Thread(newcli, "Freemail SMTP Handler for " + clientSocket.getInetAddress());
 				newthread.setDaemon(true);
 				newthread.start();
 				addHandler(newcli, newthread);

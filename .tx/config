@@ -1,0 +1,13 @@
+[main]
+host = https://www.transifex.com
+
+[freenet.freemail]
+file_filter = src/org/freenetproject/freemail/l10n/lang_<lang>.l10n
+source_file = src/org/freenetproject/freemail/l10n/lang_en.l10n
+source_lang = en
+trans.nb_NO = src/org/freenetproject/freemail/l10n/lang_nb-no.l10n
+trans.pt_BR = src/org/freenetproject/freemail/l10n/lang_pt-br.l10n
+trans.pt_PT = src/org/freenetproject/freemail/l10n/lang_pt-pt.l10n
+trans.zh_CN = src/org/freenetproject/freemail/l10n/lang_zh-cn.l10n
+type = MOZILLAPROPERTIES
+

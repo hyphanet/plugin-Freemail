@@ -1,0 +1,27 @@
+Freemail.LogoutToadlet.title=Выход
+Freemail.LogoutToadlet.name=Выход
+Freemail.InboxToadlet.title=Входящие
+Freemail.InboxToadlet.name=Входящие
+Freemail.LoginToadlet.title=Вход
+Freemail.LoginToadlet.name=Вход
+Freemail.LoginToadlet.LoginBox=Вход
+Freemail.LoginToadlet.LoginButton=Вход
+Freemail.NewMessageToadlet.title=Новое сообщение
+Freemail.NewMessageToadlet.name=Новое сообщение
+Freemail.AddAccountToadlet.password=Пароль:
+Freemail.AddAccountToadlet.confirmPassword=Подтверждение пароля:
+Freemail.InboxToadlet.delete=Удалить
+Freemail.InboxToadlet.move=Переместить
+Freemail.InboxToadlet.subject=Тема
+Freemail.InboxToadlet.date=Дата
+Freemail.NewMessageToadlet.boxTitle=Новое сообщение
+Freemail.NewMessageToadlet.subject=Тема
+Freemail.NewMessageToadlet.body=Текст
+Freemail.NewMessageToadlet.send=Отправить
+Freemail.MessageToadlet.reply=Ответить
+Freemail.OutboxToadlet.subject=Тема
+Freemail.OutboxToadlet.name=Исходящие
+Freemail.OutboxToadlet.title=Исходящие
+Freemail.InfoToadlet.title=О Фринет
+Freemail.InfoToadlet.name=О Фринет
+End

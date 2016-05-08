@@ -8,7 +8,9 @@ You can compile from source:
 
 compile: (however you compile Java, an ant buildfile is supplied)
 
-To build with ant, create a file override.properties with content similar to the following:
+To build with ant, if the default configuration of a Fred clone in ../fred
+doesn't match yours, create a file override.properties with content similar to
+the following:
 
 freenet-s-snapshot.location = ../freenet/freenet.jar
 freenet-ext.location = ../freenet/freenet-ext.jar

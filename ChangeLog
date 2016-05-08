@@ -1,3 +1,35 @@
+Changes from version 0.2.7.1 to version 0.2.7.2
+
+  o Translation:
+    - Update French
+    - Add translations for:
+      - Croatian
+      - Russian
+
+Changes from version 0.2.6 to version 0.2.7.1
+
+  o Features:
+    - Add new message link on inbox page
+    - Add link to sender's WoT identity
+    - Disconnect IMAP after 30 minutes idle
+    - Set IMAP / STMP handler thread names
+
+  o Translation:
+    - Fix path to Norwegian Bokmål translation
+    - Add translations for:
+      - Czech
+      - Greek
+      - Spanish
+      - Finnish
+      - Hungarian
+      - Dutch
+      - Polish
+      - Portuguese (Portugal)
+      - Serbian
+      - Turkish
+
+  o Bug fixes
+
 Changes from version 0.2.5 to version 0.2.6
 
   o Translation:
