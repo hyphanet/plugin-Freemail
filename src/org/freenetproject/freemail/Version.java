@@ -28,7 +28,7 @@ public class Version {
 	 * increase, and at least by one per build that is uploaded to the auto
 	 * update system.
 	 */
-	public static final int BUILD_NO = 27;
+	public static final int BUILD_NO = 28;
 
 	/** Version number updated at build time using git describe */
 	public static final String GIT_REVISION = "@custom@";
