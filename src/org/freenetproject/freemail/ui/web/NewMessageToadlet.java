@@ -279,6 +279,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode contentNode = page.content;
 
 		if(!failedRecipients.isEmpty()) {
+			// TODO: Handle this properly
 			HTMLNode errorBox = addErrorbox(contentNode,
 				 FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentitiesTitle"));
 			HTMLNode errorPara = errorBox.addChild("p",
