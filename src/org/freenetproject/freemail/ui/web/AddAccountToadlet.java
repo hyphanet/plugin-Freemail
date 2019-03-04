@@ -68,6 +68,14 @@ public class AddAccountToadlet extends WebPage {
 			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
+		if (ownIdentities.size() == 0) {
+			HTMLNode infobox = addInfobox(contentNode,
+				 FreemailL10n.getString("Freemail.AddAccountToadlet.emptyIdentitiesTitle"));
+			infobox.addChild("p",
+				 FreemailL10n.getString("Freemail.AddAccountToadlet.emptyIdentities"));
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
+		}
+
 		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
 		for(OwnIdentity oid : ownIdentities) {
 			if(accountManager.getAccount(oid.getIdentityID()) == null) {
