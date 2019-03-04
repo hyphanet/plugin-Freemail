@@ -1,3 +1,8 @@
+Changes from version 0.2.7.3-r2 to version 0.2.7.4
+
+  o Bugfixes:
+    - Send emails to known IDs in WoT when missing ISs are also present
+
 Changes from version 0.2.7.1 to version 0.2.7.2
 
   o Translation:
