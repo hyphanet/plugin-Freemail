@@ -69,11 +69,12 @@ public class AddAccountToadlet extends WebPage {
 		}
 
 		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
-		for(OwnIdentity oid : ownIdentities) {
-			if(accountManager.getAccount(oid.getIdentityID()) == null) {
-				identitiesWithoutAccount.add(oid);
+		if (ownIdentities != null)
+			for(OwnIdentity oid : ownIdentities) {
+				if(accountManager.getAccount(oid.getIdentityID()) == null) {
+					identitiesWithoutAccount.add(oid);
+				}
 			}
-		}
 
 		if(identitiesWithoutAccount.size() == 0) {
 			HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.AddAccountToadlet.noIdentitiesTitle"));
