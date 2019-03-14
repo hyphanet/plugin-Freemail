@@ -267,26 +267,34 @@ public class NewMessageToadlet extends WebPage {
 
 		//Check if there were any unknown or ambiguous identities
 		List<String> failedRecipients = new LinkedList<String>();
+		List<Identity> knownRecipients = new LinkedList<Identity>();
 		for(Map.Entry<String, List<Identity>> entry : matches.entrySet()) {
-			if(entry.getValue().size() != 1) {
+			if(entry.getValue().size() == 1)
+				knownRecipients.add(entry.getValue().get(0));
+			else
 				failedRecipients.add(entry.getKey());
-			}
 		}
 
-		if(failedRecipients.size() != 0) {
-			//TODO: Handle this properly
-			HTMLNode pageNode = page.outer;
-			HTMLNode contentNode = page.content;
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
 
-			HTMLNode errorBox = addErrorbox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentitiesTitle"));
-			HTMLNode errorPara = errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentities", "count", "" + failedRecipients.size()));
+		if(!failedRecipients.isEmpty()) {
+			// TODO: Handle this properly
+			HTMLNode errorBox = addErrorbox(contentNode,
+				 FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentitiesTitle"));
+			HTMLNode errorPara = errorBox.addChild("p",
+				 FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentities",
+						"count", "" + failedRecipients.size()));
 			HTMLNode identityList = errorPara.addChild("ul");
 			for(String s : failedRecipients) {
 				identityList.addChild("li", s);
 			}
 
-			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (with failed recipient)");
-			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
+			sendMessageTimer.log(this, 1, TimeUnit.SECONDS,
+				 "Time spent sending message (with failed recipient)");
+
+			if (knownRecipients.isEmpty())
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		//Build message header
@@ -335,19 +343,10 @@ public class NewMessageToadlet extends WebPage {
 		BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
 		messageOutputStream.close();
 
-		List<Identity> identities = new LinkedList<Identity>();
-		for(List<Identity> identityList : matches.values()) {
-			assert (identityList.size() == 1);
-			identities.add(identityList.get(0));
-		}
-
 		copyMessageToSentFolder(message, account.getMessageBank());
 
-		account.getMessageHandler().sendMessage(identities, message);
+		account.getMessageHandler().sendMessage(knownRecipients, message);
 		message.free();
-
-		HTMLNode pageNode = page.outer;
-		HTMLNode contentNode = page.content;
 
 		HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueuedTitle"));
 		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueued"));
