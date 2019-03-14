@@ -2,6 +2,7 @@ Changes from version 0.2.7.3-r2 to version 0.2.7.4
 
   o Bugfixes:
     - A clearer message that the user does not have an identifier in the WoT iss6630
+    - Send emails to known IDs in WoT when missing ISs are also present
 
 Changes from version 0.2.7.1 to version 0.2.7.2
 
