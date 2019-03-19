@@ -30,6 +30,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.l10n.FreemailL10n;
@@ -193,12 +195,27 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 
 			String template = content.toString(StandardCharsets.UTF_8.name());
 
-			for (Map.Entry<String, String> entry : model.entrySet()) {
+			for (Map.Entry<String, String> entry : model.entrySet())
 				template = template.replaceAll("\\$\\{" + entry.getKey() + "}", entry.getValue());
-			}
+
+			String key;
+			while ((key = getL10nKey(template)) != null)
+				template = template.replaceAll("#\\{" + key + "}", FreemailL10n.getString(key));
 
 			parent.addChild("%", template);
 		}
+	}
+
+	private String getL10nKey(String template) {
+		Pattern pattern = Pattern.compile("#\\{.*}");
+		Matcher matcher = pattern.matcher(template);
+		try {
+			if (matcher.find()) {
+				String key = matcher.group();
+				return key.substring(2, key.length() - 1);
+			}
+		} catch (IllegalStateException ignored) {}
+		return null;
 	}
 
 	protected abstract class HTTPResponse {

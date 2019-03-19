@@ -1,16 +1,16 @@
 <div style="float: left; text-align: right;">
     <form method="post">
         <input name="formPassword" type="hidden" value="${formPassword}">
-        <label for="smtp-bind-port">SMTP bind port:</label>
+        <label for="smtp-bind-port">#{Freemail.InfoToadlet.smtp-port.title}</label>
         <input id="smtp-bind-port" name="smtp-bind-port" type="text" value="${smtpBindPort}"/>
         <br/>
-        <label for="smtp-bind-address">SMTP bind address:</label>
+        <label for="smtp-bind-address">#{Freemail.InfoToadlet.smtp-addr.title}</label>
         <input id="smtp-bind-address" name="smtp-bind-address" type="text" value="${smtpBindAddress}"/>
         <br/>
-        <label for="imap-bind-port">IMAP bind port:</label>
+        <label for="imap-bind-port">#{Freemail.InfoToadlet.imap-port.title}</label>
         <input id="imap-bind-port" name="imap-bind-port" type="text" value="${imapBindPort}"/>
         <br/>
-        <label for="imap-bind-address">IMAP bind address:</label>
+        <label for="imap-bind-address">#{Freemail.InfoToadlet.imap-addr.title}</label>
         <input id="imap-bind-address" name="imap-bind-address" type="text" value="${imapBindAddress}"/>
         <br/>
         <input type="submit" value="Save">

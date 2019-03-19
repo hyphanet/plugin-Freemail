@@ -9,6 +9,7 @@ import freenet.support.api.HTTPRequest;
 import org.freenetproject.freemail.config.Configurator;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 
+import javax.naming.SizeLimitExceededException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class SettingsToadlet extends WebPage {
 
 	private final Configurator config;
 
-	ToadletContainer toadletContainer;
+	private final ToadletContainer toadletContainer;
 
 	SettingsToadlet(PluginRespirator pluginRespirator, LoginManager loginManager, Configurator config,
 									ToadletContainer toadletContainer) {
@@ -44,10 +45,15 @@ public class SettingsToadlet extends WebPage {
 
 	@Override
 	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
-		config.set("smtp_bind_port", NewMessageToadlet.getBucketAsString(req.getPart("smtp-bind-port")));
-		config.set("smtp_bind_address", NewMessageToadlet.getBucketAsString(req.getPart("smtp-bind-address")));
-		config.set("imap_bind_port", NewMessageToadlet.getBucketAsString(req.getPart("imap-bind-port")));
-		config.set("imap_bind_address", NewMessageToadlet.getBucketAsString(req.getPart("imap-bind-address")));
+		// TODO: validate input data
+		try {
+			config.set("smtp_bind_port", req.getPartAsStringThrowing("smtp-bind-port", 5));
+			config.set("smtp_bind_address", req.getPartAsStringThrowing("smtp-bind-address", 2000));
+			config.set("imap_bind_port", req.getPartAsStringThrowing("imap-bind-port", 5));
+			config.set("imap_bind_address", req.getPartAsStringThrowing("imap-bind-address", 2000));
+		} catch (SizeLimitExceededException e) {
+			e.printStackTrace();
+		}
 
 		return makeWebPageGet(uri, req, ctx, page);
 	}

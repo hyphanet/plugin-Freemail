@@ -486,7 +486,7 @@ public class NewMessageToadlet extends WebPage {
 	 * @param b the bucket to read
 	 * @return the contents of the {@code Bucket} as a {@code String}
 	 */
-	static String getBucketAsString(Bucket b) {
+	private String getBucketAsString(Bucket b) {
 		if(b == null) {
 			return null;
 		}
