@@ -186,6 +186,7 @@
 	<target name="dist" depends="compile" description="Generates the Freemail jar">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
+			<fileset dir="${src}/resources" />
 			<manifest>
 				<attribute name="Main-Class" value="org.freenetproject.freemail.FreemailCli"/>
 				<attribute name="Plugin-Main-Class" value="org.freenetproject.freemail.FreemailPlugin"/>

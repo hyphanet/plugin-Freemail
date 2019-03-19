@@ -20,11 +20,15 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.MailMessage;
@@ -175,6 +179,26 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
 				new String[] {"link"},
 				new HTMLNode[] {HTMLNode.link("/plugins")});
+	}
+
+	void addChild(HTMLNode parent, String templateName, Map<String, String> model) throws IOException {
+		try (InputStream stream =
+						getClass().getResourceAsStream("/templates/" + templateName + ".html")) {
+			ByteArrayOutputStream content = new ByteArrayOutputStream();
+
+			int len;
+			byte[] contentBytes = new byte[1024];
+			while ((len = stream.read(contentBytes)) != -1)
+				content.write(contentBytes, 0, len);
+
+			String template = content.toString(StandardCharsets.UTF_8.name());
+
+			for (Map.Entry<String, String> entry : model.entrySet()) {
+				template = template.replaceAll("\\$\\{" + entry.getKey() + "}", entry.getValue());
+			}
+
+			parent.addChild("%", template);
+		}
 	}
 
 	protected abstract class HTTPResponse {

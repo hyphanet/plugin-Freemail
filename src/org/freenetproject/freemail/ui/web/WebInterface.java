@@ -74,7 +74,7 @@ public class WebInterface {
 		registerToadlet(inboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InboxToadlet.name", "Freemail.InboxToadlet.title", false);
 		registerToadlet(outboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.OutboxToadlet.name", "Freemail.OutboxToadlet.title", false);
 		registerToadlet(newMessageToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.NewMessageToadlet.name", "Freemail.NewMessageToadlet.title", false);
-		SettingsToadlet settingsToadlet = new SettingsToadlet(pluginRespirator, loginManager, config);
+		SettingsToadlet settingsToadlet = new SettingsToadlet(pluginRespirator, loginManager, config, container);
 		registerToadlet(settingsToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.SettingsToadlet.name", "Freemail.SettingsToadlet.title", false);
 		registerToadlet(infoToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InfoToadlet.name", "Freemail.InfoToadlet.title", false);
 
