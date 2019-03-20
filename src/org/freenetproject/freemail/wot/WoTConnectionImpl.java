@@ -41,6 +41,7 @@ import freenet.support.api.Bucket;
 class WoTConnectionImpl implements WoTConnection {
 	private static final String WOT_PLUGIN_NAME = "plugins.WebOfTrust.WebOfTrust";
 	private static final String CONNECTION_IDENTIFIER = "Freemail";
+	private static int connectionCounter;
 
 	private final PluginTalker pluginTalker;
 
@@ -48,7 +49,8 @@ class WoTConnectionImpl implements WoTConnection {
 	private final Object replyLock = new Object();
 
 	WoTConnectionImpl(PluginRespirator pr) throws PluginNotFoundException {
-		pluginTalker = pr.getPluginTalker(new WoTConnectionTalker(), WOT_PLUGIN_NAME, CONNECTION_IDENTIFIER);
+		pluginTalker = pr.getPluginTalker(new WoTConnectionTalker(), WOT_PLUGIN_NAME,
+			 CONNECTION_IDENTIFIER + connectionCounter++);
 	}
 
 	@Override
@@ -58,12 +60,8 @@ class WoTConnectionImpl implements WoTConnection {
 						new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create(),
 						null),
 				"OwnIdentities");
-		if(response == null) {
-			return null;
-		}
-		if(!"OwnIdentities".equals(response.sfs.get("Message"))) {
-			return null;
-		}
+		if(!"OwnIdentities".equals(response.sfs.get("Message")))
+			throw new IllegalStateException("Wrong WoT response type");
 
 		final List<OwnIdentity> ownIdentities = new LinkedList<OwnIdentity>();
 		for(int count = 0;; count++) {
@@ -261,7 +259,6 @@ class WoTConnectionImpl implements WoTConnection {
 	private Message sendBlocking(final Message msg, Set<String> expectedMessageTypes) {
 		assert (msg != null);
 
-		//Synchronize on this so only one message can be sent at a time
 		//Log the contents of the message before sending (debug because of private keys etc)
 		Iterator<String> msgContentIterator = msg.sfs.keyIterator();
 		while(msgContentIterator.hasNext()) {
@@ -272,28 +269,27 @@ class WoTConnectionImpl implements WoTConnection {
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
 		Timer requestTimer;
-		synchronized(this) {
-			synchronized(replyLock) {
-				requestTimer = Timer.start();
 
-				assert (reply == null) : "Reply was " + reply;
-				reply = null;
+		synchronized(replyLock) {
+			requestTimer = Timer.start();
 
-				pluginTalker.send(msg.sfs, msg.data);
+			assert (reply == null) : "Reply was " + reply;
+			reply = null;
 
-				while(reply == null) {
-					try {
-						replyLock.wait();
-					} catch (InterruptedException e) {
-						//Just check again
-					}
+			pluginTalker.send(msg.sfs, msg.data);
+
+			while(reply == null) {
+				try {
+					replyLock.wait();
+				} catch (InterruptedException e) {
+					//Just check again
 				}
-
-				retValue = reply;
-				reply = null;
-
 			}
+
+			retValue = reply;
+			reply = null;
 		}
+
 		requestTimer.log(this, "Time spent waiting for WoT request " + msg.sfs.get("Message") + " (reply was "
 				+ retValue.sfs.get("Message") + ")");
 
