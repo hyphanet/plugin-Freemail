@@ -115,64 +115,6 @@ class WoTConnectionImpl implements WoTConnection {
 	}
 
 	@Override
-	public Set<Identity> getAllTrustedIdentities(String trusterId) {
-		return getAllIdentities(trusterId, TrustSelection.TRUSTED);
-	}
-
-	@Override
-	public Set<Identity> getAllUntrustedIdentities(String trusterId) {
-		return getAllIdentities(trusterId, TrustSelection.UNTRUSTED);
-	}
-
-	private Set<Identity> getAllIdentities(String trusterId, TrustSelection selection) {
-		if(trusterId == null) {
-			throw new NullPointerException("Parameter trusterId must not be null");
-		}
-		if(selection == null) {
-			throw new NullPointerException("Parameter selection must not be null");
-		}
-
-		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
-		sfs.putOverwrite("Message", "GetIdentitiesByScore");
-		sfs.putOverwrite("Truster", trusterId);
-		sfs.putOverwrite("Selection", selection.value);
-		sfs.put("WantTrustValues", false);
-
-		/*
-		 * The Freemail context wasn't added prior to 0.2.1, so for a while after 0.2.1 we need to
-		 * support recipients without the Freemail context.
-		 * FIXME: Restrict this to Freemail context a few months after 0.2.1 has become mandatory
-		 */
-		sfs.putOverwrite("Context", "Freemail");
-
-		Message response = sendBlocking(new Message(sfs, null), "Identities");
-		if(response == null) {
-			return null;
-		}
-		if(!"Identities".equals(response.sfs.get("Message"))) {
-			return null;
-		}
-
-		final Set<Identity> identities = new HashSet<Identity>();
-		for(int count = 0;; count++) {
-			String identityID = response.sfs.get("Identity" + count);
-			if(identityID == null) {
-				//Got all the identities
-				break;
-			}
-
-			String requestURI = response.sfs.get("RequestURI" + count);
-			assert (requestURI != null);
-
-			String nickname = response.sfs.get("Nickname" + count);
-
-			identities.add(new Identity(identityID, requestURI, nickname));
-		}
-
-		return identities;
-	}
-
-	@Override
 	public Identity getIdentity(String identity, String trusterId) {
 		if(identity == null) {
 			throw new NullPointerException("Parameter identity must not be null");
@@ -288,14 +230,9 @@ class WoTConnectionImpl implements WoTConnection {
 	private Message sendBlocking(final Message msg, Set<String> expectedMessageTypes) {
 		assert (msg != null);
 
-		//Synchronize on this so only one message can be sent at a time
-		//Log the contents of the message before sending (debug because of private keys etc)
-		Iterator<String> msgContentIterator = msg.sfs.keyIterator();
-		while(msgContentIterator.hasNext()) {
-			String key = msgContentIterator.next();
-			Logger.debug(this, key + "=" + msg.sfs.get(key));
-		}
+		logMessageContents(msg.sfs);
 
+		//Synchronize on this so only one message can be sent at a time
 		//Synchronize on pluginTalker so only one message can be sent at a time
 		final Message retValue;
 		Timer requestTimer;
@@ -335,14 +272,18 @@ class WoTConnectionImpl implements WoTConnection {
 				+ retValue.sfs.get("OriginalMessage") + ", response was "
 				+ replyType);
 
-		//Log the contents of the message, but at debug since it might contain private keys etc.
-		Iterator<String> keyIterator = retValue.sfs.keyIterator();
-		while(keyIterator.hasNext()) {
-			String key = keyIterator.next();
-			Logger.debug(this, key + "=" + retValue.sfs.get(key));
-		}
+		logMessageContents(retValue.sfs);
 
 		return retValue;
+	}
+
+	private void logMessageContents(SimpleFieldSet sfs) {
+		//Log the contents of the message, but at debug since it might contain private keys etc.
+		Iterator<String> keyIterator = sfs.keyIterator();
+		while(keyIterator.hasNext()) {
+			String key = keyIterator.next();
+			Logger.debug(this, key + "=" + sfs.get(key));
+		}
 	}
 
 	private static class Message {
@@ -369,17 +310,6 @@ class WoTConnectionImpl implements WoTConnection {
 				reply = new Message(params, data);
 				replyLock.notify();
 			}
-		}
-	}
-
-	private enum TrustSelection {
-		TRUSTED("+"),
-		ZERO("0"),
-		UNTRUSTED("-");
-
-		private final String value;
-		TrustSelection(String value) {
-			this.value = value;
 		}
 	}
 }

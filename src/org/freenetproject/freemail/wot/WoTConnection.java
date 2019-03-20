@@ -42,26 +42,6 @@ public interface WoTConnection {
 	Set<Identity> getAllIdentities() throws PluginNotFoundException;
 
 	/**
-	 * Returns all the identities that are trusted by the given identity, or {@code null} if an
-	 * error occurs. Trusted identities are those with a score of 0 or higher.
-	 * @param trusterId the identity id of the truster
-	 * @return all the identities that are trusted by the given identity
-	 * @throws NullPointerException if trusterId is {@code null}
-	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
-	 */
-	Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException;
-
-	/**
-	 * Returns all the identities that are not trusted by the given identity, or {@code null} if an
-	 * error occurs.
-	 * @param trusterId the identity id of the truster
-	 * @return all the identities that are not trusted by the given identity
-	 * @throws NullPointerException if trusterId is {@code null}
-	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
-	 */
-	Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException;
-
-	/**
 	 * Returns the Identity with the given identity string. The truster parameter is used to fetch
 	 * the trust and score of the identity and must be a valid OwnIdentity.
 	 * @param identity the id of the Identity that should be fetched
