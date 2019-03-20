@@ -88,6 +88,33 @@ class WoTConnectionImpl implements WoTConnection {
 	}
 
 	@Override
+	public Set<Identity> getAllIdentities() {
+		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
+		sfs.putOverwrite("Message", "GetIdentities");
+		sfs.putOverwrite("Context", "");
+
+		Message response = sendBlocking(new Message(sfs, null), "Identities");
+		if(response == null) return null;
+		if(!"Identities".equals(response.sfs.get("Message"))) return null;
+
+		final Set<Identity> identities = new HashSet<Identity>();
+		String prefix = "Identities.";
+		for(int count = 0;; count++) {
+			String identityID = response.sfs.get(prefix + count + ".ID");
+			if(identityID == null) break; // Got all the identities
+
+			String requestURI = response.sfs.get(prefix + count + ".RequestURI");
+			assert (requestURI != null);
+
+			String nickname = response.sfs.get(prefix + count + ".Nickname");
+
+			identities.add(new Identity(identityID, requestURI, nickname));
+		}
+
+		return identities;
+	}
+
+	@Override
 	public Set<Identity> getAllTrustedIdentities(String trusterId) {
 		return getAllIdentities(trusterId, TrustSelection.TRUSTED);
 	}
@@ -351,7 +378,7 @@ class WoTConnectionImpl implements WoTConnection {
 		UNTRUSTED("-");
 
 		private final String value;
-		private TrustSelection(String value) {
+		TrustSelection(String value) {
 			this.value = value;
 		}
 	}

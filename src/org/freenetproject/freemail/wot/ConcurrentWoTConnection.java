@@ -40,6 +40,12 @@ public class ConcurrentWoTConnection implements WoTConnection {
 	}
 
 	@Override
+	public Set<Identity> getAllIdentities() throws PluginNotFoundException {
+		WoTConnectionImpl wotConnection = new WoTConnectionImpl(pluginRespirator);
+		return wotConnection.getAllIdentities();
+	}
+
+	@Override
 	public Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException {
 		WoTConnectionImpl wotConnection = new WoTConnectionImpl(pluginRespirator);
 		return wotConnection.getAllTrustedIdentities(trusterId);
