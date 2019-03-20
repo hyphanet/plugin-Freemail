@@ -21,14 +21,14 @@ package org.freenetproject.freemail;
 
 public class Version {
 	/** The human readable version */
-	public static final String VERSION = "0.2.7.3";
+	public static final String VERSION = "0.2.7.4";
 
 	/**
 	 * The build number, used by the plugin auto-updater. This must always
 	 * increase, and at least by one per build that is uploaded to the auto
 	 * update system.
 	 */
-	public static final int BUILD_NO = 28;
+	public static final int BUILD_NO = 29;
 
 	/** Version number updated at build time using git describe */
 	public static final String GIT_REVISION = "@custom@";
