@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 public class SettingsToadlet extends WebPage {
 
-	private static final String PATH = WebInterface.PATH + "/Setting";
+	private static final String PATH = WebInterface.PATH + "/Settings";
 
 	private final Configurator config;
 
@@ -62,14 +62,13 @@ public class SettingsToadlet extends WebPage {
 			e.printStackTrace();
 		}
 
+		config.set("smtp_bind_address", smtpAddressStr);
+		config.set("imap_bind_address", imapAddressStr);
+
 		if (isPort(smtpPortStr))
 			config.set("smtp_bind_port", smtpPortStr);
-		if (isURL(smtpAddressStr))
-			config.set("smtp_bind_address", smtpAddressStr);
 		if (isPort(imapPortStr))
 			config.set("imap_bind_port", imapPortStr);
-		if (isURL(imapAddressStr))
-			config.set("imap_bind_address", imapAddressStr);
 
 		return makeWebPageGet(uri, req, ctx, page);
 	}
