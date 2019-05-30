@@ -9,12 +9,8 @@ import freenet.support.api.HTTPRequest;
 import org.freenetproject.freemail.config.Configurator;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 
-import javax.naming.SizeLimitExceededException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 
 public class SettingsToadlet extends WebPage {
@@ -35,14 +31,15 @@ public class SettingsToadlet extends WebPage {
 	@Override
 	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode settingsBox = addInfobox(page.content, FreemailL10n.getString("Freemail.SettingsToadlet.title"));
-		addChild(settingsBox, "settings-form",
-			 new HashMap<String, String>() {{
-			 	put("formPassword", toadletContainer.getFormPassword());
-			 	put("smtpBindPort", config.get("smtp_bind_port"));
-			 	put("smtpBindAddress", config.get("smtp_bind_address"));
-			 	put("imapBindPort", config.get("imap_bind_port"));
-			 	put("imapBindAddress", config.get("imap_bind_address"));
-		}});
+
+		HashMap<String, String> settings = new HashMap<String, String>();
+		settings.put("formPassword", toadletContainer.getFormPassword());
+		settings.put("smtpBindPort", config.get("smtp_bind_port"));
+		settings.put("smtpBindAddress", config.get("smtp_bind_address"));
+		settings.put("imapBindPort", config.get("imap_bind_port"));
+		settings.put("imapBindAddress", config.get("imap_bind_address"));
+
+		addChild(settingsBox, "settings-form", settings);
 		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 	}
 
@@ -53,14 +50,10 @@ public class SettingsToadlet extends WebPage {
 		String imapPortStr = "";
 		String imapAddressStr = "";
 
-		try {
-			smtpPortStr = req.getPartAsStringThrowing("smtp-bind-port", 5);
-			smtpAddressStr = req.getPartAsStringThrowing("smtp-bind-address", 2000);
-			imapPortStr = req.getPartAsStringThrowing("imap-bind-port", 5);
-			imapAddressStr = req.getPartAsStringThrowing("imap-bind-address", 2000);
-		} catch (SizeLimitExceededException e) {
-			e.printStackTrace();
-		}
+		smtpPortStr = req.getPartAsStringFailsafe("smtp-bind-port", 5);
+		smtpAddressStr = req.getPartAsStringFailsafe("smtp-bind-address", 2000);
+		imapPortStr = req.getPartAsStringFailsafe("imap-bind-port", 5);
+		imapAddressStr = req.getPartAsStringFailsafe("imap-bind-address", 2000);
 
 		config.set("smtp_bind_address", smtpAddressStr);
 		config.set("imap_bind_address", imapAddressStr);
@@ -70,7 +63,7 @@ public class SettingsToadlet extends WebPage {
 		if (isPort(imapPortStr))
 			config.set("imap_bind_port", imapPortStr);
 
-		return makeWebPageGet(uri, req, ctx, page);
+        return new HTTPRedirectResponse(ctx, "", PATH);
 	}
 
 	@Override
@@ -88,25 +81,13 @@ public class SettingsToadlet extends WebPage {
 		return PATH;
 	}
 
-	private static boolean isURL(String url) {
-		try {
-			new URL(url).toURI();
-			return true;
-		} catch (URISyntaxException | MalformedURLException exception) {
-			return false;
-		}
-	}
-
 	private static boolean isPort(String port) {
 		try {
 			int num = Integer.parseInt(port);
 
-			if(num > 0 && num <= 65535) {
-				return true;
-			}
+			return (num > 0 && num <= 65535);
 		} catch (NumberFormatException e) {
 			return false;
 		}
-		return false;
 	}
 }

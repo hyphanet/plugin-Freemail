@@ -20,6 +20,17 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import freenet.clients.http.*;
+import freenet.pluginmanager.PluginRespirator;
+import freenet.support.HTMLNode;
+import freenet.support.MultiValueTable;
+import freenet.support.api.Bucket;
+import freenet.support.api.HTTPRequest;
+import org.freenetproject.freemail.MailMessage;
+import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.Logger;
+import org.freenetproject.freemail.utils.Timer;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,23 +43,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.freenetproject.freemail.MailMessage;
-import org.freenetproject.freemail.l10n.FreemailL10n;
-import org.freenetproject.freemail.utils.Logger;
-import org.freenetproject.freemail.utils.Timer;
-
-import freenet.clients.http.LinkEnabledCallback;
-import freenet.clients.http.PageMaker;
-import freenet.clients.http.PageNode;
-import freenet.clients.http.Toadlet;
-import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
-import freenet.pluginmanager.PluginRespirator;
-import freenet.support.HTMLNode;
-import freenet.support.MultiValueTable;
-import freenet.support.api.Bucket;
-import freenet.support.api.HTTPRequest;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
@@ -209,12 +203,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private String getL10nKey(String template) {
 		Pattern pattern = Pattern.compile("#\\{.*}");
 		Matcher matcher = pattern.matcher(template);
-		try {
-			if (matcher.find()) {
-				String key = matcher.group();
-				return key.substring(2, key.length() - 1);
-			}
-		} catch (IllegalStateException ignored) {}
+		if (matcher.find()) {
+			String key = matcher.group();
+			return key.substring(2, key.length() - 1);
+		}
+
 		return null;
 	}
 
