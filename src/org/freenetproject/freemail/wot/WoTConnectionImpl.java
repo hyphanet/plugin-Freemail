@@ -90,12 +90,14 @@ class WoTConnectionImpl implements WoTConnection {
 	@Override
 	public Set<Identity> getAllIdentities() {
 		SimpleFieldSet sfs = new SimpleFieldSetFactory().create();
+
+		sfs.putOverwrite("Context", "Freemail");
 		sfs.putOverwrite("Message", "GetIdentities");
-		sfs.putOverwrite("Context", "");
 
 		Message response = sendBlocking(new Message(sfs, null), "Identities");
-		if(response == null) return null;
-		if(!"Identities".equals(response.sfs.get("Message"))) return null;
+
+		if(response == null || !"Identities".equals(response.sfs.get("Message")))
+			return null;
 
 		final Set<Identity> identities = new HashSet<Identity>();
 		String prefix = "Identities.";

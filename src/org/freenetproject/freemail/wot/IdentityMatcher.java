@@ -39,8 +39,8 @@ public class IdentityMatcher {
 	}
 
 	public Map<String, List<Identity>> matchIdentities(
-		 Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods)
-		 throws PluginNotFoundException {
+			Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods)
+			throws PluginNotFoundException {
 		Set<Identity> ids = wotConnection.getAllIdentities();
 		List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
 
