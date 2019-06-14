@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
@@ -44,6 +45,7 @@ import freenet.support.Base64;
 import freenet.support.HTMLNode;
 import freenet.support.IllegalBase64Exception;
 import freenet.support.api.HTTPRequest;
+import org.freenetproject.freemail.wot.WoTException;
 
 public class OutboxToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/Outbox";
@@ -93,7 +95,7 @@ public class OutboxToadlet extends WebPage {
 				} else {
 					recipient = null;
 				}
-			} catch(PluginNotFoundException e) {
+			} catch(PluginNotFoundException | TimeoutException | IOException | WoTException e) {
 				recipient = null;
 			}
 

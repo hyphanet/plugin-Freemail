@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.FreemailAccount;
@@ -65,6 +66,7 @@ import freenet.support.api.HTTPRequest;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
+import org.freenetproject.freemail.wot.WoTException;
 
 public class NewMessageToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/NewMessage";
@@ -91,7 +93,7 @@ public class NewMessageToadlet extends WebPage {
 			Identity identity;
 			try {
 				identity = wotConnection.getIdentity(recipient, loginManager.getSession(ctx).getUserID());
-			} catch(PluginNotFoundException e) {
+			} catch(PluginNotFoundException | TimeoutException | IOException | WoTException e) {
 				addWoTNotLoadedMessage(contentNode);
 				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 			}

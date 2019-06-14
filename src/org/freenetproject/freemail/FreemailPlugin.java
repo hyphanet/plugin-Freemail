@@ -26,6 +26,7 @@ package org.freenetproject.freemail;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.ui.web.WebInterface;
@@ -44,6 +45,7 @@ import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
+import org.freenetproject.freemail.wot.WoTException;
 
 // although we have threads, we still 'implement' FredPluginThreadless because our runPlugin method
 // returns rather than just continuing to run for the lifetime of the plugin.
@@ -97,9 +99,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 					if(wot != null) {
 						try {
 							oids = wot.getAllOwnIdentities();
-						} catch(PluginNotFoundException e) {
-							//Try again later
-							oids = null;
+						} catch(PluginNotFoundException | TimeoutException | IOException | WoTException ignored) { // Try again later
 						}
 					}
 

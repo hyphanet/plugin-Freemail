@@ -71,6 +71,11 @@ public class MockWoTConnection implements WoTConnection {
 	}
 
 	@Override
+	public List<Identity> getAllIdentities() {
+		throw new UnsupportedOperationException("Unimplemented");
+	}
+
+	@Override
 	public Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException {
 		return trustedIdentities;
 	}

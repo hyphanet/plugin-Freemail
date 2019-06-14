@@ -20,10 +20,12 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import javax.naming.SizeLimitExceededException;
 
@@ -40,6 +42,7 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
+import org.freenetproject.freemail.wot.WoTException;
 
 public class AddAccountToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/AddAccount";
@@ -63,7 +66,7 @@ public class AddAccountToadlet extends WebPage {
 		List<OwnIdentity> ownIdentities;
 		try {
 			ownIdentities = wotConnection.getAllOwnIdentities();
-		} catch(PluginNotFoundException e) {
+		} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
 			addWoTNotLoadedMessage(contentNode);
 			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
@@ -146,7 +149,7 @@ public class AddAccountToadlet extends WebPage {
 		List<OwnIdentity> ownIdentities;
 		try {
 			ownIdentities = wotConnection.getAllOwnIdentities();
-		} catch(PluginNotFoundException e) {
+		} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
 			HTMLNode pageNode = page.outer;
 			addWoTNotLoadedMessage(page.content);
 			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());

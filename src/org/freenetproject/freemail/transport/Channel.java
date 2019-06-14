@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -71,6 +72,7 @@ import org.freenetproject.freemail.utils.PropsFile;
 import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.WoTConnection;
+import org.freenetproject.freemail.wot.WoTException;
 import org.freenetproject.freemail.wot.WoTProperties;
 
 import freenet.keys.InsertableClientSSK;
@@ -908,7 +910,7 @@ class Channel {
 			Identity recipient;
 			try {
 				recipient = wotConnection.getIdentity(remoteId, senderId);
-			} catch(PluginNotFoundException e) {
+			} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
 				Logger.error(this, "WoT plugin isn't loaded, can't send RTS");
 				recipient = null;
 			}
@@ -923,7 +925,7 @@ class Channel {
 			String edition;
 			try {
 				edition = wotConnection.getProperty(remoteId, WoTProperties.MAILSITE_EDITION);
-			} catch(PluginNotFoundException e1) {
+			} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e1) {
 				edition = null;
 			}
 			if(edition == null) {
@@ -972,7 +974,7 @@ class Channel {
 			Identity senderIdentity;
 			try {
 				senderIdentity = wotConnection.getIdentity(senderId, senderId);
-			} catch(PluginNotFoundException e) {
+			} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
 				Logger.error(this, "WoT plugin not loaded, can't send RTS");
 				senderIdentity = null;
 			}
@@ -986,7 +988,7 @@ class Channel {
 			String senderEdition;
 			try {
 				senderEdition = wotConnection.getProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION);
-			} catch(PluginNotFoundException e1) {
+			} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e1) {
 				senderEdition = null;
 			}
 			if(edition == null) {

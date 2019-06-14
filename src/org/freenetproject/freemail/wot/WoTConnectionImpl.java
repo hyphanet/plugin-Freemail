@@ -38,6 +38,11 @@ import freenet.pluginmanager.PluginTalker;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 
+/**
+ * Old WoT API.
+ *
+ * @deprecated use {@link ConcurrentWoTConnection} instead.
+ */
 class WoTConnectionImpl implements WoTConnection {
 	private static final String WOT_PLUGIN_NAME = "plugins.WebOfTrust.WebOfTrust";
 	private static final String CONNECTION_IDENTIFIER = "Freemail";
@@ -85,6 +90,11 @@ class WoTConnectionImpl implements WoTConnection {
 		}
 
 		return ownIdentities;
+	}
+
+	@Override
+	public List<Identity> getAllIdentities() {
+		throw new UnsupportedOperationException("Unimplemented");
 	}
 
 	@Override

@@ -22,13 +22,16 @@
 package org.freenetproject.freemail;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.InterruptedException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
 import org.freenetproject.freemail.wot.WoTConnection;
+import org.freenetproject.freemail.wot.WoTException;
 import org.freenetproject.freemail.wot.WoTProperties;
 
 import freenet.pluginmanager.PluginNotFoundException;
@@ -121,10 +124,8 @@ public class SingleAccountWatcher implements Runnable {
 					String hint = wotConnection.getProperty(
 							account.getIdentity(), WoTProperties.MAILSITE_EDITION);
 					editionHint = Integer.parseInt(hint);
-				} catch (PluginNotFoundException e) {
+				} catch (PluginNotFoundException | NumberFormatException | IOException | TimeoutException | WoTException e) {
 					//Only means that we can't get the hint from WoT so ignore it
-				} catch (NumberFormatException e) {
-					//Same as above, so ignore this too
 				}
 				propertyRead.log(this, 1, TimeUnit.HOURS, "Time spent getting mailsite property");
 			}
@@ -149,7 +150,7 @@ public class SingleAccountWatcher implements Runnable {
 					Timer propertyUpdate = Timer.start();
 					try {
 						wotConnection.setProperty(account.getIdentity(), WoTProperties.MAILSITE_EDITION, "" + edition);
-					} catch(PluginNotFoundException e) {
+					} catch(PluginNotFoundException | IOException | TimeoutException e) {
 						//In most cases this doesn't matter since the edition doesn't
 						//change very often anyway
 						Logger.normal(this, "WoT plugin not loaded, can't save mailsite edition");
@@ -175,7 +176,7 @@ public class SingleAccountWatcher implements Runnable {
 			} else {
 				hasSetWoTContext = true;
 			}
-		} catch (PluginNotFoundException e) {
+		} catch (PluginNotFoundException | TimeoutException | IOException e) {
 			Logger.normal(this, "WoT plugin not loaded, can't set Freemail context");
 		}
 		contextWrite.log(this, 1, TimeUnit.HOURS, "Time spent adding WoT context");

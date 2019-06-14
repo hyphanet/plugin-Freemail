@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.wot;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import freenet.pluginmanager.PluginNotFoundException;
 
@@ -39,31 +41,34 @@ public class IdentityMatcher {
 	}
 
 	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
-		Set<Identity> trustedIds = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
-		Set<Identity> untrustedIds = wotConnection.getAllUntrustedIdentities(wotOwnIdentity);
-		List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
-
 		Map<String, List<Identity>> allMatches = new HashMap<String, List<Identity>>(recipients.size());
-		for(String recipient : recipients) {
-			allMatches.put(recipient, new LinkedList<Identity>());
-		}
+		try {
+			Set<Identity> trustedIds = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
+			Set<Identity> untrustedIds = wotConnection.getAllUntrustedIdentities(wotOwnIdentity);
+			List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
 
-		if(trustedIds == null || untrustedIds == null || ownIds == null) {
-			return allMatches;
-		}
+			for (String recipient : recipients) {
+				allMatches.put(recipient, new LinkedList<Identity>());
+			}
 
-		Set<Identity> wotIdentities = new HashSet<Identity>();
-		wotIdentities.addAll(trustedIds);
-		wotIdentities.addAll(untrustedIds);
-		wotIdentities.addAll(ownIds);
+			if (trustedIds == null || untrustedIds == null || ownIds == null) {
+				return allMatches;
+			}
 
-		for(Identity wotIdentity : wotIdentities) {
-			for(String recipient : recipients) {
-				if(matchIdentity(recipient, wotIdentity, methods)) {
-					allMatches.get(recipient).add(wotIdentity);
+			Set<Identity> wotIdentities = new HashSet<Identity>();
+			wotIdentities.addAll(trustedIds);
+			wotIdentities.addAll(untrustedIds);
+			wotIdentities.addAll(ownIds);
+
+			for (Identity wotIdentity : wotIdentities) {
+				for (String recipient : recipients) {
+					if (matchIdentity(recipient, wotIdentity, methods)) {
+						allMatches.get(recipient).add(wotIdentity);
+					}
 				}
 			}
 		}
+		catch (IOException | TimeoutException | WoTException ignored) {}
 
 		return allMatches;
 	}
