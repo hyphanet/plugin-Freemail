@@ -1,5 +1,5 @@
 /*
- * ConcurrentWoTConnection.java
+ * WoTConnections.java
  * This file is part of Freemail
  * Copyright (C) 2011 Martin Nyhus
  *
@@ -39,13 +39,13 @@ import freenet.support.SimpleFieldSet;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.SimpleFieldSetFactory;
 
-public class ConcurrentWoTConnection implements WoTConnection {
+public class WoTConnections implements WoTConnection {
 
 	private final PluginRespirator pluginRespirator;
 
 	private final Queue<WoTConnectionImpl> wotConnectionsPool = new ConcurrentLinkedQueue<>();
 
-	public ConcurrentWoTConnection(PluginRespirator pluginRespirator) {
+	public WoTConnections(PluginRespirator pluginRespirator) {
 		this.pluginRespirator = pluginRespirator;
 	}
 
@@ -154,8 +154,6 @@ public class ConcurrentWoTConnection implements WoTConnection {
 
 	private class WoTConnectionImpl implements WoTConnection, FredPluginFCPMessageHandler.ClientSideFCPMessageHandler {
 
-		private static final String WOT_FCP_NAME = "plugins.WebOfTrust.WebOfTrust";
-
 		private final FCPPluginConnection fcpPluginConnection;
 
 		private CountDownLatch receiveMessageSemaphore = new CountDownLatch(1);
@@ -165,7 +163,7 @@ public class ConcurrentWoTConnection implements WoTConnection {
 		private FCPPluginMessage wotResponse;
 
 		private WoTConnectionImpl(PluginRespirator pr) throws PluginNotFoundException {
-			fcpPluginConnection = pr.connectToOtherPlugin(WOT_FCP_NAME, this);
+			fcpPluginConnection = pr.connectToOtherPlugin(WoTProperties.WOT_FCP_NAME, this);
 		}
 
 		private void ping() throws IOException, TimeoutException, WoTException {
@@ -272,7 +270,7 @@ public class ConcurrentWoTConnection implements WoTConnection {
 		private List<Trustee> getTrustees(String trusterId) throws IOException, TimeoutException, WoTException {
 			send(new SimpleFieldSetFactory()
 					.put("Message", "GetTrustees")
-					.put("Context", "Freemail")
+					.put("Context", WoTProperties.CONTEXT)
 					.put("Identity", Objects.requireNonNull(trusterId, "Parameter trusterId must not be null"))
 					.create(), "Identities");
 			FCPPluginMessage response = waitingGet();

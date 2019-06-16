@@ -21,6 +21,7 @@
 package org.freenetproject.freemail.wot;
 
 public final class WoTProperties {
+	public static final String WOT_FCP_NAME = "plugins.WebOfTrust.WebOfTrust";
 	public static final String MAILSITE_EDITION = "Freemail.mailsite";
 	public static final String CONTEXT = "Freemail";
 

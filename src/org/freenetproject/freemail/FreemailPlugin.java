@@ -32,7 +32,7 @@ import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.ui.web.WebInterface;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
-import org.freenetproject.freemail.wot.ConcurrentWoTConnection;
+import org.freenetproject.freemail.wot.WoTConnections;
 import org.freenetproject.freemail.wot.OwnIdentity;
 import org.freenetproject.freemail.wot.WoTConnection;
 
@@ -136,7 +136,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 				return null;
 			}
 
-			wotConnection = new ConcurrentWoTConnection(pluginRespirator);
+			wotConnection = new WoTConnections(pluginRespirator);
 		}
 		return wotConnection;
 	}
