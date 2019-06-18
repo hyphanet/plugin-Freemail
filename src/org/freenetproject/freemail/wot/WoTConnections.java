@@ -95,7 +95,7 @@ public class WoTConnections implements WoTConnection {
 		try {
 			wotConnection = borrowWoTConnection();
 		} catch (WoTException e) {
-			Logger.error(this, e.getLocalizedMessage());
+			Logger.error(this, e.getLocalizedMessage(), e);
 			return false;
 		}
 		boolean isSuccessfullySet = wotConnection.setProperty(identity, key, value);
@@ -117,7 +117,7 @@ public class WoTConnections implements WoTConnection {
 		try {
 			wotConnection = borrowWoTConnection();
 		} catch (WoTException e) {
-			Logger.error(this, e.getLocalizedMessage());
+			Logger.error(this, e.getLocalizedMessage(), e);
 			return false;
 		}
 		boolean isSuccessfullySet = wotConnection.setContext(identity, context);
@@ -173,7 +173,7 @@ public class WoTConnections implements WoTConnection {
 
 			if ("Error".equals(response.params.get("Message"))) {
 				String message = response.params.toString();
-				Logger.error(this, message);
+				Logger.error(this, "ping: " + message);
 				throw new WoTException("WoT Error: " + message);
 			}
 		}
@@ -186,7 +186,7 @@ public class WoTConnections implements WoTConnection {
 
 			if ("Error".equals(response.params.get("Message"))) {
 				String message = response.params.toString();
-				Logger.error(this, message);
+				Logger.error(this, "getAllOwnIdentities: " + message);
 				throw new WoTException("WoT Error: " + message);
 			}
 
@@ -218,7 +218,7 @@ public class WoTConnections implements WoTConnection {
 
 			if ("Error".equals(response.params.get("Message"))) {
 				String message = response.params.toString();
-				Logger.error(this, message);
+				Logger.error(this, "getAllIdentities: " + message);
 				throw new WoTException("WoT Error: " + message);
 			}
 
@@ -277,7 +277,7 @@ public class WoTConnections implements WoTConnection {
 
 			if ("Error".equals(response.params.get("Message"))) {
 				String message = response.params.toString();
-				Logger.error(this, message);
+				Logger.error(this, "getTrustees(" + trusterId + "): " + message);
 				throw new WoTException("WoT Error: " + message);
 			}
 
@@ -310,8 +310,12 @@ public class WoTConnections implements WoTConnection {
 			FCPPluginMessage response = waitingGet();
 
 			if ("Error".equals(response.params.get("Message"))) {
+				String description = response.params.get("Description");
+				if (description != null && description.contains("UnknownIdentityException"))
+					throw new UnknownIdentityException(description);
+
 				String message = response.params.toString();
-				Logger.error(this, message);
+				Logger.error(this, "getIdentity(" + identityId + ", " + trusterId + "): " + message);
 				throw new WoTException("WoT Error: " + message);
 			}
 
@@ -334,7 +338,8 @@ public class WoTConnections implements WoTConnection {
 			FCPPluginMessage response = waitingGet();
 
 			if ("Error".equals(response.params.get("Message"))) {
-				Logger.error(this, response.params.toString());
+				Logger.error(this,
+						"setProperty(" + identityId + ", " + key + ", " + value + "): " + response.params.toString());
 				return false;
 			}
 
@@ -352,7 +357,7 @@ public class WoTConnections implements WoTConnection {
 
 			if ("Error".equals(response.params.get("Message"))) {
 				String message = response.params.toString();
-				Logger.error(this, message);
+				Logger.error(this, "getProperty(" + identityId + ", " + key + "): " + message);
 				throw new WoTException("WoT Error: " + message);
 			}
 
@@ -369,7 +374,7 @@ public class WoTConnections implements WoTConnection {
 			FCPPluginMessage response = waitingGet();
 
 			if ("Error".equals(response.params.get("Message"))) {
-				Logger.error(this, response.params.toString());
+				Logger.error(this, "setContext(" + identityId + ", " + context + "): " + response.params.toString());
 				return false;
 			}
 
@@ -426,7 +431,7 @@ public class WoTConnections implements WoTConnection {
 
 				return message;
 			} catch (InterruptedException e) {
-				Logger.error(this, e.getLocalizedMessage());
+				Logger.error(this, "waitingGet for " + expectedResponseMessageType + ": " + e.getLocalizedMessage());
 				throw new RuntimeException(e);
 			}
 		}

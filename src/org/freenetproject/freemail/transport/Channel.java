@@ -70,10 +70,7 @@ import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
 import org.freenetproject.freemail.utils.Timer;
-import org.freenetproject.freemail.wot.Identity;
-import org.freenetproject.freemail.wot.WoTConnection;
-import org.freenetproject.freemail.wot.WoTException;
-import org.freenetproject.freemail.wot.WoTProperties;
+import org.freenetproject.freemail.wot.*;
 
 import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
@@ -910,7 +907,12 @@ class Channel {
 			Identity recipient;
 			try {
 				recipient = wotConnection.getIdentity(remoteId, senderId);
-			} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
+			}
+			catch (UnknownIdentityException e) {
+				Logger.error(this, e.getLocalizedMessage());
+				recipient = null;
+			}
+			catch (PluginNotFoundException | IOException | TimeoutException | WoTException e) {
 				Logger.error(this, "WoT plugin isn't loaded, can't send RTS");
 				recipient = null;
 			}
