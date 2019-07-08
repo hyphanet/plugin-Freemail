@@ -32,7 +32,6 @@ import freenet.pluginmanager.FredPluginFCPMessageHandler;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.Base64;
-import freenet.support.SimpleFieldSet;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.SimpleFieldSetFactory;
 
@@ -168,25 +167,27 @@ public class WoTConnections implements WoTConnection {
 		}
 
 		private void ping() throws IOException, TimeoutException, WoTException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory().put("Message", "Ping").create(),
-					"Pong");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory().put("Message", "Ping").create());
+			FCPPluginMessage response = sendSynchronous(message, "Pong");
 
 			if ("Error".equals(response.params.get("Message"))) {
-				String message = response.params.toString();
-				Logger.warning(this, "ping failed: " + message);
-				throw new WoTException("WoT Error: " + message);
+				String errorMessage = response.params.toString();
+				Logger.warning(this, "ping failed: " + errorMessage);
+				throw new WoTException("WoT Error: " + errorMessage);
 			}
 		}
 
 		@Override
 		public List<OwnIdentity> getAllOwnIdentities() throws IOException, TimeoutException, WoTException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create(),
-					"OwnIdentities");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create());
+			FCPPluginMessage response = sendSynchronous(message, "OwnIdentities");
 
 			if ("Error".equals(response.params.get("Message"))) {
-				String message = response.params.toString();
-				Logger.warning(this, "getAllOwnIdentities failed: " + message);
-				throw new WoTException("WoT Error: " + message);
+				String errorMessage = response.params.toString();
+				Logger.warning(this, "getAllOwnIdentities failed: " + errorMessage);
+				throw new WoTException("WoT Error: " + errorMessage);
 			}
 
 			int identitiesAmount = Integer.parseInt(response.params.get("Amount"));
@@ -211,13 +212,14 @@ public class WoTConnections implements WoTConnection {
 
 		@Override
 		public List<Identity> getAllIdentities() throws IOException, TimeoutException, WoTException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory().put("Message", "GetIdentities").create(),
-					"Identities");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory().put("Message", "GetIdentities").create());
+			FCPPluginMessage response = sendSynchronous(message, "Identities");
 
 			if ("Error".equals(response.params.get("Message"))) {
-				String message = response.params.toString();
-				Logger.warning(this, "getAllIdentities failed: " + message);
-				throw new WoTException("WoT Error: " + message);
+				String errorMessage = response.params.toString();
+				Logger.warning(this, "getAllIdentities failed: " + errorMessage);
+				throw new WoTException("WoT Error: " + errorMessage);
 			}
 
 			int identitiesAmount = Integer.parseInt(response.params.get("Identities.Amount"));
@@ -266,16 +268,18 @@ public class WoTConnections implements WoTConnection {
 		}
 
 		private List<Trustee> getTrustees(String trusterId) throws IOException, TimeoutException, WoTException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory()
-					.put("Message", "GetTrustees")
-					.put("Context", WoTProperties.CONTEXT)
-					.put("Identity", Objects.requireNonNull(trusterId, "Parameter trusterId must not be null"))
-					.create(), "Identities");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory()
+							.put("Message", "GetTrustees")
+							.put("Context", WoTProperties.CONTEXT)
+							.put("Identity", Objects.requireNonNull(trusterId, "Parameter trusterId must not be null"))
+							.create());
+			FCPPluginMessage response = sendSynchronous(message, "Identities");
 
 			if ("Error".equals(response.params.get("Message"))) {
-				String message = response.params.toString();
-				Logger.warning(this, "getTrustees for " + trusterId + " failed: " + message);
-				throw new WoTException("WoT Error: " + message);
+				String errorMessage = response.params.toString();
+				Logger.warning(this, "getTrustees for " + trusterId + " failed: " + errorMessage);
+				throw new WoTException("WoT Error: " + errorMessage);
 			}
 
 			int identitiesAmount = Integer.parseInt(response.params.get("Amount"));
@@ -299,20 +303,22 @@ public class WoTConnections implements WoTConnection {
 
 		@Override
 		public Identity getIdentity(String identityId, String trusterId) throws IOException, TimeoutException, WoTException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory()
-					.put("Message", "GetIdentity")
-					.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
-					.put("Truster", Objects.requireNonNull(trusterId, "Parameter trusterId must not be null"))
-					.create(), "Identity");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory()
+							.put("Message", "GetIdentity")
+							.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
+							.put("Truster", Objects.requireNonNull(trusterId, "Parameter trusterId must not be null"))
+							.create());
+			FCPPluginMessage response = sendSynchronous(message, "Identity");
 
 			if ("Error".equals(response.params.get("Message"))) {
 				String description = response.params.get("Description");
 				if (description != null && description.contains("UnknownIdentityException"))
 					throw new UnknownIdentityException(description);
 
-				String message = response.params.toString();
-				Logger.warning(this, "getIdentity(" + identityId + ", " + trusterId + ") failed: " + message);
-				throw new WoTException("WoT Error: " + message);
+				String errorMessage = response.params.toString();
+				Logger.warning(this, "getIdentity(" + identityId + ", " + trusterId + ") failed: " + errorMessage);
+				throw new WoTException("WoT Error: " + errorMessage);
 			}
 
 			String requestURI = response.params.get("Identities.0.RequestURI");
@@ -325,12 +331,14 @@ public class WoTConnections implements WoTConnection {
 
 		@Override
 		public boolean setProperty(String identityId, String key, String value) throws TimeoutException, IOException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory()
-					.put("Message", "SetProperty")
-					.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
-					.put("Property", Objects.requireNonNull(key, "Parameter key must not be null"))
-					.put("Value", Objects.requireNonNull(value, "Parameter value must not be null"))
-					.create(), "PropertyAdded");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory()
+							.put("Message", "SetProperty")
+							.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
+							.put("Property", Objects.requireNonNull(key, "Parameter key must not be null"))
+							.put("Value", Objects.requireNonNull(value, "Parameter value must not be null"))
+							.create());
+			FCPPluginMessage response = sendSynchronous(message, "PropertyAdded");
 
 			if ("Error".equals(response.params.get("Message"))) {
 				Logger.warning(this,
@@ -343,16 +351,18 @@ public class WoTConnections implements WoTConnection {
 
 		@Override
 		public String getProperty(String identityId, String key) throws IOException, TimeoutException, WoTException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory()
-					.put("Message", "GetProperty")
-					.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
-					.put("Property", Objects.requireNonNull(key, "Parameter key must not be null"))
-					.create(), "PropertyValue");
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory()
+							.put("Message", "GetProperty")
+							.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
+							.put("Property", Objects.requireNonNull(key, "Parameter key must not be null"))
+							.create());
+			FCPPluginMessage response = sendSynchronous(message, "PropertyValue");
 
 			if ("Error".equals(response.params.get("Message"))) {
-				String message = response.params.toString();
-				Logger.warning(this, "getProperty(" + identityId + ", " + key + ") failed: " + message);
-				throw new WoTException("WoT Error: " + message);
+				String errorMessage = response.params.toString();
+				Logger.warning(this, "getProperty(" + identityId + ", " + key + ") failed: " + errorMessage);
+				throw new WoTException("WoT Error: " + errorMessage);
 			}
 
 			return response.params.get("Property");
@@ -360,11 +370,13 @@ public class WoTConnections implements WoTConnection {
 
 		@Override
 		public boolean setContext(String identityId, String context) throws IOException, TimeoutException {
-			FCPPluginMessage response = sendSynchronous(new SimpleFieldSetFactory()
+			FCPPluginMessage message = FCPPluginMessage.construct();
+			message.params.putAllOverwrite(new SimpleFieldSetFactory()
 					.put("Message", "AddContext")
 					.put("Identity", Objects.requireNonNull(identityId, "Parameter identityId must not be null"))
 					.put("Context", Objects.requireNonNull(context, "Parameter context must not be null"))
-					.create(), "ContextAdded");
+					.create());
+			FCPPluginMessage response = sendSynchronous(message, "ContextAdded");
 
 			if ("Error".equals(response.params.get("Message"))) {
 				Logger.warning(this, "setContext(" + identityId + ", " + context + ") failed: " + response.params.toString());
@@ -374,23 +386,14 @@ public class WoTConnections implements WoTConnection {
 			return true;
 		}
 
-		private FCPPluginMessage sendSynchronous(final SimpleFieldSet sfs, final String expectedResponseMessageType)
+		private FCPPluginMessage sendSynchronous(final FCPPluginMessage message, final String expectedResponseMessageType)
 				throws IOException, TimeoutException {
-			assert sfs != null && expectedResponseMessageType != null;
+			assert message != null;
 
 			final int fcpTimeoutSeconds = 60;
-			final ExecutorService executorService = Executors.newSingleThreadExecutor();
 			try {
-				FCPPluginMessage response = executorService.submit(new Callable<FCPPluginMessage>() {
-					@Override
-					public FCPPluginMessage call() throws Exception {
-						/* ATTENTION: This function can cause the current thread to block for a long time,
-						 * while bypassing the thread limit.
-						 * - {@link FCPPluginConnection#sendSynchronous(FCPPluginMessage, long)} Javadoc */
-						return fcpPluginConnection.sendSynchronous(FCPPluginMessage.construct(sfs, null),
-								TimeUnit.SECONDS.toNanos(fcpTimeoutSeconds));
-					}
-				}).get(fcpTimeoutSeconds + 1, TimeUnit.SECONDS);
+				FCPPluginMessage response = fcpPluginConnection.sendSynchronous(message,
+						TimeUnit.SECONDS.toNanos(fcpTimeoutSeconds));
 
 				final String messageType = response.params.get("Message");
 				if (!expectedResponseMessageType.equals(messageType) && !"Error".equals(messageType))
@@ -406,12 +409,6 @@ public class WoTConnections implements WoTConnection {
 				if (e.getLocalizedMessage().startsWith("timed out waiting for reply"))
 					throw new TimeoutException(e.getLocalizedMessage());
 				throw e;
-			}
-			catch (ExecutionException e) {
-				throw new IOException(e.getLocalizedMessage());
-			}
-			finally {
-				executorService.shutdown();
 			}
 		}
 
