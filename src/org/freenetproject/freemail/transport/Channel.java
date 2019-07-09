@@ -907,13 +907,11 @@ class Channel {
 			Identity recipient;
 			try {
 				recipient = wotConnection.getIdentity(remoteId, senderId);
-			}
-			catch (UnknownIdentityException e) {
-				Logger.error(this, e.getLocalizedMessage());
-				recipient = null;
-			}
-			catch (PluginNotFoundException | IOException | TimeoutException | WoTException e) {
+			} catch (PluginNotFoundException e) {
 				Logger.error(this, "WoT plugin isn't loaded, can't send RTS");
+				recipient = null;
+			} catch (IOException | TimeoutException | WoTException e) {
+				Logger.error(this, e.getMessage() + ", can't send RTS");
 				recipient = null;
 			}
 			if(recipient == null) {
@@ -976,8 +974,11 @@ class Channel {
 			Identity senderIdentity;
 			try {
 				senderIdentity = wotConnection.getIdentity(senderId, senderId);
-			} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
+			} catch (PluginNotFoundException e) {
 				Logger.error(this, "WoT plugin not loaded, can't send RTS");
+				senderIdentity = null;
+			} catch (IOException | TimeoutException | WoTException e) {
+				Logger.error(this, e.getMessage() + ", can't send RTS");
 				senderIdentity = null;
 			}
 			if(senderIdentity == null) {
