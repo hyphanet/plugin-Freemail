@@ -23,7 +23,6 @@ package org.freenetproject.freemail.wot;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -42,23 +41,16 @@ public class IdentityMatcher {
 
 	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods)
 			throws PluginNotFoundException, InterruptedException, TimeoutException, IOException, WoTException {
-		Set<Identity> trustedIds = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
-		Set<Identity> untrustedIds = wotConnection.getAllUntrustedIdentities(wotOwnIdentity);
-		List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
-
 		Map<String, List<Identity>> allMatches = new HashMap<>(recipients.size());
 		for (String recipient : recipients) {
 			allMatches.put(recipient, new LinkedList<Identity>());
 		}
 
-		if (trustedIds == null || untrustedIds == null || ownIds == null) {
+		List<Identity> wotIdentities = wotConnection.getAllIdentities();
+
+		if (wotIdentities.isEmpty()) {
 			return allMatches;
 		}
-
-		Set<Identity> wotIdentities = new HashSet<>();
-		wotIdentities.addAll(trustedIds);
-		wotIdentities.addAll(untrustedIds);
-		wotIdentities.addAll(ownIds);
 
 		for (Identity wotIdentity : wotIdentities) {
 			for (String recipient : recipients) {
