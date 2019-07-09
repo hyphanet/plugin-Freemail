@@ -176,8 +176,12 @@ public class SingleAccountWatcher implements Runnable {
 			} else {
 				hasSetWoTContext = true;
 			}
-		} catch (PluginNotFoundException | TimeoutException | IOException e) {
+		} catch (PluginNotFoundException e) {
 			Logger.normal(this, "WoT plugin not loaded, can't set Freemail context");
+		} catch (TimeoutException | IOException e) {
+			Logger.normal(this, e.getMessage());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 		contextWrite.log(this, 1, TimeUnit.HOURS, "Time spent adding WoT context");
 	}

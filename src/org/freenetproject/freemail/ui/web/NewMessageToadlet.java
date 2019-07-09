@@ -93,8 +93,12 @@ public class NewMessageToadlet extends WebPage {
 			Identity identity;
 			try {
 				identity = wotConnection.getIdentity(recipient, loginManager.getSession(ctx).getUserID());
-			} catch(PluginNotFoundException | TimeoutException | IOException | WoTException e) {
-				addWoTNotLoadedMessage(contentNode);
+			} catch (PluginNotFoundException | TimeoutException | IOException | WoTException e) {
+				addWoTExceptionMessage(contentNode, e);
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				addErrorbox(page.content, FreemailL10n.getString("Freemail.Global.shutdown"));
 				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 			}
 			recipients.add(identity.getNickname() + "@" + identity.getIdentityID() + ".freemail");
@@ -260,9 +264,13 @@ public class NewMessageToadlet extends WebPage {
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.allOf(IdentityMatcher.MatchMethod.class);
 			matches = messageSender.matchIdentities(recipients.keySet(), loginManager.getSession(ctx).getUserID(), methods);
-		} catch(PluginNotFoundException e) {
-			addWoTNotLoadedMessage(page.content);
-			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (WoT not loaded)");
+		} catch (PluginNotFoundException | TimeoutException | WoTException e) {
+			addWoTExceptionMessage(page.content, e);
+			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (" + e.getMessage() + ")");
+			return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			addErrorbox(page.content, FreemailL10n.getString("Freemail.Global.shutdown"));
 			return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 		}
 		identityMatching.log(this, "Time spent matching identities");

@@ -66,8 +66,12 @@ public class AddAccountToadlet extends WebPage {
 		List<OwnIdentity> ownIdentities;
 		try {
 			ownIdentities = wotConnection.getAllOwnIdentities();
-		} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
-			addWoTNotLoadedMessage(contentNode);
+		} catch (PluginNotFoundException | IOException | TimeoutException | WoTException e) {
+			addWoTExceptionMessage(contentNode, e);
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			addErrorbox(contentNode, FreemailL10n.getString("Freemail.Global.shutdown"));
 			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
@@ -149,10 +153,13 @@ public class AddAccountToadlet extends WebPage {
 		List<OwnIdentity> ownIdentities;
 		try {
 			ownIdentities = wotConnection.getAllOwnIdentities();
-		} catch(PluginNotFoundException | IOException | TimeoutException | WoTException e) {
-			HTMLNode pageNode = page.outer;
-			addWoTNotLoadedMessage(page.content);
-			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
+		} catch (PluginNotFoundException | IOException | TimeoutException | WoTException e) {
+			addWoTExceptionMessage(page.content, e);
+			return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			addErrorbox(page.content, FreemailL10n.getString("Freemail.Global.shutdown"));
+			return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 		}
 
 		OwnIdentity ownIdentity = null;

@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import freenet.pluginmanager.PluginNotFoundException;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.utils.Logger;
@@ -169,12 +170,17 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		return fallback;
 	}
 
-	protected void addWoTNotLoadedMessage(HTMLNode parent) {
-		HTMLNode errorbox = addErrorbox(parent, FreemailL10n.getString("Freemail.Global.WoTNotLoadedTitle"));
-		HTMLNode text = errorbox.addChild("p");
-		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
-				new String[] {"link"},
-				new HTMLNode[] {HTMLNode.link("/plugins")});
+	protected void addWoTExceptionMessage(HTMLNode parent, Exception e) {
+		if (e instanceof PluginNotFoundException) {
+			HTMLNode errorbox = addErrorbox(parent, FreemailL10n.getString("Freemail.Global.WoTNotLoadedTitle"));
+			HTMLNode text = errorbox.addChild("p");
+			FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
+					new String[] {"link"},
+					new HTMLNode[] {HTMLNode.link("/plugins")});
+		} else {
+			addErrorbox(parent, FreemailL10n.getString("Freemail.Global.WoTExceptionTitle"))
+					.addChild("p", e.getMessage());
+		}
 	}
 
 	protected abstract class HTTPResponse {

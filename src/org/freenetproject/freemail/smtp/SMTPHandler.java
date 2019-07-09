@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.TimeoutException;
 
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
@@ -52,6 +53,7 @@ import org.freenetproject.freemail.transport.MessageHandler;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
+import org.freenetproject.freemail.wot.WoTException;
 
 public class SMTPHandler extends ServerHandler implements Runnable {
 	private final OutputStream os;
@@ -315,8 +317,16 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		try {
 			EnumSet<IdentityMatcher.MatchMethod> methods = EnumSet.of(IdentityMatcher.MatchMethod.FULL_BASE32);
 			matches = identityMatcher.matchIdentities(recipient, account.getIdentity(), methods);
-		} catch(PluginNotFoundException e) {
+		} catch (PluginNotFoundException e) {
 			this.ps.print("554 WoT plugin not loaded\r\n");
+			return;
+		} catch (InterruptedException e) {
+			this.ps.print("421 Service closing\r\n");
+			Thread.currentThread().interrupt();
+			return;
+		} catch (IOException | TimeoutException | WoTException e) {
+			Logger.debug(this, e.getMessage());
+			this.ps.print("451 " + e.getMessage() + "\r\n");
 			return;
 		}
 		if(matches.get(address).size() != 1) {

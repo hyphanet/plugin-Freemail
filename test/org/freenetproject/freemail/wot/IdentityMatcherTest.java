@@ -22,16 +22,16 @@ package org.freenetproject.freemail.wot;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
 
-import org.freenetproject.freemail.wot.Identity;
-import org.freenetproject.freemail.wot.IdentityMatcher;
 import org.freenetproject.freemail.wot.IdentityMatcher.MatchMethod;
 
 import data.TestId1Data;
@@ -43,7 +43,7 @@ public class IdentityMatcherTest {
 	private static final Identity identity = TestId1Data.Identity.newInstance();
 
 	@Test
-	public void fullIdentityMatch() throws PluginNotFoundException {
+	public void fullIdentityMatch() throws PluginNotFoundException, InterruptedException, TimeoutException, IOException, WoTException {
 		String recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
 		EnumSet<MatchMethod> set = EnumSet.allOf(MatchMethod.class);
 
@@ -51,7 +51,7 @@ public class IdentityMatcherTest {
 	}
 
 	@Test
-	public void fullBase32IdentityMatch() throws PluginNotFoundException {
+	public void fullBase32IdentityMatch() throws PluginNotFoundException, InterruptedException, TimeoutException, IOException, WoTException {
 		String recipient = identity.getNickname() + "@" + identity.getBase32IdentityID() + ".freemail";
 		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
 
@@ -59,14 +59,15 @@ public class IdentityMatcherTest {
 	}
 
 	@Test
-	public void fullBase32MatchWithOnlyId() throws PluginNotFoundException {
+	public void fullBase32MatchWithOnlyId() throws PluginNotFoundException, InterruptedException, TimeoutException, IOException, WoTException {
 		String recipient = identity.getBase32IdentityID();
 		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
 
 		runMatcherTest(recipient, set);
 	}
 
-	private void runMatcherTest(String recipient, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
+	private void runMatcherTest(String recipient, EnumSet<MatchMethod> methods)
+			throws PluginNotFoundException, InterruptedException, IOException, TimeoutException, WoTException {
 		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
 		wotConnection.setTrustedIdentities(Collections.singleton(identity));
 		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
@@ -82,7 +83,7 @@ public class IdentityMatcherTest {
 	}
 
 	@Test
-	public void fullMatchWithPartialId() throws PluginNotFoundException {
+	public void fullMatchWithPartialId() throws PluginNotFoundException, InterruptedException, IOException, TimeoutException, WoTException {
 		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
 		wotConnection.setTrustedIdentities(Collections.singleton(identity));
 		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
@@ -106,7 +107,7 @@ public class IdentityMatcherTest {
 	}
 
 	@Test
-	public void errorReturnFromTrusted() throws PluginNotFoundException {
+	public void errorReturnFromTrusted() throws PluginNotFoundException, InterruptedException, IOException, TimeoutException, WoTException {
 		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
 		wotConnection.setTrustedIdentities(null);
 		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
@@ -124,7 +125,7 @@ public class IdentityMatcherTest {
 	}
 
 	@Test
-	public void errorReturnFromUntrusted() throws PluginNotFoundException {
+	public void errorReturnFromUntrusted() throws PluginNotFoundException, InterruptedException, IOException, TimeoutException, WoTException {
 		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
 		wotConnection.setTrustedIdentities(Collections.<Identity>emptySet());
 		wotConnection.setUntrustedIdentities(null);
@@ -142,7 +143,7 @@ public class IdentityMatcherTest {
 	}
 
 	@Test
-	public void errorReturnFromOwnIds() throws PluginNotFoundException {
+	public void errorReturnFromOwnIds() throws PluginNotFoundException, InterruptedException, IOException, TimeoutException, WoTException {
 		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
 		wotConnection.setTrustedIdentities(Collections.<Identity>emptySet());
 		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());

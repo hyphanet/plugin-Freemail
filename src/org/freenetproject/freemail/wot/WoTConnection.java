@@ -34,9 +34,18 @@ public interface WoTConnection {
 	 * @return all the OwnIdentities fetched from WoT
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	List<OwnIdentity> getAllOwnIdentities() throws PluginNotFoundException, IOException, TimeoutException, WoTException;
+	List<OwnIdentity> getAllOwnIdentities() throws PluginNotFoundException, IOException, TimeoutException, WoTException, InterruptedException;
 
-	List<Identity> getAllIdentities() throws PluginNotFoundException, IOException, TimeoutException, WoTException;
+	/**
+	 * Returns all the identities
+	 * @return all the identities fetched from WoT
+	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
+	 * @throws WoTException If the WoT plugin responds with an error message
+	 * @throws TimeoutException If the WoT plugin throw an IOException with a timeout message
+	 * @throws IOException If the WoT plugin throw an IOException
+	 * @throws InterruptedException If the WoT plugin throw an InterruptedException
+	 */
+	List<Identity> getAllIdentities() throws PluginNotFoundException, IOException, TimeoutException, WoTException, InterruptedException;
 
 	/**
 	 * Returns all the identities that are trusted by the given identity, or {@code null} if an
@@ -46,7 +55,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if trusterId is {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException, IOException, TimeoutException, WoTException;
+	Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException, IOException, TimeoutException, WoTException, InterruptedException;
 
 	/**
 	 * Returns all the identities that are not trusted by the given identity, or {@code null} if an
@@ -56,7 +65,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if trusterId is {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException, IOException, TimeoutException, WoTException;
+	Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException, IOException, TimeoutException, WoTException, InterruptedException;
 
 	/**
 	 * Returns the Identity with the given identity string. The truster parameter is used to fetch
@@ -67,7 +76,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if any of the parameters are {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	Identity getIdentity(String identityId, String trusterId) throws PluginNotFoundException, IOException, TimeoutException, WoTException;
+	Identity getIdentity(String identityId, String trusterId) throws PluginNotFoundException, IOException, TimeoutException, WoTException, InterruptedException;
 
 	/**
 	 * Sets the property {@code key} to {@code value} for the given identity, returning {@code true}
@@ -79,7 +88,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if any of the parameters are {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	boolean setProperty(String identityId, String key, String value) throws PluginNotFoundException, TimeoutException, IOException;
+	boolean setProperty(String identityId, String key, String value) throws PluginNotFoundException, TimeoutException, IOException, InterruptedException;
 
 	/**
 	 * Returns the value of the named parameter from the given identity. {@code null} is returned if
@@ -90,7 +99,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if any of the parameters are {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	String getProperty(String identityId, String key) throws PluginNotFoundException, IOException, TimeoutException, WoTException;
+	String getProperty(String identityId, String key) throws PluginNotFoundException, IOException, TimeoutException, WoTException, InterruptedException;
 
 	/**
 	 * Sets the context {@code context} for the given identity, returning {@code true} if the
@@ -98,5 +107,5 @@ public interface WoTConnection {
 	 * @param identityId the id of the identity whose context should be set
 	 * @param context the context that should be set
 	 */
-	boolean setContext(String identityId, String context) throws PluginNotFoundException, IOException, TimeoutException;
+	boolean setContext(String identityId, String context) throws PluginNotFoundException, IOException, TimeoutException, InterruptedException;
 }

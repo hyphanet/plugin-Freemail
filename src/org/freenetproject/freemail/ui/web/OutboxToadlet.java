@@ -97,6 +97,10 @@ public class OutboxToadlet extends WebPage {
 				}
 			} catch(PluginNotFoundException | TimeoutException | IOException | WoTException e) {
 				recipient = null;
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				addErrorbox(page.content, FreemailL10n.getString("Freemail.Global.shutdown"));
+				break;
 			}
 
 			if(recipient == null) {

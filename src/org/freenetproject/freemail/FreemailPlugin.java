@@ -99,7 +99,12 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 					if(wot != null) {
 						try {
 							oids = wot.getAllOwnIdentities();
-						} catch(PluginNotFoundException | TimeoutException | IOException | WoTException ignored) { // Try again later
+						} catch (PluginNotFoundException ignored) { // Try again later
+						} catch (TimeoutException | IOException | WoTException e) {
+							Logger.debug(this, e.getMessage());
+							// Try again later
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
 						}
 					}
 
