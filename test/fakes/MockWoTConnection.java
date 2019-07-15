@@ -19,6 +19,7 @@
 
 package fakes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +73,17 @@ public class MockWoTConnection implements WoTConnection {
 
 	@Override
 	public List<Identity> getAllIdentities() {
-		throw new UnsupportedOperationException("Unimplemented");
+		List<Identity> allIdentities = new ArrayList<>();
+		if (ownIdentities != null) {
+			allIdentities.addAll(ownIdentities);
+		}
+		if (trustedIdentities != null) {
+			allIdentities.addAll(trustedIdentities);
+		}
+		if (untrustedIdentities != null) {
+			allIdentities.addAll(untrustedIdentities);
+		}
+		return allIdentities;
 	}
 
 	@Override
