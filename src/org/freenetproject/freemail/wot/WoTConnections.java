@@ -180,12 +180,7 @@ public class WoTConnections implements WoTConnection {
             FCPPluginMessage message = FCPPluginMessage.construct();
             message.params.putAllOverwrite(new SimpleFieldSetFactory().put("Message", "Ping").create());
             FCPPluginMessage response = sendSynchronous(message, "Pong");
-
-            if ("Error".equals(response.params.get("Message"))) {
-                String errorMessage = response.params.toString();
-                Logger.warning(this, "ping failed: " + errorMessage);
-                throw new WoTException("WoT Error: " + errorMessage);
-            }
+            checkErrorMessage("ping", response);
         }
 
         @Override
@@ -194,12 +189,7 @@ public class WoTConnections implements WoTConnection {
             FCPPluginMessage message = FCPPluginMessage.construct();
             message.params.putAllOverwrite(new SimpleFieldSetFactory().put("Message", "GetOwnIdentities").create());
             FCPPluginMessage response = sendSynchronous(message, "OwnIdentities");
-
-            if ("Error".equals(response.params.get("Message"))) {
-                String errorMessage = response.params.toString();
-                Logger.warning(this, "getAllOwnIdentities failed: " + errorMessage);
-                throw new WoTException("WoT Error: " + errorMessage);
-            }
+            checkErrorMessage("getAllOwnIdentities", response);
 
             int identitiesAmount = Integer.parseInt(response.params.get("Amount"));
             final List<OwnIdentity> ownIdentities = new ArrayList<>(identitiesAmount);
@@ -226,23 +216,18 @@ public class WoTConnections implements WoTConnection {
             FCPPluginMessage message = FCPPluginMessage.construct();
             message.params.putAllOverwrite(new SimpleFieldSetFactory().put("Message", "GetIdentities").create());
             FCPPluginMessage response = sendSynchronous(message, "Identities");
-
-            if ("Error".equals(response.params.get("Message"))) {
-                String errorMessage = response.params.toString();
-                Logger.warning(this, "getAllIdentities failed: " + errorMessage);
-                throw new WoTException("WoT Error: " + errorMessage);
-            }
+            checkErrorMessage("getAllIdentities", response);
 
             int identitiesAmount = Integer.parseInt(response.params.get("Identities.Amount"));
             final List<Identity> identities = new ArrayList<>(identitiesAmount);
             for (int i = 0; i < identitiesAmount; i++) {
-                String requestURI = response.params.get("Identities.RequestURI" + i);
+                String requestURI = response.params.get("Identities." + i + ".RequestURI");
                 assert requestURI != null;
 
-                String nickname = response.params.get("Identities.Nickname" + i);
+                String nickname = response.params.get("Identities." + i + ".Nickname");
 
-                if ("OwnIdentity".equals(response.params.get("Identities.Type" + i))) {
-                    String insertURI = response.params.get("Identities.InsertURI" + i);
+                if ("OwnIdentity".equals(response.params.get("Identities." + i + ".Type"))) {
+                    String insertURI = response.params.get("Identities." + i + ".InsertURI");
                     assert insertURI != null;
 
                     identities.add(new OwnIdentity(toIdentityId(requestURI), requestURI, insertURI, nickname));
@@ -293,12 +278,7 @@ public class WoTConnections implements WoTConnection {
                     .put("Identity", Objects.requireNonNull(trusterId, "Parameter trusterId must not be null"))
                     .create());
             FCPPluginMessage response = sendSynchronous(message, "Identities");
-
-            if ("Error".equals(response.params.get("Message"))) {
-                String errorMessage = response.params.toString();
-                Logger.warning(this, "getTrustees for " + trusterId + " failed: " + errorMessage);
-                throw new WoTException("WoT Error: " + errorMessage);
-            }
+            checkErrorMessage("getTrustees for " + trusterId, response);
 
             int identitiesAmount = Integer.parseInt(response.params.get("Amount"));
             final List<Trustee> identities = new ArrayList<>(identitiesAmount);
@@ -330,15 +310,15 @@ public class WoTConnections implements WoTConnection {
                     .create());
             FCPPluginMessage response = sendSynchronous(message, "Identity");
 
-            if ("Error".equals(response.params.get("Message"))) {
+            try {
+                checkErrorMessage("getIdentity(" + identityId + ", " + trusterId + ")", response);
+            } catch (WoTException e) {
                 String description = response.params.get("Description");
                 if (description != null && description.contains("UnknownIdentityException")) {
                     throw new UnknownIdentityException(description);
                 }
 
-                String errorMessage = response.params.toString();
-                Logger.warning(this, "getIdentity(" + identityId + ", " + trusterId + ") failed: " + errorMessage);
-                throw new WoTException("WoT Error: " + errorMessage);
+                throw e;
             }
 
             String requestURI = response.params.get("Identities.0.RequestURI");
@@ -361,9 +341,9 @@ public class WoTConnections implements WoTConnection {
                     .create());
             FCPPluginMessage response = sendSynchronous(message, "PropertyAdded");
 
-            if ("Error".equals(response.params.get("Message"))) {
-                Logger.warning(this,
-                        "setProperty(" + identityId + ", " + key + " = " + value + ") failed: " + response.params.toString());
+            try {
+                checkErrorMessage("setProperty(" + identityId + ", " + key + " = " + value + ")", response);
+            } catch (WoTException ignored) {
                 return false;
             }
 
@@ -380,12 +360,7 @@ public class WoTConnections implements WoTConnection {
                     .put("Property", Objects.requireNonNull(key, "Parameter key must not be null"))
                     .create());
             FCPPluginMessage response = sendSynchronous(message, "PropertyValue");
-
-            if ("Error".equals(response.params.get("Message"))) {
-                String errorMessage = response.params.toString();
-                Logger.warning(this, "getProperty(" + identityId + ", " + key + ") failed: " + errorMessage);
-                throw new WoTException("WoT Error: " + errorMessage);
-            }
+            checkErrorMessage("getProperty(" + identityId + ", " + key + ")", response);
 
             return response.params.get("Property");
         }
@@ -401,8 +376,9 @@ public class WoTConnections implements WoTConnection {
                     .create());
             FCPPluginMessage response = sendSynchronous(message, "ContextAdded");
 
-            if ("Error".equals(response.params.get("Message"))) {
-                Logger.warning(this, "setContext(" + identityId + ", " + context + ") failed: " + response.params.toString());
+            try {
+                checkErrorMessage("setContext(" + identityId + ", " + context + ")", response);
+            } catch (WoTException ignored) {
                 return false;
             }
 
@@ -413,10 +389,8 @@ public class WoTConnections implements WoTConnection {
                 throws IOException, TimeoutException, InterruptedException {
             assert message != null;
 
-            final int fcpTimeoutSeconds = 60;
             try {
-                FCPPluginMessage response = fcpPluginConnection.sendSynchronous(message,
-                        TimeUnit.SECONDS.toNanos(fcpTimeoutSeconds));
+                FCPPluginMessage response = fcpPluginConnection.sendSynchronous(message, TimeUnit.MINUTES.toNanos(1));
 
                 final String messageType = response.params.get("Message");
                 if (!expectedResponseMessageType.equals(messageType) && !"Error".equals(messageType)) {
@@ -436,6 +410,14 @@ public class WoTConnections implements WoTConnection {
 
         private String toIdentityId(String requestURI) throws MalformedURLException {
             return Base64.encode(new FreenetURI(requestURI).getRoutingKey());
+        }
+
+        private void checkErrorMessage(String method, FCPPluginMessage response) throws WoTException {
+            if ("Error".equals(response.params.get("Message"))) {
+                String errorMessage = response.params.toString();
+                Logger.warning(this, method + " failed: " + errorMessage);
+                throw new WoTException("WoT Error: " + errorMessage);
+            }
         }
     }
 }
