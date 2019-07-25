@@ -25,6 +25,7 @@ package org.freenetproject.freemail;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -90,42 +91,55 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+
 		pr.getNode().executor.execute(new Runnable() {
 			@Override
 			public void run() {
-				List<OwnIdentity> oids = null;
-				while(oids == null) {
-					WoTConnection wot = getWotConnection();
-					if(wot != null) {
-						try {
-							oids = wot.getAllOwnIdentities();
-						} catch (PluginNotFoundException ignored) { // Try again later
-						} catch (TimeoutException | IOException | WoTException e) {
-							Logger.debug(this, e.getMessage());
-							// Try again later
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
+				try {
+					List<OwnIdentity> oids = null;
+					while (oids == null) {
+						WoTConnection wot = getWotConnection();
+						if (wot != null) {
+							try {
+								oids = wot.getAllOwnIdentities();
+							} catch (PluginNotFoundException ignored) { // Try again later
+							} catch (TimeoutException | IOException | WoTException e) { // Try again later
+								Logger.debug(this, e.getMessage());
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+								return;
+							}
+						}
+
+						if (oids == null) {
+							try {
+								Thread.sleep(60_000);
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+								return;
+							}
 						}
 					}
 
-					if(oids == null) {
-						try {
-							Thread.sleep(60 * 1000);
-						} catch(InterruptedException e) {
-							//Just try again
+					for (OwnIdentity oid : oids) {
+						for (FreemailAccount account : accountManager.getAllAccounts()) {
+							if (account.getIdentity().equals(oid.getIdentityID())) {
+								account.setNickname(oid.getNickname());
+							}
 						}
 					}
-				}
-
-				for(OwnIdentity oid : oids) {
-					for(FreemailAccount account : accountManager.getAllAccounts()) {
-						if(account.getIdentity().equals(oid.getIdentityID())) {
-							account.setNickname(oid.getNickname());
-						}
-					}
+				} finally {
+					countDownLatch.countDown();
 				}
 			}
 		}, "Freemail OwnIdentity nickname fetcher");
+
+//		try {
+//			countDownLatch.await(); // TODO
+//		} catch (InterruptedException e) {
+//			Thread.currentThread().interrupt();
+//		}
 	}
 
 	@Override
