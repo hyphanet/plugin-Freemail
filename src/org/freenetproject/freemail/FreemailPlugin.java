@@ -25,9 +25,8 @@ package org.freenetproject.freemail;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Map;
+import java.util.concurrent.*;
 
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.ui.web.WebInterface;
@@ -56,6 +55,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
 	private WoTConnection wotConnection = null;
+	private Map<Thread, CountDownLatch> activeThreads = new ConcurrentHashMap<>();
 
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
@@ -97,8 +97,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 			@Override
 			public void run() {
 				try {
+					activeThreads.put(Thread.currentThread(), countDownLatch);
 					List<OwnIdentity> oids = null;
 					while (oids == null) {
+						if (Thread.currentThread().isInterrupted()) {
+							return;
+						}
+
 						WoTConnection wot = getWotConnection();
 						if (wot != null) {
 							try {
@@ -131,15 +136,10 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 					}
 				} finally {
 					countDownLatch.countDown();
+					activeThreads.remove(Thread.currentThread());
 				}
 			}
 		}, "Freemail OwnIdentity nickname fetcher");
-
-//		try {
-//			countDownLatch.await(); // TODO
-//		} catch (InterruptedException e) {
-//			Thread.currentThread().interrupt();
-//		}
 	}
 
 	@Override
@@ -163,8 +163,27 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	@Override
 	public void terminate() {
 		Timer terminateTimer = Timer.start();
-
 		Logger.minor(this, "terminate() called");
+
+		Timer waitingForNormalShutdown = terminateTimer.startSubTimer();
+		for (Thread activeThread : activeThreads.keySet()) {
+			activeThread.interrupt();
+		}
+		long timeout = TimeUnit.MINUTES.toMillis(1);
+		for (CountDownLatch latch : activeThreads.values()) {
+			if (timeout <= 0) {
+				break;
+			}
+			long startTime = System.currentTimeMillis();
+			try {
+				latch.await(timeout, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException ignored) {
+			} finally {
+				timeout -= System.currentTimeMillis() - startTime;
+			}
+		}
+		waitingForNormalShutdown.log(this, 1, TimeUnit.SECONDS, "Time spent waiting for normal shutdown");
+
 		Timer webUITermination = terminateTimer.startSubTimer();
 		webInterface.terminate();
 		webUITermination.log(this, 1, TimeUnit.SECONDS, "Time spent terminating web interface");
