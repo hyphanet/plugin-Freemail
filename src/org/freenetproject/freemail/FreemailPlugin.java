@@ -55,7 +55,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	private WebInterface webInterface = null;
 	private volatile PluginRespirator pluginRespirator = null;
 	private WoTConnection wotConnection = null;
-	private Map<Thread, CountDownLatch> activeThreads = new ConcurrentHashMap<>();
+	private Map<CountDownLatch, Thread> activeThreads = new ConcurrentHashMap<>();
 
 	public FreemailPlugin() throws IOException {
 		super(CFGFILE);
@@ -92,12 +92,13 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
+		activeThreads.put(countDownLatch, Thread.currentThread());
 
 		pr.getNode().executor.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					activeThreads.put(Thread.currentThread(), countDownLatch);
+					activeThreads.put(countDownLatch, Thread.currentThread());
 					List<OwnIdentity> oids = null;
 					while (oids == null) {
 						if (Thread.currentThread().isInterrupted()) {
@@ -136,7 +137,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 					}
 				} finally {
 					countDownLatch.countDown();
-					activeThreads.remove(Thread.currentThread());
+					activeThreads.remove(countDownLatch);
 				}
 			}
 		}, "Freemail OwnIdentity nickname fetcher");
@@ -166,20 +167,27 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		Logger.minor(this, "terminate() called");
 
 		Timer waitingForNormalShutdown = terminateTimer.startSubTimer();
-		for (Thread activeThread : activeThreads.keySet()) {
-			activeThread.interrupt();
-		}
 		long timeout = TimeUnit.MINUTES.toMillis(1);
-		for (CountDownLatch latch : activeThreads.values()) {
+		while (!activeThreads.isEmpty()) {
 			if (timeout <= 0) {
 				break;
 			}
-			long startTime = System.currentTimeMillis();
-			try {
-				latch.await(timeout, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException ignored) {
-			} finally {
-				timeout -= System.currentTimeMillis() - startTime;
+
+			for (Map.Entry<CountDownLatch, Thread> countDownLatchThreadEntry : activeThreads.entrySet()) {
+				if (timeout <= 0) {
+					break;
+				}
+
+				long startTime = System.currentTimeMillis();
+				try {
+					if (!Thread.currentThread().equals(countDownLatchThreadEntry.getValue())) {
+						countDownLatchThreadEntry.getValue().interrupt();
+						countDownLatchThreadEntry.getKey().await(timeout, TimeUnit.MILLISECONDS);
+					}
+				} catch (InterruptedException ignored) {
+				} finally {
+					timeout -= System.currentTimeMillis() - startTime;
+				}
 			}
 		}
 		waitingForNormalShutdown.log(this, 1, TimeUnit.SECONDS, "Time spent waiting for normal shutdown");
