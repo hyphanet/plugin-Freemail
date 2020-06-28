@@ -96,8 +96,9 @@ class WoTConnectionImpl implements WoTConnection {
 
 		Message response = sendBlocking(new Message(sfs, null), "Identities");
 
-		if(response == null || !"Identities".equals(response.sfs.get("Message")))
+		if(response == null || !"Identities".equals(response.sfs.get("Message"))) {
 			return null;
+		}
 
 		final Set<Identity> identities = new HashSet<Identity>();
 		String prefix = "Identities.";
