@@ -19,6 +19,7 @@
 
 package fakes;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,13 +72,13 @@ public class MockWoTConnection implements WoTConnection {
 	}
 
 	@Override
-	public Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException {
-		return trustedIdentities;
-	}
-
-	@Override
-	public Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException {
-		return untrustedIdentities;
+	public Set<Identity> getAllIdentities() throws PluginNotFoundException {
+		Set<Identity> allIdentities = new HashSet<Identity>();
+		if (trustedIdentities != null)
+			allIdentities.addAll(trustedIdentities);
+		if (untrustedIdentities != null)
+			allIdentities.addAll(untrustedIdentities);
+		return allIdentities;
 	}
 
 	@Override

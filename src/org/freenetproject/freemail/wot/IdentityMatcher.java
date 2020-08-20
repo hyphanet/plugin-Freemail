@@ -38,9 +38,10 @@ public class IdentityMatcher {
 		this.wotConnection = wotConnection;
 	}
 
-	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
-		Set<Identity> trustedIds = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
-		Set<Identity> untrustedIds = wotConnection.getAllUntrustedIdentities(wotOwnIdentity);
+	public Map<String, List<Identity>> matchIdentities(
+			Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods)
+			throws PluginNotFoundException {
+		Set<Identity> ids = wotConnection.getAllIdentities();
 		List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
 
 		Map<String, List<Identity>> allMatches = new HashMap<String, List<Identity>>(recipients.size());
@@ -48,13 +49,12 @@ public class IdentityMatcher {
 			allMatches.put(recipient, new LinkedList<Identity>());
 		}
 
-		if(trustedIds == null || untrustedIds == null || ownIds == null) {
+		if(ids == null || ownIds == null) {
 			return allMatches;
 		}
 
 		Set<Identity> wotIdentities = new HashSet<Identity>();
-		wotIdentities.addAll(trustedIds);
-		wotIdentities.addAll(untrustedIds);
+		wotIdentities.addAll(ids);
 		wotIdentities.addAll(ownIds);
 
 		for(Identity wotIdentity : wotIdentities) {
