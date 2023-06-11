@@ -22,12 +22,9 @@
 package org.freenetproject.freemail;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.math.BigInteger;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -35,12 +32,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.security.SecureRandom;
+import java.math.BigInteger;
 
 import org.archive.util.Base32;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.utils.EmailAddress;
@@ -184,7 +185,9 @@ public class AccountManager {
 		// generate an RSA keypair
 		Logger.normal(AccountManager.class, "Generating cryptographic keypair (this could take a few minutes)...");
 
-		RSAKeyGenerationParameters kparams = new RSAKeyGenerationParameters(ASYM_KEY_EXPONENT, Freemail.getRNG(), ASYM_KEY_MODULUS_LENGTH, ASYM_KEY_CERTAINTY);
+		SecureRandom rand = new SecureRandom();
+
+		RSAKeyGenerationParameters kparams = new RSAKeyGenerationParameters(ASYM_KEY_EXPONENT, rand, ASYM_KEY_MODULUS_LENGTH, ASYM_KEY_CERTAINTY);
 
 		RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
 		kpg.init(kparams);
