@@ -22,7 +22,6 @@
 package org.freenetproject.freemail;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.utils.Logger;
@@ -105,11 +104,7 @@ public class FreemailCli extends Freemail {
 		System.out.println("Freemail is released under the terms of the GNU General Public License. Freemail is provided WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For details, see the LICENSE file included with this distribution.");
 		System.out.println("");
 
-		System.out.println("Starting secure random number generator...");
-		Freemail.setRNG(new SecureRandom());
-		System.out.println("Starting Freemail...");
 		freemail.startWorkers();
 		freemail.startServers(false);
-		System.out.println("Freemail is operational.");
 	}
 }
