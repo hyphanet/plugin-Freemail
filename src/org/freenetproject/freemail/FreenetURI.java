@@ -27,7 +27,7 @@ import java.net.MalformedURLException;
  */
 public class FreenetURI {
 	//Regular expressions for matching SSKs and USKs
-	private static final String BASE64_REGEXP = "[0-9a-zA-Z~-]";
+	private static final String BASE64_REGEXP = "\\S";
 	private static final String SSK_HASH_REGEX = BASE64_REGEXP + "{42,44}";
 	private static final String SSK_KEY_REGEX = SSK_HASH_REGEX;
 	private static final String SSK_EXTRA_REGEX = BASE64_REGEXP + "{7}";
