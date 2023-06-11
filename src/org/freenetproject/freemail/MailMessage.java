@@ -55,6 +55,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.imap.IMAPMessageFlags;
 import org.freenetproject.freemail.utils.Logger;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MailMessage {
 	private static final Set<String> dateFormats;
@@ -634,7 +635,10 @@ public class MailMessage {
 		public MessageBodyReader(Reader in, MailMessage msg) throws UnsupportedEncodingException {
 			super(in);
 			transferEncoding = ContentTransferEncoding.parse(msg.getFirstHeader("Content-Transfer-Encoding"));
+			charset = extractCharsetFromContentType(msg);
+		}
 
+		private static Charset extractCharsetFromContentType(MailMessage msg) throws UnsupportedEncodingException {
 			String contentType = msg.getFirstHeader("Content-Type");
 			if(contentType == null) {
 				contentType = "text/plain; charset=us-ascii";
@@ -643,6 +647,11 @@ public class MailMessage {
 			if(!parts[0].equalsIgnoreCase("text/plain")) {
 				throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
 						+ parts[0]);
+			}
+
+			if (parts.length == 1) {
+				/* no charset in content-type, use utf-8. Fix for https://freenet.mantishub.io/view.php?id=7189. */
+				return UTF_8;
 			}
 
 			String[] charsetParts = parts[1].trim().split("=", 2);
@@ -655,7 +664,7 @@ public class MailMessage {
 			if(charsetName.startsWith("\"") && charsetName.endsWith("\"")) {
 				charsetName = charsetName.substring(1, charsetName.length() - 1);
 			}
-			charset = Charset.forName(charsetName);
+			return Charset.forName(charsetName);
 		}
 
 		@Override
