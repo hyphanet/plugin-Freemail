@@ -23,153 +23,149 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
+import utils.TextProtocolTester.Command;
+
 public class IMAPAppendTest extends IMAPTestWithMessages {
-	public void testBasicAppendFromSelectedState() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 APPEND INBOX {23}");
-		commands.add("Subject: Test message");
-		commands.add("0004 UID FETCH 10:* FLAGS");
+	@Test
+	public void basicAppendFromSelectedState() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND INBOX {23}",
+		                         "+ OK"));
+		commands.add(new Command("Subject: Test message",
+		                         "0003 OK APPEND completed"));
+		commands.add(new Command("0004 UID FETCH 10:* FLAGS",
+		                         "* 9 FETCH (FLAGS () UID 10)",
+		                         "* 10 FETCH (FLAGS (\\Recent) UID 11)",
+		                         "0004 OK Fetch completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 10 FETCH (FLAGS (\\Recent) UID 11)");
-		expectedResponse.add("0004 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
-	public void testAppendWithFlag() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 APPEND INBOX (\\Seen) {23}");
-		commands.add("Subject: Test message");
-		commands.add("0004 UID FETCH 10:* FLAGS");
+	@Test
+	public void appendWithFlag() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND INBOX (\\Seen) {23}",
+		                         "+ OK"));
+		commands.add(new Command("Subject: Test message",
+		                         "0003 OK APPEND completed"));
+		commands.add(new Command("0004 UID FETCH 10:* FLAGS",
+		                         "* 9 FETCH (FLAGS () UID 10)",
+		                         "* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)",
+		                         "0004 OK Fetch completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
-		expectedResponse.add("0004 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
 	/*
 	 * The expectation here is that the custom flag is ignored since they aren't supported, but the
 	 * \Seen flag should still be saved.
 	 */
-	public void testAppendWithCustomFlag() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 APPEND INBOX (\\Seen custom) {23}");
-		commands.add("Subject: Test message");
-		commands.add("0004 UID FETCH 10:* FLAGS");
+	@Test
+	public void appendWithCustomFlag() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND INBOX (\\Seen custom) {23}",
+		                         "+ OK"));
+		commands.add(new Command("Subject: Test message",
+		                         "0003 OK APPEND completed"));
+		commands.add(new Command("0004 UID FETCH 10:* FLAGS",
+		                         "* 9 FETCH (FLAGS () UID 10)",
+		                         "* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)",
+		                         "0004 OK Fetch completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
-		expectedResponse.add("0004 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
-	public void testAppendWithTwoStandardFlags() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 APPEND INBOX (\\Seen \\Flagged) {23}");
-		commands.add("Subject: Test message");
-		commands.add("0004 UID FETCH 10:* FLAGS");
+	@Test
+	public void appendWithTwoStandardFlags() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND INBOX (\\Seen \\Flagged) {23}",
+		                         "+ OK"));
+		commands.add(new Command("Subject: Test message",
+		                         "0003 OK APPEND completed"));
+		commands.add(new Command("0004 UID FETCH 10:* FLAGS",
+		                         "* 9 FETCH (FLAGS () UID 10)",
+		                         "* 10 FETCH (FLAGS (\\Seen \\Flagged \\Recent) UID 11)",
+		                         "0004 OK Fetch completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Flagged \\Recent) UID 11)");
-		expectedResponse.add("0004 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
-	public void testAppendWithFlagAndDate() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 APPEND INBOX (\\Seen) \"23-Oct-2007 19:05:17 +0100\" {39}");
-		commands.add("Subject: Test message");
-		commands.add("");
-		commands.add("Test message");
-		commands.add("0004 UID FETCH 10:* FLAGS");
+	@Test
+	public void appendWithFlagAndDate() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND INBOX (\\Seen) \"23-Oct-2007 19:05:17 +0100\" {39}",
+		                         "+ OK"));
+		commands.add(new Command("Subject: Test message"));
+		commands.add(new Command(""));
+		commands.add(new Command("Test message",
+		                         "0003 OK APPEND completed"));
+		commands.add(new Command("0004 UID FETCH 10:* FLAGS",
+		                         "* 9 FETCH (FLAGS () UID 10)",
+		                         "* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)",
+		                         "0004 OK Fetch completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("0003 OK APPEND completed");
-		expectedResponse.add("* 9 FETCH (FLAGS () UID 10)");
-		expectedResponse.add("* 10 FETCH (FLAGS (\\Seen \\Recent) UID 11)");
-		expectedResponse.add("0004 OK Fetch completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
-	public void testAppendWithBadLiteralLength() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 APPEND INBOX {BAD}");
+	@Test
+	public void appendWithBadLiteralLength() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND INBOX {BAD}",
+		                         "0003 BAD Unable to parse literal length"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Unable to parse literal length");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
-	public void testMultilineAppend() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("7 append \"INBOX\" (\\Seen) {42}");
-		commands.add("To: zidel@zidel.freemail");
-		commands.add("");
-		commands.add("Test message");
+	@Test
+	public void multilineAppend() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("7 append \"INBOX\" (\\Seen) {42}",
+		                         "+ OK"));
+		commands.add(new Command("To: zidel@zidel.freemail"));
+		commands.add(new Command(""));
+		commands.add(new Command("Test message",
+		                         "7 OK APPEND completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("7 OK APPEND completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
-	public void testMultilineAppendWithTwoFlags() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("7 append \"INBOX\" (\\Seen \\Deleted) {42}");
-		commands.add("To: zidel@zidel.freemail");
-		commands.add("");
-		commands.add("Test message");
+	@Test
+	public void multilineAppendWithTwoFlags() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("7 append \"INBOX\" (\\Seen \\Deleted) {42}",
+		                         "+ OK"));
+		commands.add(new Command("To: zidel@zidel.freemail"));
+		commands.add(new Command(""));
+		commands.add(new Command("Test message",
+		                         "7 OK APPEND completed"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("+ OK");
-		expectedResponse.add("7 OK APPEND completed");
-
-		runSimpleTest(commands, expectedResponse);
+		runSimpleTest(commands);
 	}
 
 	/*
@@ -177,14 +173,68 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 * The IMAP handler thread would crash with a NullPointerException if
 	 * append was called with a subfolder of index before logging in.
 	 */
-	public void testAppend() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 APPEND inbox.folder arg2");
+	@Test
+	public void appendWithSubfolderBeforeLogin() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.add(new Command("0001 APPEND inbox.folder arg2",
+		                         "0001 NO Must be authenticated"));
 
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("0001 NO Must be authenticated");
+		runSimpleTest(commands);
+	}
 
-		runSimpleTest(commands, expectedResponse);
+	@Test
+	public void appendWithoutArguments() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0002 APPEND",
+		                         "0002 BAD Not enough arguments"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void appendWithoutMessageLiteral() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0002 APPEND inbox",
+		                         "0002 BAD Not enough arguments"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void appendWithMoreThan3Flags() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND \"INBOX\" (\\Seen \\Answered \\Flagged \\Deleted \\Draft) {42}",
+		                         "+ OK"));
+		commands.add(new Command("To: zidel@zidel.freemail"));
+		commands.add(new Command(""));
+		commands.add(new Command("Test message",
+		                         "0003 OK APPEND completed"));
+		commands.add(new Command("0004 FETCH * (UID FLAGS)",
+		                         "* 10 FETCH (UID 11 FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent))",
+		                         "0004 OK Fetch completed"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void appendToMailboxThatDoesntExist() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+		commands.add(new Command("0003 APPEND \"INBOX.NoSuchMailbox\" {42}",
+		                         "0003 NO [TRYCREATE] No such mailbox"));
+
+		runSimpleTest(commands);
 	}
 }

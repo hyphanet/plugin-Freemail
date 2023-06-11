@@ -19,37 +19,50 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
 import org.freenetproject.freemail.utils.EmailAddress;
 
-import junit.framework.TestCase;
-
-public class EmailAddressTest extends TestCase {
-	public void testSimpleAddress() {
+public class EmailAddressTest {
+	@Test
+	public void simpleAddress() {
 		checkAddressPasing("zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail",
 		                   null, "zidel", "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 	}
 
-	public void testSimpleAddressWithName() {
+	@Test
+	public void simpleAddressWithName() {
 		checkAddressPasing("Zidel <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>",
 		                   "Zidel", "zidel", "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 	}
 
-	public void testAddressWithoutAt() {
+	@Test
+	public void addressWithoutAt() {
 		try {
-			new EmailAddress("zidel");
+			//Unused since the point is to check that the constructor throws
+			@SuppressWarnings("unused")
+			EmailAddress emailAddress = new EmailAddress("zidel");
+
 			fail("Should not be able to create email address without @");
 		} catch(IllegalArgumentException e) {
 			//Expected
 		}
 	}
 
-	public void testAddressWithUTF8() {
-		try {
-			new EmailAddress("æøå@email.com");
-			fail("Should not be able to create email address with UTF-8");
-		} catch(IllegalArgumentException e) {
-			//Expected
-		}
+	@Test
+	public void addressWithUTF8() {
+		/*
+		 * Non-ascii characters are not allowed in email addresses, but we need
+		 * to support them anyway since we used to generate them for users due
+		 * to a bug.
+		 *
+		 * The useless assignment is there so we have something to attach the
+		 * suppression to.
+		 */
+		@SuppressWarnings("unused")
+		EmailAddress address = new EmailAddress("æøå@email.com");
 	}
 
 	private void checkAddressPasing(String address, String expectedName, String expectedLocal, String expectedDomain) {

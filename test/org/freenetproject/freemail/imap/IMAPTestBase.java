@@ -20,32 +20,38 @@
 
 package org.freenetproject.freemail.imap;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
+import org.junit.Before;
+
 import org.freenetproject.freemail.AccountManager;
-import org.freenetproject.freemail.imap.IMAPHandler;
+
+import data.TestId1Data;
 
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
-
-import junit.framework.TestCase;
+import utils.TextProtocolTester;
+import utils.TextProtocolTester.Command;
 import utils.Utils;
 
 /**
  * Class that handles a lot of the setup needed by all the various IMAP tests.
  * Extend this and add the tests to the subclass.
  */
-public abstract class IMAPTestBase extends TestCase {
-	protected static final String BASE64_USERNAME = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
-	protected static final String BASE32_USERNAME = "b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq";
-	protected static final String IMAP_USERNAME = "zidel@" + BASE32_USERNAME + ".freemail";
+public abstract class IMAPTestBase {
+	protected static final String BASE64_USERNAME = TestId1Data.Identity.ID;
+	protected static final String IMAP_USERNAME = TestId1Data.FreemailAccount.ADDRESS;
 
 	private static final File TEST_DIR = new File("imaptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
@@ -54,25 +60,17 @@ public abstract class IMAPTestBase extends TestCase {
 	protected final Map<String, File> accountDirs = new HashMap<String, File>();
 	protected File accountManagerDir;
 
-	@Override
-	public void setUp() {
-		assertFalse(TEST_DIR.getAbsolutePath() + " exists", TEST_DIR.exists());
-		assertTrue(TEST_DIR.mkdir());
+	@Before
+	public void before() {
+		Utils.createDir(TEST_DIR);
 
-		accountManagerDir = createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
-		File accountDir = createDir(TEST_DIR, ACCOUNT_DIR);
+		accountManagerDir = Utils.createDir(TEST_DIR, ACCOUNT_MANAGER_DIR);
+		File accountDir = Utils.createDir(TEST_DIR, ACCOUNT_DIR);
 		accountDirs.put(BASE64_USERNAME, accountDir);
 	}
 
-	private File createDir(File parent, String name) {
-		File dir = new File(parent, name);
-		assertFalse(dir + " already exists", dir.exists());
-		assertTrue("Couldn't create " + dir, dir.mkdir());
-		return dir;
-	}
-
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(TEST_DIR);
 	}
 
@@ -89,25 +87,40 @@ public abstract class IMAPTestBase extends TestCase {
 		return line;
 	}
 
+	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
+		List<Command> combined = new LinkedList<Command>();
+
+		//Add all the commands first, then the replies, ensuring all the
+		//commands will be sent before checking the replies
+		for(String cmd : commands) {
+			combined.add(new Command(cmd));
+		}
+		combined.add(new Command(null, expectedResponse));
+		runSimpleTest(combined);
+	}
+
+	protected void runSimpleTest(List<Command> commands) throws IOException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+		IMAPHandler handler = new IMAPHandler(accManager, sock);
+		Thread imapThread = new Thread(handler);
+		imapThread.start();
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-
-		for(String cmd : commands) {
-			send(toHandler, cmd + "\r\n");
+		try {
+			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+			tester.runProtocolTest(commands);
+		} finally {
+			handler.kill();
+			sock.close();
+			try {
+				imapThread.join();
+			} catch(InterruptedException e) {
+				fail("Caught unexpected InterruptedException");
+			}
 		}
-
-		int lineNum = 0;
-		for(String response : expectedResponse) {
-			String line = fromHandler.readLine();
-			assertEquals("Failed at line " + lineNum++, response, line);
-		}
-
-		assertFalse("IMAP socket has more data", fromHandler.ready());
 	}
 }

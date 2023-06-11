@@ -30,8 +30,8 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
-import java.security.SecureRandom;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,9 +53,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.Freemail;
+import org.freenetproject.freemail.Freemail.TaskType;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.FreemailPlugin;
-import org.freenetproject.freemail.FreemailPlugin.TaskType;
 import org.freenetproject.freemail.FreenetURI;
 import org.freenetproject.freemail.SlotManager;
 import org.freenetproject.freemail.SlotSaveCallback;
@@ -293,7 +293,13 @@ class Channel {
 			Logger.debug(this, "CTSInserter running (" + this + ")");
 
 			//Build the header of the inserted message
-			Bucket bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes());
+			Bucket bucket;
+			try {
+				bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
+			}
 
 			boolean inserted;
 			try {
@@ -336,7 +342,7 @@ class Channel {
 						}
 					}
 
-					ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+					ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 					senderExecutor.execute(new AckInserter(entry.getKey(), insertAfter));
 				}
 			}
@@ -422,7 +428,7 @@ class Channel {
 			"messagetype=message\r\n"
 			+ "id=" + messageId + "\r\n"
 			+ "\r\n";
-		Bucket messageHeader = new ArrayBucket(header.getBytes());
+		Bucket messageHeader = new ArrayBucket(header.getBytes("UTF-8"));
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
@@ -593,8 +599,7 @@ class Channel {
 	private String generateRandomSlot() {
 		SHA256Digest sha256 = new SHA256Digest();
 		byte[] buf = new byte[sha256.getDigestSize()];
-		SecureRandom rnd = new SecureRandom();
-		rnd.nextBytes(buf);
+		Freemail.getRNG().nextBytes(buf);
 		return Base32.encode(buf);
 	}
 
@@ -760,7 +765,7 @@ class Channel {
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
-			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase());
+			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase(Locale.ROOT));
 			Channel.this.schedule(fetcher, delay, unit);
 		}
 
@@ -934,6 +939,11 @@ class Channel {
 			//Get RTS KSK
 			PropsFile mailsiteProps = PropsFile.createPropsFile(mailsite, false);
 			String rtsKey = mailsiteProps.get("rtsksk");
+			if(rtsKey == null) {
+				Logger.error(this, "Mailsite is missing RTS KSK");
+				schedule(1, TimeUnit.HOURS);
+				return;
+			}
 
 			//Get the senders mailsite key
 			Logger.debug(this, "Getting sender identity from WoT");
@@ -1047,7 +1057,7 @@ class Channel {
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
-			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase());
+			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase(Locale.ROOT));
 			Channel.this.schedule(this, delay, unit);
 		}
 
@@ -1163,8 +1173,7 @@ class Channel {
 		private byte[] encryptMessage(byte[] signedMessage, String keyModulus, String keyExponent) {
 			//Make a new symmetric key for the message
 			byte[] aesKeyAndIV = new byte[32 + 16];
-			SecureRandom rnd = new SecureRandom();
-			rnd.nextBytes(aesKeyAndIV);
+			Freemail.getRNG().nextBytes(aesKeyAndIV);
 
 			//Encrypt the message with the new symmetric key
 			PaddedBufferedBlockCipher aesCipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
@@ -1280,14 +1289,20 @@ class Channel {
 				"messagetype=ack\r\n"
 				+ "id=" + ackId + "\r\n"
 				+ "\r\n";
-			Bucket bucket = new ArrayBucket(header.getBytes());
+			Bucket bucket;
+			try {
+				bucket = new ArrayBucket(header.getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
+			}
 
 			boolean inserted;
 			try {
 				inserted = insertMessage(bucket, "ack" + ackId);
 			} catch(IOException e) {
 				//The getInputStream() method of ArrayBucket doesn't throw
-				throw new AssertionError();
+				throw new AssertionError("getInputStream() method of ArrayBucket threw IOException");
 			} catch (InterruptedException e) {
 				Logger.debug(this, "AckInserter interrupted, quitting");
 				return;
@@ -1363,7 +1378,7 @@ class Channel {
 	// FIXME centralise.
 	
 	private void scheduleSender(Runnable command, long remaining, TimeUnit milliseconds) {
-		ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+		ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 		try {
 			senderExecutor.schedule(command, remaining, TimeUnit.MILLISECONDS);
 		} catch(RejectedExecutionException e) {
@@ -1372,7 +1387,7 @@ class Channel {
 	}
 
 	private void executeSender(Runnable command) {
-		ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+		ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 		try {
 			senderExecutor.execute(command);
 		} catch(RejectedExecutionException e) {

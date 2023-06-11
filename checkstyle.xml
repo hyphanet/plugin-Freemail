@@ -45,14 +45,40 @@
 		<property name="message" value="Whitespace between for/if/while and ("/>
 	</module>
 
+	<module name="RegexpSingleline">
+		<!--
+		     Match case conversion without a Locale. Use with Locale.getDefault() if you
+		     really want to use the default locale.
+		-->
+		<property name="format" value="(toUpperCase|toLowerCase)\(\)"/>
+	</module>
+
+	<module name="RegexpSingleline">
+		<!--
+		     Attempt to match SimpleDateFormat created with the default locale. This will
+		     miss cases where the pattern includes a comma.
+		-->
+		<property name="format" value="new SimpleDateFormat(\(\)|\([^,]*\))"/>
+	</module>
+
+	<module name="RegexpSingleline">
+		<!--
+		     Match getBytes() that uses the default charset. Use Charset.defaultCharset()
+		     if you really want to use the default charset.
+		-->
+		<property name="format" value="getBytes\(\)"/>
+	</module>
+
 	<module name="TreeWalker">
 		<!-- Check for a few simple import problems -->
-		<module name="AvoidStarImport"/>
+		<module name="AvoidStarImport">
+			<property name="excludes" value="org.junit.Assert.*"/>
+		</module>
 		<module name="UnusedImports"/>
 
 		<!-- Avoid static imports except from some classes -->
 		<module name="AvoidStaticImport">
-			<property name="excludes" value="junit.framework.Assert.*"/>
+			<property name="excludes" value="org.junit.Assert.*"/>
 		</module>
 
 		<!-- Blacklist for imports -->
@@ -60,8 +86,9 @@
 			<!--
 			     sun.*      - Sun implementation specific stuff
 			     com.sun.*  -
+			     junit.*    - jUnit 3 stuff, import from org.junit instead
 			-->
-			<property name="illegalPkgs" value="sun, com.sun"/>
+			<property name="illegalPkgs" value="sun, com.sun, junit"/>
 		</module>
 
 		<!-- Whitespace checks -->
@@ -100,9 +127,6 @@
 
 		<!-- Check for equals(SomethingNotObject) without equals(Object) -->
 		<module name="CovariantEquals"/>
-
-		<!-- Check for broken double checked locking pattern -->
-		<module name="DoubleCheckedLocking"/>
 
 		<!-- Check for empty statements -->
 		<module name="EmptyStatement"/>

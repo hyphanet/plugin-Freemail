@@ -1,66 +1,95 @@
 #!/bin/bash
 set -e
 
-#Check arguments
-if [[ -n "$3" ]]; then
-	echo "USAGE: $0 [--quiet|--verbose] [<commit>]"
-	echo "     --quiet    - suppress non-error messages"
-	echo "     --verbose  - print added/removed count even when no warnings are added"
-	echo "    <commit>    - the commit that should be checked, see gitrevisions(7)"
-	echo "                  defaults to the currently checked out commit"
+usage() {
+	cat <<EOM
+USAGE: $0 [options] <commit> <commit>
+       $0 [options] [<commit>]
+
+    Checks for differences in style warnings and unit test failures between the
+    two commits. The second form is shorthand for <commit>^ <commit>, and uses
+    HEAD if the commit is missing.
+
+    --quiet    - suppress non-error messages
+    --verbose  - print added/removed count even when no warnings are added
+    <commit>   - the two commits that should be compared, see gitrevisions(7)
+                 for ways to specify commits
+EOM
 	exit 1
-fi
+}
 
-if [[ "$1" == "--quiet" ]]; then
-	QUIET="true"
-	shift 1
-elif [[ "$1" == "--verbose" ]]; then
-	VERBOSE="true"
-	shift 1
-fi
+COMMIT1=""
+COMMIT2=""
 
-COMMIT=$1
-if [[ -z "$COMMIT" ]]; then
-	COMMIT=`git describe`
-fi
+for arg in "$@"; do
+	if [[ "$arg" = --* ]]; then
+		if [[ "$arg" == "--quiet" ]]; then
+			QUIET="true"
+			VERBOSE=""
+		elif [[ "$arg" == "--verbose" ]]; then
+			VERBOSE="true"
+			QUIET=""
+		else
+			echo "`basename $0`: unrecognized option '$arg'"
+			usage
+		fi
+	elif [[ -z "$COMMIT1" ]]; then
+		COMMIT1="$arg"
+	elif [[ -z "$COMMIT2" ]]; then
+		COMMIT2="$arg"
+	else
+		echo "`basename $0`: Extra argument $arg"
+		usage
+	fi
+done
 
-#Save the current branch / commit
-ORIG=`git branch | grep '*' | cut -d" " -f2-`
-if [[ $ORIG == "(no branch)" ]]; then
-	ORIG=`git describe`
-fi
-
-#TODO: Check the state of the tree and index
-if [ -a .checkcommit.prev ]; then
-	echo ".checkcommit.prev exists, won't overwrite"
+#Abort if the working directory isn't clean
+if [[ -n "$(git status --porcelain)" ]]; then
+	echo "`basename $0`: Aborting due to dirty working directory"
 	exit 1;
 fi
-if [ -a .checkcommit.cur ]; then
-	echo ".checkcommit.cur exists, won't overwrite"
-	exit 1;
-fi
 
-TARGET=`git describe "$COMMIT"`
-PARENT=`git describe "$COMMIT"^`
+#Find the two commits we should test
+if [[ -z "$COMMIT1" && -z "$COMMIT2" ]]; then
+	#No commits, test HEAD^..HEAD
+	FROM="HEAD^"
+	TO="HEAD"
+elif [[ -n "$COMMIT1" && -z "$COMMIT2" ]]; then
+	#One commit, test $COMMIT1^..$COMMIT1
+	FROM="$COMMIT1^"
+	TO="$COMMIT1"
+else
+	#Two commits, test $COMMIT1..$COMMIT2
+	FROM="$COMMIT1"
+	TO="$COMMIT2"
+fi
+FROM=`git describe --always $FROM`
+TO=`git describe --always $TO`
 
 #Checkout the parent of the target
-git checkout "$PARENT" &> /dev/null
+git checkout "$FROM" &> /dev/null
 mkdir -p .checkcommit.prev
 set +e
 ant clean &> /dev/null
-ant checkstyle unit &> .checkcommit.prev/build
+if ! ant checkstyle unit &> .checkcommit.prev/build; then
+	echo "Failed while building $FROM"
+	exit 1
+fi
 grep "\[cs:checkstyle\] " .checkcommit.prev/build | tail -n +2 | sort > .checkcommit.prev/checkstyle
-grep "\[junit\] Testcase: .*FAILED" .checkcommit.prev/build | sort > .checkcommit.prev/junit
+grep "\[junit\] Testcase: .*\(FAILED\|ERROR\)" .checkcommit.prev/build | sort > .checkcommit.prev/junit
 set -e
 
 #Checkout the target
-git checkout "$TARGET" &> /dev/null
+git checkout "$TO" &> /dev/null
 mkdir -p .checkcommit.cur
 set +e
 ant clean &> /dev/null
-ant checkstyle unit &> .checkcommit.cur/build
+if ! ant checkstyle unit &> .checkcommit.cur/build; then
+	echo "Failed while building $TO"
+	exit 1
+fi
 grep "\[cs:checkstyle\] " .checkcommit.cur/build | tail -n +2 | sort > .checkcommit.cur/checkstyle
-grep "\[junit\] Testcase: .*FAILED" .checkcommit.cur/build | sort > .checkcommit.cur/junit
+grep "\[junit\] Testcase: .*\(FAILED\|ERROR\)" .checkcommit.cur/build | sort > .checkcommit.cur/junit
 set -e
 
 #Count differences
@@ -74,10 +103,13 @@ if [[ ! $QUIET ]]; then
 	if [[ $CHECKSTYLE_ADDED -gt 0 || $VERBOSE ]]; then
 		#Print any new warnings and the count
 		set +e
+		if [[ $VERBOSE ]]; then
+			diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^-"
+		fi
 		#TODO: Remove the initial +
 		diff -u .checkcommit.prev/checkstyle .checkcommit.cur/checkstyle | tail -n+3 | grep "^+"
 		set -e
-		echo "`git describe`: $CHECKSTYLE_ADDED warnings added, $CHECKSTYLE_REMOVED removed"
+		echo "$FROM..$TO: $CHECKSTYLE_ADDED warnings added, $CHECKSTYLE_REMOVED removed"
 	fi
 fi
 
@@ -88,18 +120,18 @@ if [[ ! $QUIET ]]; then
 	if [[ $JUNIT_ADDED -gt 0 || $VERBOSE ]]; then
 		#Print any new failures and the count
 		set +e
+		if [[ $VERBOSE ]]; then
+			diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^-"
+		fi
 		#TODO: Remove the initial +
 		diff -u .checkcommit.prev/junit .checkcommit.cur/junit | tail -n+3 | grep "^+"
 		set -e
-		echo "`git describe`: $JUNIT_ADDED new failures, $JUNIT_REMOVED failures fixed"
+		echo "$FROM..$TO: $JUNIT_ADDED new failures, $JUNIT_REMOVED failures fixed"
 	fi
 fi
 
 #Cleanup
-rm -r .checkcommit.prev/ .checkcommit.cur/
-
-#Checkout original branch
-git checkout "$ORIG" &> /dev/null
+rm -fr .checkcommit.prev/ .checkcommit.cur/
 
 #Exit with failure if warnings were added
 if [[ $CHECKSTYLE_ADDED == "0" && $JUNIT_ADDED == "0" ]]; then

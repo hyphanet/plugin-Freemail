@@ -22,26 +22,27 @@
 package org.freenetproject.freemail;
 
 import java.io.File;
-import java.io.PrintStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.security.SecureRandom;
-import java.math.BigInteger;
+import java.util.TimeZone;
 
 import org.archive.util.Base32;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.MD5Digest;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.utils.EmailAddress;
@@ -137,7 +138,13 @@ public class AccountManager {
 	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
 
-		md5.update(newpassword.getBytes(), 0, newpassword.getBytes().length);
+		try {
+			byte[] passwordBytes = newpassword.getBytes("UTF-8");
+			md5.update(passwordBytes, 0, passwordBytes.length);
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset");
+		}
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
@@ -169,7 +176,8 @@ public class AccountManager {
 
 	private static boolean initAccFile(PropsFile accfile, OwnIdentity oid) {
 		//Initialise RTS KSK
-		Random rnd = new Random();
+		// Use a secure RNG for this too.
+		SecureRandom rnd = Freemail.getRNG();
 		String rtskey = new String();
 
 		int i;
@@ -185,9 +193,7 @@ public class AccountManager {
 		// generate an RSA keypair
 		Logger.normal(AccountManager.class, "Generating cryptographic keypair (this could take a few minutes)...");
 
-		SecureRandom rand = new SecureRandom();
-
-		RSAKeyGenerationParameters kparams = new RSAKeyGenerationParameters(ASYM_KEY_EXPONENT, rand, ASYM_KEY_MODULUS_LENGTH, ASYM_KEY_CERTAINTY);
+		RSAKeyGenerationParameters kparams = new RSAKeyGenerationParameters(ASYM_KEY_EXPONENT, Freemail.getRNG(), ASYM_KEY_MODULUS_LENGTH, ASYM_KEY_CERTAINTY);
 
 		RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
 		kpg.init(kparams);
@@ -220,7 +226,12 @@ public class AccountManager {
 		if(realmd5str == null) return null;
 
 		MD5Digest md5 = new MD5Digest();
-		md5.update(password.getBytes(), 0, password.getBytes().length);
+		try {
+			md5.update(password.getBytes("UTF-8"), 0, password.getBytes("UTF-8").length);
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset");
+		}
 		byte[] givenmd5 = new byte[md5.getDigestSize()];
 		md5.doFinal(givenmd5, 0);
 
@@ -234,6 +245,7 @@ public class AccountManager {
 
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		MailMessage m = account.getMessageBank().createMessage();
 		Date currentDate = new Date();
@@ -251,8 +263,7 @@ public class AccountManager {
 
 		ps.println("Welcome to Freemail!");
 		ps.println("");
-		ps.println("Thanks for downloading and testing Freemail. You can get started and send me a Freemail now by hitting 'reply'.");
-		ps.println("Your new Freemail address is:");
+		ps.println("Thanks for downloading and testing Freemail. Your new Freemail address is:");
 		ps.println("");
 		ps.println(to);
 		ps.println("");
@@ -262,10 +273,11 @@ public class AccountManager {
 		ps.println(" * The bug tracker: https://bugs.freenetproject.org/ (select 'Freemail' in the top right).");
 		ps.println(" * #freenet on irc.freenode.net");
 		ps.println(" * The mailing list at http://emu.freenetproject.org/cgi-bin/mailman/listinfo/freemail.");
+		ps.println(" * Send an email to zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 		ps.println("");
 		ps.println("Don't forget to stay up to date with the Freemail news and latest version at the freesite, which can be found at:");
 		ps.println("");
-		ps.println("USK@xOg49GNltumTJJzj0fVzuGDpo4hJUsy2UsGQkjE7NY4,EtUH5b9gGpp8JiY-Bm-Y9kHX1q-yDjD-9oRzXn21O9k,AQACAAE/freemail/-1/");
+		ps.println("USK@M0d8y6YoLpXOeQGxu0-IDg8sE5Yt~Ky6t~GPyyZe~zo,KlqIjAj3~dA1Zf57VDljkmp3vHUozndpxnH-P2RRugI,AQACAAE/freemail/-8/");
 		ps.println("");
 		ps.println("Happy Freemailing!");
 		ps.println("");

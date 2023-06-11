@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +57,6 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
@@ -81,7 +81,7 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -93,8 +93,7 @@ public class NewMessageToadlet extends WebPage {
 				identity = wotConnection.getIdentity(recipient, loginManager.getSession(ctx).getUserID());
 			} catch(PluginNotFoundException e) {
 				addWoTNotLoadedMessage(contentNode);
-				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-				return;
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 			}
 			recipients.add(identity.getNickname() + "@" + identity.getIdentityID() + ".freemail");
 		} else {
@@ -104,19 +103,17 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 		addMessageForm(messageBox, ctx, recipients, "", bucketFromString(""), Collections.<String>emptyList());
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		if(req.isPartSet("sendMessage")) {
-			sendMessage(req, ctx, page);
-			return;
+			return sendMessage(req, ctx, page);
 		}
 
 		if(req.isPartSet("reply")) {
-			createReply(req, ctx, page);
-			return;
+			return createReply(req, ctx, page);
 		}
 
 		List<String> recipients = new LinkedList<String>();
@@ -141,8 +138,7 @@ public class NewMessageToadlet extends WebPage {
 			HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 			addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		for(int i = 0; i < recipients.size(); i++) {
@@ -157,8 +153,7 @@ public class NewMessageToadlet extends WebPage {
 				HTMLNode messageBox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.boxTitle"));
 				addMessageForm(messageBox, ctx, recipients, subject, body, extraHeaders);
 
-				writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-				return;
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 			}
 		}
 
@@ -172,7 +167,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode errorBox = addErrorbox(page.content, boxTitle);
 		errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.unknownAction"));
 
-		writeHTMLReply(ctx, 200, "OK", page.outer.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 	}
 
 	private boolean copyMessageToSentFolder(Bucket message, MessageBank parentMb) {
@@ -198,14 +193,15 @@ public class NewMessageToadlet extends WebPage {
 			msg.cancel();
 			return false;
 		}
-
 		Closer.close(ps);
+
+		msg.flags.setSeen();
 		msg.commit();
 
 		return true;
 	}
 
-	private void sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	private HTTPResponse sendMessage(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		//FIXME: Consider how to handle duplicate recipients
 		Timer sendMessageTimer = Timer.start();
 
@@ -264,35 +260,41 @@ public class NewMessageToadlet extends WebPage {
 			matches = messageSender.matchIdentities(recipients.keySet(), loginManager.getSession(ctx).getUserID(), methods);
 		} catch(PluginNotFoundException e) {
 			addWoTNotLoadedMessage(page.content);
-			writeHTMLReply(ctx, 200, "OK", page.outer.generate());
 			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (WoT not loaded)");
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 		}
 		identityMatching.log(this, "Time spent matching identities");
 
 		//Check if there were any unknown or ambiguous identities
 		List<String> failedRecipients = new LinkedList<String>();
+		List<Identity> knownRecipients = new LinkedList<Identity>();
 		for(Map.Entry<String, List<Identity>> entry : matches.entrySet()) {
-			if(entry.getValue().size() != 1) {
+			if(entry.getValue().size() == 1)
+				knownRecipients.add(entry.getValue().get(0));
+			else
 				failedRecipients.add(entry.getKey());
-			}
 		}
 
-		if(failedRecipients.size() != 0) {
-			//TODO: Handle this properly
-			HTMLNode pageNode = page.outer;
-			HTMLNode contentNode = page.content;
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
 
-			HTMLNode errorBox = addErrorbox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentitiesTitle"));
-			HTMLNode errorPara = errorBox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentities", "count", "" + failedRecipients.size()));
+		if(!failedRecipients.isEmpty()) {
+			// TODO: Handle this properly
+			HTMLNode errorBox = addErrorbox(contentNode,
+				 FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentitiesTitle"));
+			HTMLNode errorPara = errorBox.addChild("p",
+				 FreemailL10n.getString("Freemail.NewMessageToadlet.ambigiousIdentities",
+						"count", "" + failedRecipients.size()));
 			HTMLNode identityList = errorPara.addChild("ul");
 			for(String s : failedRecipients) {
 				identityList.addChild("li", s);
 			}
 
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message (with failed recipient)");
-			return;
+			sendMessageTimer.log(this, 1, TimeUnit.SECONDS,
+				 "Time spent sending message (with failed recipient)");
+
+			if (knownRecipients.isEmpty())
+				return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		//Build message header
@@ -317,6 +319,8 @@ public class NewMessageToadlet extends WebPage {
 		header.append("Subject: " + MailMessage.encodeHeader(getBucketAsString(req.getPart("subject"))) + "\r\n");
 		header.append("Date: " + sdf.format(new Date()) + "\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
+		header.append("Content-Type: text/plain; charset=UTF-8\r\n");
+		header.append("Content-Transfer-Encoding: quoted-printable\r\n");
 
 		//Add extra headers from request. Very little checking is done here since we want flexibility, and anything
 		//that can be added here could also be sent using the SMTP server, so security should not be an issue.
@@ -336,32 +340,23 @@ public class NewMessageToadlet extends WebPage {
 		Bucket message = new ArrayBucket();
 		OutputStream messageOutputStream = message.getOutputStream();
 		BucketTools.copyTo(messageHeader, messageOutputStream, -1);
-		BucketTools.copyTo(messageText, messageOutputStream, -1);
+		BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
 		messageOutputStream.close();
-
-		List<Identity> identities = new LinkedList<Identity>();
-		for(List<Identity> identityList : matches.values()) {
-			assert (identityList.size() == 1);
-			identities.add(identityList.get(0));
-		}
 
 		copyMessageToSentFolder(message, account.getMessageBank());
 
-		account.getMessageHandler().sendMessage(identities, message);
+		account.getMessageHandler().sendMessage(knownRecipients, message);
 		message.free();
-
-		HTMLNode pageNode = page.outer;
-		HTMLNode contentNode = page.content;
 
 		HTMLNode infobox = addInfobox(contentNode, FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueuedTitle"));
 		infobox.addChild("p", FreemailL10n.getString("Freemail.NewMessageToadlet.messageQueued"));
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-
 		sendMessageTimer.log(this, 1, TimeUnit.SECONDS, "Time spent sending message");
+
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
-	private void createReply(HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	private HTTPResponse createReply(HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -387,27 +382,20 @@ public class NewMessageToadlet extends WebPage {
 		} catch(UnsupportedEncodingException e) {
 			subject = msg.getFirstHeader("Subject");
 		}
-		if(!subject.toLowerCase().startsWith("re: ")) {
+		if(!subject.toLowerCase(Locale.ROOT).startsWith("re: ")) {
 			subject = "Re: " + subject;
 		}
 
 		StringBuilder body = new StringBuilder();
-
+		BufferedReader bodyReader = msg.getBodyReader();
 		try {
-			//First we have to read past the header
-			String line = msg.readLine();
-			while((line != null) && (!line.equals(""))) {
-				line = msg.readLine();
-			}
-
-			//Now add the actual message content
-			line = msg.readLine();
+			String line = bodyReader.readLine();
 			while(line != null) {
 				body.append(">" + line + "\r\n");
-				line = msg.readLine();
+				line = bodyReader.readLine();
 			}
 		} finally {
-			msg.closeStream();
+			bodyReader.close();
 		}
 
 		List<String> extraHeaders = readExtraHeaders(req);
@@ -430,7 +418,7 @@ public class NewMessageToadlet extends WebPage {
 		addMessageForm(messageBox, ctx, Collections.singletonList(recipient), subject,
 		               bucketFromString(body.toString()), extraHeaders);
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	/**
@@ -557,7 +545,12 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private Bucket bucketFromString(String data) {
-		return new ArrayBucket(data.getBytes());
+		try {
+			return new ArrayBucket(data.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			//JVMs are required to support UTF-8, so we can assume it is always available
+			throw new AssertionError("JVM doesn't support UTF-8 charset");
+		}
 	}
 
 	private List<String> readExtraHeaders(HTTPRequest req) {

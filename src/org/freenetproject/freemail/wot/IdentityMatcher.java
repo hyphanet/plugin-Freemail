@@ -22,8 +22,10 @@ package org.freenetproject.freemail.wot;
 
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,16 +38,24 @@ public class IdentityMatcher {
 		this.wotConnection = wotConnection;
 	}
 
-	public Map<String, List<Identity>> matchIdentities(Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
-		Set<Identity> wotIdentities = wotConnection.getAllTrustedIdentities(wotOwnIdentity);
-		wotIdentities.addAll(wotConnection.getAllUntrustedIdentities(wotOwnIdentity));
-		wotIdentities.addAll(wotConnection.getAllOwnIdentities());
+	public Map<String, List<Identity>> matchIdentities(
+			Set<String> recipients, String wotOwnIdentity, EnumSet<MatchMethod> methods)
+			throws PluginNotFoundException {
+		Set<Identity> ids = wotConnection.getAllIdentities();
+		List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
 
 		Map<String, List<Identity>> allMatches = new HashMap<String, List<Identity>>(recipients.size());
-
 		for(String recipient : recipients) {
 			allMatches.put(recipient, new LinkedList<Identity>());
 		}
+
+		if(ids == null || ownIds == null) {
+			return allMatches;
+		}
+
+		Set<Identity> wotIdentities = new HashSet<Identity>();
+		wotIdentities.addAll(ids);
+		wotIdentities.addAll(ownIds);
 
 		for(Identity wotIdentity : wotIdentities) {
 			for(String recipient : recipients) {
@@ -80,6 +90,9 @@ public class IdentityMatcher {
 				if(matchFullAddress(recipient, wotIdentity.getIdentityID())) {
 					return true;
 				}
+				break;
+			default:
+				throw new AssertionError();
 			}
 		}
 
@@ -99,7 +112,7 @@ public class IdentityMatcher {
 		if(recipient.contains("@")) {
 			String recipientNickname = recipient.substring(0, recipient.indexOf("@"));
 			String recipientDomain = recipient.substring(recipient.indexOf("@") + 1);
-			recipient = recipientNickname + "@" + recipientDomain.toLowerCase();
+			recipient = recipientNickname + "@" + recipientDomain.toLowerCase(Locale.ROOT);
 		}
 
 		return identityAddress.startsWith(recipient);
@@ -108,7 +121,7 @@ public class IdentityMatcher {
 	/**
 	 * Matches addresses of the format [local part@]&lt;identityId&gt;[.freemail]
 	 * @param recipient the address to check
-	 * @param identity the identity to check against
+	 * @param identityId the identity to check against
 	 * @return {@code true} if recipient matches identity
 	 */
 	private boolean matchFullAddress(String recipient, String identityId) {

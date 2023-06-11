@@ -20,6 +20,7 @@
 
 package org.freenetproject.freemail.ui.web;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -34,7 +35,6 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -50,7 +50,7 @@ public class MessageToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -81,8 +81,7 @@ public class MessageToadlet extends WebPage {
 			/* FIXME: L10n */
 			HTMLNode infobox = addErrorbox(container, "Message doesn't exist");
 			infobox.addChild("p", "The message you requested doesn't exist");
-			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
-			return;
+			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
 		HTMLNode messageNode = container.addChild("div", "class", "message");
@@ -92,17 +91,17 @@ public class MessageToadlet extends WebPage {
 		addMessageContents(messageNode, msg);
 
 		//Mark message as read
-		if(!msg.flags.get("\\seen")) {
-			msg.flags.set("\\seen", true);
+		if(!msg.flags.isSeen()) {
+			msg.flags.setSeen();
 			msg.storeFlags();
 		}
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	@Override
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
-		makeWebPageGet(uri, req, ctx, page);
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
+		return makeWebPageGet(uri, req, ctx, page);
 	}
 
 	private void addMessageButtons(ToadletContext ctx, HTMLNode parent, String folderName, int uid) {
@@ -135,7 +134,12 @@ public class MessageToadlet extends WebPage {
 		HTMLNode fromPara = headerBox.addChild("p");
 		fromPara.addChild("strong", "From:");
 		try {
-			fromPara.addChild("#", " " + MailMessage.decodeHeader(message.getFirstHeader("from")));
+			String from = MailMessage.decodeHeader(message.getFirstHeader("from"));
+			if(from == null) {
+				from = FreemailL10n.getString("Freemail.MessageToadlet.fromMissing");
+			}
+
+			fromPara.addChild("#", " " + from);
 		} catch (UnsupportedEncodingException e1) {
 			fromPara.addChild("#", " " + message.getFirstHeader("from"));
 		}
@@ -165,29 +169,29 @@ public class MessageToadlet extends WebPage {
 			subject = FreemailL10n.getString("Freemail.Web.Common.defaultSubject");
 		}
 		subjectPara.addChild("#", " " + subject);
+
+		HTMLNode datePara = headerBox.addChild("p");
+		datePara.addChild("strong", FreemailL10n.getString("Freemail.MessageToadlet.date"));
+		datePara.addChild("#", " " + getMessageDateAsString(message,
+				FreemailL10n.getString("Freemail.MessageToadlet.dateMissing")));
 	}
 
 	private void addMessageContents(HTMLNode messageNode, MailMessage message) {
 		HTMLNode messageContents = messageNode.addChild("div", "class", "message-content").addChild("p");
 
 		try {
-			boolean inHeader = true;
-			boolean added = false;
-			while(true) {
-				String line = message.readLine();
-				if(line == null) break;
-
-				if((line.equals("")) && inHeader) {
-					inHeader = false;
-					continue;
+			BufferedReader body = message.getBodyReader();
+			try {
+				String line = body.readLine();
+				boolean added = false;
+				while(line != null) {
+					if(added) messageContents.addChild("br");
+					messageContents.addChild("#", line);
+					added = true;
+					line = body.readLine();
 				}
-				if(inHeader) {
-					continue;
-				}
-
-				if(added) messageContents.addChild("br");
-				messageContents.addChild("#", line);
-				added = true;
+			} finally {
+				body.close();
 			}
 		} catch(IOException e) {
 			//TODO: Better error message
@@ -195,8 +199,6 @@ public class MessageToadlet extends WebPage {
 			HTMLNode errorBox = addErrorbox(messageContents, "Couldn't read message");
 			errorBox.addChild("p", "Couldn't read the message: " + e);
 			return;
-		} finally {
-			message.closeStream();
 		}
 	}
 

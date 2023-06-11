@@ -1,6 +1,9 @@
-deps/
 build/
 lib/
 dist/
 override.properties
 build-test/
+tools/build/
+out/
+deps/
+run/

@@ -21,13 +21,14 @@
 
 package org.freenetproject.freemail;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.TreeMap;
 import java.util.SortedMap;
@@ -274,7 +275,7 @@ public class MessageBank {
 		long retval;
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(nidfile));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), "UTF-8"));
 
 			retval = Long.parseLong(br.readLine());
 
@@ -320,7 +321,7 @@ public class MessageBank {
 			//First read the next value from the UID file
 			File uidFile = new File(dir, UIDVALIDITYFILE);
 			try {
-				BufferedReader reader = new BufferedReader(new FileReader(uidFile));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), "UTF-8"));
 				try {
 					uid = Long.parseLong(reader.readLine());
 				} finally {

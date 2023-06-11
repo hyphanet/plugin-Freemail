@@ -63,4 +63,11 @@ public class FakeSocket extends Socket {
 	public InputStream getInputStreamOtherSide() {
 		return fromTester;
 	}
+
+	@Override
+	public synchronized void close() throws IOException {
+		super.close();
+		toTested.close();
+		toTester.close();
+	}
 }

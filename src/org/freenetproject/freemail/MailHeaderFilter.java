@@ -39,6 +39,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
 
@@ -47,20 +48,19 @@ public class MailHeaderFilter {
 	private final StringBuffer buffer;
 	private boolean foundEnd;
 	private static final SimpleDateFormat sdf;
-	private static final TimeZone gmt;
+	private static final TimeZone utc;
 
 	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@>])*\\@([^>]*)>?");
 	static {
-		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
-		gmt = TimeZone.getTimeZone("GMT");
-		sdf.setTimeZone(gmt);
+		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+		utc = TimeZone.getTimeZone("UTC");
+		sdf.setTimeZone(utc);
 	}
 
 	/** List of headers that can be passed though without being checked */
 	private static final Set<String> headerWhitelist;
 	static {
 		Set<String> backing = new HashSet<String>();
-		backing.add("From");
 		backing.add("To");
 		backing.add("CC");
 		backing.add("Subject");
@@ -80,10 +80,13 @@ public class MailHeaderFilter {
 		headerBlacklist = Collections.unmodifiableSet(backing);
 	}
 
-	public MailHeaderFilter(BufferedReader rdr) {
+	private final FreemailAccount sender;
+
+	public MailHeaderFilter(BufferedReader rdr, FreemailAccount sender) {
 		this.reader = rdr;
 		this.buffer = new StringBuffer();
 		this.foundEnd = false;
+		this.sender = sender;
 	}
 
 	public String readHeader() throws IOException {
@@ -184,24 +187,34 @@ public class MailHeaderFilter {
 			}
 			return strDate;
 		} else if(name.equalsIgnoreCase("Message-ID")) {
-			// We want to keep message-ids for in-reply-to and hence message threading to work, but we need to make sure the
-			// mail client hasn't put in a real hostname, as some have been known to.
+			// We want to keep message-ids for in-reply-to and hence message threading to work, but
+			// we need to make sure the mail client hasn't put in a real hostname, as some have been
+			// known to.
 			Matcher m = messageIdPattern.matcher(val);
-			if(!m.matches() || m.groupCount() < 2) {
-				// couldn't make any sense of it, so just drop it
-				return null;
-			} else {
-				if(m.group(2).endsWith("freemail")) {
-					// okay, the hostname part ends with freemail, so it's a fake Freemail domain and not a real one
-					return val;
-				} else {
-					// It's something else, so just replace it with 'freemail', although this might not actually be any more
-					// useful than dropping it, since the mail client will be looking for the unmangled header.
-					Logger.normal(this, "Replacing message id header");
-					return "<"+m.group(1)+"@freemail>";
-				}
-
+			if(m.matches() && m.groupCount() == 2 && m.group(2).endsWith(".freemail")) {
+				// okay, the hostname part ends with .freemail, so it's a fake Freemail domain and
+				// not a real one
+				return val;
 			}
+
+			// It's something else, so just replace it with a new message-id
+			Logger.normal(this, "Replacing message id header");
+			return "<" + MailMessage.generateMessageID(sender.getDomain()) + ">";
+		} else if(name.equalsIgnoreCase("From")) {
+			EmailAddress address;
+			try {
+				address = new EmailAddress(val);
+			} catch (IllegalArgumentException e) {
+				Logger.minor(this, "From header didn't contain a valid email, dropping");
+				return sender.getNickname() + "@" + sender.getDomain();
+			}
+
+			if(!address.domain.equalsIgnoreCase(sender.getDomain())) {
+				Logger.minor(this,  "");
+				return sender.getNickname() + "@" + sender.getDomain();
+			}
+
+			return val;
 		} else {
 			Logger.warning(this, "Dropping unknown header " + name);
 			return null;

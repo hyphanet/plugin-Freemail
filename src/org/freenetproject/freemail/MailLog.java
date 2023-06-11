@@ -20,9 +20,11 @@
 package org.freenetproject.freemail;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,12 +45,12 @@ class MailLog {
 		this.messages = new HashMap<Integer, String>();
 		this.logfile = logfile;
 
-		FileReader frdr;
+		InputStream frdr;
 		try {
-			frdr = new FileReader(this.logfile);
+			frdr = new FileInputStream(this.logfile);
 
 
-			BufferedReader br = new BufferedReader(frdr);
+			BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"));
 			String line;
 
 			while((line = br.readLine()) != null) {

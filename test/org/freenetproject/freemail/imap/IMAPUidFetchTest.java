@@ -23,8 +23,13 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Test;
+
+import utils.TextProtocolTester.Command;
+
 public class IMAPUidFetchTest extends IMAPTestWithMessages {
-	public void testUidFetchBodyPeek() throws IOException {
+	@Test
+	public void uidFetchBodyPeek() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -41,7 +46,23 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchSingleArg() throws IOException {
+	@Test
+	public void uidFetchBodyPeekText() throws IOException {
+		List<Command> commands = new LinkedList<Command>();
+		commands.addAll(connectSequence());
+		commands.addAll(loginSequence("0001"));
+		commands.addAll(selectInboxSequence("0002"));
+
+		commands.add(new Command("0003 UID FETCH 1 (BODY.PEEK[TEXT])",
+				"* 1 FETCH (BODY[TEXT] {0}",
+				" UID 1)",
+				"0003 OK Fetch completed"));
+
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void uidFetchSingleArg() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -58,7 +79,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithOnlyUid() throws IOException {
+	@Test
+	public void uidFetchWithOnlyUid() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -77,7 +99,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 	 * doesn't matter (i.e. 2:4 == 4:2), so 20:* should return the highest numbered message
 	 * (assuming * < 20).
 	 */
-	public void testUidSequenceNumberRangeWithFirstAboveMax() throws IOException {
+	@Test
+	public void uidSequenceNumberRangeWithFirstAboveMax() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -91,7 +114,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidSequenceNumberRangeWithWildcardFirst() throws IOException {
+	@Test
+	public void uidSequenceNumberRangeWithWildcardFirst() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -105,7 +129,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchBodyStartRange() throws IOException {
+	@Test
+	public void uidFetchBodyStartRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -120,7 +145,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchBodyMiddleRange() throws IOException {
+	@Test
+	public void uidFetchBodyMiddleRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -135,7 +161,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchBodyEndRange() throws IOException {
+	@Test
+	public void uidFetchBodyEndRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -152,7 +179,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchSequenceNumberRangeWithWildcard() throws IOException {
+	@Test
+	public void uidFetchSequenceNumberRangeWithWildcard() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -166,7 +194,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithSequenceNumberRange() throws IOException {
+	@Test
+	public void uidFetchWithSequenceNumberRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -181,7 +210,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithOutOfBoundsSequenceNumber() throws IOException {
+	@Test
+	public void uidFetchWithOutOfBoundsSequenceNumber() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -196,7 +226,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithInvalidSequenceNumberRange() throws IOException {
+	@Test
+	public void uidFetchWithInvalidSequenceNumberRange() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -204,12 +235,13 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Bad number: BAD. Please report this error!");
+		expectedResponse.add("0003 BAD Illegal sequence number set");
 
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithUnterminatedArgumentList() throws IOException {
+	@Test
+	public void uidFetchWithUnterminatedArgumentList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -226,7 +258,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithLongArgumentList() throws IOException {
+	@Test
+	public void uidFetchWithLongArgumentList() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -241,7 +274,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithoutArguments() throws IOException {
+	@Test
+	public void uidFetchWithoutArguments() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -254,7 +288,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithoutDataItems() throws IOException {
+	@Test
+	public void uidFetchWithoutDataItems() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -267,7 +302,8 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidFetchWithInvalidMessageNumberFirst() throws IOException {
+	@Test
+	public void uidFetchWithInvalidMessageNumberFirst() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
@@ -275,7 +311,83 @@ public class IMAPUidFetchTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Bad number: BAD. Please report this error!");
+		expectedResponse.add("0003 BAD Illegal sequence number set");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidFetchWithListOfUids() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT inbox");
+		commands.add("0003 UID FETCH 7,8 (UID)");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 6 FETCH (UID 7)");
+		expectedResponse.add("* 7 FETCH (UID 8)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidFetchBodyPeekHeader() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID FETCH 1 (BODY.PEEK[HEADER])");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("* 1 FETCH (BODY[HEADER] {32}");
+		expectedResponse.add("Subject: IMAP test message 0");
+		expectedResponse.add("");
+		expectedResponse.add(" UID 1)");
+		expectedResponse.add("0003 OK Fetch completed");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidFetchWithMessageId0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID FETCH 0 INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidFetchWithMessageIdRangeFrom0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID FETCH 0:* INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidFetchWithMessageIdRangeTo0() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT INBOX");
+		commands.add("0003 UID FETCH *:0 INBOX");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 NO Invalid message ID");
 
 		runSimpleTest(commands, expectedResponse);
 	}

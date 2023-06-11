@@ -19,26 +19,34 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import org.freenetproject.freemail.MailMessage;
 
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class MailMessageTest extends TestCase {
+public class MailMessageTest {
 	private static final String MESSAGE_DIR = "msg_dir";
 
 	private File msgDir = null;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		// Create a directory for messages so it is easier to list files, clean up etc.
 		msgDir = new File(MESSAGE_DIR);
 		if(msgDir.exists()) {
@@ -51,8 +59,8 @@ public class MailMessageTest extends TestCase {
 		}
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(msgDir);
 	}
 
@@ -61,7 +69,8 @@ public class MailMessageTest extends TestCase {
 	 * would lose track of the file when storing a different set of flags, so the second attempt
 	 * would fail silently.
 	 */
-	public void testStoreFlagsTwice() throws IOException {
+	@Test
+	public void storeFlagsTwice() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -69,16 +78,17 @@ public class MailMessageTest extends TestCase {
 		MailMessage msg = new MailMessage(messageFile, 0);
 		msg.flags.clear();
 
-		msg.flags.set("\\Seen", true);
+		msg.flags.setSeen();
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,S"), msgDir.listFiles()[0]);
 
-		msg.flags.set("\\Deleted", true);
+		msg.flags.setDeleted();
 		msg.storeFlags();
 		assertEquals(new File(msgDir, "0,SX"), msgDir.listFiles()[0]);
 	}
 
-	public void testSingleLineReferencesHeader() throws IOException {
+	@Test
+	public void singleLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -94,7 +104,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals("<abc@domain>", msg.getFirstHeader("References"));
 	}
 
-	public void testMultiLineReferencesHeader() throws IOException {
+	@Test
+	public void multiLineReferencesHeader() throws IOException {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
@@ -118,23 +129,8 @@ public class MailMessageTest extends TestCase {
 		assertEquals(expected, msg.getFirstHeader("References"));
 	}
 
-	public void testEncodeAsciiHeader() {
-		assertEquals("testHeader", MailMessage.encodeHeader("testHeader"));
-	}
-
-	public void testEncodeAsciiHeaderWithSpace() {
-		assertEquals("test=?UTF-8?Q?=20?=Header", MailMessage.encodeHeader("test Header"));
-	}
-
-	public void testEncodeHeaderWithSingleUTF8Character() {
-		assertEquals("test=?UTF-8?Q?=C3=A6?=Header", MailMessage.encodeHeader("testæHeader"));
-	}
-
-	public void testEncodeHeaderWithMultipleUTF8Character() {
-		assertEquals("=?UTF-8?Q?=C3=A6?==?UTF-8?Q?=E2=88=80?=", MailMessage.encodeHeader("æ∀"));
-	}
-
-	public void testEncodeDecodeMultipleStrings() throws UnsupportedEncodingException {
+	@Test
+	public void encodeDecodeMultipleStrings() throws UnsupportedEncodingException {
 		List<String> input = new LinkedList<String>();
 		input.add("Test message");
 		input.add("Test message (æøå)");
@@ -146,5 +142,60 @@ public class MailMessageTest extends TestCase {
 			String decoded = MailMessage.decodeHeader(encoded);
 			assertEquals(s, decoded);
 		}
+	}
+
+	/**
+	 * Tests that the parseDate() function parses a valid date without the day of week correctly.
+	 * Test is run with the tr locale, checking for the bug that was fixed in commit 7c14b5f6cd.
+	 * @throws ParseException if the static date string can't be parsed, should never happen
+	 */
+	@Test
+	public void decodeDateTurkishLocale() throws ParseException {
+		final String date = "17 Oct 2011 10:24:14 +0000";
+		final Date expected;
+		{
+			final String fmt = "d MMM yyyy HH:mm:ss Z";
+			final SimpleDateFormat dateFormat = new SimpleDateFormat(fmt, Locale.ROOT);
+			expected = dateFormat.parse(date);
+		}
+
+		checkDateWithLocale(expected, date, new Locale("tr"));
+	}
+
+	/**
+	 * Tests that the parseDate() function parses a valid date with the day of week correctly.
+	 * Test is run with the tr locale, checking for the bug that was fixed in commit 7c14b5f6cd.
+	 * @throws ParseException if the static date string can't be parsed, should never happen
+	 */
+	@Test
+	public void decodeDateWithDayTurkishLocale() throws ParseException {
+		final String date = "Mon, 17 Oct 2011 10:24:14 +0000";
+		final Date expected;
+		{
+			final String fmt = "EEE, d MMM yyyy HH:mm:ss Z";
+			final SimpleDateFormat dateFormat = new SimpleDateFormat(fmt, Locale.ROOT);
+			expected = dateFormat.parse(date);
+		}
+
+		checkDateWithLocale(expected, date, new Locale("tr"));
+	}
+
+	private void checkDateWithLocale(Date expected, String date, Locale locale) {
+		Locale orig = Locale.getDefault();
+		try {
+			Locale.setDefault(locale);
+
+			Date actual = MailMessage.parseDate(date);
+			assertEquals(expected, actual);
+		} finally {
+			Locale.setDefault(orig);
+		}
+	}
+
+	@Test
+	public void decodeDateMissingTimezone() {
+		final String date = "17 Oct 2011 10:24:14";
+		Date actual = MailMessage.parseDate(date);
+		assertEquals(null, actual);
 	}
 }

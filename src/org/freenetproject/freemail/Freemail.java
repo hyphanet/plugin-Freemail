@@ -24,7 +24,12 @@ package org.freenetproject.freemail;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.freenetproject.freemail.config.ConfigClient;
 import org.freenetproject.freemail.config.Configurator;
@@ -38,6 +43,11 @@ import org.freenetproject.freemail.wot.WoTConnection;
 
 
 public abstract class Freemail implements ConfigClient {
+	private static final ScheduledThreadPoolExecutor defaultExecutor =
+			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail executor thread"));
+	private static final ScheduledThreadPoolExecutor senderExecutor =
+			new ScheduledThreadPoolExecutor(10, new FreemailThreadFactory("Freemail sender thread"));
+
 	private static final String BASEDIR = "freemail-wot";
 	private static final String TEMPDIRNAME = BASEDIR + "/temp";
 	protected static final String DEFAULT_DATADIR = BASEDIR + "/data";
@@ -58,6 +68,8 @@ public abstract class Freemail implements ConfigClient {
 
 	protected final Configurator configurator;
 
+	private static SecureRandom srng;
+
 	protected Freemail(String cfgfile) throws IOException {
 		configurator = new Configurator(new File(cfgfile));
 
@@ -74,6 +86,26 @@ public abstract class Freemail implements ConfigClient {
 			Logger.error(this, "Freemail: Couldn't create temporary directory. Please ensure that the user you are running Freemail as has write access to its working directory");
 			throw new IOException("Couldn't create data dir");
 		}
+
+		/*
+		 * We want the executor to vary the pool size even if the queue isn't
+		 * full since the queue is unbounded. We do this by setting
+		 * corePoolSize == maximumPoolSize and allowing core threads to time
+		 * out. Allowing all the threads to time out is fine since none of the
+		 * tasks are sensitive to the additional thread creation delay.
+		 *
+		 * Note: if there are queued tasks at least 1 thread will be alive, but
+		 * unfortunately the timeout still applies to this thread so every time
+		 * the timeout expires the executor creates a new thread. Because of
+		 * this the timeout for the sender executor should be large to avoid
+		 * creating a large amount of threads, and for the default it should be
+		 * > Channel.TASK_RETRY_DELAY (since that makes the thread that runs
+		 * the Fetcher never time out).
+		 */
+		defaultExecutor.setKeepAliveTime(10, TimeUnit.MINUTES);
+		defaultExecutor.allowCoreThreadTimeOut(true);
+		senderExecutor.setKeepAliveTime(1, TimeUnit.HOURS);
+		senderExecutor.allowCoreThreadTimeOut(true);
 
 		FCPContext fcpctx = new FCPContext();
 		configurator.register(Configurator.FCP_HOST, fcpctx, "localhost");
@@ -118,6 +150,16 @@ public abstract class Freemail implements ConfigClient {
 		fcpThread.start();
 	}
 
+	/** Set once on startup */
+	public static synchronized void setRNG(SecureRandom random) {
+		srng = random;
+	}
+
+	public static synchronized SecureRandom getRNG() {
+		if(srng == null) throw new NullPointerException();
+		return srng;
+	}
+
 	// note that this relies on sender being initialized
 	// (so startWorkers has to be called before)
 	protected void startServers(boolean daemon) {
@@ -160,6 +202,9 @@ public abstract class Freemail implements ConfigClient {
 	public void terminate() {
 		Timer terminateTimer = Timer.start();
 
+		defaultExecutor.shutdownNow();
+		senderExecutor.shutdownNow();
+
 		Timer accountManagerTermination = terminateTimer.startSubTimer();
 		accountManager.terminate();
 		accountManagerTermination.log(this, 1, TimeUnit.SECONDS, "Time spent killing account manager");
@@ -199,7 +244,48 @@ public abstract class Freemail implements ConfigClient {
 
 		}
 
+		Timer executorTermination = terminateTimer.startSubTimer();
+		try {
+			defaultExecutor.awaitTermination(1, TimeUnit.HOURS);
+			senderExecutor.awaitTermination(1, TimeUnit.HOURS);
+		} catch(InterruptedException e) {
+			Logger.minor(this, "Thread was interrupted while waiting for excutors to terminate.");
+		}
+		executorTermination.log(this, 1, TimeUnit.SECONDS, "Time spent waiting for executor termination");
+
 		terminateTimer.log(this, 1, TimeUnit.SECONDS, "Time spent in Freemail.terminate()");
+	}
+
+	public ScheduledExecutorService getExecutor(TaskType type) {
+		switch (type) {
+		case UNSPECIFIED:
+			return defaultExecutor;
+		case SENDER:
+			return senderExecutor;
+		default:
+			throw new AssertionError("Missing case " + type);
+		}
+	}
+
+	private static class FreemailThreadFactory implements ThreadFactory {
+		private final String prefix;
+		AtomicInteger threadCount = new AtomicInteger();
+
+		public FreemailThreadFactory(String prefix) {
+			this.prefix = prefix;
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			String name = prefix + " " + threadCount.getAndIncrement();
+			Logger.debug(this, "Creating new thread: " + name);
+			return new Thread(runnable, name);
+		}
+	}
+
+	public static enum TaskType {
+		UNSPECIFIED,
+		SENDER
 	}
 }
 

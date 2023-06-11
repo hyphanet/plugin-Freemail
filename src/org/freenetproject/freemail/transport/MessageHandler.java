@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,13 +41,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.archive.util.Base32;
 import org.freenetproject.freemail.Freemail;
+import org.freenetproject.freemail.Freemail.TaskType;
 import org.freenetproject.freemail.FreemailAccount;
-import org.freenetproject.freemail.FreemailPlugin;
 import org.freenetproject.freemail.MailHeaderFilter;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.Postman;
-import org.freenetproject.freemail.FreemailPlugin.TaskType;
-import org.freenetproject.freemail.fcp.HighLevelFCPClient;
+import org.freenetproject.freemail.fcp.HighLevelFCPClientFactory;
 import org.freenetproject.freemail.transport.Channel.ChannelEventCallback;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
@@ -99,12 +99,15 @@ public class MessageHandler {
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
 	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
+	private final HighLevelFCPClientFactory hlFcpClientFactory;
 
-	public MessageHandler(File outbox, Freemail freemail, File channelDir, FreemailAccount freemailAccount) {
+	public MessageHandler(File outbox, Freemail freemail, File channelDir,
+	                      FreemailAccount freemailAccount, HighLevelFCPClientFactory hlFcpClientFactory) {
 		this.outbox = outbox;
 		this.freemail = freemail;
 		this.channelDir = channelDir;
 		this.freemailAccount = freemailAccount;
+		this.hlFcpClientFactory = hlFcpClientFactory;
 
 		//Create and start all the channels
 		if(!channelDir.exists()) {
@@ -131,7 +134,7 @@ public class MessageHandler {
 
 			Logger.debug(this, "Initializing channel from directory " + f);
 			try {
-				Channel channel = new Channel(f, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, null);
+				Channel channel = new Channel(f, freemail.getExecutor(TaskType.UNSPECIFIED), hlFcpClientFactory.newInstance(), freemail, freemailAccount, null);
 				channel.setCallback(new AckCallback(channel.getRemoteIdentity()));
 				channels.add(channel);
 			} catch(ChannelTimedOutException e) {
@@ -180,7 +183,7 @@ public class MessageHandler {
 					try {
 						long num = Long.parseLong(rawMsgNum);
 						Logger.debug(this, "Scheduling SenderTask for " + num);
-						ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+						ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 						tasks.put(Long.toString(num), senderExecutor.schedule(new SenderTask(rcptOutbox, num), 0, TimeUnit.NANOSECONDS));
 					} catch(NumberFormatException e) {
 						Logger.error(this, "Found file without valid message number: " + f);
@@ -228,7 +231,7 @@ public class MessageHandler {
 			PrintWriter pw = new PrintWriter(os);
 			InputStream messageStream = message.getInputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream));
-			MailHeaderFilter filter = new MailHeaderFilter(reader);
+			MailHeaderFilter filter = new MailHeaderFilter(reader, freemailAccount);
 			try {
 				//Copy headers
 				String header = filter.readHeader();
@@ -256,7 +259,7 @@ public class MessageHandler {
 				props.put(identifier + IndexKeys.MSG_NUM, Long.toString(msgNum));
 			}
 
-			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+			ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 			tasks.put(identifier, senderExecutor.submit(new SenderTask(rcptOutbox, msgNum)));
 		}
 
@@ -280,7 +283,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, remoteIdentity);
+				channel = new Channel(newChannelDir, freemail.getExecutor(TaskType.UNSPECIFIED), hlFcpClientFactory.newInstance(), freemail, freemailAccount, remoteIdentity);
 				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
@@ -293,14 +296,14 @@ public class MessageHandler {
 		}
 	}
 
-	public Channel createChannelFromRTS(PropsFile rtsProps) {
+	public void createChannelFromRTS(PropsFile rtsProps) {
 		//First try to find a channel with the same key
 		String rtsPrivateKey = rtsProps.get("channel");
 		synchronized(channels) {
 			for(Channel c : channels) {
 				if(rtsPrivateKey.equals(c.getPrivateKey())) {
 					c.processRTS(rtsProps);
-					return c;
+					return;
 				}
 			}
 
@@ -309,7 +312,7 @@ public class MessageHandler {
 			File newChannelDir = new File(channelDir, "" + nextChannelNum.getAndIncrement());
 			if(!newChannelDir.mkdir()) {
 				Logger.error(this, "Couldn't create the channel directory");
-				return null;
+				return;
 			}
 
 			String remoteIdentity = rtsProps.get("mailsite");
@@ -318,7 +321,7 @@ public class MessageHandler {
 
 			Channel channel;
 			try {
-				channel = new Channel(newChannelDir, FreemailPlugin.getExecutor(TaskType.UNSPECIFIED), new HighLevelFCPClient(), freemail, freemailAccount, remoteIdentity);
+				channel = new Channel(newChannelDir, freemail.getExecutor(TaskType.UNSPECIFIED), hlFcpClientFactory.newInstance(), freemail, freemailAccount, remoteIdentity);
 				channel.setCallback(new AckCallback(remoteIdentity));
 			} catch(ChannelTimedOutException e) {
 				//Can't happen since we're creating a new channel
@@ -327,8 +330,6 @@ public class MessageHandler {
 			channel.processRTS(rtsProps);
 			channel.startTasks();
 			channels.add(channel);
-
-			return channel;
 		}
 	}
 
@@ -499,7 +500,7 @@ public class MessageHandler {
 
 			//Schedule again when the resend is due
 			Logger.minor(this, "Rescheduling sender task in " + retryIn + "ms");
-			ScheduledExecutorService senderExecutor = FreemailPlugin.getExecutor(TaskType.SENDER);
+			ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
 			tasks.put(identifier, senderExecutor.schedule(this, retryIn, TimeUnit.MILLISECONDS));
 		}
 
@@ -514,7 +515,7 @@ public class MessageHandler {
 			boolean inserted;
 			while(true) {
 				c = getChannel(recipient);
-				Bucket message = new FileBucket(new File(rcptOutbox, identifier), false, false, false, false, false);
+				Bucket message = new FileBucket(new File(rcptOutbox, identifier), false, false, false, false);
 				try {
 					inserted = c.sendMessage(message, msgNum);
 				} catch(ChannelTimedOutException e) {
@@ -549,7 +550,7 @@ public class MessageHandler {
 		private AckCallback(String remoteId) {
 			assert (remoteId != null);
 			try {
-				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase();
+				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase(Locale.ROOT);
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}

@@ -19,24 +19,29 @@
 
 package org.freenetproject.freemail;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MessageBank;
 
+import data.TestId1Data;
+
 import utils.Utils;
 
-import junit.framework.TestCase;
-
-public class MessageBankTest extends TestCase {
-	private static final String IDENTITY_ID = "D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc";
+public class MessageBankTest {
 	private static final String ACCOUNT_DIR = "accdir";
 
 	private File accountDir;
 	private MessageBank rootMessageBank;
 
-	@Override
-	public void setUp() {
+	@Before
+	public void before() {
 		// Set up account directory
 		accountDir = new File(ACCOUNT_DIR);
 		if(accountDir.exists()) {
@@ -49,11 +54,11 @@ public class MessageBankTest extends TestCase {
 		}
 
 		//Create the root message bank
-		rootMessageBank = new MessageBank(new FreemailAccount(IDENTITY_ID, accountDir, null, null));
+		rootMessageBank = new MessageBank(new FreemailAccount(TestId1Data.Identity.ID, accountDir, null, null));
 	}
 
-	@Override
-	public void tearDown() {
+	@After
+	public void after() {
 		Utils.delete(accountDir);
 	}
 
@@ -62,7 +67,8 @@ public class MessageBankTest extends TestCase {
 	 * MessageBank would try to delete the shadow folder left behind when deleting a MessageBank
 	 * which would fail because the folder wasn't empty.
 	 */
-	public void testDeleteFolderTree() {
+	@Test
+	public void deleteFolderTree() {
 		MessageBank subFolder = rootMessageBank.makeSubFolder("subfolder");
 		MessageBank subSubFolder = subFolder.makeSubFolder("subsubfolder");
 

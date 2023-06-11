@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -82,7 +83,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 		String line;
 		try {
-			while(!this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
+			while(!stopping && !this.client.isClosed() && (line = this.bufrdr.readLine()) != null) {
 				SMTPCommand msg = null;
 				try {
 					//Logger.normal(this,line);
@@ -104,39 +105,39 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 
 	private void dispatch(SMTPCommand cmd) {
 		if(cmd.command.equals("helo")) {
-			this.handle_helo(cmd);
+			this.handle_helo();
 		} else if(cmd.command.equals("ehlo")) {
-			this.handle_ehlo(cmd);
+			this.handle_ehlo();
 		} else if(cmd.command.equals("quit")) {
-			this.handle_quit(cmd);
+			this.handle_quit();
 		} else if(cmd.command.equals("turn")) {
-			this.handle_turn(cmd);
+			this.handle_turn();
 		} else if(cmd.command.equals("auth")) {
 			this.handle_auth(cmd);
 		} else if(cmd.command.equals("mail")) {
-			this.handle_mail(cmd);
+			this.handle_mail();
 		} else if(cmd.command.equals("rcpt")) {
 			this.handle_rcpt(cmd);
 		} else if(cmd.command.equals("data")) {
-			this.handle_data(cmd);
+			this.handle_data();
 		} else if(cmd.command.equals("rset")) {
-			this.handle_rset(cmd);
+			this.handle_rset();
 		} else {
 			Logger.normal(this, "Unknown command: " + cmd.command);
 			this.ps.print("502 Unimplemented\r\n");
 		}
 	}
 
-	private void handle_helo(SMTPCommand cmd) {
+	private void handle_helo() {
 		this.ps.print("250 "+MY_HOSTNAME+"\r\n");
 	}
 
-	private void handle_ehlo(SMTPCommand cmd) {
+	private void handle_ehlo() {
 		this.ps.print("250-"+MY_HOSTNAME+"\r\n");
-		this.ps.print("250 AUTH LOGIN PLAIN \r\n");
+		this.ps.print("250 AUTH LOGIN PLAIN\r\n");
 	}
 
-	private void handle_quit(SMTPCommand cmd) {
+	private void handle_quit() {
 		this.ps.print("221 "+MY_HOSTNAME+"\r\n");
 		try {
 			this.client.close();
@@ -145,7 +146,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_turn(SMTPCommand cmd) {
+	private void handle_turn() {
 		this.ps.print("502 No\r\n");
 	}
 
@@ -156,8 +157,20 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		if(cmd.args.length == 0) {
 			this.ps.print("504 No auth type given\r\n");
 			return;
-		} else if(cmd.args[0].equalsIgnoreCase("login")) {
-			this.ps.print("334 "+new String(Base64.encode("Username:".getBytes()))+"\r\n");
+		}
+
+		if(this.account != null) {
+			this.ps.print("503 Already authenticated\r\n");
+			return;
+		}
+
+		if(cmd.args[0].equalsIgnoreCase("login")) {
+			try {
+				this.ps.print("334 "+new String(Base64.encode("Username:".getBytes("UTF-8")))+"\r\n");
+			} catch(UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
+			}
 
 			String b64username;
 			String b64password;
@@ -168,7 +181,12 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if(b64username == null) return;
 
-			this.ps.print("334 "+new String(Base64.encode("Password:".getBytes()))+"\r\n");
+			try {
+				this.ps.print("334 "+new String(Base64.encode("Password:".getBytes("UTF-8")))+"\r\n");
+			} catch(UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
+			}
 			try {
 				b64password = this.bufrdr.readLine();
 			} catch (IOException ioe) {
@@ -176,8 +194,13 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if(b64password == null) return;
 
-			uname = new String(Base64.decode(b64username.getBytes()));
-			password = new String(Base64.decode(b64password.getBytes()));
+			try {
+				uname = new String(Base64.decode(b64username.getBytes("UTF-8")));
+				password = new String(Base64.decode(b64password.getBytes("UTF-8")));
+			} catch(UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
+			}
 		} else if(cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
 
@@ -193,20 +216,34 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 				}
 			}
 
-			String creds_plain = new String(Base64.decode(b64creds.getBytes()));
-			String[] creds = creds_plain.split("\0");
-
-			if(creds.length < 2) return;
-
-			// most documents seem to reckon you send the
-			// username twice. Some think only once.
-			// This will work either way.
-			uname = creds[0];
-			// there may be a null first (is this always the case?)
-			if(uname.length() < 1) {
-				uname = creds[1];
+			if(b64creds.equals("*")) {
+				this.ps.print("501 Authentication canceled\r\n");
+				return;
 			}
-			password = creds[creds.length - 1];
+
+			String creds_plain;
+			try {
+				creds_plain = new String(Base64.decode(b64creds.getBytes("UTF-8")));
+			} catch (UnsupportedEncodingException e) {
+				//JVMs are required to support UTF-8, so we can assume it is always available
+				throw new AssertionError("JVM doesn't support UTF-8 charset");
+			}
+			String[] creds = creds_plain.split("\0");
+			if (creds.length != 3) {
+				this.ps.print("501 Invalid arguments to plain auth\r\n");
+				return;
+			}
+
+			String authzid = creds[0];
+			uname = creds[1];
+			password = creds[2];
+
+			if(!authzid.isEmpty()) {
+				if(!authzid.equals(uname)) {
+					this.ps.print("535 Authentication failed\r\n");
+					return;
+				}
+			}
 		} else {
 			this.ps.print("504 Auth type unimplemented - weren't you listening?\r\n");
 			return;
@@ -232,7 +269,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_mail(SMTPCommand cmd) {
+	private void handle_mail() {
 		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
@@ -292,7 +329,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.ps.print("250 OK\r\n");
 	}
 
-	private void handle_data(SMTPCommand cmd) {
+	private void handle_data() {
 		if(this.account == null) {
 			this.ps.print("530 Authentication required\r\n");
 			return;
@@ -317,6 +354,9 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 					done = true;
 					break;
 				}
+				if(line.startsWith(".")) {
+					line = line.substring(1);
+				}
 				pw.print(line+"\r\n");
 			}
 
@@ -329,14 +369,16 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 
 			MessageHandler messageSender = account.getMessageHandler();
-			Bucket data = new FileBucket(tempfile, false, false, false, false, true);
+			Bucket data = new FileBucket(tempfile, false, false, false, true);
 			try {
-				messageSender.sendMessage(to, data);
+				if(messageSender.sendMessage(to, data)) {
+					this.ps.print("250 So be it\r\n");
+				} else {
+					this.ps.print("452 Message sending failed\r\n");
+				}
 			} finally {
 				data.free();
 			}
-
-			this.ps.print("250 So be it\r\n");
 		} catch (IOException ioe) {
 			this.ps.print("452 Can't store message\r\n");
 		} finally {
@@ -346,7 +388,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 	}
 
-	private void handle_rset(SMTPCommand cmd) {
+	private void handle_rset() {
 		this.to.clear();
 		this.ps.print("250 Reset\r\n");
 	}

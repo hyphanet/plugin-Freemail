@@ -11,8 +11,8 @@ div.content {
 	padding-bottom: 2em;
 }
 
-/* Folder list */
-div.folderlist {
+/* Folder list and Actions */
+div.aside {
 	float: left;
 	margin-right: 1em;
 	padding-bottom: 2em;
@@ -62,4 +62,8 @@ input.removeRcpt {
 	border: none;
 	width: 1em;
 	height: 1em;
+}
+
+td.author div {
+	display: inline;
 }

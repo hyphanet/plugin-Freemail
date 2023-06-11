@@ -32,27 +32,14 @@ public interface WoTConnection {
 	 * @return all the OwnIdentities fetched from WoT
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public List<OwnIdentity> getAllOwnIdentities() throws PluginNotFoundException;
+	List<OwnIdentity> getAllOwnIdentities() throws PluginNotFoundException;
 
 	/**
-	 * Returns all the identities that are trusted by the given identity, or {@code null} if an
-	 * error occurs. Trusted identities are those with a score of 0 or higher.
-	 * @param trusterId the identity id of the truster
-	 * @return all the identities that are trusted by the given identity
-	 * @throws NullPointerException if trusterId is {@code null}
+	 * Returns all the identities or {@code null} if an error occurs.
+	 * @return all the identities
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public Set<Identity> getAllTrustedIdentities(String trusterId) throws PluginNotFoundException;
-
-	/**
-	 * Returns all the identities that are not trusted by the given identity, or {@code null} if an
-	 * error occurs.
-	 * @param trusterId the identity id of the truster
-	 * @return all the identities that are not trusted by the given identity
-	 * @throws NullPointerException if trusterId is {@code null}
-	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
-	 */
-	public Set<Identity> getAllUntrustedIdentities(String trusterId) throws PluginNotFoundException;
+	Set<Identity> getAllIdentities() throws PluginNotFoundException;
 
 	/**
 	 * Returns the Identity with the given identity string. The truster parameter is used to fetch
@@ -63,7 +50,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if any of the parameters are {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public Identity getIdentity(String identity, String truster) throws PluginNotFoundException;
+	Identity getIdentity(String identity, String truster) throws PluginNotFoundException;
 
 	/**
 	 * Sets the property {@code key} to {@code value} for the given identity, returning {@code true}
@@ -75,7 +62,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if any of the parameters are {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public boolean setProperty(String identity, String key, String value) throws PluginNotFoundException;
+	boolean setProperty(String identity, String key, String value) throws PluginNotFoundException;
 
 	/**
 	 * Returns the value of the named parameter from the given identity. {@code null} is returned if
@@ -86,7 +73,7 @@ public interface WoTConnection {
 	 * @throws NullPointerException if any of the parameters are {@code null}
 	 * @throws PluginNotFoundException If the WoT plugin isn't loaded
 	 */
-	public String getProperty(String identity, String key) throws PluginNotFoundException;
+	String getProperty(String identity, String key) throws PluginNotFoundException;
 
 	/**
 	 * Sets the context {@code context} for the given identity, returning {@code true} if the
@@ -94,5 +81,5 @@ public interface WoTConnection {
 	 * @param identity the identity whose context should be set
 	 * @param context the context that should be set
 	 */
-	public boolean setContext(String identity, String context) throws PluginNotFoundException;
+	boolean setContext(String identity, String context) throws PluginNotFoundException;
 }

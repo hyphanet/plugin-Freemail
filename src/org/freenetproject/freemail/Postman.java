@@ -28,7 +28,8 @@ import java.util.Locale;
 import java.util.Random;
 import java.io.File;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.IOException;
 
@@ -46,7 +47,7 @@ public abstract class Postman {
 	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException {
 		MailMessage newmsg = mb.createMessage();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
+		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 
 		newmsg.readHeaders(brdr);
 
@@ -59,16 +60,23 @@ public abstract class Postman {
 
 		boolean first = true;
 		for(String from : froms) {
-			EmailAddress addr = new EmailAddress(from);
+			EmailAddress addr = null;
+			try {
+				addr = new EmailAddress(from);
+			} catch (IllegalArgumentException e) {
+				//Invalid address, remove it and keep going
+				Logger.warning(this, "Ignoring invalid address from received message: " + from);
+				newmsg.removeHeader("From", from);
+				continue;
+			}
 
 			if(first) {
 				if(!this.validateFrom(addr)) {
 					newmsg.removeHeader("From", from);
-					EmailAddress e = new EmailAddress(from);
-					if(e.realname == null) e.realname = "";
-					e.realname = "**SPOOFED** "+e.realname;
-					e.realname = e.realname.trim();
-					newmsg.addHeader("From", e.toLongString());
+					if(addr.realname == null) addr.realname = "";
+					addr.realname = "**SPOOFED** "+addr.realname;
+					addr.realname = addr.realname.trim();
+					newmsg.addHeader("From", addr.toLongString());
 				}
 			} else {
 				newmsg.removeHeader("From", from);
@@ -97,8 +105,7 @@ public abstract class Postman {
 		try {
 			bmsg = mb.createMessage();
 
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.US);
-			Date currentDate = new Date();
+			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
 
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");
 			bmsg.addHeader("Subject", "Undeliverable Freemail");
@@ -108,9 +115,9 @@ public abstract class Postman {
 
 				//FIXME: We should add a message id even if we don't get the from address
 				String toDomain = origFrom.substring(origFrom.lastIndexOf("@") + 1);
-				bmsg.addHeader("Message-id", "<" + MailMessage.generateMessageID(toDomain, currentDate) + ">");
+				bmsg.addHeader("Message-id", "<" + MailMessage.generateMessageID(toDomain) + ">");
 			}
-			bmsg.addHeader("Date", sdf.format(currentDate));
+			bmsg.addHeader("Date", sdf.format(new Date()));
 			bmsg.addHeader("MIME-Version", "1.0");
 			String boundary="boundary-";
 			Random rnd = new Random();
@@ -137,7 +144,7 @@ public abstract class Postman {
 			ps.println("Content-Disposition: inline");
 			ps.println("");
 
-			BufferedReader br = new BufferedReader(new FileReader(origmsg));
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg), "UTF-8"));
 
 			String line;
 			if(isFreemailFormat) {
@@ -171,7 +178,7 @@ public abstract class Postman {
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new FileReader(msg));
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(msg), "UTF-8"));
 
 			String line;
 			if(isFreemailFormat) {

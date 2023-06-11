@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail.imap;
 
+import java.util.Locale;
 import java.util.Vector;
 import java.util.Stack;
 
@@ -36,7 +37,7 @@ public class IMAPMessage {
 			throw new IMAPBadMessageException();
 		}
 		this.tag = parts[0];
-		this.type = parts[1].toLowerCase();
+		this.type = parts[1].toLowerCase(Locale.ROOT);
 		if(parts.length > 2) {
 			this.args = new String[parts.length - 2];
 			System.arraycopy(parts, 2, this.args, 0, parts.length - 2);

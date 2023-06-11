@@ -23,7 +23,6 @@ package org.freenetproject.freemail.ui.web;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -42,11 +41,11 @@ import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.api.HTTPRequest;
@@ -63,14 +62,14 @@ public class InboxToadlet extends WebPage {
 	}
 
 	@Override
-	void makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
 		HTMLNode container = contentNode.addChild("div", "class", "container");
 
 		//Add the list of folders
-		HTMLNode folderList = container.addChild("div", "class", "folderlist");
+		HTMLNode aside = container.addChild("div", "class", "aside");
 
 		String identity = loginManager.getSession(ctx).getUserID();
 
@@ -78,7 +77,8 @@ public class InboxToadlet extends WebPage {
 		FreemailAccount account = accountManager.getAccount(identity);
 
 		MessageBank topLevelMessageBank = account.getMessageBank();
-		addMessageBank(folderList, topLevelMessageBank, "inbox");
+		addMessageBank(aside, topLevelMessageBank, "inbox");
+		addActionLinks(aside);
 
 		//Add the container for the message list and the buttons
 		String folderName = req.getParam("folder", "inbox");
@@ -106,11 +106,18 @@ public class InboxToadlet extends WebPage {
 		// FIXME is there any reason for this to be a TreeMap rather than Arrays.sort()?
 		// Maybe if we want to have it on more than one page in future or something?
 		SortedMap<MailMessage, Integer> messages = new TreeMap<MailMessage, Integer>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
-		for(Entry<Integer, MailMessage> message : messageBank.listMessages().entrySet()) {
-			//FIXME: Initialization of MailMessage should be in MailMessage
-			message.getValue().readHeaders();
+		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
+			Integer messageNum = messageEntry.getKey();
+			MailMessage message = messageEntry.getValue();
 
-			messages.put(message.getValue(), message.getKey());
+			//FIXME: Initialization of MailMessage should be in MailMessage
+			message.readHeaders();
+
+			if(message.flags.isDeleted()) {
+				continue;
+			}
+
+			messages.put(message, messageNum);
 		}
 
 		//Add messages
@@ -118,7 +125,7 @@ public class InboxToadlet extends WebPage {
 			addMessage(messageTable, message.getKey(), folderName, message.getValue());
 		}
 
-		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
+		return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 	}
 
 	private String getSortLink(SortField field, boolean ascending) {
@@ -154,7 +161,7 @@ public class InboxToadlet extends WebPage {
 
 	@Override
 	@SuppressWarnings("deprecation")
-	void makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws ToadletContextClosedException, IOException {
+	HTTPResponse makeWebPagePost(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) {
 		String identity = loginManager.getSession(ctx).getUserID();
 		FreemailAccount account = accountManager.getAccount(identity);
 
@@ -209,7 +216,7 @@ public class InboxToadlet extends WebPage {
 			}
 		}
 
-		writeTemporaryRedirect(ctx, "", getFolderPath(folderName));
+		return new HTTPRedirectResponse(ctx, "", getFolderPath(folderName));
 	}
 
 	//TODO: Handle cases where folderName doesn't start with inbox
@@ -244,15 +251,26 @@ public class InboxToadlet extends WebPage {
 		return folderDiv;
 	}
 
+	private HTMLNode addActionLinks(HTMLNode parent) {
+		HTMLNode actionDiv = parent.addChild("div", "class", "actions");
+		HTMLNode actionPara = actionDiv.addChild("p");
+
+        // FIXME: The path is duplicated from NewMessageToadlet.java
+		actionPara.addChild("a", "href", WebInterface.PATH + "/NewMessage",
+                            FreemailL10n.getString("Freemail.InboxToadlet.createNewMessageShort"));
+
+		return actionDiv;
+	}
+
 	//FIXME: Handle messages without message-id. This applies to MessageToadlet as well
 	private void addMessage(HTMLNode parent, MailMessage msg, String folderName, int messageNum) {
 		String msgClass = "message";
-		if(!msg.flags.get("\\Seen")) {
+		if(!msg.flags.isSeen()) {
 			msgClass += " message-unread";
 		}
-		if(msg.flags.get("\\Recent")) {
+		if(msg.flags.isRecent()) {
 			msgClass += " message-recent";
-			msg.flags.set("\\Recent", false);
+			msg.flags.clearRecent();
 			msg.storeFlags();
 		}
 		HTMLNode message = parent.addChild("tr", "class", msgClass);
@@ -275,28 +293,44 @@ public class InboxToadlet extends WebPage {
 		title.addChild("a", "href", messageLink, subject);
 
 		HTMLNode author = message.addChild("td", "class", "author");
-		try {
-			author.addChild("#", MailMessage.decodeHeader(msg.getFirstHeader("From")));
-		} catch (UnsupportedEncodingException e) {
-			author.addChild("#", msg.getFirstHeader("From"));
-		}
+		author.addChild(createSenderCell(msg));
 
 		HTMLNode date = message.addChild("td", "class", "date");
+		date.addChild("#", getMessageDateAsString(msg,
+				FreemailL10n.getString("Freemail.InboxToadlet.dateMissing")));
+	}
 
-		Date msgDate = msg.getDate();
-		if(msgDate != null) {
-			SimpleDateFormat sdf = new SimpleDateFormat();
-			date.addChild("#", sdf.format(msgDate));
-		} else {
-			/* Use the raw date header if possible. If it is null
-			 * the field will  simply be left blank */
-			//TODO: This should probably be removed once getDate() has been tested with real world messages
-			String rawDate = msg.getFirstHeader("Date");
-			if(rawDate != null) {
-				Logger.error(this, "Displaying raw date: " + rawDate);
-				date.addChild("#", rawDate);
+	private HTMLNode createSenderCell(MailMessage message) {
+		String rawSender = message.getFirstHeader("From");
+		try {
+			String sender = MailMessage.decodeHeader(rawSender);
+			if (sender == null) {
+				return new HTMLNode("#", FreemailL10n.getString("Freemail.InboxToadlet.fromMissing"));
 			}
+			HTMLNode senderCell = new HTMLNode("div");
+			EmailAddress emailAddress = new EmailAddress(sender);
+			if (emailAddress.hasRealname()) {
+				HTMLNode realnameNode = senderCell.addChild("div", emailAddress.getRealname());
+				realnameNode.addAttribute("class", "realname");
+				realnameNode.addAttribute("title", emailAddress.getAddress());
+			} else {
+				HTMLNode addressNode = senderCell.addChild("div", emailAddress.getAddress());
+				addressNode.addAttribute("class", "address");
+			}
+			if (emailAddress.isFreemailAddress()) {
+				HTMLNode wotLinkNode = senderCell.addChild("div", "class", "wot-link");
+				wotLinkNode.addChild("#", "(");
+				String linkToWebOfTrust = "/WebOfTrust/ShowIdentity?id=" + emailAddress.getIdentity();
+				wotLinkNode.addChild("a", "href", linkToWebOfTrust, "web of trust");
+				wotLinkNode.addChild("#", ")");
+			}
+			return senderCell;
+		} catch (IllegalArgumentException iae1) {
+			Logger.minor(this, "Not a valid email address: " + rawSender);
+		} catch (UnsupportedEncodingException uee1) {
+			Logger.minor(this, "Invalid encoding in: " + rawSender);
 		}
+		return new HTMLNode("#", rawSender);
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {

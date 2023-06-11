@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
-<project name="Freemail" default="dist" basedir="." xmlns:cs="antlib:com.puppycrawl.tools.checkstyle">
+<project name="Freemail" default="default" basedir="." xmlns:cs="antlib:com.puppycrawl.tools.checkstyle">
+	<!--
+	     build.properties holds the default values for the properties that
+	     people might want to change. Use override.properties to set new
+	     values without getting in trouble with Git.
+	-->
 	<property name="override" location="override.properties" />
 	<property file="${override}"/>
 	<property file="build.properties"/>
@@ -11,12 +16,12 @@
 	<property name="build" location="build"/>
 	<property name="build-test" location="build-test"/>
 	<property name="dist" location="dist"/>
-	<property name="deps" location="deps"/>
+	<property name="lib" location="lib"/>
 	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
 	<property name="version.build" value="org/freenetproject/freemail/Version.class"/>
 
-	<property name="freenet-cvs-snapshot.location" location="../fred/dist/freenet.jar"/>
-	<property name="bcprov.location" location="../fred/lib/bcprov.jar"/>
+	<property name="tools.src" location="tools/src"/>
+	<property name="tools.dst" location="tools/build"/>
 
 	<exec executable="git"
 		failifexecutionfails="false"
@@ -36,13 +41,26 @@
 		</and>
 	</condition>
 
-	<target name="compile">
+	<!--
+	     Convenience targets
+	-->
+
+	<target name="all" depends="unit, dist, checkstyle, compile-tools"/>
+	<target name="default" depends="unit, dist"/>
+
+	<!--
+	     Real targets
+	-->
+	<target name="compile"
+	        description="Compiles the Freemail source code">
 		<mkdir dir="${build}"/>
 
 		<tstamp/>
 
 		<!-- Create the Version file with patched revision number in ${build} -->
-		<copy file="${src}/${version.src}" tofile="${build}/${version.src}" overwrite="true" />
+		<copy file="${src}/${version.src}"
+		      tofile="${build}/${version.src}"
+		      overwrite="true" />
 		<delete file="${build}/${version.build}" quiet="true" />
 		<replace file="${build}/${version.src}">
 			<replacefilter token="@custom@" value="${git.revision}"/>
@@ -50,7 +68,14 @@
 		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
 
 		<!-- Compile the patched version file -->
-		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
+		<javac srcdir="${build}"
+		       destdir="${build}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       encoding="UTF-8"
+		       includeantruntime="false">
 			<include name="${version.src}"/>
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
@@ -62,7 +87,14 @@
 
 		<!-- Bundle the whole lot together, unless anyone whinges.
 		     It makes it much easier to run -->
-		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="1.6" target="1.6">
+		<javac srcdir="${src}"
+		       destdir="${build}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       encoding="UTF-8"
+		       includeantruntime="false">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
@@ -81,43 +113,77 @@
 		</copy>
 	</target>
 
+	<target name="compile-tools" description="Compiles the supporting tools">
+		<mkdir dir="${tools.dst}"/>
+
+		<javac srcdir="${tools.src}"
+		       destdir="${tools.dst}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       encoding="UTF-8"
+		       includeantruntime="false">
+			<classpath>
+				<pathelement location="${bouncycastle.location}"/>
+			</classpath>
+			<compilerarg value="-Xlint"/>
+		</javac>
+	</target>
+
 	<target name="unit-build" depends="compile" unless="${test.skip}">
 		<mkdir dir="${build-test}"/>
-		<javac srcdir="${test}" destdir="${build-test}" debug="on" optimize="on" source="1.6" target="1.6">
+		<javac srcdir="${test}"
+		       destdir="${build-test}"
+		       debug="on"
+		       optimize="on"
+		       source="1.6"
+		       target="1.6"
+		       encoding="UTF-8"
+		       includeantruntime="false">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>
 				<pathelement location="${build}"/>
 				<pathelement location="${junit}"/>
+				<pathelement location="${hamcrest}"/>
 				<pathelement path="${test.lib}"/>
 			</classpath>
 			<compilerarg line="-Xlint"/>
 		</javac>
 	</target>
 
-	<target name="unit" depends="unit-build" unless="${test.skip}">
+	<target name="unit" depends="unit-build" unless="${test.skip}"
+	        description="Runs the unit tests">
 		<mkdir dir="${test.run}"/>
-		<junit fork="yes" dir="${test.run}">
+		<junit fork="yes" dir="${test.run}" haltonfailure="true">
 			<classpath>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement location="${bcprov.location}"/>
 				<pathelement location="${build}"/>
 				<pathelement location="${build-test}"/>
 				<pathelement location="${junit}"/>
+				<pathelement location="${hamcrest}"/>
 				<pathelement path="${test.lib}"/>
 			</classpath>
+
+			<env key="test.extensive" value="${test.extensive}"/>
+			<env key="test.verbose" value="${test.verbose}"/>
+
 			<assertions><enable/></assertions>
+
 			<formatter type="brief" usefile="false"/>
-			<batchtest>
+			<formatter type="xml" if="${test.xml_output}"/>
+			<batchtest todir="${build-test}">
 				<fileset dir="${build-test}">
-					<include name="**/*Test.class"/>
+					<include name="org/freenetproject/freemail/**/*Test.class"/>
 				</fileset>
 			</batchtest>
 		</junit>
 		<delete dir="${test.run}"/>
 	</target>
 
-	<target name="dist" depends="compile, unit, checkstyle-auto">
+	<target name="dist" depends="compile" description="Generates the Freemail jar">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
 			<manifest>
@@ -133,23 +199,17 @@
 		</jar>
 	</target>
 
-	<target name="clean">
-		<delete includeEmptyDirs="true">
-			<fileset dir="${build}" erroronmissingdir="false">
-				<exclude name="org/bouncycastle/**"/>
-			</fileset>
-		</delete>
+	<target name="clean" description="Removes all generated files">
+		<delete dir="${build}"/>
 		<delete dir="${build-test}"/>
 		<delete dir="${dist}"/>
 		<delete dir="${run}"/>
+		<delete dir="${tools.dst}"/>
 	</target>
 
-	<target name="cleaner" depends="clean">
-		<delete dir="${build}"/>
-	</target>
-
-	<target name="distclean" depends="cleaner" description="Delete everything and restore to the original state.">
-		<delete dir="${deps}"/>
+	<target name="distclean" depends="clean"
+	        description="Removes all generated files and settings">
+		<delete dir="${lib}"/>
 		<delete file="${override}"/>
 	</target>
 
@@ -161,18 +221,20 @@
 				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
+			<fileset dir="${tools.src}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
 	</target>
 
 	<!-- Checkstyle run with the full config, i.e. what we would like the
 	     code to follow. Useful for e.g. checking new commits. -->
-	<target name="checkstyle">
+	<target name="checkstyle" description="Runs Checkstyle on the source code">
 		<cs:checkstyle config="checkstyle.xml" failOnViolation="false">
 			<fileset dir="${src}" includes="**/*.java">
 				<exclude name="org/archive/**"/>
 			</fileset>
 			<fileset dir="${test}" includes="**/*.java"/>
+			<fileset dir="${tools.src}" includes="**/*.java"/>
 			<formatter type="plain"/>
 		</cs:checkstyle>
 	</target>

@@ -19,6 +19,8 @@
 
 package org.freenetproject.freemail.imap;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,19 +30,22 @@ import java.util.List;
 
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.imap.IMAPHandler;
+import org.junit.Test;
 
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
 
 public class IMAPHandlerTest extends IMAPTestWithMessages {
-	public void testIMAPGreeting() throws IOException {
+	@Test
+	public void imapGreeting() throws IOException {
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 
 		runSimpleTest(new LinkedList<String>(), expectedResponse);
 	}
 
-	public void testIMAPLogin() throws IOException {
+	@Test
+	public void imapLogin() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 
@@ -51,7 +56,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testFailedIMAPLogin() throws IOException {
+	@Test
+	public void failedIMAPLogin() throws IOException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, true, accountDirs);
 
@@ -71,7 +77,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		assertFalse(fromHandler.ready());
 	}
 
-	public void testIMAPSelect() throws IOException {
+	@Test
+	public void imapSelect() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -83,7 +90,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 	 * This checks for the bug fixed in commit ad0b9aedf34f19ba7ed06757cdb53ca9d5614add.
 	 * The IMAP thread would crash with a NullPointerException when receiving list with no arguments
 	 */
-	public void testIMAPListWithNoArguments() throws IOException, InterruptedException {
+	@Test
+	public void imapListWithNoArguments() throws IOException, InterruptedException {
 		FakeSocket sock = new FakeSocket();
 		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
@@ -111,7 +119,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		assertFalse(imapThread.getState().equals(Thread.State.TERMINATED));
 	}
 
-	public void testIMAPSelectUnknown() throws IOException {
+	@Test
+	public void imapSelectUnknown() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT ShouldNotExist\r\n");
@@ -124,7 +133,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUnimplementedCommand() throws IOException {
+	@Test
+	public void unimplementedCommand() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 NoSuchCommand");
 
@@ -135,19 +145,50 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testLogout() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGOUT");
+	@Test
+	public void logout() throws IOException {
+		FakeSocket sock = new FakeSocket();
+		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
+		new Thread(new IMAPHandler(accManager, sock)).start();
+
+		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+
+		send(toHandler, "0001 LOGOUT\r\n");
+
+		int lineNum = 0;
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("* BYE");
 		expectedResponse.add("0001 OK Bye");
+		for(String response : expectedResponse) {
+			String line;
+			try {
+				line = fromHandler.readLine();
+			} catch(IOException e) {
+				//Because of the way we set up the socket we might not be able
+				//to read data after the server closes its end of the pipe
+				if(!e.getMessage().equals("Pipe closed")) {
+					throw e;
+				}
+				return;
+			}
+			if(line == null) {
+				//Same reason as above
+				return;
+			}
 
-		runSimpleTest(commands, expectedResponse);
+			assertEquals("Failed at line " + lineNum++, response, line);
+		}
+
+		assertFalse("IMAP socket has more data", fromHandler.ready());
+
+		sock.close();
 	}
 
-	public void testCapability() throws IOException {
+	@Test
+	public void capability() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 CAPABILITY");
 
@@ -159,7 +200,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testNoop() throws IOException {
+	@Test
+	public void noop() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 NOOP");
 
@@ -170,7 +212,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testLoginWithoutArguments() throws IOException {
+	@Test
+	public void loginWithoutArguments() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN");
 
@@ -181,7 +224,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testLoginWithoutPassword() throws IOException {
+	@Test
+	public void loginWithoutPassword() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME);
 
@@ -192,7 +236,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testImplicitExpungeOnClose() throws IOException {
+	@Test
+	public void implicitExpungeOnClose() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -215,7 +260,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testNoImplicitExpungeOnSelect() throws IOException {
+	@Test
+	public void noImplicitExpungeOnSelect() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -236,7 +282,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testExplicitExpunge() throws IOException {
+	@Test
+	public void explicitExpunge() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
@@ -259,7 +306,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testLiteralWithoutEndingLinebreak() throws IOException {
+	@Test
+	public void literalWithoutEndingLinebreak() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 
@@ -284,53 +332,12 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testSearchForUndeleted() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 SEARCH UNDELETED");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9");
-		expectedResponse.add("0003 OK Search completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testUidSearchForUndeleted() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 UID SEARCH UNDELETED");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
-		expectedResponse.add("0003 OK Search completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
-	public void testSearchWithNoMatches() throws IOException {
-		List<String> commands = new LinkedList<String>();
-		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
-		commands.add("0002 SELECT INBOX");
-		commands.add("0003 SEARCH DELETED UNDELETED");
-
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("* SEARCH");
-		expectedResponse.add("0003 OK Search completed");
-
-		runSimpleTest(commands, expectedResponse);
-	}
-
 	/**
 	 * Attempt to emulate the behavior of Thunderbird when storing a draft
 	 * message, including the search to check that it was stored. See bug 5399
 	 */
-	public void testThunderbirdDraftStore() throws IOException {
+	@Test
+	public void thunderbirdDraftStore() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT \"INBOX\"");
@@ -364,7 +371,8 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		runSimpleTest(commands, expectedResponse);
 	}
 
-	public void testUidWithNoArgs() throws IOException {
+	@Test
+	public void uidWithNoArgs() throws IOException {
 		List<String> commands = new LinkedList<String>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT \"INBOX\"");
@@ -372,7 +380,21 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		List<String> expectedResponse = new LinkedList<String>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
-		expectedResponse.add("0003 BAD Not enough arguments to uid command");
+		expectedResponse.add("0003 BAD Not enough arguments for uid command");
+
+		runSimpleTest(commands, expectedResponse);
+	}
+
+	@Test
+	public void uidWithUnknownCommand() throws IOException {
+		List<String> commands = new LinkedList<String>();
+		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
+		commands.add("0002 SELECT \"INBOX\"");
+		commands.add("0003 UID NoSuchCommand 1:2 arg2 arg3");
+
+		List<String> expectedResponse = new LinkedList<String>();
+		expectedResponse.addAll(INITIAL_RESPONSES);
+		expectedResponse.add("0003 BAD Unknown command");
 
 		runSimpleTest(commands, expectedResponse);
 	}

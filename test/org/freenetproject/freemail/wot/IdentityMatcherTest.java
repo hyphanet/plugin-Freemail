@@ -20,42 +20,46 @@
 
 package org.freenetproject.freemail.wot;
 
+import static org.junit.Assert.*;
+
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Test;
+
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
-import org.freenetproject.freemail.wot.OwnIdentity;
-import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.IdentityMatcher.MatchMethod;
 
+import data.TestId1Data;
+
+import fakes.MockWoTConnection;
 import freenet.pluginmanager.PluginNotFoundException;
 
-import junit.framework.TestCase;
+public class IdentityMatcherTest {
+	private static final Identity identity = TestId1Data.Identity.newInstance();
 
-public class IdentityMatcherTest extends TestCase {
-	private static final Identity identity = new Identity("D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc", "SSK@D3MrAR-AVMqKJRjXnpKW2guW9z1mw5GZ9BB15mYVkVc,xgddjFHx2S~5U6PeFkwqO5V~1gZngFLoM-xaoMKSBI8,AQACAAE", "zidel");
-
-	public void testFullIdentityMatch() throws PluginNotFoundException {
+	@Test
+	public void fullIdentityMatch() throws PluginNotFoundException {
 		String recipient = identity.getNickname() + "@" + identity.getIdentityID() + ".freemail";
 		EnumSet<MatchMethod> set = EnumSet.allOf(MatchMethod.class);
 
 		runMatcherTest(recipient, set);
 	}
 
-	public void testFullBase32IdentityMatch() throws PluginNotFoundException {
+	@Test
+	public void fullBase32IdentityMatch() throws PluginNotFoundException {
 		String recipient = identity.getNickname() + "@" + identity.getBase32IdentityID() + ".freemail";
 		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
 
 		runMatcherTest(recipient, set);
 	}
 
-	public void testFullBase32MatchWithOnlyId() throws PluginNotFoundException {
+	@Test
+	public void fullBase32MatchWithOnlyId() throws PluginNotFoundException {
 		String recipient = identity.getBase32IdentityID();
 		EnumSet<MatchMethod> set = EnumSet.of(MatchMethod.FULL_BASE32);
 
@@ -63,7 +67,12 @@ public class IdentityMatcherTest extends TestCase {
 	}
 
 	private void runMatcherTest(String recipient, EnumSet<MatchMethod> methods) throws PluginNotFoundException {
-		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.singleton(identity));
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
 		Set<String> recipients = Collections.singleton(recipient);
 		Map<String, List<Identity>> matches;
 		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), methods);
@@ -72,8 +81,14 @@ public class IdentityMatcherTest extends TestCase {
 		assertEquals(identity, matches.get(recipient).get(0));
 	}
 
-	public void testFullMatchWithPartialId() throws PluginNotFoundException {
-		IdentityMatcher identityMatcher = new IdentityMatcher(new FakeWoTConnection());
+	@Test
+	public void fullMatchWithPartialId() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.singleton(identity));
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
 
 		//Check an identity string that is missing the last character
 		String id = identity.getBase32IdentityID();
@@ -90,42 +105,57 @@ public class IdentityMatcherTest extends TestCase {
 		assertEquals(0, matches.get(id).size());
 	}
 
-	private class FakeWoTConnection implements WoTConnection {
-		@Override
-		public List<OwnIdentity> getAllOwnIdentities() {
-			return new LinkedList<OwnIdentity>();
-		}
+	@Test
+	public void errorReturnFromTrusted() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(null);
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
 
-		@Override
-		public Set<Identity> getAllTrustedIdentities(String trusterId) {
-			Set<Identity> set = new HashSet<Identity>();
-			set.add(identity);
-			return set;
-		}
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
 
-		@Override
-		public Set<Identity> getAllUntrustedIdentities(String trusterId) {
-			return new HashSet<Identity>();
-		}
+		Set<String> recipients = Collections.singleton(TestId1Data.FreemailAccount.ADDRESS);
+		Map<String, List<Identity>> matches;
 
-		@Override
-		public Identity getIdentity(String identityID, String trusterID) {
-			throw new UnsupportedOperationException();
-		}
+		//Matcher shouldn't return any matches in case of failure
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), EnumSet.of(MatchMethod.FULL_BASE32));
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(TestId1Data.FreemailAccount.ADDRESS).size());
+	}
 
-		@Override
-		public boolean setProperty(String identityID, String key, String value) {
-			throw new UnsupportedOperationException();
-		}
+	@Test
+	public void errorReturnFromUntrusted() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setUntrustedIdentities(null);
+		wotConnection.setOwnIdentities(Collections.<OwnIdentity>emptyList());
 
-		@Override
-		public String getProperty(String identityID, String key) {
-			throw new UnsupportedOperationException();
-		}
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
 
-		@Override
-		public boolean setContext(String identity, String context) {
-			throw new UnsupportedOperationException();
-		}
+		Set<String> recipients = Collections.singleton(TestId1Data.FreemailAccount.ADDRESS);
+		Map<String, List<Identity>> matches;
+
+		//Matcher shouldn't return any matches in case of failure
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), EnumSet.of(MatchMethod.FULL_BASE32));
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(TestId1Data.FreemailAccount.ADDRESS).size());
+	}
+
+	@Test
+	public void errorReturnFromOwnIds() throws PluginNotFoundException {
+		MockWoTConnection wotConnection = new MockWoTConnection(null, null);
+		wotConnection.setTrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setUntrustedIdentities(Collections.<Identity>emptySet());
+		wotConnection.setOwnIdentities(null);
+
+		IdentityMatcher identityMatcher = new IdentityMatcher(wotConnection);
+
+		Set<String> recipients = Collections.singleton(TestId1Data.FreemailAccount.ADDRESS);
+		Map<String, List<Identity>> matches;
+
+		//Matcher shouldn't return any matches in case of failure
+		matches = identityMatcher.matchIdentities(recipients, identity.getIdentityID(), EnumSet.of(MatchMethod.FULL_BASE32));
+		assertEquals(1, matches.size());
+		assertEquals(0, matches.get(TestId1Data.FreemailAccount.ADDRESS).size());
 	}
 }

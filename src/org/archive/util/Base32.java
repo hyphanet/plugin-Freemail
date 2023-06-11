@@ -93,7 +93,7 @@ public class Base32 {
     /**
      * Decodes the given Base32 String to a raw byte array.
      *
-     * @param base32
+     * @param base32 the base32 string that should be decoded
      * @return Decoded <code>base32</code> String as a raw byte array.
      */
     static public byte[] decode(final String base32) {
@@ -142,7 +142,7 @@ public class Base32 {
     /** For testing, take a command-line argument in Base32, decode, print in hex,
      * encode, print
      *
-     * @param args
+     * @param args contains the base32 encoded string that should be decoded as the only element
      */
     static public void main(String[] args) {
         if (args.length == 0) {
