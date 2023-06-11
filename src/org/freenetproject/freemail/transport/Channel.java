@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -78,7 +79,7 @@ import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
-import freenet.support.io.BucketChainBucket;
+import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
@@ -422,8 +423,17 @@ class Channel {
 			+ "id=" + messageId + "\r\n"
 			+ "\r\n";
 		Bucket messageHeader = new ArrayBucket(header.getBytes());
-		
-		Bucket fullMessage = BucketChainBucket.constructReadOnly(new Bucket[] { messageHeader, message });
+
+		//Now combine them in a single bucket
+		ArrayBucket fullMessage = new ArrayBucket();
+		OutputStream messageOutputStream = null;
+		try {
+			messageOutputStream = fullMessage.getOutputStream();
+			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
+			BucketTools.copyTo(message, messageOutputStream, -1);
+		} finally {
+			Closer.close(messageOutputStream);
+		}
 
 		return insertMessage(fullMessage, "msg" + messageId);
 	}
