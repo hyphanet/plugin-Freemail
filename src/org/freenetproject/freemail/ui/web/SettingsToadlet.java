@@ -12,6 +12,7 @@ import org.freenetproject.freemail.l10n.FreemailL10n;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsToadlet extends WebPage {
 
@@ -31,16 +32,20 @@ public class SettingsToadlet extends WebPage {
 	@Override
 	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode settingsBox = addInfobox(page.content, FreemailL10n.getString("Freemail.SettingsToadlet.title"));
+		Map<String, String> settings = createSettings();
+		addChild(settingsBox, "settings-form", settings);
 
-		HashMap<String, String> settings = new HashMap<String, String>();
+		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
+	}
+
+	private Map<String, String> createSettings() {
+		Map<String, String> settings = new HashMap<>();
 		settings.put("formPassword", toadletContainer.getFormPassword());
 		settings.put("smtpBindPort", config.get("smtp_bind_port"));
 		settings.put("smtpBindAddress", config.get("smtp_bind_address"));
 		settings.put("imapBindPort", config.get("imap_bind_port"));
 		settings.put("imapBindAddress", config.get("imap_bind_address"));
-
-		addChild(settingsBox, "settings-form", settings);
-		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
+		return settings;
 	}
 
 	@Override
