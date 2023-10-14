@@ -19,187 +19,130 @@
 
 package org.freenetproject.freemail;
 
-import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import org.freenetproject.freemail.MailMessage;
-
-import utils.Utils;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 public class MailMessageBodyDecodingTest {
-	private static final String MESSAGE_DIR = "msg_dir";
 
-	private File msgDir = null;
+	private static final String HEADER_BODY_SEPARATOR = "";
+	private static final String LINE_ENDING = "\r\n";
 
-	@Before
-	public void before() {
-		// Create a directory for messages so it is easier to list files, clean up etc.
-		msgDir = new File(MESSAGE_DIR);
-		if(msgDir.exists()) {
-			System.out.println("WARNING: Message directory exists, deleting");
-			Utils.delete(msgDir);
-		}
-
-		if(!msgDir.mkdir()) {
-			System.out.println("WARNING: Could not create message directory, tests will probably fail");
-		}
-	}
-
-	@After
-	public void after() {
-		Utils.delete(msgDir);
-	}
+	@Rule
+	public TemporaryFolder messageDirectory = new TemporaryFolder();
 
 	@Test
 	public void decodeQpAndAsciiMessageBody() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("Test message, line 1\r\n");
-		pw.print("Test message, line 2\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: quoted-printable",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"Test message, line 1",
+				"Test message, line 2"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeQpAndUtf8MessageBody() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
-		pw.print("Content-Type: text/plain; charset=utf-8\r\n");
-		pw.print("\r\n");
-		pw.print("Test message (=C3=A6), line 1\r\n");
-		pw.print("Test message (=C3=A6), line 2\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message (æ), line 1", reader.readLine());
-		assertEquals("Test message (æ), line 2", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: quoted-printable",
+				"Content-Type: text/plain; charset=utf-8",
+				HEADER_BODY_SEPARATOR,
+				"Test message (=C3=A6), line 1",
+				"Test message (=C3=A6), line 2"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message (æ), line 1"));
+			assertThat(reader.readLine(), equalTo("Test message (æ), line 2"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeQpAndIso8859_1MessageBody() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
-		pw.print("Content-Type: text/plain; charset=iso-8859-1\r\n");
-		pw.print("\r\n");
-		pw.print("Test message (=E6=F8=E5), line 1\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message (æøå), line 1", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: quoted-printable",
+				"Content-Type: text/plain; charset=iso-8859-1",
+				HEADER_BODY_SEPARATOR,
+				"Test message (=E6=F8=E5), line 1"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message (æøå), line 1"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeQpWithSoftLineBreak() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
-		pw.print("Content-Type: text/plain; charset=iso-8859-1\r\n");
-		pw.print("\r\n");
-		pw.print("Test message (=E6=F8=E5), line 1 =\r\n");
-		pw.print("was split across two lines\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message (æøå), line 1 was split across two lines", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: quoted-printable",
+				"Content-Type: text/plain; charset=iso-8859-1",
+				HEADER_BODY_SEPARATOR,
+				"Test message (=E6=F8=E5), line 1 =",
+				"was split across two lines"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message (æøå), line 1 was split across two lines"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeBase64AndAsciiMessageBody() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: base64\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2FnZSwgbGluZSAyDQo=");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: base64",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2FnZSwgbGluZSAyDQo="
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeBase64AndUtf8MessageBody() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: base64\r\n");
-		pw.print("Content-Type: text/plain; charset=utf-8\r\n");
-		pw.print("\r\n");
-		pw.print("VGVzdCBtZXNzYWdlICjDpiksIGxpbmUgMQ0KVGVzdCBt\r\n");
-		pw.print("ZXNzYWdlICjDpiksIGxpbmUgMg0K\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message (æ), line 1", reader.readLine());
-		assertEquals("Test message (æ), line 2", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: base64",
+				"Content-Type: text/plain; charset=utf-8",
+				HEADER_BODY_SEPARATOR,
+				"VGVzdCBtZXNzYWdlICjDpiksIGxpbmUgMQ0KVGVzdCBt",
+				"ZXNzYWdlICjDpiksIGxpbmUgMg0K"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message (æ), line 1"));
+			assertThat(reader.readLine(), equalTo("Test message (æ), line 2"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeBase64WithLineBuffering() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: base64\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2FnZSwgbGlu"
-				+ "ZSAyDQpUZXN0IG1lc3NhZ2UsIGxpbmUgMw0K\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: base64",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2FnZSwgbGluZSAyDQpUZXN0IG1lc3NhZ2UsIGxpbmUgMw0K"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	/**
@@ -208,52 +151,40 @@ public class MailMessageBodyDecodingTest {
 	 */
 	@Test
 	public void decodeBase64WithShortBodyLines() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: base64\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("VGVzdCBtZXNz\r\n");
-		pw.print("YWdlLCBsaW5l\r\n");
-		pw.print("IDENClRlc3Qg\r\n");
-		pw.print("bWVzc2FnZSwg\r\n");
-		pw.print("bGluZSAyDQpU\r\n");
-		pw.print("ZXN0IG1lc3Nh\r\n");
-		pw.print("Z2UsIGxpbmUg\r\n");
-		pw.print("Mw0K\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: base64",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"VGVzdCBtZXNz",
+				"YWdlLCBsaW5l",
+				"IDENClRlc3Qg",
+				"bWVzc2FnZSwg",
+				"bGluZSAyDQpU",
+				"ZXN0IG1lc3Nh",
+				"Z2UsIGxpbmUg",
+				"Mw0K"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	@Test
 	public void decodeBase64WithoutTrailingHardLinebreak() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: base64\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2Fn\r\n");
-		pw.print("ZSwgbGluZSAyDQpUZXN0IG1lc3NhZ2UsIGxpbmUgMw==\r\n");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesWithoutTrailingNewLineAndVerifyBody(asList(
+				"Content-Transfer-Encoding: base64",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"VGVzdCBtZXNzYWdlLCBsaW5lIDENClRlc3QgbWVzc2Fn",
+				"ZSwgbGluZSAyDQpUZXN0IG1lc3NhZ2UsIGxpbmUgMw=="
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	/**
@@ -261,25 +192,19 @@ public class MailMessageBodyDecodingTest {
 	 */
 	@Test
 	public void decode7bitBody() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: 7bit\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("Test message, line 1\r\n");
-		pw.print("Test message, line 2\r\n");
-		pw.print("Test message, line 3");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: 7bit",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"Test message, line 1",
+				"Test message, line 2",
+				"Test message, line 3"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	/**
@@ -288,25 +213,19 @@ public class MailMessageBodyDecodingTest {
 	 */
 	@Test
 	public void decodeUnsupportedTransferEncoding() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: unsupported\r\n");
-		pw.print("Content-Type: text/plain; charset=us-ascii\r\n");
-		pw.print("\r\n");
-		pw.print("Test message, line 1\r\n");
-		pw.print("Test message, line 2\r\n");
-		pw.print("Test message, line 3");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: unsupported",
+				"Content-Type: text/plain; charset=us-ascii",
+				HEADER_BODY_SEPARATOR,
+				"Test message, line 1",
+				"Test message, line 2",
+				"Test message, line 3"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	/**
@@ -315,25 +234,19 @@ public class MailMessageBodyDecodingTest {
 	 */
 	@Test
 	public void decodeUnsupportedCharset() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("Content-Transfer-Encoding: quoted-printable\r\n");
-		pw.print("Content-Type: text/plain; charset=unsupported\r\n");
-		pw.print("\r\n");
-		pw.print("Test message, line 1\r\n");
-		pw.print("Test message, line 2\r\n");
-		pw.print("Test message, line 3");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Transfer-Encoding: quoted-printable",
+				"Content-Type: text/plain; charset=unsupported",
+				HEADER_BODY_SEPARATOR,
+				"Test message, line 1",
+				"Test message, line 2",
+				"Test message, line 3"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
 
 	/**
@@ -341,22 +254,66 @@ public class MailMessageBodyDecodingTest {
 	 */
 	@Test
 	public void readPlainRFC822Message() throws IOException {
-		File messageFile = new File(msgDir, "0");
-		messageFile.createNewFile();
-
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("\r\n");
-		pw.print("Test message, line 1\r\n");
-		pw.print("Test message, line 2\r\n");
-		pw.print("Test message, line 3");
-		pw.close();
-
-		MailMessage msg = new MailMessage(messageFile, 0);
-		BufferedReader reader = msg.getBodyReader();
-
-		assertEquals("Test message, line 1", reader.readLine());
-		assertEquals("Test message, line 2", reader.readLine());
-		assertEquals("Test message, line 3", reader.readLine());
-		assertEquals(null, reader.readLine());
+		parseMailFromLinesAndVerifyBody(asList(
+				HEADER_BODY_SEPARATOR,
+				"Test message, line 1",
+				"Test message, line 2",
+				"Test message, line 3"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Test message, line 1"));
+			assertThat(reader.readLine(), equalTo("Test message, line 2"));
+			assertThat(reader.readLine(), equalTo("Test message, line 3"));
+			assertThat(reader.readLine(), nullValue());
+		});
 	}
+
+	/* Fix for https://freenet.mantishub.io/view.php?id=7189 */
+	@Test
+	public void mailWithoutCharsetInContentTypeCanBeParsed() throws IOException {
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Type: text/plain",
+				HEADER_BODY_SEPARATOR,
+				"Body"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("Body"));
+			assertThat(reader.readLine(), nullValue());
+		});
+	}
+
+	@Test
+	public void mailWithoutCharsetInContentTypeIsTreatedAsCharsetUtf8() throws IOException {
+		parseMailFromLinesAndVerifyBody(asList(
+				"Content-Type: text/plain",
+				HEADER_BODY_SEPARATOR,
+				"äöü"
+		), reader -> {
+			assertThat(reader.readLine(), equalTo("äöü"));
+			assertThat(reader.readLine(), nullValue());
+		});
+	}
+
+	private interface ThrowingConsumer<T, E extends Exception> {
+		void accept(T t) throws E;
+	}
+
+	private void parseMailFromLinesAndVerifyBody(List<String> lines, ThrowingConsumer<BufferedReader, IOException> bodyReader) throws IOException {
+		try (BufferedReader bufferedReader = createMailFileAndParseIt(lines.stream().map(line -> line + LINE_ENDING).collect(toList()))) {
+			bodyReader.accept(bufferedReader);
+		}
+	}
+
+	private void parseMailFromLinesWithoutTrailingNewLineAndVerifyBody(List<String> lines, ThrowingConsumer<BufferedReader, IOException> bodyReader) throws IOException {
+		try (BufferedReader bufferedReader = createMailFileAndParseIt(singletonList(String.join(LINE_ENDING, lines)))) {
+			bodyReader.accept(bufferedReader);
+		}
+	}
+
+	private BufferedReader createMailFileAndParseIt(List<String> lines) throws IOException {
+		File messageFile = messageDirectory.newFile();
+		try (PrintWriter printWriter = new PrintWriter(messageFile, "UTF-8")) {
+			lines.forEach(printWriter::write);
+		}
+		return new MailMessage(messageFile, 0).getBodyReader();
+	}
+
 }
