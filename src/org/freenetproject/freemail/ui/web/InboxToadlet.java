@@ -103,6 +103,8 @@ public class InboxToadlet extends WebPage {
 		header.addChild("th").addChild("a", "href", getSortLink(SortField.DATE, !getSortDirection(req)), FreemailL10n.getString("Freemail.InboxToadlet.date"));
 
 		//Sort the messages correctly
+		// FIXME is there any reason for this to be a TreeMap rather than Arrays.sort()?
+		// Maybe if we want to have it on more than one page in future or something?
 		SortedMap<MailMessage, Integer> messages = new TreeMap<MailMessage, Integer>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
 		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
 			Integer messageNum = messageEntry.getKey();

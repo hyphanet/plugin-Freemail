@@ -55,6 +55,7 @@ import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.Freemail.TaskType;
 import org.freenetproject.freemail.FreemailAccount;
+import org.freenetproject.freemail.FreemailPlugin;
 import org.freenetproject.freemail.FreenetURI;
 import org.freenetproject.freemail.SlotManager;
 import org.freenetproject.freemail.SlotSaveCallback;
@@ -73,6 +74,7 @@ import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.WoTConnection;
 import org.freenetproject.freemail.wot.WoTProperties;
 
+import freenet.crypt.SHA256;
 import freenet.keys.InsertableClientSSK;
 import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
@@ -262,11 +264,7 @@ class Channel {
 		}
 
 		//Queue the CTS insert
-		try {
-			executor.execute(new CTSInserter());
-		} catch(RejectedExecutionException e) {
-			Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
-		}
+		execute(new CTSInserter());
 		startFetcher();
 	}
 
@@ -319,11 +317,7 @@ class Channel {
 					channelProps.put(PropsKeys.RECIPIENT_STATE, "cts-sent");
 				}
 			} else {
-				try {
-					executor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
-				} catch(RejectedExecutionException e) {
-					Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
-				}
+				schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 			}
 		}
 	}
@@ -356,19 +350,15 @@ class Channel {
 			Logger.error(this, "Caugth IOException while checking acklog: " + e.getMessage(), e);
 		} catch(RejectedExecutionException e) {
 			// Catch it here instead of inside the loop since there is no point
-			// in trying to schedule the rest
-			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
+			// in trying to schedule the rest as we are shutting down.
+			Logger.debug(this, "Caught RejectedExecutionException while scheduling AckInserter (shutting down?)");
 		}
 
 		//Start the CTS sender if needed
 		synchronized(channelProps) {
 			String recipientState = channelProps.get(PropsKeys.RECIPIENT_STATE);
 			if("rts-received".equals(recipientState)) {
-				try {
-					executor.execute(new CTSInserter());
-				} catch(RejectedExecutionException e) {
-					Logger.debug(this, "Caugth RejectedExecutionException while scheduling CTSInserter");
-				}
+				execute(new CTSInserter());
 			}
 		}
 	}
@@ -603,11 +593,7 @@ class Channel {
 
 	private String calculateNextSlot(String slot) {
 		byte[] buf = Base32.decode(slot);
-		SHA256Digest sha256 = new SHA256Digest();
-		sha256.update(buf, 0, buf.length);
-		sha256.doFinal(buf, 0);
-
-		return Base32.encode(buf);
+		return Base32.encode(SHA256.digest(buf));
 	}
 
 	private String generateRandomSlot() {
@@ -775,20 +761,12 @@ class Channel {
 
 		public void execute() {
 			Logger.debug(this, "Scheduling Fetcher for execution");
-			try {
-				executor.execute(fetcher);
-			} catch(RejectedExecutionException e) {
-				Logger.debug(this, "Caugth RejectedExecutionException while scheduling Fetcher");
-			}
+			Channel.this.execute(fetcher);
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
 			Logger.debug(this, "Scheduling Fetcher for execution in " + delay + " " + unit.toString().toLowerCase(Locale.ROOT));
-			try {
-				executor.schedule(fetcher, delay, unit);
-			} catch(RejectedExecutionException e) {
-				Logger.debug(this, "Caugth RejectedExecutionException while scheduling Fetcher");
-			}
+			Channel.this.schedule(fetcher, delay, unit);
 		}
 
 		@Override
@@ -796,7 +774,7 @@ class Channel {
 			return "Fetcher [" + channelDir + "]";
 		}
 	}
-
+	
 	private class RTSSender implements Runnable {
 		@Override
 		public synchronized void run() {
@@ -1067,11 +1045,7 @@ class Channel {
 				return;
 			}
 			Logger.debug(this, "Rescheduling RTSSender to run in " + delay + " ms when the reinsert is due");
-			try {
-				schedule(delay, TimeUnit.MILLISECONDS);
-			} catch(RejectedExecutionException e) {
-				Logger.debug(this, "Caugth RejectedExecutionException while scheduling RTSSender");
-			}
+			schedule(delay, TimeUnit.MILLISECONDS);
 
 			//Start the fetcher now that we have keys, slots etc.
 			fetcher.execute();
@@ -1079,20 +1053,12 @@ class Channel {
 
 		public void execute() {
 			Logger.debug(this, "Scheduling RTSSender for execution");
-			try {
-				executor.execute(this);
-			} catch(RejectedExecutionException e) {
-				Logger.debug(this, "Caugth RejectedExecutionException while scheduling RTSSender");
-			}
+			Channel.this.execute(this);
 		}
 
 		public void schedule(long delay, TimeUnit unit) {
 			Logger.debug(this, "Scheduling RTSSender for execution in " + delay + " " + unit.toString().toLowerCase(Locale.ROOT));
-			try {
-				executor.schedule(this, delay, unit);
-			} catch(RejectedExecutionException e) {
-				Logger.debug(this, "Caugth RejectedExecutionException while scheduling RTSSender");
-			}
+			Channel.this.schedule(this, delay, unit);
 		}
 
 		/**
@@ -1264,7 +1230,9 @@ class Channel {
 		try {
 			id = Long.parseLong(s_id);
 		} catch (NumberFormatException nfe) {
-			/* FIXME: Id doesn't have to be an integer */
+			// FIXME old comment said id doesn't have to be an integer.
+			// This seems very dubious, this is internal to Freemail isn't it?
+			// It's certainly safer and cleaner if we limit to to a long...
 			Logger.error(this, "Got a message with an invalid (non-integer) id. Discarding.");
 			msgprops.closeReader();
 			return true;
@@ -1291,12 +1259,7 @@ class Channel {
 			return false;
 		}
 
-		try {
-			ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
-			senderExecutor.execute(new AckInserter(id, ackDelay));
-		} catch(RejectedExecutionException e) {
-			Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
-		}
+		executeSender(new AckInserter(id, ackDelay));
 
 		return true;
 	}
@@ -1317,8 +1280,7 @@ class Channel {
 			if(System.currentTimeMillis() < insertAfter) {
 				long remaining = insertAfter - System.currentTimeMillis();
 				Logger.debug(this, "Rescheduling in " + remaining + "ms when inserting is allowed");
-				ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
-				senderExecutor.schedule(this, remaining, TimeUnit.MILLISECONDS);
+				scheduleSender(this, remaining, TimeUnit.MILLISECONDS);
 				return;
 			}
 
@@ -1355,16 +1317,12 @@ class Channel {
 					}
 				}
 			} else {
-				try {
-					ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
-					senderExecutor.schedule(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
-				} catch(RejectedExecutionException e) {
-					Logger.debug(this, "Caugth RejectedExecutionException while scheduling AckInserter");
-				}
+				scheduleSender(this, TASK_RETRY_DELAY, TimeUnit.MILLISECONDS);
 			}
 		}
-	}
 
+	}
+	
 	private boolean handleAck(File result) {
 		PropsFile ackProps = PropsFile.createPropsFile(result);
 		String ackString = ackProps.get("id");
@@ -1416,4 +1374,43 @@ class Channel {
 		public void onAckReceived(long id);
 		public boolean handleMessage(Channel channel, BufferedReader message, long id);
 	}
+	
+	// FIXME centralise.
+	
+	private void scheduleSender(Runnable command, long remaining, TimeUnit milliseconds) {
+		ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
+		try {
+			senderExecutor.schedule(command, remaining, TimeUnit.MILLISECONDS);
+		} catch(RejectedExecutionException e) {
+			Logger.debug(this, "Caught RejectedExecutionException while scheduling sender "+command+" - shutting down?");
+		}
+	}
+
+	private void executeSender(Runnable command) {
+		ScheduledExecutorService senderExecutor = freemail.getExecutor(TaskType.SENDER);
+		try {
+			senderExecutor.execute(command);
+		} catch(RejectedExecutionException e) {
+			Logger.debug(this, "Caught RejectedExecutionException while scheduling sender "+command+" - shutting down?");
+		}
+	}
+	
+	private final void execute(Runnable command) {
+		try {
+			executor.execute(command);
+		} catch(RejectedExecutionException e) {
+			// Executor is probably shutting down.
+			Logger.debug(this, "Caught RejectedExecutionException while scheduling "+command+": Shutting down?");
+		}
+	}
+	
+	private final void schedule(Runnable command, long delay, TimeUnit unit) {
+		try {
+			executor.schedule(fetcher, delay, unit);
+		} catch(RejectedExecutionException e) {
+			// Executor is probably shutting down.
+			Logger.debug(this, "Caught RejectedExecutionException while scheduling "+command+": Shutting down?");
+		}
+	}
+
 }
