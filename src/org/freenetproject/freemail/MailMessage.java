@@ -57,8 +57,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.imap.IMAPMessageFlags;
 import org.freenetproject.freemail.utils.Logger;
 
-import freenet.support.MediaType;
-
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MailMessage {
 	private static final Set<String> dateFormats;
@@ -638,31 +637,36 @@ public class MailMessage {
 		public MessageBodyReader(Reader in, MailMessage msg) throws UnsupportedEncodingException {
 			super(in);
 			transferEncoding = ContentTransferEncoding.parse(msg.getFirstHeader("Content-Transfer-Encoding"));
+			charset = extractCharsetFromContentType(msg);
+		}
 
+		private static Charset extractCharsetFromContentType(MailMessage msg) throws UnsupportedEncodingException {
 			String contentType = msg.getFirstHeader("Content-Type");
 			if(contentType == null) {
 				contentType = "text/plain; charset=us-ascii";
 			}
-			MediaType parsedType;
-			try {
-                parsedType = new MediaType(contentType);
-            } catch (MalformedURLException e) {
-                throw new UnsupportedEncodingException("Can't handle content type: \""+contentType+"\" : "+e.getMessage());
-            }
-            if(!(parsedType.getType().equals("text") && parsedType.getSubtype().equals("plain"))) {
-                throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
-                        + parsedType);
-            }
-            String charsetName = parsedType.getParameter("charset");
-            if(charsetName == null) charsetName = "us-ascii";
-            Map<String,String> params = parsedType.getParameters();
-            params.remove("charset");
-            if(!params.isEmpty()) {
+			String[] parts = contentType.split(";");
+			if(!parts[0].equalsIgnoreCase("text/plain")) {
+				throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
+						+ parts[0]);
+			}
+
+			if (parts.length == 1) {
+				/* no charset in content-type, use utf-8. Fix for https://freenet.mantishub.io/view.php?id=7189. */
+				return UTF_8;
+			}
+
+			String[] charsetParts = parts[1].trim().split("=", 2);
+			if(!charsetParts[0].equalsIgnoreCase("charset")) {
 				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
 						+ "Unrecognised parameters were: " + params);
 			}
 
-			charset = Charset.forName(charsetName);
+			String charsetName = charsetParts[1];
+			if(charsetName.startsWith("\"") && charsetName.endsWith("\"")) {
+				charsetName = charsetName.substring(1, charsetName.length() - 1);
+			}
+			return Charset.forName(charsetName);
 		}
 
 		@Override
