@@ -21,15 +21,15 @@
 
 package org.freenetproject.freemail;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.FileOutputStream;
-import java.io.BufferedReader;
 import java.io.PrintStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -40,6 +40,7 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -52,7 +53,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.imap.IMAPMessageFlags;
 import org.freenetproject.freemail.utils.Logger;
@@ -463,7 +463,7 @@ public class MailMessage {
 
 		if(encoding.equalsIgnoreCase("B")) {
 			//Base64 encoding
-			byte[] bytes = Base64.decode(text.getBytes("UTF-8"));
+			byte[] bytes = Base64.getDecoder().decode(text.getBytes("UTF-8"));
 			return new String(bytes, charset);
 		}
 
@@ -737,7 +737,7 @@ public class MailMessage {
 				}
 				readData = true;
 
-				byte[] data = Base64.decode(encodedLine);
+				byte[] data = Base64.getDecoder().decode(encodedLine);
 				String line = new String(data, 0, data.length, charset);
 
 				int linebreakIndex = line.indexOf("\r\n");
