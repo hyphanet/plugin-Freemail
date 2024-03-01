@@ -20,7 +20,12 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import freenet.clients.http.*;
+import freenet.clients.http.LinkEnabledCallback;
+import freenet.clients.http.PageMaker;
+import freenet.clients.http.PageNode;
+import freenet.clients.http.Toadlet;
+import freenet.clients.http.ToadletContext;
+import freenet.clients.http.ToadletContextClosedException;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.MultiValueTable;
