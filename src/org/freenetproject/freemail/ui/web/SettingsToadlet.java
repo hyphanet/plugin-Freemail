@@ -90,7 +90,7 @@ public class SettingsToadlet extends WebPage {
 		try {
 			int num = Integer.parseInt(port);
 
-			return (num > 0 && num <= 65535);
+			return (num > 1024 && num <= 65535);
 		} catch (NumberFormatException e) {
 			return false;
 		}

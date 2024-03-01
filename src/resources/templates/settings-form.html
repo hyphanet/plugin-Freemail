@@ -8,10 +8,10 @@
         <input id="imap-bind-address" name="imap-bind-address" value="${imapBindAddress}" required/>
         <br/>
         <label for="smtp-bind-port">#{Freemail.InfoToadlet.smtp-port.title}</label>
-        <input id="smtp-bind-port" name="smtp-bind-port" type="number" min="0" max="65535" value="${smtpBindPort}" required/>
+        <input id="smtp-bind-port" name="smtp-bind-port" type="number" min="1024" max="65535" value="${smtpBindPort}" required/>
         <br/>
         <label for="imap-bind-port">#{Freemail.InfoToadlet.imap-port.title}</label>
-        <input id="imap-bind-port" name="imap-bind-port" type="number" min="0" max="65535" value="${imapBindPort}" required/>
+        <input id="imap-bind-port" name="imap-bind-port" type="number" min="1024" max="65535" value="${imapBindPort}" required/>
         <br/>
         <input type="submit" value="Save">
     </form>
