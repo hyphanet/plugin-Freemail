@@ -20,16 +20,15 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import freenet.clients.http.Toadlet;
+import freenet.clients.http.ToadletContainer;
+import freenet.pluginmanager.PluginRespirator;
 import org.freenetproject.freemail.FreemailPlugin;
 import org.freenetproject.freemail.config.Configurator;
 import org.freenetproject.freemail.utils.Logger;
 
-import freenet.clients.http.Toadlet;
-import freenet.clients.http.ToadletContainer;
-import freenet.pluginmanager.PluginRespirator;
+import java.util.HashSet;
+import java.util.Set;
 
 public class WebInterface {
 	static final String COOKIE_NAMESPACE = "Freemail";
@@ -69,11 +68,14 @@ public class WebInterface {
 		OutboxToadlet outboxToadlet = new OutboxToadlet(pluginRespirator, freemail.getAccountManager(), freemail, loginManager);
 		NewMessageToadlet newMessageToadlet = new NewMessageToadlet(freemail.getWotConnection(), freemail, pluginRespirator, loginManager);
 		InfoToadlet infoToadlet = new InfoToadlet(pluginRespirator, loginManager, freemail.getAccountManager(), config);
+		SettingsToadlet settingsToadlet = new SettingsToadlet(pluginRespirator, loginManager, config, container);
+
 		registerToadlet(loginToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LoginToadlet.name", "Freemail.LoginToadlet.title", false);
 		registerToadlet(logoutToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.LogoutToadlet.name", "Freemail.LogoutToadlet.title", false);
 		registerToadlet(inboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InboxToadlet.name", "Freemail.InboxToadlet.title", false);
 		registerToadlet(outboxToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.OutboxToadlet.name", "Freemail.OutboxToadlet.title", false);
 		registerToadlet(newMessageToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.NewMessageToadlet.name", "Freemail.NewMessageToadlet.title", false);
+		registerToadlet(settingsToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.SettingsToadlet.name", "Freemail.SettingsToadlet.title", false);
 		registerToadlet(infoToadlet, FREEMAIL_CATEGORY_NAME, true, "Freemail.InfoToadlet.name", "Freemail.InfoToadlet.title", false);
 
 		//Toadlets that don't go in the menu
