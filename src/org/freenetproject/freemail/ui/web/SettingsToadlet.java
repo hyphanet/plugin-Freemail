@@ -32,14 +32,14 @@ public class SettingsToadlet extends WebPage {
 	@Override
 	HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException {
 		HTMLNode settingsBox = addInfobox(page.content, FreemailL10n.getString("Freemail.SettingsToadlet.title"));
-		Map<String, String> settings = createSettings();
+		Map<String, Object> settings = createSettings();
 		addChild(settingsBox, "settings-form", settings);
 
 		return new GenericHTMLResponse(ctx, 200, "OK", page.outer.generate());
 	}
 
-	private Map<String, String> createSettings() {
-		Map<String, String> settings = new HashMap<>();
+	private Map<String, Object> createSettings() {
+		Map<String, Object> settings = new HashMap<>();
 		settings.put("formPassword", toadletContainer.getFormPassword());
 		settings.put("smtpBindPort", config.get("smtp_bind_port"));
 		settings.put("smtpBindAddress", config.get("smtp_bind_address"));

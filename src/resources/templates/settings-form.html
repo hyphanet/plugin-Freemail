@@ -1,17 +1,17 @@
 <div style="float: left; text-align: right;">
     <form method="post">
-        <input name="formPassword" type="hidden" value="${formPassword}">
-        <label for="smtp-bind-address">#{Freemail.InfoToadlet.smtp-addr.title}</label>
-        <input id="smtp-bind-address" name="smtp-bind-address" value="${smtpBindAddress}" required/>
+        <input name="formPassword" type="hidden" value="{{ formPassword }}">
+        <label for="smtp-bind-address">{{ l10n('Freemail.InfoToadlet.smtp-addr.title') }}</label>
+        <input id="smtp-bind-address" name="smtp-bind-address" value="{{ smtpBindAddress }}" required/>
         <br/>
-        <label for="imap-bind-address">#{Freemail.InfoToadlet.imap-addr.title}</label>
-        <input id="imap-bind-address" name="imap-bind-address" value="${imapBindAddress}" required/>
+        <label for="imap-bind-address">{{ l10n('Freemail.InfoToadlet.imap-addr.title') }}</label>
+        <input id="imap-bind-address" name="imap-bind-address" value="{{ imapBindAddress }}" required/>
         <br/>
-        <label for="smtp-bind-port">#{Freemail.InfoToadlet.smtp-port.title}</label>
-        <input id="smtp-bind-port" name="smtp-bind-port" type="number" min="1024" max="65535" value="${smtpBindPort}" required/>
+        <label for="smtp-bind-port">{{ l10n('Freemail.InfoToadlet.smtp-port.title') }}</label>
+        <input id="smtp-bind-port" name="smtp-bind-port" type="number" min="1024" max="65535" value="{{ smtpBindPort }}" required/>
         <br/>
-        <label for="imap-bind-port">#{Freemail.InfoToadlet.imap-port.title}</label>
-        <input id="imap-bind-port" name="imap-bind-port" type="number" min="1024" max="65535" value="${imapBindPort}" required/>
+        <label for="imap-bind-port">{{ l10n('Freemail.InfoToadlet.imap-port.title') }}</label>
+        <input id="imap-bind-port" name="imap-bind-port" type="number" min="1024" max="65535" value="{{ imapBindPort }}" required/>
         <br/>
         <input type="submit" value="Save">
     </form>
