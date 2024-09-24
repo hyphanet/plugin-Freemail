@@ -1,0 +1,2 @@
+include ':hyphanet-fred'
+project(':hyphanet-fred').projectDir = new File('hyphanet-fred')

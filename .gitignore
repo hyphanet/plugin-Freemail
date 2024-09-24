@@ -7,3 +7,5 @@ tools/build/
 out/
 deps/
 run/
+.idea
+.gradle

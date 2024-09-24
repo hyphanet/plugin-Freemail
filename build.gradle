@@ -1,0 +1,103 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+}
+
+group = 'org.freenetproject'
+version = '0.0.1-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    // You might need to add custom repositories for Freenet dependencies
+}
+
+dependencies {
+    implementation project(':hyphanet-fred')
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.59'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.hamcrest:hamcrest:3.0'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
+}
+
+processResources {
+    include 'org/freenetproject/freemail/l10n/*.l10n'
+    include 'org/freenetproject/freemail/ui/web/css/*.css'
+    include 'org/freenetproject/freemail/ui/web/images/**'
+}
+
+test {
+    useJUnit()
+    include '**/*Test.java'
+    systemProperty 'test.extensive', System.getProperty('test.extensive')
+    systemProperty 'test.verbose', System.getProperty('test.verbose')
+}
+
+checkstyle {
+    configFile = file("${rootDir}/checkstyle.xml")
+    toolVersion = "8.41"
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'org.freenetproject.freemail.FreemailCli',
+                'Plugin-Main-Class': 'org.freenetproject.freemail.FreemailPlugin',
+                'Implementation-Title': 'Freemail',
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint"
+}
+
+tasks.named('compileJava') {
+    dependsOn(':hyphanet-fred:jar')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// Optional: Add a task to get Git revision (similar to the Ant build)
+tasks.register('getGitRevision') {
+    ext.revision = 'unknown'
+    doLast {
+        try {
+            def stdout = new ByteArrayOutputStream()
+            exec {
+                commandLine 'git', 'describe', '--always', '--abbrev=1', '--dirty'
+                standardOutput = stdout
+            }
+            ext.revision = stdout.toString().trim()
+        } catch (ignored) {
+            println "Git not available, using 'unknown' as revision"
+        }
+    }
+}
+
+processResources.dependsOn getGitRevision
+processResources.doFirst {
+    ant.replace(file: "src/main/java/org/freenetproject/freemail/Version.java", token: "@custom@", value: getGitRevision.revision)
+}
