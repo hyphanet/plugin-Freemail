@@ -4,18 +4,17 @@ This is the first release of Freemail, and so may (read: does) have bugs that I 
 
 Using Freemail
 ==============
+
 You can compile from source:
 
 compile: (however you compile Java, an ant buildfile is supplied)
 
-To build with ant, if the default configuration of a Fred clone in ../fred
-doesn't match yours, create a file override.properties with content similar to
+To build with ant, create a file override.properties with content similar to
 the following:
 
-freenet-s-snapshot.location = ../freenet/freenet.jar
-freenet-ext.location = ../freenet/freenet-ext.jar
-bcprov.location = ../fred-staging/lib/bcprov.jar
-test.skip = true
+bcprov.location = <your home dir>/.gradle/caches/modules-2/files-2.1/org.bouncycastle/bcprov-jdk15on/1.59/2507204241ab450456bdb8e8c0a8f986e418bd99/bcprov-jdk15on-1.59.jar
+junit = <your home dir>/.gradle/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar
+hamcrest = <your home dir>/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/3.0/8fd9b78a8e6a6510a078a9e30e9e86a6035cfaf7/hamcrest-3.0.jar
 
 Now run `ant clean; ant`
 (if you have a working junit.jar, remove the test.skip line)
@@ -25,17 +24,9 @@ run with --newaccount <account name> to create an account, eg:
 
 ...or you can fetch the most recent Freemail jar from: http://downloads.freenetproject.org/alpha/Freemail/Freemail.jar
 
-Once you've done one of those steps, create an account (replace java -jar with however you run jar files on your system):
+Once you've done one of those steps, run:
 
-java -jar Freemail.jar --newaccount fred
-
-Use --passwd <account> <passwd> to set your password
-
-java -jar Freemail.jar --passwd fred fredspassword
-
-Run:
-
-java -jar Freemail.jar
+java -cp ~/.gradle/caches/modules-2/files-2.1/org.bouncycastle/bcprov-jdk15on/1.59/2507204241ab450456bdb8e8c0a8f986e418bd99/bcprov-jdk15on-1.59.jar:build/libs/plugin-Freemail-0.0.1-SNAPSHOT.jar org.freenetproject.freemail.FreemailCli
 
 (You can also specify the address (host) and port of your Freenet node
 using -h and -p respectively, if they are not the defaults).
