@@ -10,8 +10,9 @@
 	<property file="build.properties"/>
 
 	<!-- set global properties for this build -->
-	<property name="src" location="src"/>
-	<property name="test" location="test"/>
+	<property name="src" location="src/main/java"/>
+	<property name="resources" location="src/main/resources"/>
+	<property name="test" location="src/test/java"/>
 	<property name="test.run" location="run"/>
 	<property name="build" location="build"/>
 	<property name="build-test" location="build-test"/>
@@ -20,7 +21,7 @@
 	<property name="version.src" value="org/freenetproject/freemail/Version.java"/>
 	<property name="version.build" value="org/freenetproject/freemail/Version.class"/>
 
-	<property name="tools.src" location="tools/src"/>
+	<property name="tools.src" location="src/tools/java"/>
 	<property name="tools.dst" location="tools/build"/>
 
 	<exec executable="git"
@@ -58,12 +59,13 @@
 		<tstamp/>
 
 		<!-- Create the Version file with patched revision number in ${build} -->
-		<copy file="${src}/${version.src}"
+		<copy file="${resources}/${version.src}"
 		      tofile="${build}/${version.src}"
 		      overwrite="true" />
 		<delete file="${build}/${version.build}" quiet="true" />
 		<replace file="${build}/${version.src}">
-			<replacefilter token="@custom@" value="${git.revision}"/>
+			<replacefilter token="@git_revision@" value="${git.revision}"/>
+			<replacefilter token="@project_version@" value="${project.version}"/>
 		</replace>
 		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
 
@@ -105,7 +107,7 @@
 
 	       <!-- Copy l10n and css -->
 		<copy todir="${build}">
-			<fileset dir="${src}">
+			<fileset dir="${resources}">
 				<include name="org/freenetproject/freemail/l10n/*.l10n" />
 				<include name="org/freenetproject/freemail/ui/web/css/*.css" />
 				<include name="org/freenetproject/freemail/ui/web/images/" />
@@ -125,7 +127,7 @@
 		       encoding="UTF-8"
 		       includeantruntime="false">
 			<classpath>
-				<pathelement location="${bouncycastle.location}"/>
+				<pathelement location="${bcprov.location}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>

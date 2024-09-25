@@ -21,7 +21,7 @@ package org.freenetproject.freemail;
 
 public class Version {
 	/** The human readable version */
-	public static final String VERSION = "0.2.7.5";
+	public static final String VERSION = "@project_version@";
 
 	/**
 	 * The build number, used by the plugin auto-updater. This must always
@@ -31,7 +31,7 @@ public class Version {
 	public static final int BUILD_NO = 30;
 
 	/** Version number updated at build time using git describe */
-	public static final String GIT_REVISION = "@custom@";
+	public static final String GIT_REVISION = "@git_revision@";
 
 	public static String getVersionString() {
 		if(GIT_REVISION.equals("v" + VERSION)) {

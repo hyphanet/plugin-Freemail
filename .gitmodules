@@ -1,0 +1,3 @@
+[submodule "hyphanet-fred"]
+	path = hyphanet-fred
+	url = https://github.com/hyphanet/fred.git
