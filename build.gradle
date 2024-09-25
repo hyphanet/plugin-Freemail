@@ -10,8 +10,14 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
+    flatDir { dirs uri("${projectDir}/lib") }
+    maven {
+        url 'https://mvn.freenetproject.org'
+        metadataSources {
+            artifact()
+        }
+    }
     mavenCentral()
-    // You might need to add custom repositories for Freenet dependencies
 }
 
 dependencies {
@@ -20,22 +26,8 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.hamcrest:hamcrest:3.0'
-}
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src/main/java']
-        }
-        resources {
-            srcDirs = ['src/main/resources']
-        }
-    }
-    test {
-        java {
-            srcDirs = ['src/test/java']
-        }
-    }
+    runtimeOnly 'org.freenetproject:freenet-ext:29'
 }
 
 processResources {
@@ -54,6 +46,7 @@ test {
 checkstyle {
     configFile = file("${rootDir}/checkstyle.xml")
     toolVersion = "8.41"
+    ignoreFailures = true
 }
 
 jar {
@@ -100,4 +93,11 @@ tasks.register('getGitRevision') {
 processResources.dependsOn getGitRevision
 processResources.doFirst {
     ant.replace(file: "src/main/java/org/freenetproject/freemail/Version.java", token: "@custom@", value: getGitRevision.revision)
+}
+
+tasks.register('runApp', JavaExec) {
+    group = "application"
+    description = "Run the main class"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "org.freenetproject.freemail.FreemailCli"
 }

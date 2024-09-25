@@ -17,23 +17,15 @@ junit = <your home dir>/.gradle/caches/modules-2/files-2.1/junit/junit/4.13.2/8a
 hamcrest = <your home dir>/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/3.0/8fd9b78a8e6a6510a078a9e30e9e86a6035cfaf7/hamcrest-3.0.jar
 
 Now run `ant clean; ant`
-(if you have a working junit.jar, remove the test.skip line)
-
-
-run with --newaccount <account name> to create an account, eg:
-
-...or you can fetch the most recent Freemail jar from: http://downloads.freenetproject.org/alpha/Freemail/Freemail.jar
 
 Once you've done one of those steps, run:
 
-java -cp ~/.gradle/caches/modules-2/files-2.1/org.bouncycastle/bcprov-jdk15on/1.59/2507204241ab450456bdb8e8c0a8f986e418bd99/bcprov-jdk15on-1.59.jar:build/libs/plugin-Freemail-0.0.1-SNAPSHOT.jar org.freenetproject.freemail.FreemailCli
+java -cp ~/.gradle/caches/modules-2/files-2.1/org.bouncycastle/bcprov-jdk15on/1.59/2507204241ab450456bdb8e8c0a8f986e418bd99/bcprov-jdk15on-1.59.jar:~/.gradle/caches/modules-2/files-2.1/org.freenetproject/freenet-ext/29/507ab3f6ee91f47c187149136fb6d6e98f9a8c7f/freenet-ext-29.jar:./hyphanet-fred/build/libs/freenet.jar:./build/classes org.freenetproject.freemail.FreemailCli
 
 (You can also specify the address (host) and port of your Freenet node
 using -h and -p respectively, if they are not the defaults).
 
 Set up your email client to point at IMAP port 3143 and SMTP port 3025.
-
-
 
 Feel free to Freemail me on dave@dbkr.freemail! If that doesn't work, my real email address is dbkr@freenetproject.org.
 
