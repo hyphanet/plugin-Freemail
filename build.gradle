@@ -20,6 +20,18 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', "${project.buildDir}/generated/sources/main/java"]
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+            exclude '**/Version.java'
+        }
+    }
+}
+
 dependencies {
     implementation project(':hyphanet-fred')
     implementation 'org.bouncycastle:bcprov-jdk15on:1.59'
@@ -30,10 +42,38 @@ dependencies {
     runtimeOnly 'org.freenetproject:freenet-ext:29'
 }
 
+tasks.register('getGitRevision') {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'describe', '--always', '--abbrev=1', '--dirty'
+        standardOutput = stdout
+    }
+    ext.revision = stdout.toString().trim()
+}
+
+// Define a new task for processing Version.java
+task processVersionJava(type: Copy) {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/Version.java'
+    }
+    into "${project.buildDir}/generated/sources/main/java"
+    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
+            git_revision: getGitRevision.revision,
+            project_version: project.version
+    ], beginToken: '@', endToken: '@')
+}
+
 processResources {
-    include 'org/freenetproject/freemail/l10n/*.l10n'
-    include 'org/freenetproject/freemail/ui/web/css/*.css'
-    include 'org/freenetproject/freemail/ui/web/images/**'
+    dependsOn processVersionJava
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    // Exclude Version.java from main resources
+    from(sourceSets.main.resources.srcDirs) {
+        exclude '**/Version.java'
+        include 'org/freenetproject/freemail/l10n/*.l10n'
+        include 'org/freenetproject/freemail/ui/web/css/*.css'
+        include 'org/freenetproject/freemail/ui/web/images/**'
+    }
 }
 
 test {
@@ -45,7 +85,7 @@ test {
 
 checkstyle {
     configFile = file("${rootDir}/checkstyle.xml")
-    toolVersion = "8.41"
+    toolVersion = '8.41'
     ignoreFailures = true
 }
 
@@ -62,8 +102,9 @@ jar {
 
 compileJava {
     options.encoding = 'UTF-8'
-    options.compilerArgs << "-Xlint"
+    options.compilerArgs << '-Xlint'
 }
+compileJava.dependsOn processResources
 
 tasks.named('compileJava') {
     dependsOn(':hyphanet-fred:jar')
@@ -73,31 +114,9 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-// Optional: Add a task to get Git revision (similar to the Ant build)
-tasks.register('getGitRevision') {
-    ext.revision = 'unknown'
-    doLast {
-        try {
-            def stdout = new ByteArrayOutputStream()
-            exec {
-                commandLine 'git', 'describe', '--always', '--abbrev=1', '--dirty'
-                standardOutput = stdout
-            }
-            ext.revision = stdout.toString().trim()
-        } catch (ignored) {
-            println "Git not available, using 'unknown' as revision"
-        }
-    }
-}
-
-processResources.dependsOn getGitRevision
-processResources.doFirst {
-    ant.replace(file: "src/main/java/org/freenetproject/freemail/Version.java", token: "@custom@", value: getGitRevision.revision)
-}
-
 tasks.register('runApp', JavaExec) {
-    group = "application"
-    description = "Run the main class"
+    group = 'application'
+    description = 'Run the main class'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = "org.freenetproject.freemail.FreemailCli"
+    mainClass = 'org.freenetproject.freemail.FreemailCli'
 }

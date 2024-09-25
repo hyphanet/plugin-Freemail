@@ -59,12 +59,13 @@
 		<tstamp/>
 
 		<!-- Create the Version file with patched revision number in ${build} -->
-		<copy file="${src}/${version.src}"
+		<copy file="${resources}/${version.src}"
 		      tofile="${build}/${version.src}"
 		      overwrite="true" />
 		<delete file="${build}/${version.build}" quiet="true" />
 		<replace file="${build}/${version.src}">
-			<replacefilter token="@custom@" value="${git.revision}"/>
+			<replacefilter token="@git_revision@" value="${git.revision}"/>
+			<replacefilter token="@project_version@" value="${project.version}"/>
 		</replace>
 		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
 
