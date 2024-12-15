@@ -63,4 +63,6 @@ Freemail.InfoToadlet.imap-port.title=IMAP server port:
 Freemail.InfoToadlet.smtp-addr.title=SMTP server address:
 Freemail.InfoToadlet.smtp-port.title=SMTP server port:
 Freemail.InfoToadlet.server.title=Freemail info
+Freemail.SettingsToadlet.name=Settings
+Freemail.SettingsToadlet.title=Settings
 End

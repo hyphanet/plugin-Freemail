@@ -20,18 +20,10 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.io.IOException;
-import java.net.URI;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
-import org.freenetproject.freemail.MailMessage;
-import org.freenetproject.freemail.l10n.FreemailL10n;
-import org.freenetproject.freemail.utils.Logger;
-import org.freenetproject.freemail.utils.Timer;
-
+import com.mitchellbosecke.pebble.PebbleEngine;
+import com.mitchellbosecke.pebble.PebbleEngine.Builder;
+import com.mitchellbosecke.pebble.loader.ClasspathLoader;
+import com.mitchellbosecke.pebble.loader.Loader;
 import freenet.clients.http.LinkEnabledCallback;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
@@ -43,17 +35,39 @@ import freenet.support.HTMLNode;
 import freenet.support.MultiValueTable;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
+import org.freenetproject.freemail.MailMessage;
+import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.Logger;
+import org.freenetproject.freemail.utils.Timer;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URI;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
 	final PluginRespirator pluginRespirator;
 	final LoginManager loginManager;
+	private final PebbleEngine templateEngine;
 
 	WebPage(PluginRespirator pluginRespirator, LoginManager loginManager) {
 		super(null);
 		this.pageMaker = pluginRespirator.getPageMaker();
 		this.loginManager = loginManager;
 		this.pluginRespirator = pluginRespirator;
+		this.templateEngine = createTemplateEngine();
+	}
+
+	private PebbleEngine createTemplateEngine() {
+		Loader<String> loader = new ClasspathLoader(getClass().getClassLoader());
+		loader.setPrefix("/resources/templates/");
+		loader.setSuffix(".html");
+		return new Builder().loader(loader).extension(new L10nExtension()).build();
 	}
 
 	abstract HTTPResponse makeWebPageGet(URI uri, HTTPRequest req, ToadletContext ctx, PageNode page) throws IOException;
@@ -175,6 +189,13 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
 				new String[] {"link"},
 				new HTMLNode[] {HTMLNode.link("/plugins")});
+	}
+
+	void addChild(HTMLNode parent, String templateName, Map<String, Object> model) throws IOException {
+		try (StringWriter stringWriter = new StringWriter()) {
+			templateEngine.getTemplate(templateName).evaluate(stringWriter, model);
+			parent.addChild("%", stringWriter.toString());
+		}
 	}
 
 	protected abstract class HTTPResponse {

@@ -81,6 +81,7 @@
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
 				<pathelement location="${bcprov.location}"/>
+				<pathelement location="${pebble.location}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -99,6 +100,7 @@
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 				<pathelement path="${main.lib}"/>
 				<pathelement location="${bcprov.location}"/>
+				<pathelement location="${pebble.location}"/>
 			</classpath>
 			<compilerarg value="-Xlint"/>
 		</javac>
@@ -186,6 +188,7 @@
 	<target name="dist" depends="compile" description="Generates the Freemail jar">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
+			<fileset dir="${src}" includes="resources/**" />
 			<manifest>
 				<attribute name="Main-Class" value="org.freenetproject.freemail.FreemailCli"/>
 				<attribute name="Plugin-Main-Class" value="org.freenetproject.freemail.FreemailPlugin"/>
