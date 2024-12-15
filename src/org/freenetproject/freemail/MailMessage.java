@@ -21,18 +21,19 @@
 
 package org.freenetproject.freemail;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.FileOutputStream;
-import java.io.BufferedReader;
 import java.io.PrintStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -40,6 +41,7 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -47,18 +49,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.imap.IMAPMessageFlags;
 import org.freenetproject.freemail.utils.Logger;
-
-import freenet.support.MediaType;
-
 
 public class MailMessage {
 	private static final Set<String> dateFormats;
@@ -463,7 +460,7 @@ public class MailMessage {
 
 		if(encoding.equalsIgnoreCase("B")) {
 			//Base64 encoding
-			byte[] bytes = Base64.decode(text.getBytes("UTF-8"));
+			byte[] bytes = Base64.getDecoder().decode(text.getBytes("UTF-8"));
 			return new String(bytes, charset);
 		}
 
@@ -638,31 +635,36 @@ public class MailMessage {
 		public MessageBodyReader(Reader in, MailMessage msg) throws UnsupportedEncodingException {
 			super(in);
 			transferEncoding = ContentTransferEncoding.parse(msg.getFirstHeader("Content-Transfer-Encoding"));
+			charset = extractCharsetFromContentType(msg);
+		}
 
+		private static Charset extractCharsetFromContentType(MailMessage msg) throws UnsupportedEncodingException {
 			String contentType = msg.getFirstHeader("Content-Type");
 			if(contentType == null) {
 				contentType = "text/plain; charset=us-ascii";
 			}
-			MediaType parsedType;
-			try {
-                parsedType = new MediaType(contentType);
-            } catch (MalformedURLException e) {
-                throw new UnsupportedEncodingException("Can't handle content type: \""+contentType+"\" : "+e.getMessage());
-            }
-            if(!(parsedType.getType().equals("text") && parsedType.getSubtype().equals("plain"))) {
-                throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
-                        + parsedType);
-            }
-            String charsetName = parsedType.getParameter("charset");
-            if(charsetName == null) charsetName = "us-ascii";
-            Map<String,String> params = parsedType.getParameters();
-            params.remove("charset");
-            if(!params.isEmpty()) {
-				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
-						+ "Unrecognised parameters were: " + params);
+			String[] parts = contentType.split(";");
+			if(!parts[0].equalsIgnoreCase("text/plain")) {
+				throw new UnsupportedEncodingException("Can't handle content types other than text/plain. Type was "
+						+ parts[0]);
 			}
 
-			charset = Charset.forName(charsetName);
+			if (parts.length == 1) {
+				/* no charset in content-type, use utf-8. Fix for https://freenet.mantishub.io/view.php?id=7189. */
+				return UTF_8;
+			}
+
+			String[] charsetParts = parts[1].trim().split("=", 2);
+			if(!charsetParts[0].equalsIgnoreCase("charset")) {
+				throw new UnsupportedEncodingException("Can't handle text/plain with parameter other than charset. "
+						+ "Unrecognised parameters were: " + charsetParts);
+			}
+
+			String charsetName = charsetParts[1];
+			if(charsetName.startsWith("\"") && charsetName.endsWith("\"")) {
+				charsetName = charsetName.substring(1, charsetName.length() - 1);
+			}
+			return Charset.forName(charsetName);
 		}
 
 		@Override
@@ -737,7 +739,7 @@ public class MailMessage {
 				}
 				readData = true;
 
-				byte[] data = Base64.decode(encodedLine);
+				byte[] data = Base64.getDecoder().decode(encodedLine);
 				String line = new String(data, 0, data.length, charset);
 
 				int linebreakIndex = line.indexOf("\r\n");

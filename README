@@ -18,12 +18,10 @@ bcprov.location = ../fred-staging/lib/bcprov.jar
 test.skip = true
 
 Now run `ant clean; ant`
-(if you have a working junit.jar, remove the test.skip line)
+(if you have a working junit.jar, remove the test.skip line in override.properties)
 
 
 run with --newaccount <account name> to create an account, eg:
-
-...or you can fetch the most recent Freemail jar from: http://downloads.freenetproject.org/alpha/Freemail/Freemail.jar
 
 Once you've done one of those steps, create an account (replace java -jar with however you run jar files on your system):
 
