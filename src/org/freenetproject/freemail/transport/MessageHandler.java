@@ -90,6 +90,9 @@ public class MessageHandler {
 	}
 
 	private final File outbox;
+	/** Channels (may be more than one per correspondent). LOCKING: Channels lock should be taken 
+	 * before the locks inside Channel, not after. I.e. Channel should not call back to us with 
+	 * locks held. */
 	private final List<Channel> channels = new LinkedList<Channel>();
 	private final Freemail freemail;
 	private final File channelDir;

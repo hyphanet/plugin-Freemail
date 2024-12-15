@@ -68,7 +68,7 @@ public class AccountManager {
 	// each time a request is made for a given account.
 	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
 
-	//singleAccountWatcherList locks both these lists
+	//LOCKING: singleAccountWatcherList locks both these lists. lock always taken last.
 	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
 	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
 
