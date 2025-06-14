@@ -1,0 +1,33 @@
+plugins {
+	id 'java-library'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://maven.pterodactylus.net/' }
+}
+
+dependencies {
+	compileOnly group: 'org.freenetproject', name: 'fred', version: '0.7.5.1501'
+
+	testImplementation group: 'org.freenetproject', name: 'fred', version: '0.7.5.1501'
+	testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '3.0'
+	testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+	testImplementation group: 'org.mockito', name: 'mockito-inline', version: '4.11.0'
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': 'org.freenetproject.freemail.FreemailCli'
+		attributes 'Plugin-Main-Class': 'org.freenetproject.freemail.FreemailPlugin'
+	}
+
+	from {
+		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+}
