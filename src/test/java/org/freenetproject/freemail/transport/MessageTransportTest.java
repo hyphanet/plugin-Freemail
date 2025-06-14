@@ -55,7 +55,6 @@ import freenet.support.LoggerHook.InvalidThresholdException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 
-import utils.UnitTestParameters;
 import utils.Utils;
 
 public class MessageTransportTest {
@@ -75,9 +74,7 @@ public class MessageTransportTest {
 
 	@Before
 	public void before() throws InvalidThresholdException {
-		if(UnitTestParameters.VERBOSE) {
-			Logger.setupStdoutLogging(LogLevel.MINIMAL, null);
-		}
+		Logger.setupStdoutLogging(LogLevel.MINIMAL, null);
 
 		Utils.createDir(testDir);
 		Utils.createDir(accountManagerDir);

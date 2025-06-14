@@ -51,7 +51,6 @@ import data.TestId1Data;
 
 import utils.TextProtocolTester;
 import utils.TextProtocolTester.Command;
-import utils.UnitTestParameters;
 import utils.Utils;
 import fakes.FakeSocket;
 import fakes.NullIdentity;
@@ -95,7 +94,6 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void simpleSession() throws IOException {
-		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
@@ -128,7 +126,6 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void simpleSessionSendFails() throws IOException {
-		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
@@ -161,7 +158,6 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void messageWithDotPadding() throws IOException {
-		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
@@ -204,7 +200,6 @@ public class SMTPSessionTest {
 	 */
 	@Test
 	public void twoMessagesInOneSession() throws IOException {
-		Assume.assumeTrue(UnitTestParameters.EXTENSIVE);
 
 		final String message1 =
 				  "Date: Thu, 21 May 1998 05:33:29 -0700\r\n"
