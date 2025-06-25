@@ -32,11 +32,7 @@ public class LocaleDependentTest {
 	}
 
 	public static List<Locale> data() {
-		if(UnitTestParameters.EXTENSIVE) {
-			return Arrays.asList(Locale.getAvailableLocales());
-		}
-
-		return Arrays.asList(Locale.ROOT, Locale.US, new Locale("tr"));
+		return Arrays.asList(Locale.getAvailableLocales());
 	}
 
 	public void before() {
