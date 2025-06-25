@@ -544,6 +544,12 @@ public class NewMessageToadlet extends WebPage {
 		return true;
 	}
 
+	@Override
+	public boolean isLinkExcepted(URI link) {
+		String query = link.getQuery();
+		return (query != null) && link.getQuery().matches("(^|.*&)to=.*");
+	}
+
 	private Bucket bucketFromString(String data) {
 		try {
 			return new ArrayBucket(data.getBytes("UTF-8"));

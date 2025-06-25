@@ -25,6 +25,7 @@ import com.mitchellbosecke.pebble.PebbleEngine.Builder;
 import com.mitchellbosecke.pebble.loader.ClasspathLoader;
 import com.mitchellbosecke.pebble.loader.Loader;
 import freenet.clients.http.LinkEnabledCallback;
+import freenet.clients.http.LinkFilterExceptedToadlet;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.Toadlet;
@@ -49,7 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
+public abstract class WebPage extends Toadlet implements LinkEnabledCallback, LinkFilterExceptedToadlet {
 	private final PageMaker pageMaker;
 	final PluginRespirator pluginRespirator;
 	final LoginManager loginManager;
@@ -138,6 +139,11 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		//in the menu won't have to
 		throw new UnsupportedOperationException(
 				"Web pages that appear in the menu must override isEnabled(ToadletContext ctx)");
+	}
+
+	@Override
+	public boolean isLinkExcepted(URI link) {
+		return false;
 	}
 
 	boolean requiresFullAccess() {
