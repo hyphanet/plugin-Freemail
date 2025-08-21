@@ -66,7 +66,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback, Li
 
 	private PebbleEngine createTemplateEngine() {
 		Loader<String> loader = new ClasspathLoader(getClass().getClassLoader());
-		loader.setPrefix("/resources/templates/");
+		loader.setPrefix("templates/");
 		loader.setSuffix(".html");
 		return new Builder().loader(loader).extension(new L10nExtension()).build();
 	}
