@@ -19,13 +19,18 @@
 
 package org.freenetproject.freemail;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 
+import freenet.crypt.Yarrow;
+import freenet.keys.InsertableClientSSK;
 import java.util.Locale;
 
 import org.junit.Test;
 
-import org.archive.util.Base32;
+import org.freenetproject.freemail.utils.Base32;
 
 import freenet.support.Base64;
 
@@ -47,4 +52,12 @@ public class FreemailAccountTest {
 			Locale.setDefault(defaultLocale);
 		}
 	}
+
+	@Test
+	public void freemailAccountStripsBase32PaddingFromDomain() {
+		byte[] routingKey = InsertableClientSSK.createRandom(new Yarrow(), "").getURI().getRoutingKey();
+		FreemailAccount account = new FreemailAccount(Base64.encode(routingKey), null, null, null);
+		assertThat(account.getDomain(), not(containsString("=")));
+	}
+
 }

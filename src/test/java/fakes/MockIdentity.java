@@ -19,7 +19,7 @@
 
 package fakes;
 
-import org.archive.util.Base32;
+import org.freenetproject.freemail.utils.Base32;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.support.Base64;
@@ -45,7 +45,7 @@ public class MockIdentity extends NullIdentity {
 	public String getBase32IdentityID() {
 		Logger.debug(this, "getBase32IdentityID()");
 		try {
-			return Base32.encode(Base64.decode(identityID));
+			return Base32.encodeWithoutPadding(Base64.decode(identityID));
 		} catch (IllegalBase64Exception e) {
 			throw new AssertionError();
 		}

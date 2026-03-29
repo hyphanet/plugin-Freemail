@@ -26,7 +26,6 @@ import java.util.Locale;
 
 import freenet.support.Base64;
 
-import org.archive.util.Base32;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.MailSite;
 

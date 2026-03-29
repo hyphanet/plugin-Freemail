@@ -19,7 +19,7 @@
 
 package data;
 
-import org.archive.util.Base32;
+import org.freenetproject.freemail.utils.Base32;
 import org.freenetproject.freemail.utils.DateStringFactory;
 
 import freenet.support.Base64;
@@ -30,7 +30,7 @@ public class TestId2Data {
 	private static final String BASE32_ID;
 	static {
 		try {
-			BASE32_ID = Base32.encode(Base64.decode(BASE64_ID));
+			BASE32_ID = Base32.encodeWithoutPadding(Base64.decode(BASE64_ID));
 		} catch (IllegalBase64Exception e) {
 			throw new AssertionError(e);
 		}

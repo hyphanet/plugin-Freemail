@@ -22,9 +22,9 @@ package fakes;
 import java.io.File;
 import java.util.Locale;
 
-import org.archive.util.Base32;
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.NullFreemailAccount;
+import org.freenetproject.freemail.utils.Base32;
 import org.freenetproject.freemail.utils.PropsFile;
 
 import freenet.support.Base64;
@@ -60,7 +60,7 @@ public class MockFreemailAccount extends NullFreemailAccount {
 	@Override
 	public String getDomain() {
 		try {
-			return Base32.encode(Base64.decode(identity)).toLowerCase(Locale.ROOT) + ".freemail";
+			return Base32.encodeWithoutPadding(Base64.decode(identity)).toLowerCase(Locale.ROOT) + ".freemail";
 		} catch(IllegalBase64Exception e) {
 			//This would mean that WoT has changed the encoding of the identity string
 			throw new AssertionError("Got IllegalBase64Exception when decoding " + identity);

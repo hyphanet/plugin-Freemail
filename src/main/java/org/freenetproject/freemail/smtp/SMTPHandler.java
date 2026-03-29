@@ -42,13 +42,13 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.FileBucket;
 
-import org.archive.util.Base32;
 import org.bouncycastle.util.encoders.Base64;
 import org.freenetproject.freemail.AccountManager;
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.FreemailAccount;
 import org.freenetproject.freemail.ServerHandler;
 import org.freenetproject.freemail.transport.MessageHandler;
+import org.freenetproject.freemail.utils.Base32;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
