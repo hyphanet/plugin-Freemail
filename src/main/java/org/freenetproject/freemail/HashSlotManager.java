@@ -19,7 +19,7 @@
 
 package org.freenetproject.freemail;
 
-import org.archive.util.Base32;
+import org.freenetproject.freemail.utils.Base32;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
 
@@ -35,6 +35,6 @@ public class HashSlotManager extends SlotManager {
 		sha256.update(buf, 0, buf.length);
 		sha256.doFinal(buf, 0);
 
-		return Base32.encode(buf);
+		return Base32.encodeWithoutPadding(buf);
 	}
 }

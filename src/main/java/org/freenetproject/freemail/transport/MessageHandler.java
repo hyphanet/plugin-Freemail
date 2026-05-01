@@ -39,7 +39,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
 
-import org.archive.util.Base32;
 import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.Freemail.TaskType;
 import org.freenetproject.freemail.FreemailAccount;
@@ -48,6 +47,7 @@ import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.Postman;
 import org.freenetproject.freemail.fcp.HighLevelFCPClientFactory;
 import org.freenetproject.freemail.transport.Channel.ChannelEventCallback;
+import org.freenetproject.freemail.utils.Base32;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
@@ -550,7 +550,7 @@ public class MessageHandler {
 		private AckCallback(String remoteId) {
 			assert (remoteId != null);
 			try {
-				this.remoteId = Base32.encode(Base64.decode(remoteId)).toLowerCase(Locale.ROOT);
+				this.remoteId = Base32.encodeWithoutPadding(Base64.decode(remoteId)).toLowerCase(Locale.ROOT);
 			} catch (IllegalBase64Exception e) {
 				throw new AssertionError();
 			}

@@ -22,7 +22,7 @@ package org.freenetproject.freemail.wot;
 
 import java.util.Locale;
 
-import org.archive.util.Base32;
+import org.freenetproject.freemail.utils.Base32;
 
 import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
@@ -44,7 +44,7 @@ public class Identity {
 
 	public String getBase32IdentityID() {
 		try {
-			return Base32.encode(Base64.decode(identityID)).toLowerCase(Locale.ROOT);
+			return Base32.encodeWithoutPadding(Base64.decode(identityID)).toLowerCase(Locale.ROOT);
 		} catch (IllegalBase64Exception e) {
 			//Can't happen since we always get the id from WoT
 			throw new AssertionError();

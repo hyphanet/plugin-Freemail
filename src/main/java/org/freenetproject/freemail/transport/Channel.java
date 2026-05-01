@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.archive.util.Base32;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -66,6 +65,7 @@ import org.freenetproject.freemail.fcp.FCPFetchException;
 import org.freenetproject.freemail.fcp.FCPPutFailedException;
 import org.freenetproject.freemail.fcp.HighLevelFCPClient;
 import org.freenetproject.freemail.fcp.SSKKeyPair;
+import org.freenetproject.freemail.utils.Base32;
 import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
@@ -593,14 +593,14 @@ class Channel {
 
 	private String calculateNextSlot(String slot) {
 		byte[] buf = Base32.decode(slot);
-		return Base32.encode(SHA256.digest(buf));
+		return Base32.encodeWithoutPadding(SHA256.digest(buf));
 	}
 
 	private String generateRandomSlot() {
 		SHA256Digest sha256 = new SHA256Digest();
 		byte[] buf = new byte[sha256.getDigestSize()];
 		Freemail.getRNG().nextBytes(buf);
-		return Base32.encode(buf);
+		return Base32.encodeWithoutPadding(buf);
 	}
 
 	private class Fetcher implements Runnable {
