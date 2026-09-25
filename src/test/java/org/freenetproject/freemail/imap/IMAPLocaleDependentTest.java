@@ -92,12 +92,12 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 			}
 
 			//Read and parse the INTERNALDATE line which should be of the form:
-			//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
+			//* 1 FETCH (INTERNALDATE "dd-MMM-yyyy HH:mm:ss Z")
 			String line = fromHandler.readLine();
 			String[] parts = line.split("\"");
 			assertEquals("[locale=" + Locale.getDefault() + "] " + line, 3, parts.length);
 			String date = parts[1];
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+			SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss Z", Locale.ROOT);
 			sdf.parse(date);
 
 			//Read final line of expected output

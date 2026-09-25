@@ -30,7 +30,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.Arrays;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -42,8 +42,6 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.lang.NumberFormatException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.AccountManager;
@@ -52,6 +50,7 @@ import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.ServerHandler;
 import org.freenetproject.freemail.utils.Base32;
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
@@ -633,9 +632,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			val = mmsg.getFirstHeader("Date");
 			if(val == null) {
 				// possibly should keep our own dates...
-				SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-
-				val = sdf.format(new Date());
+				val = DateStringFactory.formatInternalDate(ZonedDateTime.now());
 			}
 			val = "\""+val+"\"";
 		}

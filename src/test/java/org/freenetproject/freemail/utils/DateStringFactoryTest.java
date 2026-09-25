@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail.utils;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
@@ -97,6 +98,18 @@ public class DateStringFactoryTest {
 	}
 
 	@Test
+	public void fullDateCanBeCreatedFromInstant() {
+		var dateTime = Instant.ofEpochMilli(1790315744000L);
+		assertThat(DateStringFactory.formatFullDate(dateTime), equalTo("Fri, 25 Sep 2026 05:55:44 +0000"));
+	}
+
+	@Test
+	public void fullDateCanBeCreatedFromLocalDateTime() {
+		var dateTime = LocalDateTime.of(2026, 9, 25, 7, 55, 44);
+		assertThat(DateStringFactory.formatFullDate(dateTime), equalTo("Fri, 25 Sep 2026 07:55:44 +0000"));
+	}
+
+	@Test
 	public void fullDateIsParsedCorrectly() {
 		var parsedDateTime = DateStringFactory.parseFullDate("Thu, 24 Sep 2026 20:27:45 +0200").get();
 		assertThat(parsedDateTime, equalTo(OffsetDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2))));
@@ -117,6 +130,54 @@ public class DateStringFactoryTest {
 	@Test
 	public void invalidFullDateReturnsEmptyOptional() {
 		var parsedDateTime = DateStringFactory.parseFullDate("not a valid date");
+		assertThat(parsedDateTime.isPresent(), equalTo(false));
+	}
+
+	@Test
+	public void internalDateIsCreatedCorrectly() {
+		var dateTime = OffsetDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2));
+		assertThat(DateStringFactory.formatInternalDate(dateTime), equalTo("24-Sep-2026 18:27:45 +0000"));
+	}
+
+	@Test
+	public void internalDateWithSingleDigitDayIsCreatedCorrectly() {
+		var dateTime = OffsetDateTime.of(2015, 10, 1, 18, 56, 16, 0, ZoneOffset.ofHours(2));
+		assertThat(DateStringFactory.formatInternalDate(dateTime), equalTo("1-Oct-2015 16:56:16 +0000"));
+	}
+
+	@Test
+	public void internalDateIsCreatedCorrectlyFromZonedDateTime() {
+		var dateTime = ZonedDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2));
+		assertThat(DateStringFactory.formatInternalDate(dateTime), equalTo("24-Sep-2026 18:27:45 +0000"));
+	}
+
+	@Test
+	public void internalDateIsCreatedCorrectlyFromLocalDateTime() {
+		var dateTime = LocalDateTime.of(2026, 9, 24, 20, 27, 45, 0);
+		assertThat(DateStringFactory.formatInternalDate(dateTime), equalTo("24-Sep-2026 20:27:45 +0000"));
+	}
+
+	@Test
+	public void internalDateIsCreatedCorrectlyFromInstant() {
+		var dateTime = Instant.ofEpochSecond(1790338285);
+		assertThat(DateStringFactory.formatInternalDate(dateTime), equalTo("25-Sep-2026 12:11:25 +0000"));
+	}
+
+	@Test
+	public void internalDateIsParsedCorrectly() {
+		var parsedDateTime = DateStringFactory.parseInternalDate("24-Sep-2026 18:27:45 +0000").get();
+		assertThat(parsedDateTime, equalTo(OffsetDateTime.of(2026, 9, 24, 18, 27, 45, 0, ZoneOffset.ofHours(0))));
+	}
+
+	@Test
+	public void internalDateWithSingleDigitDayIsParsedCorrectly() {
+		var parsedDateTime = DateStringFactory.parseInternalDate("1-Oct-2015 18:56:16 +0200").get();
+		assertThat(parsedDateTime, equalTo(OffsetDateTime.of(2015, 10, 1, 18, 56, 16, 0, ZoneOffset.ofHours(2))));
+	}
+
+	@Test
+	public void invalidInternalDateReturnsEmptyOptional() {
+		var parsedDateTime = DateStringFactory.parseInternalDate("not a valid date");
 		assertThat(parsedDateTime.isPresent(), equalTo(false));
 	}
 
