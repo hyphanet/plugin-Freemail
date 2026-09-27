@@ -57,6 +57,8 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.support.Base64;
 
+import static java.util.Arrays.stream;
+
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
 
@@ -273,12 +275,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	private void listMatchingFolders(MessageBank folder, String pattern, String replyprefix, String folderpath) {
 		MessageBank[] folders = folder.listSubFolders();
 
-		for(int i = 0; i < folders.length; i++) {
-			String fullpath = folderpath+folders[i].getName();
+		for (MessageBank messageBank : folders) {
+			String fullpath = folderpath + messageBank.getName();
 
-			this.listMatchingFolders(folders[i], pattern, replyprefix, fullpath+".");
-			if(fullpath.matches(pattern)) {
-				this.sendState(replyprefix+" "+folders[i].getFolderFlagsString()+" \".\" \""+fullpath+"\"");
+			this.listMatchingFolders(messageBank, pattern, replyprefix, fullpath + ".");
+			if (fullpath.matches(pattern)) {
+				this.sendState(replyprefix + " " + messageBank.getFolderFlagsString() + " \".\" \"" + fullpath + "\"");
 			}
 		}
 	}
@@ -769,10 +771,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					Logger.error(this, "Caught IOException while reading message headers: " + ioe.getMessage(), ioe);
 				}
 
-				String[] fields = parts[1].split(" ");
-				for(int j = 0; j < fields.length; j++) {
-					buf.append(mmsg.getHeaders(fields[j]));
-				}
+				stream(parts[1].split(" "))
+						.map(mmsg::getHeaders)
+						.forEach(buf::append);
 				buf.append("\r\n");
 			} else if(parts[0].equalsIgnoreCase("header")) {
 				if(!hasSentDataName) {

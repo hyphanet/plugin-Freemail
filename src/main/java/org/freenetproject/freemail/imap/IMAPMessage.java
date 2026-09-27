@@ -112,9 +112,7 @@ public class IMAPMessage {
 
 		if(this.args == null) return retval;
 
-		for(int i = 0; i < this.args.length; i++) {
-			retval += " " + this.args[i];
-		}
+		retval += String.join(" ", args);
 		return retval;
 	}
 }

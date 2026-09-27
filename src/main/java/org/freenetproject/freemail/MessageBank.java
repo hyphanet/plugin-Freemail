@@ -40,6 +40,8 @@ import java.util.Arrays;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
 
+import static java.util.Arrays.stream;
+
 
 public class MessageBank {
 	private static final String MESSAGES_DIR = "inbox";
@@ -114,13 +116,13 @@ public class MessageBank {
 	public synchronized boolean delete() {
 		File[] files = this.dir.listFiles();
 
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().equals(".")) continue;
-			if(files[i].getName().equals("..")) continue;
+		for (File file : files) {
+			if (file.getName().equals(".")) continue;
+			if (file.getName().equals("..")) continue;
 
 			// this method should will fail if there are directories
 			// here. It should never be called if this is the case.
-			if(!files[i].delete()) return false;
+			if (!file.delete()) return false;
 		}
 
 		return this.dir.delete();
@@ -156,10 +158,10 @@ public class MessageBank {
 		TreeMap<Integer, MailMessage> msgs = new TreeMap<Integer, MailMessage>();
 
 		int seq=1;
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].isDirectory()) continue;
+		for (File file : files) {
+			if (file.isDirectory()) continue;
 
-			MailMessage msg = new MailMessage(files[i], seq++);
+			MailMessage msg = new MailMessage(file, seq++);
 
 			msgs.put(msg.getUID(), msg);
 		}
@@ -222,8 +224,8 @@ public class MessageBank {
 		File ghostdir = new File(this.dir, "."+name);
 		if(ghostdir.exists()) {
 			File[] files = ghostdir.listFiles();
-			for(int i = 0; i < files.length; i++) {
-				files[i].delete();
+			for (File file : files) {
+				file.delete();
 			}
 			ghostdir.delete();
 		}
@@ -242,13 +244,10 @@ public class MessageBank {
 		File[] files = this.dir.listFiles();
 		Vector<File> subfolders = new Vector<File>();
 
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().startsWith(".")) continue;
-
-			if(files[i].isDirectory()) {
-				subfolders.add(files[i]);
-			}
-		}
+		stream(files)
+				.filter(file -> !file.getName().startsWith("."))
+				.filter(File::isDirectory)
+				.forEach(subfolders::add);
 
 		MessageBank[] retval = new MessageBank[subfolders.size()];
 

@@ -149,8 +149,8 @@ public class MailMessageBodyEncodingTest {
 	}
 
 	private void runEncoderTest(byte[] expected, byte[] input) throws IOException {
-		for(int i = 0; i < expected.length; i++) {
-			if(expected[i] >= 0x80) {
+		for (byte b : expected) {
+			if (b >= 0x80) {
 				fail("Expected output can't contain 8bit characters");
 			}
 		}

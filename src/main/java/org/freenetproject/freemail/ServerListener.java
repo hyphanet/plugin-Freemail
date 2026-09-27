@@ -45,10 +45,7 @@ public abstract class ServerListener {
 		}
 		// kill all our handlers too
 		synchronized(handlers) {
-			for(Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
-				ServerHandler handler = i.next();
-				handler.kill();
-			}
+			handlers.forEach(ServerHandler::kill);
 		}
 	}
 
@@ -56,9 +53,8 @@ public abstract class ServerListener {
 	 * Wait for all our client threads to terminate
 	 */
 	public void joinClientThreads() {
-		for(Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
-			Thread t = i.next();
-			while(t != null) {
+		for (Thread t : handlerThreads) {
+			while (t != null) {
 				try {
 					t.join();
 					t = null;

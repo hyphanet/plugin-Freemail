@@ -24,6 +24,9 @@ package org.freenetproject.freemail.imap;
 import java.util.Locale;
 import java.util.Vector;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
+
 public class IMAPMessageFlags {
 	public static final char[] allShortFlags = {
 		'S',
@@ -131,16 +134,9 @@ public class IMAPMessageFlags {
 	}
 
 	public String getFlags() {
-		String retval = "";
-
-		for(int i = 0; i < allFlags.length; i++) {
-			if(this.flags.contains(allFlags[i])) {
-				if(retval.length() > 0) retval += " ";
-				retval += allFlags[i];
-			}
-		}
-
-		return retval;
+		return stream(allFlags)
+				.filter(flags::contains)
+				.collect(joining(" "));
 	}
 
 	public void clear() {
@@ -159,14 +155,10 @@ public class IMAPMessageFlags {
 	// take a flag, check it's real flag, and if so,
 	// return it in the proper capitalisation
 	private static String sanitize_flag(String flag) {
-		String realFlag = null;
-
-		for(int i = 0; i < allFlags.length; i++) {
-			if(allFlags[i].toLowerCase(Locale.ROOT).equals(flag.toLowerCase(Locale.ROOT))) {
-				realFlag = allFlags[i];
-			}
-		}
-		return realFlag;
+		return stream(allFlags)
+				.filter(realFlag -> realFlag.toLowerCase(Locale.ROOT).equals(flag.toLowerCase(Locale.ROOT)))
+				.findFirst()
+				.orElse(null);
 	}
 
 	public boolean isSeen() {
