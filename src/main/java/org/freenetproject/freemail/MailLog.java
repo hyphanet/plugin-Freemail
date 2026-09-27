@@ -43,7 +43,7 @@ class MailLog {
 		this.lastMessageId = 0;
 		this.passes = 0;
 
-		this.messages = new HashMap<Integer, String>();
+		this.messages = new HashMap<>();
 		this.logfile = logfile;
 
 		try (InputStream frdr = new FileInputStream(this.logfile);

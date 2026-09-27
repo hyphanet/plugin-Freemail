@@ -64,7 +64,7 @@ public class Configurator {
 		head.append("# of editing this file.");
 
 		this.props.setHeader(head.toString());
-		this.callbacks = new HashMap<String, ConfigClient>();
+		this.callbacks = new HashMap<>();
 	}
 
 	/**

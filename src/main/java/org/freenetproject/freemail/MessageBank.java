@@ -156,7 +156,7 @@ public class MessageBank {
 
 		Arrays.sort(files, new UIDComparator());
 
-		TreeMap<Integer, MailMessage> msgs = new TreeMap<Integer, MailMessage>();
+		TreeMap<Integer, MailMessage> msgs = new TreeMap<>();
 
 		int seq=1;
 		for (File file : files) {
@@ -243,7 +243,7 @@ public class MessageBank {
 
 	public synchronized MessageBank[] listSubFolders() {
 		File[] files = this.dir.listFiles();
-		Vector<File> subfolders = new Vector<File>();
+		Vector<File> subfolders = new Vector<>();
 
 		stream(files)
 				.filter(file -> !file.getName().startsWith("."))

@@ -54,7 +54,7 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 
 	@Parameters
 	public static List<Locale[]> data() {
-		List<Locale[]> data = new LinkedList<Locale[]>();
+		List<Locale[]> data = new LinkedList<>();
 		for(Locale l : LocaleDependentTest.data()) {
 			data.add(new Locale[] {l});
 		}
@@ -105,7 +105,7 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 			send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
 
 			//Read all the initial responses
-			List<String> expectedResponse = new LinkedList<String>();
+			List<String> expectedResponse = new LinkedList<>();
 			expectedResponse.addAll(INITIAL_RESPONSES);
 			int lineNum = 0;
 			for (String response : expectedResponse) {
@@ -135,12 +135,12 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 	 */
 	@Test
 	public void silentUidStore() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID STORE 3 +FLAGS.SILENT (\\Seen)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 OK Store completed");
 

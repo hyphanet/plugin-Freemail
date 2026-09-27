@@ -92,12 +92,12 @@ public class MessageHandler {
 	/** Channels (may be more than one per correspondent). LOCKING: Channels lock should be taken 
 	 * before the locks inside Channel, not after. I.e. Channel should not call back to us with 
 	 * locks held. */
-	private final List<Channel> channels = new LinkedList<Channel>();
+	private final List<Channel> channels = new LinkedList<>();
 	private final Freemail freemail;
 	private final File channelDir;
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
-	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
+	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<>();
 	private final HighLevelFCPClientFactory hlFcpClientFactory;
 
 	public MessageHandler(File outbox, Freemail freemail, File channelDir,
@@ -329,7 +329,7 @@ public class MessageHandler {
 	}
 
 	public List<OutboxMessage> listOutboxMessages() throws IOException {
-		List<OutboxMessage> messages = new LinkedList<OutboxMessage>();
+		List<OutboxMessage> messages = new LinkedList<>();
 
 		File[] outboxFiles = outbox.listFiles();
 		if(outboxFiles == null) {

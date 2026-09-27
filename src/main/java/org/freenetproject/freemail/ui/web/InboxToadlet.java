@@ -105,7 +105,7 @@ public class InboxToadlet extends WebPage {
 		//Sort the messages correctly
 		// FIXME is there any reason for this to be a TreeMap rather than Arrays.sort()?
 		// Maybe if we want to have it on more than one page in future or something?
-		SortedMap<MailMessage, Integer> messages = new TreeMap<MailMessage, Integer>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
+		SortedMap<MailMessage, Integer> messages = new TreeMap<>(new MailMessageComparator(getSortField(req), getSortDirection(req)));
 		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
 			Integer messageNum = messageEntry.getKey();
 			MailMessage message = messageEntry.getValue();
@@ -172,7 +172,7 @@ public class InboxToadlet extends WebPage {
 		}
 		MessageBank messageBank = getMessageBank(account, folderName);
 
-		Set<MailMessage> selectedMessages = new HashSet<MailMessage>();
+		Set<MailMessage> selectedMessages = new HashSet<>();
 		for(Entry<Integer, MailMessage> messageEntry : messageBank.listMessages().entrySet()) {
 			int num = messageEntry.getKey();
 			try {
@@ -334,7 +334,7 @@ public class InboxToadlet extends WebPage {
 	}
 
 	private List<String> getAllFolders(FreemailAccount account) {
-		List<String> folderList = new LinkedList<String>();
+		List<String> folderList = new LinkedList<>();
 		MessageBank topLevel = account.getMessageBank();
 		folderList.add(topLevel.getName());
 		addSubfolders(folderList, topLevel, topLevel.getName());

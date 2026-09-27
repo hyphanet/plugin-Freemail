@@ -29,10 +29,10 @@ import org.junit.Test;
 public class SMTPStateTest extends SMTPTestBase {
 	@Test
 	public void mailWithoutAuthentication() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("MAIL");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("530 Authentication required");
 
@@ -41,10 +41,10 @@ public class SMTPStateTest extends SMTPTestBase {
 
 	@Test
 	public void rcptWithoutAuthentication() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("RCPT arg1");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("530 Authentication required");
 
@@ -53,10 +53,10 @@ public class SMTPStateTest extends SMTPTestBase {
 
 	@Test
 	public void dataWithoutAuthentication() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("DATA");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("530 Authentication required");
 
@@ -70,11 +70,11 @@ public class SMTPStateTest extends SMTPTestBase {
 		final byte[] concatedBytes = ("\0" + username + "\0" + password).getBytes("ASCII");
 		final String encoded = new String(Base64.encode(concatedBytes), "ASCII");
 
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + encoded);
 		commands.add("DATA");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("235 Authenticated");
 		expectedResponse.add("503 RCPT first");

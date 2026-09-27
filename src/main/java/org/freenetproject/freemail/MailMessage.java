@@ -64,7 +64,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class MailMessage {
 	private static final Set<String> dateFormats;
 	static {
-		Set<String> backing = new HashSet<String>();
+		Set<String> backing = new HashSet<>();
 		backing.add("EEE, d MMM yyyy HH:mm:ss Z"); //Mon, 17 Oct 2011 10:24:14 +0200
 		backing.add("d MMM yyyy HH:mm:ss Z");      //     18 Feb 2012 03:32:22 +0100
 		dateFormats = Collections.unmodifiableSet(backing);
@@ -81,7 +81,7 @@ public class MailMessage {
 
 	public MailMessage(File f, int msg_seqnum) {
 		this.file = f;
-		this.headers = new Vector<MailMessageHeader>();
+		this.headers = new Vector<>();
 		this.msg_seqnum=msg_seqnum;
 
 		// initialize flags from filename
@@ -163,7 +163,7 @@ public class MailMessage {
 	 * @return a list of the values of all headers with the given name
 	 */
 	public List<String> getHeadersByName(String name) {
-		List<String> matches = new LinkedList<String>();
+		List<String> matches = new LinkedList<>();
 
 		for(MailMessageHeader header : headers) {
 			if(header.name.equalsIgnoreCase(name)) {

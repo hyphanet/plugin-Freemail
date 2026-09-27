@@ -91,7 +91,7 @@ class MessageLog {
 	}
 
 	private void readIds() throws IOException {
-		presentIds = new HashMap<Long, String>();
+		presentIds = new HashMap<>();
 
 		if(!logfile.exists()) {
 			logfile.createNewFile();

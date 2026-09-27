@@ -60,7 +60,7 @@ public abstract class SMTPTestBase {
 	private static final File TEST_DIR = new File("smtptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
 
-	private final Map<String, File> accountDirs = new HashMap<String, File>();
+	private final Map<String, File> accountDirs = new HashMap<>();
 	private File accountManagerDir;
 
 	@Before
@@ -82,7 +82,7 @@ public abstract class SMTPTestBase {
 
 	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
-		List<Command> combined = new LinkedList<Command>();
+		List<Command> combined = new LinkedList<>();
 
 		//Add all the commands first, then the replies, ensuring all the
 		//commands will be sent before checking the replies

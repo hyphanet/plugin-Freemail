@@ -28,7 +28,7 @@ public final class Timer {
 	private final long startTime;
 	private final boolean isSubTimer;
 
-	private final List<Timer> subTimers = new LinkedList<Timer>();
+	private final List<Timer> subTimers = new LinkedList<>();
 
 	private String logMessage;
 	private boolean logAtWarning = false;

@@ -28,7 +28,7 @@ public class SMTPCommand {
 
 	public SMTPCommand(String line) throws SMTPBadCommandException {
 		boolean in_quotes = false;
-		Vector<String> tmp_args = new Vector<String>();
+		Vector<String> tmp_args = new Vector<>();
 		StringBuffer buf = new StringBuffer("");
 
 		for(int i = 0; i < line.length(); i++) {

@@ -92,7 +92,7 @@ public class MessageTransportTest {
 	@Test(timeout=10 * 1000)
 	public void messageHandlerTest() throws IOException, InterruptedException, TimeoutException {
 		//Set up the fake FCP client
-		Map<String, File> fetchResults = new HashMap<String, File>();
+		Map<String, File> fetchResults = new HashMap<>();
 		{
 			File mailpage = new File(testDir, "mailsite");
 			try (PrintWriter pw = new PrintWriter(mailpage)) {
@@ -111,13 +111,13 @@ public class MessageTransportTest {
 		//The WoT connection, seeded with our only id
 		final MockWoTConnection wotConnection;
 		{
-			Map<String, Map<String, Identity>> identites = new HashMap<String, Map<String, Identity>>();
-			Map<String, Identity> ids = new HashMap<String, Identity>();
+			Map<String, Map<String, Identity>> identites = new HashMap<>();
+			Map<String, Identity> ids = new HashMap<>();
 			ids.put(TestId1Data.Identity.ID, id);
 			identites.put(TestId1Data.Identity.ID, ids);
 
-			Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-			Map<String, String> props = new HashMap<String, String>();
+			Map<String, Map<String, String>> properties = new HashMap<>();
+			Map<String, String> props = new HashMap<>();
 			props.put("Freemail.mailsite", TestId1Data.Mailsite.EDITION + "");
 			properties.put(TestId1Data.Identity.ID, props);
 
@@ -145,7 +145,7 @@ public class MessageTransportTest {
 		MessageHandler handler = new MessageHandler(outboxDir, freemail, channelDir, account, hlFcpClientFactory);
 
 		//Now send the actual message
-		List<Identity> recipients = new ArrayList<Identity>(1);
+		List<Identity> recipients = new ArrayList<>(1);
 		for(int i = 0; i < 1; i++) {
 			recipients.add(new MockIdentity(TestId1Data.Identity.ID, TestId1Data.Identity.REQUEST_URI, TestId1Data.Identity.NICKNAME));
 		}

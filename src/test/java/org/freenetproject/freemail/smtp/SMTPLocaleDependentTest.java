@@ -42,7 +42,7 @@ public class SMTPLocaleDependentTest extends SMTPTestBase {
 
 	@Parameters
 	public static List<Locale[]> data() {
-		List<Locale[]> data = new LinkedList<Locale[]>();
+		List<Locale[]> data = new LinkedList<>();
 		for(Locale l : LocaleDependentTest.data()) {
 			data.add(new Locale[] {l});
 		}
@@ -76,10 +76,10 @@ public class SMTPLocaleDependentTest extends SMTPTestBase {
 	 */
 	@Test
 	public void checkMailCommandRecognized() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("MAIL");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("530 Authentication required");
 

@@ -86,7 +86,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		List<String> recipients = new LinkedList<String>();
+		List<String> recipients = new LinkedList<>();
 		String recipient = req.getParam("to");
 		if(!recipient.equals("")) {
 			Identity identity;
@@ -117,7 +117,7 @@ public class NewMessageToadlet extends WebPage {
 			return createReply(req, ctx, page);
 		}
 
-		List<String> recipients = new LinkedList<String>();
+		List<String> recipients = new LinkedList<>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
 			recipients.add(getBucketAsString(req.getPart("to" + i)));
 		}
@@ -203,7 +203,7 @@ public class NewMessageToadlet extends WebPage {
 		Timer sendMessageTimer = Timer.start();
 
 		Timer recipientHandling = sendMessageTimer.startSubTimer();
-		Map<String, String> recipients = new HashMap<String, String>();
+		Map<String, String> recipients = new HashMap<>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
 			String recipient = getBucketAsString(req.getPart("to" + i));
 			if(recipient.equals("")) {
@@ -263,8 +263,8 @@ public class NewMessageToadlet extends WebPage {
 		identityMatching.log(this, "Time spent matching identities");
 
 		//Check if there were any unknown or ambiguous identities
-		List<String> failedRecipients = new LinkedList<String>();
-		List<Identity> knownRecipients = new LinkedList<Identity>();
+		List<String> failedRecipients = new LinkedList<>();
+		List<Identity> knownRecipients = new LinkedList<>();
 		for(Map.Entry<String, List<Identity>> entry : matches.entrySet()) {
 			if(entry.getValue().size() == 1)
 				knownRecipients.add(entry.getValue().get(0));
@@ -545,7 +545,7 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private List<String> readExtraHeaders(HTTPRequest req) {
-		List<String> extraHeaders = new LinkedList<String>();
+		List<String> extraHeaders = new LinkedList<>();
 		for(int i = 0;; i++) {
 			String header = getBucketAsString(req.getPart("extraHeader" + i));
 			if(header == null) {

@@ -46,7 +46,7 @@ public class FCPConnection implements Runnable {
 
 	public FCPConnection(FCPContext ctx) {
 		this.fcpctx = ctx;
-		this.clients = new HashMap<String, FCPClient>();
+		this.clients = new HashMap<>();
 
 		this.tryConnect();
 	}

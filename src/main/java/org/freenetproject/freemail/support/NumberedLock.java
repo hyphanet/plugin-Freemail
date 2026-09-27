@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class NumberedLock {
-	private final Set<Long> lockedNumbers = new HashSet<Long>();
+	private final Set<Long> lockedNumbers = new HashSet<>();
 
 	public void lock(long lock) {
 		synchronized(lockedNumbers) {

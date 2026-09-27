@@ -131,7 +131,7 @@ public class MailMessageTest {
 
 	@Test
 	public void encodeDecodeMultipleStrings() throws UnsupportedEncodingException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Test message");
 		input.add("Test message (æøå)");
 		input.add("testæHeader∀");

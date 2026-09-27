@@ -67,11 +67,11 @@ public class AccountManager {
 	// We keep FreemailAccount objects for all the accounts in this instance of Freemail - they need to be in memory
 	// anyway since there's SingleAccountWatcher thread running for each of them anyway - and we return the same object
 	// each time a request is made for a given account.
-	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
+	private Map<String, FreemailAccount> accounts = new HashMap<>();
 
 	//LOCKING: singleAccountWatcherList locks both these lists. lock always taken last.
-	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
-	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<>();
+	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<>();
 
 	private final File datadir;
 	private final Freemail freemail;
@@ -132,7 +132,7 @@ public class AccountManager {
 
 	public List<FreemailAccount> getAllAccounts() {
 		synchronized(accounts) {
-			return new LinkedList<FreemailAccount>(accounts.values());
+			return new LinkedList<>(accounts.values());
 		}
 	}
 

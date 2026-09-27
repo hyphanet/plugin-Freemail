@@ -89,7 +89,7 @@ public class RTSLog {
 
 	public void pruneBefore(Date keepafter) {
 		Set<String> props = this.logfile.listProps();
-		Vector<String> hitlist = new Vector<String>();
+		Vector<String> hitlist = new Vector<>();
 
 		for (String cur : props) {
 			String datestr;

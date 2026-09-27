@@ -1213,7 +1213,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		String mbname = trimQuotes(msg.args[0]);
 
 		String sdatalen = "";
-		List<String> flags = new LinkedList<String>();
+		List<String> flags = new LinkedList<>();
 
 		for(int i = 1; i < msg.args.length; i++) {
 			if(msg.args[i].startsWith("(")) {
@@ -1614,7 +1614,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private SortedSet<Integer> parseSequenceSet(String seqNum, int maxSeqNum) throws IllegalSequenceNumberException {
-		SortedSet<Integer> result = new TreeSet<Integer>();
+		SortedSet<Integer> result = new TreeSet<>();
 
 		//Split on , to get the ranges
 		for(String range : seqNum.split(",")) {

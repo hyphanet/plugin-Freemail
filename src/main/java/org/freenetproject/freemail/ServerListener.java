@@ -30,8 +30,8 @@ public abstract class ServerListener {
 	private final ArrayList<Thread> handlerThreads;
 
 	protected ServerListener() {
-		handlers = new ArrayList<ServerHandler>();
-		handlerThreads = new ArrayList<Thread>();
+		handlers = new ArrayList<>();
+		handlerThreads = new ArrayList<>();
 	}
 
 	/**

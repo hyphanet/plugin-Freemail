@@ -30,12 +30,12 @@ import utils.TextProtocolTester.Command;
 public class IMAPSearchTest extends IMAPTestWithMessages {
 	@Test
 	public void searchForUndeleted() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 SEARCH UNDELETED");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9");
 		expectedResponse.add("0003 OK Search completed");
@@ -45,12 +45,12 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidSearchForUndeleted() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID SEARCH UNDELETED");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
 		expectedResponse.add("0003 OK Search completed");
@@ -60,12 +60,12 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 
 	@Test
 	public void searchWithNoMatches() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 SEARCH DELETED UNDELETED");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* SEARCH");
 		expectedResponse.add("0003 OK Search completed");
@@ -75,7 +75,7 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 
 	@Test
 	public void searchWithExtraParansAndOneKey() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -89,7 +89,7 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 
 	@Test
 	public void searchWithExtraParansAndTwoKeys() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -103,7 +103,7 @@ public class IMAPSearchTest extends IMAPTestWithMessages {
 
 	@Test
 	public void searchWithExtraParansAndIllegalWhitespace() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));

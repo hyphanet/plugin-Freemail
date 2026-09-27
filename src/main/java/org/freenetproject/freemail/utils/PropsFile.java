@@ -39,7 +39,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class PropsFile {
 	// substitute static methods for constructor
 
-	private static final Hashtable<String, PropsFile> propsList=new Hashtable<String, PropsFile>();
+	private static final Hashtable<String, PropsFile> propsList= new Hashtable<>();
 
 	private static int reapCounter = 0;
 	/// We go through the list and remove stale entries once in this many times a PropsFile is created
@@ -118,7 +118,7 @@ public class PropsFile {
 	}
 
 	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
-		this.data = new HashMap<String, String>();
+		this.data = new HashMap<>();
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), UTF_8));
 
@@ -177,7 +177,7 @@ public class PropsFile {
 
 	public boolean put(String key, String val) {
 		if(this.data == null) {
-			this.data = new HashMap<String, String>();
+			this.data = new HashMap<>();
 		}
 
 		Object o = this.data.put(key, val);

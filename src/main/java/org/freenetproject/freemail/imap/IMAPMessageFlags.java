@@ -97,11 +97,11 @@ public class IMAPMessageFlags {
 	private Vector<String> flags;
 
 	public IMAPMessageFlags() {
-		this.flags = new Vector<String>();
+		this.flags = new Vector<>();
 	}
 
 	public IMAPMessageFlags(String shortflags) {
-		this.flags = new Vector<String>();
+		this.flags = new Vector<>();
 		for(int i = 0; i < allShortFlags.length; i++) {
 			if(shortflags.indexOf(allShortFlags[i]) >= 0) {
 				this.flags.add(allFlags[i]);

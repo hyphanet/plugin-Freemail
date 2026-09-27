@@ -32,8 +32,8 @@ public class FreenetURITest {
 	private static final String KEY_HASH = "TJl1G~HtSb5uRWW2ei36yXbilXTehZwXNwTirvpVSQ";
 	private static final String KEY_BODY = KEY_HASH + ",ISYik-w5cLR7n6IzL3GjmHmp~tj7AJaDWtNhrZ5qt-4,AQECAAE";
 
-	private static final List<String> validSSKs = new LinkedList<String>();
-	private static final List<String> validUSKs = new LinkedList<String>();
+	private static final List<String> validSSKs = new LinkedList<>();
+	private static final List<String> validUSKs = new LinkedList<>();
 	static {
 		validSSKs.add("SSK@" + KEY_BODY);
 		validSSKs.add("SSK@" + KEY_BODY + "/");

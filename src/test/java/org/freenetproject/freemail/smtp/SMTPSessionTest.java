@@ -104,7 +104,7 @@ public class SMTPSessionTest {
 				+ "This is a simple SMTP test for Freemail\r\n";
 
 		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
@@ -136,7 +136,7 @@ public class SMTPSessionTest {
 				+ "This is a simple SMTP test for Freemail\r\n";
 
 		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
@@ -177,7 +177,7 @@ public class SMTPSessionTest {
 				+ "..\r\n";
 
 		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
@@ -218,7 +218,7 @@ public class SMTPSessionTest {
 				+ "This is test message 2.\r\n";
 
 		String authData = new String(Base64.encode(("\0" + TestId1Data.Identity.ID + "\0" + PASSWORD).getBytes("ASCII")), "ASCII");
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(null, "220 localhost ready"));
 		commands.add(new Command("EHLO", "250-localhost",
 		                                 "250 AUTH LOGIN PLAIN"));
@@ -236,11 +236,11 @@ public class SMTPSessionTest {
 		commands.add(new Command("DATA", "354 Go crazy"));
 		commands.add(new Command(message2 + ".\r\n", "250 So be it"));
 
-		List<String> messages = new ArrayList<String>(2);
+		List<String> messages = new ArrayList<>(2);
 		messages.add(message1);
 		messages.add(message2);
 
-		List<String> recipients = new ArrayList<String>(2);
+		List<String> recipients = new ArrayList<>(2);
 		recipients.add(TestId1Data.FreemailAccount.ADDRESS);
 		recipients.add(TestId1Data.FreemailAccount.ADDRESS);
 
@@ -325,8 +325,8 @@ public class SMTPSessionTest {
 				assertEquals(curRcpt, recipients.iterator().next());
 				assertEquals(TestId1Data.Identity.ID, wotOwnIdentity);
 
-				Map<String, List<Identity>> result = new HashMap<String, List<Identity>>();
-				List<Identity> ids = new LinkedList<Identity>();
+				Map<String, List<Identity>> result = new HashMap<>();
+				List<Identity> ids = new LinkedList<>();
 				ids.add(recipient);
 				result.put(curRcpt, ids);
 				return result;

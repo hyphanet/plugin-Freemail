@@ -134,7 +134,7 @@ class Channel {
 	private final FreemailAccount account;
 	private final Fetcher fetcher = new Fetcher();
 	private final RTSSender rtsSender = new RTSSender();
-	private final AtomicReference<ChannelEventCallback> channelEventCallback = new AtomicReference<ChannelEventCallback>();
+	private final AtomicReference<ChannelEventCallback> channelEventCallback = new AtomicReference<>();
 	private final MessageLog ackLog;
 
 	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, String remoteId) throws ChannelTimedOutException {

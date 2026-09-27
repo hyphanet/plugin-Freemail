@@ -75,7 +75,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		this.identityMatcher = identityMatcher;
 
-		this.to = new Vector<Identity>();
+		this.to = new Vector<>();
 	}
 
 	@Override
@@ -290,7 +290,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 
 		//Check if the identity is in WoT
-		Set<String> recipient = new HashSet<String>();
+		Set<String> recipient = new HashSet<>();
 		recipient.add(address);
 		Map<String, List<Identity>> matches;
 		try {

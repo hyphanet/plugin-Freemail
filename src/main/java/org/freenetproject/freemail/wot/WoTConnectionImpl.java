@@ -65,7 +65,7 @@ class WoTConnectionImpl implements WoTConnection {
 			return null;
 		}
 
-		final List<OwnIdentity> ownIdentities = new LinkedList<OwnIdentity>();
+		final List<OwnIdentity> ownIdentities = new LinkedList<>();
 		for(int count = 0;; count++) {
 			String identityID = response.sfs.get("Identity" + count);
 			if(identityID == null) {
@@ -100,7 +100,7 @@ class WoTConnectionImpl implements WoTConnection {
 			return null;
 		}
 
-		final Set<Identity> identities = new HashSet<Identity>();
+		final Set<Identity> identities = new HashSet<>();
 		String prefix = "Identities.";
 		for(int count = 0;; count++) {
 			String identityID = response.sfs.get(prefix + count + ".ID");
@@ -186,7 +186,7 @@ class WoTConnectionImpl implements WoTConnection {
 		sfs.putOverwrite("Identity", identity);
 		sfs.putOverwrite("Property", key);
 
-		Set<String> expectedTypes = new HashSet<String>();
+		Set<String> expectedTypes = new HashSet<>();
 		expectedTypes.add("PropertyValue");
 
 		/* Also include Error since WoT returns this if the property doesn't exist for the message */

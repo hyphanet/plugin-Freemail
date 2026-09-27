@@ -60,7 +60,7 @@ public class MailHeaderFilter {
 	/** List of headers that can be passed though without being checked */
 	private static final Set<String> headerWhitelist;
 	static {
-		Set<String> backing = new HashSet<String>();
+		Set<String> backing = new HashSet<>();
 		backing.add("To");
 		backing.add("CC");
 		backing.add("Subject");
@@ -75,7 +75,7 @@ public class MailHeaderFilter {
 	/** List of headers that must never be passed though */
 	private static final Set<String> headerBlacklist;
 	static {
-		Set<String> backing = new HashSet<String>();
+		Set<String> backing = new HashSet<>();
 		backing.add("BCC");
 		headerBlacklist = Collections.unmodifiableSet(backing);
 	}

@@ -32,10 +32,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 	 * *************************************************** */
 	@Test
 	public void authWithoutType() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("504 No auth type given");
 
@@ -44,10 +44,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 
 	@Test
 	public void rejectsInvalidAuthMethod() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH Unsupported");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("504 Auth type unimplemented - weren't you listening?");
 
@@ -62,11 +62,11 @@ public class SMTPAuthTest extends SMTPTestBase {
 	public void rejectsSecondAuth() throws IOException {
 		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + authData);
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("235 Authenticated");
 		expectedResponse.add("503 Already authenticated");
@@ -80,13 +80,13 @@ public class SMTPAuthTest extends SMTPTestBase {
 	 * ****************************************** */
 	@Test
 	public void correctAuthPlainNoInitial() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN");
 
 		final String authData = new String(Base64.encode((BASE64_USERNAME + "\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 		commands.add(authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("334 ");
 		expectedResponse.add("235 Authenticated");
@@ -96,12 +96,12 @@ public class SMTPAuthTest extends SMTPTestBase {
 
 	@Test
 	public void correctAuthPlainInitial() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 
 		final String authData = new String(Base64.encode((BASE64_USERNAME + "\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("235 Authenticated");
 
@@ -110,12 +110,12 @@ public class SMTPAuthTest extends SMTPTestBase {
 
 	@Test
 	public void plainAuthWithoutAuthzid() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 
 		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("235 Authenticated");
 
@@ -134,10 +134,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 	public void plainAuthWithInvalidAuthzidValidAuthcid() throws IOException {
 		String authData = new String(Base64.encode(("nosuchuser\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("535 Authentication failed");
 
@@ -158,10 +158,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 	public void plainAuthWithValidAuthzidInValidAuthcid() throws IOException {
 		String authData = new String(Base64.encode((BASE64_USERNAME + "\0nosuchuser\0password").getBytes("ASCII")), "ASCII");
 
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("535 Authentication failed");
 
@@ -182,10 +182,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 	public void plainAuthTwoUsersValidPassword() throws IOException {
 		String authData = new String(Base64.encode((BASE64_USERNAMES[0] + "\0" + BASE64_USERNAMES[1] + "\0password").getBytes("ASCII")), "ASCII");
 
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("535 Authentication failed");
 
@@ -197,10 +197,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 	 */
 	@Test
 	public void plainAuthOnlyUsername() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + new String(Base64.encode((BASE64_USERNAME).getBytes("ASCII")), "ASCII"));
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("501 Invalid arguments to plain auth");
 
@@ -214,10 +214,10 @@ public class SMTPAuthTest extends SMTPTestBase {
 	public void plainAuthWithEmailAsUsername() throws IOException {
 		String authData = new String(Base64.encode(("\0zidel@" + BASE64_USERNAME + ".freemail\0password").getBytes("ASCII")), "ASCII");
 
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN " + authData);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("535 Authentication failed");
 
@@ -229,11 +229,11 @@ public class SMTPAuthTest extends SMTPTestBase {
 	 */
 	@Test
 	public void clientCancelsPlainAuthAfterChallenge() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH PLAIN");
 		commands.add("*");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("334 ");
 		expectedResponse.add("501 Authentication canceled");
@@ -247,12 +247,12 @@ public class SMTPAuthTest extends SMTPTestBase {
 	 * ****************************************** */
 	@Test
 	public void correctAuthLogin() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("AUTH LOGIN");
 		commands.add(new String(Base64.encode(BASE64_USERNAME.getBytes("ASCII")), "ASCII"));
 		commands.add(new String(Base64.encode("password".getBytes("ASCII")), "ASCII"));
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("334 " + new String(Base64.encode("Username:".getBytes("ASCII")), "ASCII"));
 		expectedResponse.add("334 " + new String(Base64.encode("Password:".getBytes("ASCII")), "ASCII"));

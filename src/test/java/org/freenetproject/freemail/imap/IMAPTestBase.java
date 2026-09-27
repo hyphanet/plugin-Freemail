@@ -57,7 +57,7 @@ public abstract class IMAPTestBase {
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
 	private static final String ACCOUNT_DIR = "account_dir";
 
-	protected final Map<String, File> accountDirs = new HashMap<String, File>();
+	protected final Map<String, File> accountDirs = new HashMap<>();
 	protected File accountManagerDir;
 
 	@Before
@@ -89,7 +89,7 @@ public abstract class IMAPTestBase {
 
 	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
-		List<Command> combined = new LinkedList<Command>();
+		List<Command> combined = new LinkedList<>();
 
 		//Add all the commands first, then the replies, ensuring all the
 		//commands will be sent before checking the replies

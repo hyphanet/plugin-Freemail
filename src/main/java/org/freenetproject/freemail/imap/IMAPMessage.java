@@ -62,9 +62,9 @@ public class IMAPMessage {
 
 	// split on spaces that aren't between two given characters
 	public static String[] doSplit(String in, char[] c1, char[] c2) {
-		Vector<String> parts = new Vector<String>();
+		Vector<String> parts = new Vector<>();
 		StringBuffer buf = new StringBuffer("");
-		Stack<Character> context = new Stack<Character>();
+		Stack<Character> context = new Stack<>();
 
 		for(int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);

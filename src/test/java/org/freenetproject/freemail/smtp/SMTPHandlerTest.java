@@ -29,10 +29,10 @@ import org.junit.Test;
 public class SMTPHandlerTest extends SMTPTestBase {
 	@Test
 	public void checkHeloReply() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("HELO");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("250 localhost");
 
@@ -41,10 +41,10 @@ public class SMTPHandlerTest extends SMTPTestBase {
 
 	@Test
 	public void checkEhloReply() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("EHLO");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("250-localhost");
 		expectedResponse.add("250 AUTH LOGIN PLAIN");
@@ -54,10 +54,10 @@ public class SMTPHandlerTest extends SMTPTestBase {
 
 	@Test
 	public void checkRejectsTurn() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("TURN");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("502 No");
 
@@ -66,12 +66,12 @@ public class SMTPHandlerTest extends SMTPTestBase {
 
 	@Test
 	public void mailAfterAuth() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		final String authData = new String(Base64.encode(("\0" + BASE64_USERNAME + "\0password").getBytes("ASCII")), "ASCII");
 		commands.add("AUTH PLAIN " + authData);
 		commands.add("MAIL");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("220 localhost ready");
 		expectedResponse.add("235 Authenticated");
 		expectedResponse.add("250 OK");

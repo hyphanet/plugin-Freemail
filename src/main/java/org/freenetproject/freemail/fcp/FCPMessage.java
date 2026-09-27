@@ -46,14 +46,14 @@ public class FCPMessage {
 
 	public FCPMessage(int id, String type) {
 		this.identifier = Integer.toString(id);
-		this.headers = new HashMap<String, String>();
+		this.headers = new HashMap<>();
 		this.messagetype = type;
 		this.data = null;
 		this.outData = null;
 	}
 
 	public FCPMessage(InputStream is) throws IOException {
-		this.headers = new HashMap<String, String>();
+		this.headers = new HashMap<>();
 		this.outData = null;
 
 		this.messagetype = null;
