@@ -126,7 +126,7 @@ public class AddAccountToadlet extends WebPage {
 			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Missing form password");
 		}
 
-		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().getClientCore().getFormPassword())) {
 			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Invalid form password.");
 		}
 

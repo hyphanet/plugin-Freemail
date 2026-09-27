@@ -77,7 +77,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 		startWorkers();
 		workers.log(this, 1, TimeUnit.SECONDS, "Time spent starting workers");
 
-		Freemail.setRNG(pr.getNode().secureRandom);
+		Freemail.setRNG(pr.getNode().getSecureRandom());
 		startServers(true);
 		startIdentityFetch(pr, getAccountManager());
 
@@ -88,7 +88,7 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
-		pr.getNode().executor.execute(new Runnable() {
+		pr.getNode().getExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
 				List<OwnIdentity> oids = null;
