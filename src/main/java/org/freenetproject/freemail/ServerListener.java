@@ -79,20 +79,10 @@ public abstract class ServerListener {
 	protected void reapHandlers() {
 		// clean up dead handlers...
 		synchronized(handlers) {
-			for(Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
-				ServerHandler handler = i.next();
-				if(!handler.isAlive()) {
-					i.remove();
-				}
-			}
+			handlers.removeIf(handler -> !handler.isAlive());
 		}
 
 		// ...and threads...
-		for(Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
-			Thread t = i.next();
-			if(!t.isAlive()) {
-				i.remove();
-			}
-		}
+		handlerThreads.removeIf(t -> !t.isAlive());
 	}
 }

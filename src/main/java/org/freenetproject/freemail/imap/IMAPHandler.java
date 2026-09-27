@@ -511,12 +511,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		Iterator<MailMessage> msgIt = msgs.values().iterator();
-		while(msgIt.hasNext()) {
-			if(!ts.contains(msgIt.next().getUID())) {
-				msgIt.remove();
-			}
-		}
+		msgs.values().removeIf(mailMessage -> !ts.contains(mailMessage.getUID()));
 
 		if(!this.doStore(msg.args, 2, msgs.values(), msg, true)) {
 			return;
@@ -853,12 +848,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		Iterator<MailMessage> msgIt = msgs.values().iterator();
-		while(msgIt.hasNext()) {
-			if(!ts.contains(msgIt.next().getSeqNum())) {
-				msgIt.remove();
-			}
-		}
+		msgs.values().removeIf(mailMessage -> !ts.contains(mailMessage.getSeqNum()));
 
 		if(!doStore(msg.args, 1, msgs.values(), msg, false)) {
 			return;
@@ -1523,12 +1513,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void filterMessagesOnFlag(Collection<MailMessage> messages, String flag, boolean state) {
-		Iterator<MailMessage> it = messages.iterator();
-		while(it.hasNext()) {
-			if(it.next().flags.get(flag) != state) {
-				it.remove();
-			}
-		}
+		messages.removeIf(mailMessage -> mailMessage.flags.get(flag) != state);
 	}
 
 	private void filterMessagesOnHeader(Collection<MailMessage> messages, String headerName, String searchString) {

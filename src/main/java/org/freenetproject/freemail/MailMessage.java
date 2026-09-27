@@ -173,13 +173,7 @@ public class MailMessage {
 	}
 
 	public void removeHeader(String name, String val) {
-		Iterator<MailMessageHeader> headerIt = headers.iterator();
-		while(headerIt.hasNext()) {
-			MailMessageHeader header = headerIt.next();
-			if(header.name.equalsIgnoreCase(name) && header.val.equalsIgnoreCase(val)) {
-				headerIt.remove();
-			}
-		}
+		headers.removeIf(header -> header.name.equalsIgnoreCase(name) && header.val.equalsIgnoreCase(val));
 	}
 
 	public String getAllHeadersAsString() {
