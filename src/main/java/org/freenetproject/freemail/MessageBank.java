@@ -40,6 +40,7 @@ import java.util.Arrays;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
 
 
@@ -274,7 +275,7 @@ public class MessageBank {
 		long retval;
 
 		try {
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), "UTF-8"))) {
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), UTF_8))) {
 
 				retval = Long.parseLong(br.readLine());
 
@@ -320,7 +321,7 @@ public class MessageBank {
 			//First read the next value from the UID file
 			File uidFile = new File(dir, UIDVALIDITYFILE);
 			try {
-				try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), "UTF-8"))) {
+				try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), UTF_8))) {
 					uid = Long.parseLong(reader.readLine());
 				}
 			} catch (FileNotFoundException e) {

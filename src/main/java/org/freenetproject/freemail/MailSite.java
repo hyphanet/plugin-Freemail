@@ -21,13 +21,12 @@
 
 package org.freenetproject.freemail;
 
-import java.io.UnsupportedEncodingException;
-
 import org.freenetproject.freemail.fcp.ConnectionTerminatedException;
 import org.freenetproject.freemail.fcp.HighLevelFCPClient;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MailSite {
 	private final PropsFile accprops;
@@ -70,12 +69,7 @@ public class MailSite {
 		if(mailsite_s == null) {
 			return -1;
 		}
-		try {
-			mailpage = mailsite_s.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException use) {
-			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset");
-		}
+		mailpage = mailsite_s.getBytes(UTF_8);
 
 		String key = this.accprops.get("mailsite.privkey");
 		if(key == null) return -1;

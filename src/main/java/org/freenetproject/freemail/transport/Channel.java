@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.Iterator;
@@ -80,6 +79,8 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -293,12 +294,7 @@ class Channel {
 
 			//Build the header of the inserted message
 			Bucket bucket;
-			try {
-				bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes("UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes(UTF_8));
 
 			boolean inserted;
 			try {
@@ -427,7 +423,7 @@ class Channel {
 			"messagetype=message\r\n"
 			+ "id=" + messageId + "\r\n"
 			+ "\r\n";
-		Bucket messageHeader = new ArrayBucket(header.getBytes("UTF-8"));
+		Bucket messageHeader = new ArrayBucket(header.getBytes(UTF_8));
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
@@ -1125,15 +1121,7 @@ class Channel {
 			rtsMessage.append(RTSKeys.TIMEOUT + "=" + timeout + "\r\n");
 			rtsMessage.append("\r\n");
 
-			byte[] rtsMessageBytes;
-			try {
-				rtsMessageBytes = rtsMessage.toString().getBytes("UTF-8");
-			} catch(UnsupportedEncodingException e) {
-				Logger.error(this, "JVM doesn't support UTF-8 charset", e);
-				return null;
-			}
-
-			return rtsMessageBytes;
+			return rtsMessage.toString().getBytes(UTF_8);
 		}
 
 		private byte[] signRtsMessage(byte[] rtsMessageBytes) {
@@ -1280,13 +1268,7 @@ class Channel {
 				"messagetype=ack\r\n"
 				+ "id=" + ackId + "\r\n"
 				+ "\r\n";
-			Bucket bucket;
-			try {
-				bucket = new ArrayBucket(header.getBytes("UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			Bucket bucket = new ArrayBucket(header.getBytes(UTF_8));
 
 			boolean inserted;
 			try {

@@ -65,6 +65,8 @@ import freenet.support.api.HTTPRequest;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class NewMessageToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/NewMessage";
 	private static final String SEND_COPY_FOLDER = "Sent";
@@ -328,7 +330,7 @@ public class NewMessageToadlet extends WebPage {
 		}
 		header.append("\r\n");
 
-		Bucket messageHeader = new ArrayBucket(header.toString().getBytes("UTF-8"));
+		Bucket messageHeader = new ArrayBucket(header.toString().getBytes(UTF_8));
 		Bucket messageText = req.getPart("message-text");
 
 		//Now combine them in a single bucket
@@ -506,11 +508,7 @@ public class NewMessageToadlet extends WebPage {
 			baos.write(buffer, 0, read);
 		}
 
-		try {
-			return new String(baos.toByteArray(), "UTF-8");
-		} catch(UnsupportedEncodingException e) {
-			return null;
-		}
+		return baos.toString(UTF_8);
 	}
 
 	private FreemailAccount getFreemailAccount(ToadletContext ctx) {
@@ -543,12 +541,7 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private Bucket bucketFromString(String data) {
-		try {
-			return new ArrayBucket(data.getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset");
-		}
+		return new ArrayBucket(data.getBytes(UTF_8));
 	}
 
 	private List<String> readExtraHeaders(HTTPRequest req) {

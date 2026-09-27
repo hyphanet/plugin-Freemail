@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 class MailLog {
 	private final File logfile;
@@ -46,7 +47,7 @@ class MailLog {
 		this.logfile = logfile;
 
 		try (InputStream frdr = new FileInputStream(this.logfile);
-				BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"))) {
+				BufferedReader br = new BufferedReader(new InputStreamReader(frdr, UTF_8))) {
 			String line;
 
 			while((line = br.readLine()) != null) {

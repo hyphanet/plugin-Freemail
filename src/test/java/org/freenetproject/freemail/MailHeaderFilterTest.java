@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
@@ -280,7 +281,7 @@ public class MailHeaderFilterTest {
 		}
 		inputBuilder.append("\r\n");
 
-		byte[] data = inputBuilder.toString().getBytes("UTF-8");
+		byte[] data = inputBuilder.toString().getBytes(UTF_8);
 		ByteArrayInputStream is = new ByteArrayInputStream(data);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 

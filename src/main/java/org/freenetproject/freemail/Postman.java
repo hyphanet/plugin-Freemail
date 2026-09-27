@@ -37,6 +37,7 @@ import org.freenetproject.freemail.utils.EmailAddress;
 
 import freenet.support.Logger;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /** A postman is any class that delivers mail to an inbox. Simple,
  *  if not politically correct.
@@ -144,7 +145,7 @@ public abstract class Postman {
 			ps.println("Content-Disposition: inline");
 			ps.println("");
 
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg), "UTF-8"))) {
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg), UTF_8))) {
 
 				String line;
 				if (isFreemailFormat) {
@@ -176,7 +177,7 @@ public abstract class Postman {
 	}
 
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(msg), "UTF-8"))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(msg), UTF_8))) {
 
 			String line;
 			if(isFreemailFormat) {

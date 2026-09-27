@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Hashtable;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class PropsFile {
 	// substitute static methods for constructor
 
@@ -118,7 +120,7 @@ public class PropsFile {
 	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
 		this.data = new HashMap<String, String>();
 
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), UTF_8));
 
 		String line = null;
 		while((line = br.readLine()) != null) {

@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -32,41 +33,41 @@ import org.freenetproject.freemail.MailMessage;
 public class MailMessageBodyEncodingTest {
 	@Test
 	public void encodeAsciiText() throws IOException {
-		byte[] input = "Test message 123".getBytes("UTF-8");
+		byte[] input = "Test message 123".getBytes(UTF_8);
 		runEncoderTest(input, input);
 	}
 
 	@Test
 	public void encodeTrailingLineBreak() throws IOException {
-		byte[] input = "Test message\r\n".getBytes("UTF-8");
+		byte[] input = "Test message\r\n".getBytes(UTF_8);
 		runEncoderTest(input, input);
 	}
 
 	@Test
 	public void encodeEOLWhitespace() throws IOException {
-		byte[] input = "Test message \r\n".getBytes("UTF-8");
-		byte[] expected = "Test message=20\r\n".getBytes("UTF-8");
+		byte[] input = "Test message \r\n".getBytes(UTF_8);
+		byte[] expected = "Test message=20\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeUTF8() throws IOException {
-		byte[] input = "æ∀\r\n".getBytes("UTF-8");
-		byte[] expected = "=C3=A6=E2=88=80\r\n".getBytes("UTF-8");
+		byte[] input = "æ∀\r\n".getBytes(UTF_8);
+		byte[] expected = "=C3=A6=E2=88=80\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeSingleCarriageReturn() throws IOException {
-		byte[] input = "Test\r\r\n".getBytes("UTF-8");
-		byte[] expected = "Test=0D\r\n".getBytes("UTF-8");
+		byte[] input = "Test\r\r\n".getBytes(UTF_8);
+		byte[] expected = "Test=0D\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeSingleNewline() throws IOException {
-		byte[] input = "Test\n\r\n".getBytes("UTF-8");
-		byte[] expected = "Test=0A\r\n".getBytes("UTF-8");
+		byte[] input = "Test\n\r\n".getBytes(UTF_8);
+		byte[] expected = "Test=0A\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
@@ -74,62 +75,62 @@ public class MailMessageBodyEncodingTest {
 	public void encodeLongLine() throws IOException {
 		byte[] input = (
 				"Test of a long line that will require a soft line break because it is more "
-				+ "than 78 characters long").getBytes("UTF-8");
+				+ "than 78 characters long").getBytes(UTF_8);
 		byte[] expected = (
 				"Test of a long line that will require a soft line break because it is more =\r\n"
-				+ "than 78 characters long").getBytes("UTF-8");
+				+ "than 78 characters long").getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeEquals() throws IOException {
-		byte[] input = "Test=message\r\n".getBytes("UTF-8");
-		byte[] expected = "Test=3Dmessage\r\n".getBytes("UTF-8");
+		byte[] input = "Test=message\r\n".getBytes(UTF_8);
+		byte[] expected = "Test=3Dmessage\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeAsciiDel() throws IOException {
-		byte[] input = "Test?message\r\n".getBytes("UTF-8");
+		byte[] input = "Test?message\r\n".getBytes(UTF_8);
 		input[4] = 0x7F;
 
-		byte[] expected = "Test=7Fmessage\r\n".getBytes("UTF-8");
+		byte[] expected = "Test=7Fmessage\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeTab() throws IOException {
-		byte[] input = "Test\tmessage\r\n".getBytes("UTF-8");
-		byte[] expected = "Test\tmessage\r\n".getBytes("UTF-8");
+		byte[] input = "Test\tmessage\r\n".getBytes(UTF_8);
+		byte[] expected = "Test\tmessage\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeTabAtEOL() throws IOException {
-		byte[] input = "Test message\t\r\n".getBytes("UTF-8");
-		byte[] expected = "Test message=09\r\n".getBytes("UTF-8");
+		byte[] input = "Test message\t\r\n".getBytes(UTF_8);
+		byte[] expected = "Test message=09\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void encodeSpaceAndNewline() throws IOException {
-		byte[] input = " \n\r\n".getBytes("UTF-8");
-		byte[] expected = " =0A\r\n".getBytes("UTF-8");
+		byte[] input = " \n\r\n".getBytes(UTF_8);
+		byte[] expected = " =0A\r\n".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void bufferExpansionWhileEncoding() throws IOException {
-		byte[] input = "          ".getBytes("UTF-8");
-		byte[] expected = "         =20".getBytes("UTF-8");
+		byte[] input = "          ".getBytes(UTF_8);
+		byte[] expected = "         =20".getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
 	@Test
 	public void insertSoftLineBreakBeforeEncodedChar() throws IOException {
-		byte[] input = "Test of a long line that will require a soft line before the encoded char: æ".getBytes("UTF-8");
+		byte[] input = "Test of a long line that will require a soft line before the encoded char: æ".getBytes(UTF_8);
 		byte[] expected = ("Test of a long line that will require a soft line before the encoded char: "
-		                 + "=\r\n=C3=A6").getBytes("UTF-8");
+		                 + "=\r\n=C3=A6").getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 
@@ -139,12 +140,12 @@ public class MailMessageBodyEncodingTest {
 				+ "commit 4d6245a3921c3711e68c419856edd47fb2404e19, where \r\n"
 				+ "writing a hard line break wouldn't reset the output \r\n"
 				+ "character count, resulting in extra soft line breaks \r\n"
-				+ "being inserted\r\n").getBytes("UTF-8");
+				+ "being inserted\r\n").getBytes(UTF_8);
 		byte[] expected = ("This test checks for the bug that was fixed in=20\r\n"
 				+ "commit 4d6245a3921c3711e68c419856edd47fb2404e19, where=20\r\n"
 				+ "writing a hard line break wouldn't reset the output=20\r\n"
 				+ "character count, resulting in extra soft line breaks=20\r\n"
-				+ "being inserted\r\n").getBytes("UTF-8");
+				+ "being inserted\r\n").getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 

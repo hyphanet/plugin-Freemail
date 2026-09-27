@@ -34,7 +34,7 @@ import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.support.io.LineReader;
 import org.freenetproject.freemail.support.io.LineReadingInputStream;
 
-
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class FCPMessage {
 	private String messagetype;
@@ -189,7 +189,7 @@ public class FCPMessage {
 		}
 		if(buf.length() > 0) {
 			//Logger.normal(this,buf.toString());
-			os.write(buf.toString().getBytes("UTF-8"));
+			os.write(buf.toString().getBytes(UTF_8));
 		}
 		if(this.outData != null) {
 			byte[] bytebuf = new byte[1024];

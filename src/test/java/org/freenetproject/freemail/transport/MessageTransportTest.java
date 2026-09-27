@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail.transport;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -152,7 +153,7 @@ public class MessageTransportTest {
 				  "Subject: Test message\r\n"
 				+ "\r\n"
 				+ "Test message\r\n";
-		Bucket message = new ArrayBucket(msg.getBytes("UTF-8"));
+		Bucket message = new ArrayBucket(msg.getBytes(UTF_8));
 
 		handler.sendMessage(recipients, message);
 
@@ -170,7 +171,7 @@ public class MessageTransportTest {
 		//Then an insert of any key, which should be the message. Since we don't bother to decrypt
 		//the RTS we don't actually know which key this is inserted to.
 		Insert i = fcpClient.awaitInsert(null, 10, TimeUnit.MINUTES);
-		assertEquals(new String(i.data, "UTF-8"),
+		assertEquals(new String(i.data, UTF_8),
 				  "messagetype=message\r\n"
 				+ "id=0\r\n"
 				+ "\r\n"

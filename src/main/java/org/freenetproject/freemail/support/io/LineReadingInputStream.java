@@ -30,6 +30,9 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * A FilterInputStream which provides readLine().
  */
@@ -56,13 +59,13 @@ public class LineReadingInputStream extends FilterInputStream implements LineRea
 			this.lastBytesRead++;
 			if(x == -1) {
 				if(ctr == 0) return null;
-				return new String(buf, 0, ctr, utf ? "UTF-8" : "ISO-8859-1");
+				return new String(buf, 0, ctr, utf ? UTF_8 : ISO_8859_1);
 			}
 			// REDFLAG this is definitely safe with the above charsets, it may not be safe with some wierd ones.
 			if(x == (int)'\n') {
 				if(ctr == 0) return "";
 				if(buf[ctr-1] == '\r') ctr--;
-				return new String(buf, 0, ctr, utf ? "UTF-8" : "ISO-8859-1");
+				return new String(buf, 0, ctr, utf ? UTF_8 : ISO_8859_1);
 			}
 			if(ctr >= buf.length) {
 				if(buf.length == bufferSize) throw new TooLongException();

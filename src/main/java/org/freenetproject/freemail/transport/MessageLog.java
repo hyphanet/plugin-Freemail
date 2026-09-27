@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 class MessageLog {
 	private static final String SEPARATOR = ", ";
 
@@ -94,7 +96,7 @@ class MessageLog {
 		if(!logfile.exists()) {
 			logfile.createNewFile();
 		}
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.logfile), "UTF-8"))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.logfile), UTF_8))) {
 
 			String line;
 			while ((line = br.readLine()) != null) {
