@@ -50,7 +50,7 @@ class MessageLog {
 			readIds();
 		}
 
-		return presentIds.containsKey(Long.valueOf(targetid));
+		return presentIds.containsKey(targetid);
 	}
 
 	public void add(long id, String data) throws IOException {
@@ -61,7 +61,7 @@ class MessageLog {
 			throw new IllegalArgumentException("Argument data contained newline");
 		}
 
-		presentIds.put(Long.valueOf(id), data);
+		presentIds.put(id, data);
 		writeIds();
 	}
 
@@ -70,7 +70,7 @@ class MessageLog {
 			readIds();
 		}
 
-		presentIds.remove(Long.valueOf(id));
+		presentIds.remove(id);
 		writeIds();
 	}
 
@@ -110,7 +110,7 @@ class MessageLog {
 					data = line.substring(sepIndex + SEPARATOR.length());
 				}
 
-				presentIds.put(Long.valueOf(curid), data);
+				presentIds.put(curid, data);
 			}
 
 		}

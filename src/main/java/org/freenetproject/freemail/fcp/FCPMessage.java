@@ -72,7 +72,7 @@ public class FCPMessage {
 				return;
 			} else if(line.equals("Data")) {
 				try {
-					int len = Integer.decode(this.headers.get("DataLength")).intValue();
+					int len = Integer.decode(this.headers.get("DataLength"));
 					this.readData(is, len);
 				} catch (NumberFormatException nfe) {
 				}

@@ -77,7 +77,7 @@ public class IMAPMessage {
 				}
 			}
 
-			if(!context.empty() && c == context.peek().charValue()) {
+			if(!context.empty() && c == context.peek()) {
 				context.pop();
 				buf.append(c);
 			} else if(pos >= 0) {

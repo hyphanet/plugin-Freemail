@@ -28,7 +28,7 @@ public class NumberedLock {
 
 	public void lock(long lock) {
 		synchronized(lockedNumbers) {
-			while(lockedNumbers.contains(Long.valueOf(lock))) {
+			while(lockedNumbers.contains(lock)) {
 				try {
 					lockedNumbers.wait();
 				} catch(InterruptedException e) {
@@ -37,13 +37,13 @@ public class NumberedLock {
 				}
 			}
 
-			lockedNumbers.add(Long.valueOf(lock));
+			lockedNumbers.add(lock);
 		}
 	}
 
 	public void unlock(long lock) {
 		synchronized(lockedNumbers) {
-			lockedNumbers.remove(Long.valueOf(lock));
+			lockedNumbers.remove(lock);
 			lockedNumbers.notifyAll();
 		}
 	}
