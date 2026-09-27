@@ -140,10 +140,9 @@ public class MailMessage {
 		if(obj == null) {
 			return false;
 		}
-		if(!(obj instanceof MailMessage)) {
+		if(!(obj instanceof MailMessage other)) {
 			return false;
 		}
-		MailMessage other = (MailMessage) obj;
 		if(file == null) {
 			if(other.file != null) {
 				return false;
