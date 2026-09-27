@@ -19,7 +19,9 @@
 
 package utils;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.hamcrest.Matcher;
 
 public class TextProtocolTester {
 	private final PrintWriter toHandler;
@@ -56,7 +59,7 @@ public class TextProtocolTester {
 		runProtocolTest(combined);
 	}
 
-	private void checkReply(int lineNum, String expected) throws IOException {
+	private void checkReply(int lineNum, Matcher<? super String> expected) throws IOException {
 		try {
 			waitForReady(10, TimeUnit.SECONDS);
 		} catch (TimeoutException e) {
@@ -66,7 +69,7 @@ public class TextProtocolTester {
 		}
 
 		String line = fromHandler.readLine();
-		assertEquals("Failed at line " + lineNum, expected, line);
+		assertThat("Failed at line " + lineNum, line, expected);
 	}
 
 	public void runProtocolTest(List<Command> commands) throws IOException {
@@ -79,7 +82,7 @@ public class TextProtocolTester {
 				toHandler.flush();
 			}
 
-			for(String reply : cmd.replies) {
+			for(var reply : cmd.replies) {
 				checkReply(lineNum++, reply);
 			}
 		}
@@ -117,18 +120,17 @@ public class TextProtocolTester {
 
 	public static final class Command {
 		private final String command;
-		private final List<String> replies = new LinkedList<>();
+		private final List<Matcher<? super String>> replies = new LinkedList<>();
 
-		public Command(String command, String ... replies) {
+		public Command(String command, Object... replies) {
 			this.command = command;
-			for(String reply : replies) {
-				this.replies.add(reply);
+			for (var reply : replies) {
+				this.replies.add(reply instanceof Matcher<?> ? (Matcher<Object>) reply : equalTo(reply.toString()));
 			}
 		}
 
 		public Command(String command, List<String> replies) {
-			this.command = command;
-			this.replies.addAll(replies);
+			this(command, replies.toArray());
 		}
 	}
 }
