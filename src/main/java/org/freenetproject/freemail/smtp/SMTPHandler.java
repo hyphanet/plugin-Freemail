@@ -105,27 +105,20 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void dispatch(SMTPCommand cmd) {
-		if(cmd.command.equals("helo")) {
-			this.handle_helo();
-		} else if(cmd.command.equals("ehlo")) {
-			this.handle_ehlo();
-		} else if(cmd.command.equals("quit")) {
-			this.handle_quit();
-		} else if(cmd.command.equals("turn")) {
-			this.handle_turn();
-		} else if(cmd.command.equals("auth")) {
-			this.handle_auth(cmd);
-		} else if(cmd.command.equals("mail")) {
-			this.handle_mail();
-		} else if(cmd.command.equals("rcpt")) {
-			this.handle_rcpt(cmd);
-		} else if(cmd.command.equals("data")) {
-			this.handle_data();
-		} else if(cmd.command.equals("rset")) {
-			this.handle_rset();
-		} else {
-			Logger.normal(this, "Unknown command: " + cmd.command);
-			this.ps.print("502 Unimplemented\r\n");
+		switch (cmd.command) {
+			case "helo" -> this.handle_helo();
+			case "ehlo" -> this.handle_ehlo();
+			case "quit" -> this.handle_quit();
+			case "turn" -> this.handle_turn();
+			case "auth" -> this.handle_auth(cmd);
+			case "mail" -> this.handle_mail();
+			case "rcpt" -> this.handle_rcpt(cmd);
+			case "data" -> this.handle_data();
+			case "rset" -> this.handle_rset();
+			default -> {
+				Logger.normal(this, "Unknown command: " + cmd.command);
+				this.ps.print("502 Unimplemented\r\n");
+			}
 		}
 	}
 

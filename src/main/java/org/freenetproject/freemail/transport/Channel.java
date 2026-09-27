@@ -713,28 +713,33 @@ class Channel {
 					continue;
 				}
 
-				if(messageType.equals("message")) {
-					if(handleMessage(result)) {
-						slotManager.slotUsed();
+				switch (messageType) {
+					case "message" -> {
+						if (handleMessage(result)) {
+							slotManager.slotUsed();
+						}
 					}
-				} else if(messageType.equals("cts")) {
-					Logger.minor(this, "Successfully received CTS");
+					case "cts" -> {
+						Logger.minor(this, "Successfully received CTS");
 
-					boolean success;
-					synchronized(channelProps) {
-						success = channelProps.put(PropsKeys.SENDER_STATE, "cts-received");
-					}
+						boolean success;
+						synchronized (channelProps) {
+							success = channelProps.put(PropsKeys.SENDER_STATE, "cts-received");
+						}
 
-					if(success) {
+						if (success) {
+							slotManager.slotUsed();
+						}
+					}
+					case "ack" -> {
+						if (handleAck(result)) {
+							slotManager.slotUsed();
+						}
+					}
+					default -> {
+						Logger.error(this, "Got message of unknown type: " + messageType);
 						slotManager.slotUsed();
 					}
-				} else if(messageType.equals("ack")) {
-					if(handleAck(result)) {
-						slotManager.slotUsed();
-					}
-				} else {
-					Logger.error(this, "Got message of unknown type: " + messageType);
-					slotManager.slotUsed();
 				}
 
 				if(!result.delete()) {

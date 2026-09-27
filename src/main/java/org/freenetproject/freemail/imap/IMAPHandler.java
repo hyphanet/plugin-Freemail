@@ -121,49 +121,31 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 	private void dispatch(IMAPMessage msg) {
 		Logger.debug(this, "Received: " + msg);
-		if(msg.type.equals("login")) {
-			this.handleLogin(msg);
-		} else if(msg.type.equals("logout")) {
-			this.handleLogout(msg);
-		} else if(msg.type.equals("capability")) {
-			this.handleCapability(msg);
-		} else if(msg.type.equals("list")) {
-			this.handleList(msg);
-		} else if(msg.type.equals("select")) {
-			this.handleSelect(msg);
-		} else if(msg.type.equals("noop")) {
-			this.handleNoop(msg);
-		} else if(msg.type.equals("check")) {
-			this.handleCheck(msg);
-		} else if(msg.type.equals("uid")) {
-			this.handleUid(msg);
-		} else if(msg.type.equals("fetch")) {
-			this.handleFetch(msg);
-		} else if(msg.type.equals("store")) {
-			this.handleStore(msg);
-		} else if(msg.type.equals("close")) {
-			this.handleClose(msg);
-		} else if(msg.type.equals("expunge")) {
-			this.handleExpunge(msg);
-		} else if(msg.type.equals("namespace")) {
-			this.handleNamespace(msg);
-		} else if(msg.type.equals("lsub")) {
-			this.handleLsub(msg);
-		} else if(msg.type.equals("status")) {
-			this.handleStatus(msg);
-		} else if(msg.type.equals("create")) {
-			this.handleCreate(msg);
-		} else if(msg.type.equals("delete")) {
-			this.handleDelete(msg);
-		} else if(msg.type.equals("copy")) {
-			this.handleCopy(msg);
-		} else if(msg.type.equals("append")) {
-			this.handleAppend(msg);
-		} else if(msg.type.equals("search")) {
-			handleSearch(msg);
-		} else {
-			Logger.error(this, "Unknown IMAP command: " + msg.type);
-			this.reply(msg, "NO Sorry - not implemented");
+		switch (msg.type) {
+			case "login" -> this.handleLogin(msg);
+			case "logout" -> this.handleLogout(msg);
+			case "capability" -> this.handleCapability(msg);
+			case "list" -> this.handleList(msg);
+			case "select" -> this.handleSelect(msg);
+			case "noop" -> this.handleNoop(msg);
+			case "check" -> this.handleCheck(msg);
+			case "uid" -> this.handleUid(msg);
+			case "fetch" -> this.handleFetch(msg);
+			case "store" -> this.handleStore(msg);
+			case "close" -> this.handleClose(msg);
+			case "expunge" -> this.handleExpunge(msg);
+			case "namespace" -> this.handleNamespace(msg);
+			case "lsub" -> this.handleLsub(msg);
+			case "status" -> this.handleStatus(msg);
+			case "create" -> this.handleCreate(msg);
+			case "delete" -> this.handleDelete(msg);
+			case "copy" -> this.handleCopy(msg);
+			case "append" -> this.handleAppend(msg);
+			case "search" -> handleSearch(msg);
+			default -> {
+				Logger.error(this, "Unknown IMAP command: " + msg.type);
+				this.reply(msg, "NO Sorry - not implemented");
+			}
 		}
 	}
 

@@ -40,43 +40,49 @@ public class FreemailCli extends Freemail {
 		String cfgfile = CFGFILE;
 
 		for(int i = 0; i < args.length; i++) {
-			if(args[i].equals("--newaccount")) {
-				action = args[i];
-				i++;
-				if(args.length - 1 < i) {
-					System.out.println("Usage: --newaccount <account name>");
-					return;
-				}
+			switch (args[i]) {
+				case "--newaccount" -> {
+					action = args[i];
+					i++;
+					if (args.length - 1 < i) {
+						System.out.println("Usage: --newaccount <account name>");
+						return;
+					}
 
-				username = args[i];
-			} else if(args[i].equals("--passwd") || args[i].equals("--password")) {
-				action = "--passwd";
-				i = i + 2;
-				if(args.length - 1 < i) {
-					System.out.println("Usage: --passwd <account name> <password>");
+					username = args[i];
+				}
+				case "--passwd", "--password" -> {
+					action = "--passwd";
+					i = i + 2;
+					if (args.length - 1 < i) {
+						System.out.println("Usage: --passwd <account name> <password>");
+						return;
+					}
+					username = args[i - 1];
+					newpasswd = args[i];
+				}
+				case "-c" -> {
+					i++;
+					if (args.length - 1 < i) {
+						System.out.println("No config file supplied, using default");
+						continue;
+					}
+					cfgfile = args[i];
+				}
+				case "--help", "-help", "--h" -> {
+					System.out.println("Usage:");
+					System.out.println(" java -jar Freemail.jar [-c config]");
+					System.out.println("  Starts the Freemail daemon with config file 'config'");
+					System.out.println(" java -jar Freemail.jar [-c config] --newaccount <account name>");
+					System.out.println("  Creates an account");
+					System.out.println(" java -jar Freemail.jar [-c config] --passwd <account name> <password>");
+					System.out.println("  Changes the password for the given account");
 					return;
 				}
-				username = args[i - 1];
-				newpasswd = args[i];
-			} else if(args[i].equals("-c")) {
-				i++;
-				if(args.length - 1 < i) {
-					System.out.println("No config file supplied, using default");
-					continue;
+				default -> {
+					System.out.println("Unknown option: '" + args[i] + "'");
+					return;
 				}
-				cfgfile = args[i];
-			} else if(args[i].equals("--help") || args[i].equals("-help") || args[i].equals("--h")) {
-				System.out.println("Usage:");
-				System.out.println(" java -jar Freemail.jar [-c config]");
-				System.out.println("  Starts the Freemail daemon with config file 'config'");
-				System.out.println(" java -jar Freemail.jar [-c config] --newaccount <account name>");
-				System.out.println("  Creates an account");
-				System.out.println(" java -jar Freemail.jar [-c config] --passwd <account name> <password>");
-				System.out.println("  Changes the password for the given account");
-				return;
-			} else {
-				System.out.println("Unknown option: '"+args[i]+"'");
-				return;
 			}
 		}
 
