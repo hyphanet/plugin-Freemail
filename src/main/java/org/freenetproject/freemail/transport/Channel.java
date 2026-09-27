@@ -80,7 +80,6 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
-import freenet.support.io.Closer;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -432,13 +431,9 @@ class Channel {
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
-		OutputStream messageOutputStream = null;
-		try {
-			messageOutputStream = fullMessage.getOutputStream();
+		try (OutputStream messageOutputStream = fullMessage.getOutputStream()) {
 			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
 			BucketTools.copyTo(message, messageOutputStream, -1);
-		} finally {
-			Closer.close(messageOutputStream);
 		}
 
 		return insertMessage(fullMessage, "msg" + messageId);
@@ -492,9 +487,7 @@ class Channel {
 
 			String insertKey = privateKey + sendCode + "-" + sendSlot;
 
-			InputStream messageStream = null;
-			try {
-				messageStream = message.getInputStream();
+			try (InputStream messageStream = message.getInputStream()) {
 				Logger.minor(this, "Inserting data");
 				Logger.debug(this, "Insert key is " + insertKey);
 				FCPPutFailedException fcpMessage;
@@ -548,8 +541,6 @@ class Channel {
 				/* TODO: Log at a higher level for more serious errors */
 				Logger.minor(this, "Insert failed, error code " + fcpMessage.errorcode);
 				return false;
-			} finally {
-				Closer.close(messageStream);
 			}
 		}
 	}

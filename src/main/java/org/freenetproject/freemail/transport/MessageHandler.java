@@ -57,7 +57,6 @@ import org.freenetproject.freemail.wot.Identity;
 import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
 import freenet.support.api.Bucket;
-import freenet.support.io.Closer;
 import freenet.support.io.FileBucket;
 
 /**
@@ -228,11 +227,10 @@ public class MessageHandler {
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
-			PrintWriter pw = new PrintWriter(os);
-			InputStream messageStream = message.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream));
-			MailHeaderFilter filter = new MailHeaderFilter(reader, freemailAccount);
-			try {
+			try (PrintWriter pw = new PrintWriter(os);
+					InputStream messageStream = message.getInputStream();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream))) {
+				MailHeaderFilter filter = new MailHeaderFilter(reader, freemailAccount);
 				//Copy headers
 				String header = filter.readHeader();
 				while(header != null) {
@@ -248,9 +246,6 @@ public class MessageHandler {
 					if(read == -1) break;
 					pw.write(buffer, 0, read);
 				}
-			} finally {
-				Closer.close(pw);
-				Closer.close(reader);
 			}
 
 			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));

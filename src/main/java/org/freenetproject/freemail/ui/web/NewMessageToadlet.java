@@ -64,7 +64,6 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
-import freenet.support.io.Closer;
 
 public class NewMessageToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/NewMessage";
@@ -183,17 +182,13 @@ public class NewMessageToadlet extends WebPage {
 
 		//Write a copy of the message
 		MailMessage msg = target.createMessage();
-		PrintStream ps = null;
-		try {
-			ps = msg.getRawStream();
+		try (PrintStream ps = msg.getRawStream()) {
 			BucketTools.copyTo(message, ps, message.size());
 		} catch (IOException e) {
 			Logger.error(this, "Caugth exception while copying message to sent folder", e);
-			Closer.close(ps);
 			msg.cancel();
 			return false;
 		}
-		Closer.close(ps);
 
 		msg.flags.setSeen();
 		msg.commit();
