@@ -346,7 +346,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				m.storeFlags();
 			}
 
-			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+			msgs = msgs.tailMap(current.intValue() + 1);
 		}
 
 		this.sendState(numexists+" EXISTS");
@@ -1023,7 +1023,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			if(m.getUID() > lastuid) lastuid = m.getUID();
 
-			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+			msgs = msgs.tailMap(current.intValue() + 1);
 		}
 
 		StringBuffer buf = new StringBuffer();

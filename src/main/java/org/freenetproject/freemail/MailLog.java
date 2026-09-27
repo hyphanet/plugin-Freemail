@@ -66,7 +66,7 @@ class MailLog {
 				int thisnum = Integer.parseInt(parts[0]);
 				if(thisnum > this.lastMessageId)
 					this.lastMessageId = thisnum;
-				this.messages.put(new Integer(thisnum), parts[1]);
+				this.messages.put(thisnum, parts[1]);
 			}
 
 			br.close();
@@ -91,7 +91,7 @@ class MailLog {
 	}
 
 	public void addMessage(int num, String checksum) {
-		this.messages.put(new Integer(num), checksum);
+		this.messages.put(num, checksum);
 		if(num > this.lastMessageId)
 			this.lastMessageId = num;
 		this.writeLogFile();

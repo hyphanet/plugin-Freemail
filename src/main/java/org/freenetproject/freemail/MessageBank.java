@@ -161,7 +161,7 @@ public class MessageBank {
 
 			MailMessage msg = new MailMessage(files[i], seq++);
 
-			msgs.put(new Integer(msg.getUID()), msg);
+			msgs.put(msg.getUID(), msg);
 		}
 
 		return msgs;

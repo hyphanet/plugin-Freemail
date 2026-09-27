@@ -81,7 +81,7 @@ public class IMAPMessage {
 				context.pop();
 				buf.append(c);
 			} else if(pos >= 0) {
-				context.push(new Character(c2[pos]));
+				context.push(c2[pos]);
 				buf.append(c);
 			} else if(c == ' ' && context.empty()) {
 				parts.add(buf.toString());

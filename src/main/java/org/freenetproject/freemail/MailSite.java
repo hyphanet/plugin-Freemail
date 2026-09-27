@@ -91,7 +91,7 @@ public class MailSite {
 
 		if(actualslot < 0) return -1;
 
-		this.accprops.put("mailsite.slot", new Integer(actualslot).toString());
+		this.accprops.put("mailsite.slot", String.valueOf(actualslot));
 
 		return actualslot;
 	}
