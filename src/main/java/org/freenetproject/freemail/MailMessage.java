@@ -41,9 +41,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,13 +60,12 @@ import freenet.support.MediaType;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MailMessage {
-	private static final Set<String> dateFormats;
-	static {
-		Set<String> backing = new HashSet<>();
-		backing.add("EEE, d MMM yyyy HH:mm:ss Z"); //Mon, 17 Oct 2011 10:24:14 +0200
-		backing.add("d MMM yyyy HH:mm:ss Z");      //     18 Feb 2012 03:32:22 +0100
-		dateFormats = Collections.unmodifiableSet(backing);
-	}
+	private static final Set<String> dateFormats = Set.of(
+			// Mon, 17 Oct 2011 10:24:14 +0200
+			"EEE, d MMM yyyy HH:mm:ss Z",
+			// 18 Feb 2012 03:32:22 +0100
+			"d MMM yyyy HH:mm:ss Z"
+	);
 
 	private File file;
 	private OutputStream os;

@@ -30,9 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.StringBuffer;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.Locale;
@@ -58,27 +56,11 @@ public class MailHeaderFilter {
 	}
 
 	/** List of headers that can be passed though without being checked */
-	private static final Set<String> headerWhitelist;
-	static {
-		Set<String> backing = new HashSet<>();
-		backing.add("To");
-		backing.add("CC");
-		backing.add("Subject");
-		backing.add("MIME-Version");
-		backing.add("Content-Type");
-		backing.add("Content-Transfer-Encoding");
-		backing.add("In-Reply-To");
-		backing.add("References");
-		headerWhitelist = Collections.unmodifiableSet(backing);
-	}
+	private static final Set<String> headerWhitelist =
+			Set.of("To", "CC", "Subject", "MIME-Version", "Content-Type", "Content-Transfer-Encoding", "In-Reply-To", "References");
 
 	/** List of headers that must never be passed though */
-	private static final Set<String> headerBlacklist;
-	static {
-		Set<String> backing = new HashSet<>();
-		backing.add("BCC");
-		headerBlacklist = Collections.unmodifiableSet(backing);
-	}
+	private static final Set<String> headerBlacklist = Set.of("BCC");
 
 	private final FreemailAccount sender;
 
