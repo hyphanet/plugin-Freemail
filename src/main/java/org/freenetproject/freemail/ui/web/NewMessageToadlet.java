@@ -333,10 +333,10 @@ public class NewMessageToadlet extends WebPage {
 
 		//Now combine them in a single bucket
 		Bucket message = new ArrayBucket();
-		OutputStream messageOutputStream = message.getOutputStream();
-		BucketTools.copyTo(messageHeader, messageOutputStream, -1);
-		BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
-		messageOutputStream.close();
+		try (OutputStream messageOutputStream = message.getOutputStream()) {
+			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
+			BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
+		}
 
 		copyMessageToSentFolder(message, account.getMessageBank());
 
@@ -382,15 +382,12 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		StringBuilder body = new StringBuilder();
-		BufferedReader bodyReader = msg.getBodyReader();
-		try {
+		try (BufferedReader bodyReader = msg.getBodyReader()) {
 			String line = bodyReader.readLine();
 			while(line != null) {
 				body.append(">" + line + "\r\n");
 				line = bodyReader.readLine();
 			}
-		} finally {
-			bodyReader.close();
 		}
 
 		List<String> extraHeaders = readExtraHeaders(req);

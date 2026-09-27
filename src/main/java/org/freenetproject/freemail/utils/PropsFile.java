@@ -158,20 +158,20 @@ public class PropsFile {
 			}
 		}
 
-		PrintWriter pw = new PrintWriter(new FileOutputStream(this.file));
+		try (PrintWriter pw = new PrintWriter(new FileOutputStream(this.file))) {
 
-		if(this.header != null) pw.println(this.header);
+			if (this.header != null) pw.println(this.header);
 
-		Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
-		while(i.hasNext()) {
-			Map.Entry<String, String> e = i.next();
-			String key = e.getKey();
-			String val = e.getValue();
+			Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
+			while (i.hasNext()) {
+				Map.Entry<String, String> e = i.next();
+				String key = e.getKey();
+				String val = e.getValue();
 
-			pw.println(key+"="+val);
+				pw.println(key + "=" + val);
+			}
+
 		}
-
-		pw.close();
 	}
 
 	public String get(String key) {

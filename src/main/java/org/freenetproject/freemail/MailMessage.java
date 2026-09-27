@@ -241,10 +241,10 @@ public class MailMessage {
 	}
 
 	public void readHeaders() throws IOException {
-		BufferedReader bufrdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
+		try (BufferedReader bufrdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"))) {
 
-		this.readHeaders(bufrdr);
-		bufrdr.close();
+			this.readHeaders(bufrdr);
+		}
 	}
 
 	public void readHeaders(BufferedReader bufrdr) throws IOException {
@@ -292,8 +292,7 @@ public class MailMessage {
 	public long getSize() throws IOException {
 		// this is quite arduous since we have to send the message
 		// with \r\n's, and hence it may not be the size it is on disk
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
-		try {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"))) {
 			long counter = 0;
 			String line;
 
@@ -303,8 +302,6 @@ public class MailMessage {
 			}
 
 			return counter;
-		} finally {
-			br.close();
 		}
 	}
 
@@ -329,13 +326,11 @@ public class MailMessage {
 		this.closeStream();
 		String line;
 		try {
-			PrintStream copyps = msg.getRawStream();
-			try {
+
+			try (PrintStream copyps = msg.getRawStream()) {
 				while((line = this.readLine()) != null) {
 					copyps.println(line);
 				}
-			} finally {
-				copyps.close();
 			}
 			msg.commit();
 		} catch (IOException ioe) {

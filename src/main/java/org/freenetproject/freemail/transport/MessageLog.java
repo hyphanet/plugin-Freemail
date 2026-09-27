@@ -94,40 +94,39 @@ class MessageLog {
 		if(!logfile.exists()) {
 			logfile.createNewFile();
 		}
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.logfile), "UTF-8"));
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.logfile), "UTF-8"))) {
 
-		String line;
-		while((line = br.readLine()) != null) {
-			int sepIndex = line.indexOf(SEPARATOR);
-			long curid = Long.parseLong(line.substring(0, sepIndex));
+			String line;
+			while ((line = br.readLine()) != null) {
+				int sepIndex = line.indexOf(SEPARATOR);
+				long curid = Long.parseLong(line.substring(0, sepIndex));
 
-			String data;
-			if(sepIndex + SEPARATOR.length() > line.length()) {
-				data = null;
-			} else {
-				data = line.substring(sepIndex + SEPARATOR.length());
+				String data;
+				if (sepIndex + SEPARATOR.length() > line.length()) {
+					data = null;
+				} else {
+					data = line.substring(sepIndex + SEPARATOR.length());
+				}
+
+				presentIds.put(Long.valueOf(curid), data);
 			}
 
-			presentIds.put(Long.valueOf(curid), data);
 		}
-
-		br.close();
 	}
 
 	private void writeIds() throws IOException {
 		if(!logfile.exists()) {
 			logfile.createNewFile();
 		}
-		FileOutputStream fos = new FileOutputStream(this.logfile, false);
-
-		PrintStream ps = new PrintStream(fos);
-		for(Entry<Long, String> entry : presentIds.entrySet()) {
-			String line = entry.getKey() + SEPARATOR;
-			if(entry.getValue() != null) {
-				line += entry.getValue();
+		try (FileOutputStream fos = new FileOutputStream(this.logfile, false);
+				PrintStream ps = new PrintStream(fos)) {
+			for (Entry<Long, String> entry : presentIds.entrySet()) {
+				String line = entry.getKey() + SEPARATOR;
+				if (entry.getValue() != null) {
+					line += entry.getValue();
+				}
+				ps.println(line);
 			}
-			ps.println(line);
 		}
-		ps.close();
 	}
 }

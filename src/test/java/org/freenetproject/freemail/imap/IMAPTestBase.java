@@ -101,25 +101,25 @@ public abstract class IMAPTestBase {
 	}
 
 	protected void runSimpleTest(List<Command> commands) throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
-
-		IMAPHandler handler = new IMAPHandler(accManager, sock);
-		Thread imapThread = new Thread(handler);
-		imapThread.start();
-
-		try {
+		try (FakeSocket sock = new FakeSocket();
 			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
-			tester.runProtocolTest(commands);
-		} finally {
-			handler.kill();
-			sock.close();
+			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+
+			IMAPHandler handler = new IMAPHandler(accManager, sock);
+			Thread imapThread = new Thread(handler);
+			imapThread.start();
+
 			try {
-				imapThread.join();
-			} catch(InterruptedException e) {
-				fail("Caught unexpected InterruptedException");
+				TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+				tester.runProtocolTest(commands);
+			} finally {
+				handler.kill();
+				try {
+					imapThread.join();
+				} catch (InterruptedException e) {
+					fail("Caught unexpected InterruptedException");
+				}
 			}
 		}
 	}

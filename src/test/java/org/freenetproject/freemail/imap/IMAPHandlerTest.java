@@ -147,44 +147,43 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void logout() throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		try (FakeSocket sock = new FakeSocket();
+				PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+				BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+			new Thread(new IMAPHandler(accManager, sock)).start();
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+			send(toHandler, "0001 LOGOUT\r\n");
 
-		send(toHandler, "0001 LOGOUT\r\n");
-
-		int lineNum = 0;
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("* BYE");
-		expectedResponse.add("0001 OK Bye");
-		for(String response : expectedResponse) {
-			String line;
-			try {
-				line = fromHandler.readLine();
-			} catch(IOException e) {
-				//Because of the way we set up the socket we might not be able
-				//to read data after the server closes its end of the pipe
-				if(!e.getMessage().equals("Pipe closed")) {
-					throw e;
+			int lineNum = 0;
+			List<String> expectedResponse = new LinkedList<String>();
+			expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+			expectedResponse.add("* BYE");
+			expectedResponse.add("0001 OK Bye");
+			for (String response : expectedResponse) {
+				String line;
+				try {
+					line = fromHandler.readLine();
+				} catch (IOException e) {
+					//Because of the way we set up the socket we might not be able
+					//to read data after the server closes its end of the pipe
+					if (!e.getMessage().equals("Pipe closed")) {
+						throw e;
+					}
+					return;
 				}
-				return;
-			}
-			if(line == null) {
-				//Same reason as above
-				return;
+				if (line == null) {
+					//Same reason as above
+					return;
+				}
+
+				assertEquals("Failed at line " + lineNum++, response, line);
 			}
 
-			assertEquals("Failed at line " + lineNum++, response, line);
+			assertFalse("IMAP socket has more data", fromHandler.ready());
+
 		}
-
-		assertFalse("IMAP socket has more data", fromHandler.ready());
-
-		sock.close();
 	}
 
 	@Test

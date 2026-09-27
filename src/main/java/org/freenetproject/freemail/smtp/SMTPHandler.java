@@ -343,24 +343,24 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		File tempfile = null;
 		try {
 			tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
-			PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile));
-
-			this.ps.print("354 Go crazy\r\n");
-
-			String line;
 			boolean done = false;
-			while((line = this.bufrdr.readLine()) != null) {
-				if(line.equals(".")) {
-					done = true;
-					break;
+			try (PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile))) {
+
+				this.ps.print("354 Go crazy\r\n");
+
+				String line;
+				while ((line = this.bufrdr.readLine()) != null) {
+					if (line.equals(".")) {
+						done = true;
+						break;
+					}
+					if (line.startsWith(".")) {
+						line = line.substring(1);
+					}
+					pw.print(line + "\r\n");
 				}
-				if(line.startsWith(".")) {
-					line = line.substring(1);
-				}
-				pw.print(line+"\r\n");
 			}
 
-			pw.close();
 			if(!done) {
 				// connection closed before the message was
 				// finished. bail out.

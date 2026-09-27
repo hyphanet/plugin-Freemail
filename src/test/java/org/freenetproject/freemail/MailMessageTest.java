@@ -92,10 +92,10 @@ public class MailMessageTest {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("To: local@domain\r\n");
-		pw.print("References: <abc@domain>\r\n");
-		pw.close();
+		try (PrintWriter pw = new PrintWriter(messageFile)) {
+			pw.print("To: local@domain\r\n");
+			pw.print("References: <abc@domain>\r\n");
+		}
 
 		//Create new message and clear flags in case any were set
 		MailMessage msg = new MailMessage(messageFile, 0);
@@ -109,12 +109,12 @@ public class MailMessageTest {
 		File messageFile = new File(msgDir, "0");
 		messageFile.createNewFile();
 
-		PrintWriter pw = new PrintWriter(messageFile);
-		pw.print("To: local@domain\r\n");
-		pw.print("References: <1234@abc.com>\r\n");
-		pw.print(" <5678@def.com>\r\n");
-		pw.print(" <9123@ghi.com> <4567@jkl.com>\r\n");
-		pw.close();
+		try (PrintWriter pw = new PrintWriter(messageFile)) {
+			pw.print("To: local@domain\r\n");
+			pw.print("References: <1234@abc.com>\r\n");
+			pw.print(" <5678@def.com>\r\n");
+			pw.print(" <9123@ghi.com> <4567@jkl.com>\r\n");
+		}
 
 		//Create new message and clear flags in case any were set
 		MailMessage msg = new MailMessage(messageFile, 0);

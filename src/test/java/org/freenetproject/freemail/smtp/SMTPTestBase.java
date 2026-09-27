@@ -94,25 +94,25 @@ public abstract class SMTPTestBase {
 	}
 
 	protected void runSimpleTest(List<Command> commands) throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		try (FakeSocket sock = new FakeSocket();
+				PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+				BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		SMTPHandler handler = new SMTPHandler(accManager, sock, new NullIdentityMatcher());
-		Thread smtpThread = new Thread(handler);
-		smtpThread.start();
+			SMTPHandler handler = new SMTPHandler(accManager, sock, new NullIdentityMatcher());
+			Thread smtpThread = new Thread(handler);
+			smtpThread.start();
 
-		try {
-			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
-			tester.runProtocolTest(commands);
-		} finally {
-			handler.kill();
-			sock.close();
 			try {
-				smtpThread.join();
-			} catch(InterruptedException e) {
-				fail("Caught unexpected InterruptedException");
+				TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+				tester.runProtocolTest(commands);
+			} finally {
+				handler.kill();
+				try {
+					smtpThread.join();
+				} catch (InterruptedException e) {
+					fail("Caught unexpected InterruptedException");
+				}
 			}
 		}
 	}

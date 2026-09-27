@@ -144,28 +144,28 @@ public abstract class Postman {
 			ps.println("Content-Disposition: inline");
 			ps.println("");
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg), "UTF-8"));
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(origmsg), "UTF-8"))) {
 
-			String line;
-			if(isFreemailFormat) {
-				while((line = br.readLine()) != null) {
-					if(line.length() == 0) break;
+				String line;
+				if (isFreemailFormat) {
+					while ((line = br.readLine()) != null) {
+						if (line.length() == 0) break;
+					}
 				}
-			}
 
-			while((line = br.readLine()) != null) {
-				if(line.indexOf(boundary) > 0) {
-					// The random boundary string appears in the
-					// message! What are the odds!?
-					// try again
-					br.close();
-					bmsg.cancel();
-					bounceMessage(origmsg, mb, errmsg);
+				while ((line = br.readLine()) != null) {
+					if (line.indexOf(boundary) > 0) {
+						// The random boundary string appears in the
+						// message! What are the odds!?
+						// try again
+						br.close();
+						bmsg.cancel();
+						bounceMessage(origmsg, mb, errmsg);
+					}
+					ps.println(line);
 				}
-				ps.println(line);
-			}
 
-			br.close();
+			}
 			ps.println("--"+boundary);
 			bmsg.commit();
 		} catch (IOException ioe) {
@@ -176,9 +176,7 @@ public abstract class Postman {
 	}
 
 	private static String extractFromAddress(File msg, boolean isFreemailFormat) {
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(msg), "UTF-8"));
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(msg), "UTF-8"))) {
 
 			String line;
 			if(isFreemailFormat) {
@@ -196,14 +194,6 @@ public abstract class Postman {
 				}
 			}
 		} catch (IOException ioe) {
-		} finally {
-			if(br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					Logger.error(Postman.class, "Caugth IOException while closing " + br, e);
-				}
-			}
 		}
 		return null;
 	}

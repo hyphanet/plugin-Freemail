@@ -275,11 +275,11 @@ public class MessageBank {
 		long retval;
 
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), "UTF-8"));
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), "UTF-8"))) {
 
-			retval = Long.parseLong(br.readLine());
+				retval = Long.parseLong(br.readLine());
 
-			br.close();
+			}
 		} catch (IOException ioe) {
 			return 1;
 		} catch (NumberFormatException nfe) {
@@ -293,10 +293,10 @@ public class MessageBank {
 		// write the new ID to a temporary file
 		File nidfile = new File(this.dir, NIDTMPFILE);
 		try {
-			PrintStream ps = new PrintStream(new FileOutputStream(nidfile));
-			ps.print(newid);
-			ps.flush();
-			ps.close();
+			try (PrintStream ps = new PrintStream(new FileOutputStream(nidfile))) {
+				ps.print(newid);
+				ps.flush();
+			}
 
 			// make sure the old nextid file doesn't contain a
 			// value greater than our one
@@ -321,11 +321,8 @@ public class MessageBank {
 			//First read the next value from the UID file
 			File uidFile = new File(dir, UIDVALIDITYFILE);
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), "UTF-8"));
-				try {
+				try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), "UTF-8"))) {
 					uid = Long.parseLong(reader.readLine());
-				} finally {
-					reader.close();
 				}
 			} catch (FileNotFoundException e) {
 				//No values have been assigned yet
@@ -340,17 +337,14 @@ public class MessageBank {
 			}
 
 			//Write the next uid to file
-			PrintStream ps;
-			try {
-				ps = new PrintStream(new FileOutputStream(uidFile));
+			try (PrintStream ps = new PrintStream(new FileOutputStream(uidFile))) {
+				ps.print((uid + 1) % 0x100000000l);
 			} catch (FileNotFoundException e) {
 				Logger.error(this, "Couldn't create the uidvalidity file");
 
 				//Return -1, or else we would return the same value next time
 				return -1;
 			}
-			ps.print((uid + 1) % 0x100000000l);
-			ps.close();
 		}
 
 		return uid % 0x100000000l;

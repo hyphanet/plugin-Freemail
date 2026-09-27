@@ -45,12 +45,8 @@ class MailLog {
 		this.messages = new HashMap<Integer, String>();
 		this.logfile = logfile;
 
-		InputStream frdr;
-		try {
-			frdr = new FileInputStream(this.logfile);
-
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"));
+		try (InputStream frdr = new FileInputStream(this.logfile);
+				BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"))) {
 			String line;
 
 			while((line = br.readLine()) != null) {
@@ -69,8 +65,6 @@ class MailLog {
 				this.messages.put(thisnum, parts[1]);
 			}
 
-			br.close();
-			frdr.close();
 		} catch (IOException ioe) {
 			return;
 		}
@@ -98,31 +92,22 @@ class MailLog {
 	}
 
 	private void writeLogFile() {
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(this.logfile);
-		} catch (IOException ioe) {
-			return;
-		}
+		try (FileOutputStream fos = new FileOutputStream(this.logfile);
+				PrintWriter pw = new PrintWriter(fos)) {
 
-		PrintWriter pw = new PrintWriter(fos);
+			pw.println("passes="+this.passes);
 
-		pw.println("passes="+this.passes);
+			Iterator<Map.Entry<Integer, String>> i = this.messages.entrySet().iterator();
+			while(i.hasNext()) {
+				Map.Entry<Integer, String> e = i.next();
 
-		Iterator<Map.Entry<Integer, String>> i = this.messages.entrySet().iterator();
-		while(i.hasNext()) {
-			Map.Entry<Integer, String> e = i.next();
+				Integer num = e.getKey();
+				String checksum = e.getValue();
+				pw.println(num.toString()+"="+checksum);
+			}
 
-			Integer num = e.getKey();
-			String checksum = e.getValue();
-			pw.println(num.toString()+"="+checksum);
-		}
+			pw.flush();
 
-		pw.flush();
-
-		try {
-			pw.close();
-			fos.close();
 		} catch (IOException ioe) {
 			return;
 		}

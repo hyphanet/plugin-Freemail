@@ -333,36 +333,36 @@ public class SMTPSessionTest {
 			}
 		};
 
-		FakeSocket sock = new FakeSocket();
-		SMTPHandler handler = new SMTPHandler(accManager, sock, matcher);
-		Thread smtpThread = new Thread(handler);
-		smtpThread.start();
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+		try (FakeSocket sock = new FakeSocket();
+				PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+				BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			SMTPHandler handler = new SMTPHandler(accManager, sock, matcher);
+			Thread smtpThread = new Thread(handler);
+			smtpThread.start();
 
-		TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
-		tester.runProtocolTest(commands);
+			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+			tester.runProtocolTest(commands);
 
-		//QUIT
-		toHandler.write("QUIT\r\n");
-		toHandler.flush();
+			//QUIT
+			toHandler.write("QUIT\r\n");
+			toHandler.flush();
 
-		//Accept null or exception here since the socket might have closed before we read
-		try {
-			String line = fromHandler.readLine();
-			if(line != null && !line.equals("221 localhost")) {
-				fail("Expected final line to be 221 localhost, but was " + line);
+			//Accept null or exception here since the socket might have closed before we read
+			try {
+				String line = fromHandler.readLine();
+				if (line != null && !line.equals("221 localhost")) {
+					fail("Expected final line to be 221 localhost, but was " + line);
+				}
+			} catch (IOException e) {
+				assertEquals("Pipe closed", e.getMessage());
 			}
-		} catch(IOException e) {
-			assertEquals("Pipe closed", e.getMessage());
-		}
 
-		handler.kill();
-		sock.close();
-		try {
-			smtpThread.join();
-		} catch(InterruptedException e) {
-			fail("Caught unexpected InterruptedException");
+			handler.kill();
+			try {
+				smtpThread.join();
+			} catch (InterruptedException e) {
+				fail("Caught unexpected InterruptedException");
+			}
 		}
 	}
 }

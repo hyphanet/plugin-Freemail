@@ -116,9 +116,7 @@ public class FCPMessage {
 			this.data = null;
 			return;
 		}
-		try {
-			FileOutputStream fos = new FileOutputStream(this.data);
-
+		try (FileOutputStream fos = new FileOutputStream(this.data)) {
 			byte[] buf = new byte[1024];
 			while(len > 0) {
 				int toRead = len;
@@ -128,7 +126,6 @@ public class FCPMessage {
 				fos.write(buf, 0, read);
 				len -= read;
 			}
-			fos.close();
 		} catch (IOException ioe) {
 			this.data = null;
 			return;

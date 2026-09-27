@@ -156,9 +156,9 @@ public class MailMessageBodyEncodingTest {
 		}
 
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		OutputStream encoder = new MailMessage.EncodingOutputStream(output);
-		encoder.write(input);
-		encoder.close();
+		try (OutputStream encoder = new MailMessage.EncodingOutputStream(output)) {
+			encoder.write(input);
+		}
 
 		assertArrayEquals(expected, output.toByteArray());
 	}

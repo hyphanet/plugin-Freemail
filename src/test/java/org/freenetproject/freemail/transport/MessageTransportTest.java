@@ -94,9 +94,9 @@ public class MessageTransportTest {
 		Map<String, File> fetchResults = new HashMap<String, File>();
 		{
 			File mailpage = new File(testDir, "mailsite");
-			PrintWriter pw = new PrintWriter(mailpage);
-			pw.write(TestId1Data.Mailsite.CONTENT);
-			pw.close();
+			try (PrintWriter pw = new PrintWriter(mailpage)) {
+				pw.write(TestId1Data.Mailsite.CONTENT);
+			}
 			fetchResults.put(TestId1Data.Mailsite.REQUEST_KEY, mailpage);
 		}
 		final MockHighLevelFCPClient fcpClient = new MockHighLevelFCPClient(fetchResults);
@@ -130,9 +130,9 @@ public class MessageTransportTest {
 		final MockFreemailAccount account;
 		{
 			File accProps = new File(accountDir, "accprops");
-			PrintWriter pw = new PrintWriter(accProps);
-			pw.write(TestId1Data.FreemailAccount.ACCPROPS_CONTENT);
-			pw.close();
+			try (PrintWriter pw = new PrintWriter(accProps)) {
+				pw.write(TestId1Data.FreemailAccount.ACCPROPS_CONTENT);
+			}
 			account = new MockFreemailAccount(TestId1Data.FreemailAccount.IDENTITY, accountDir, PropsFile.createPropsFile(accProps), freemail);
 		}
 

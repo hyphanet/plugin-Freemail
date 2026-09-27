@@ -180,8 +180,7 @@ public class MessageToadlet extends WebPage {
 		HTMLNode messageContents = messageNode.addChild("div", "class", "message-content").addChild("p");
 
 		try {
-			BufferedReader body = message.getBodyReader();
-			try {
+			try (BufferedReader body = message.getBodyReader()) {
 				String line = body.readLine();
 				boolean added = false;
 				while(line != null) {
@@ -190,8 +189,6 @@ public class MessageToadlet extends WebPage {
 					added = true;
 					line = body.readLine();
 				}
-			} finally {
-				body.close();
 			}
 		} catch(IOException e) {
 			//TODO: Better error message

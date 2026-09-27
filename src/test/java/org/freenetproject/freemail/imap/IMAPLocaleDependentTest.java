@@ -96,39 +96,38 @@ public class IMAPLocaleDependentTest extends IMAPTestWithMessages {
 
 		new Thread(new IMAPHandler(accManager, sock)).start();
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+		try (PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+				BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
 
-		//Send commands
-		send(toHandler, "0001 LOGIN " + IMAP_USERNAME + " test\r\n");
-		send(toHandler, "0002 SELECT INBOX\r\n");
-		send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
+			//Send commands
+			send(toHandler, "0001 LOGIN " + IMAP_USERNAME + " test\r\n");
+			send(toHandler, "0002 SELECT INBOX\r\n");
+			send(toHandler, "0003 FETCH 1 (INTERNALDATE)\r\n");
 
-		//Read all the initial responses
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.addAll(INITIAL_RESPONSES);
-		int lineNum = 0;
-		for(String response : expectedResponse) {
+			//Read all the initial responses
+			List<String> expectedResponse = new LinkedList<String>();
+			expectedResponse.addAll(INITIAL_RESPONSES);
+			int lineNum = 0;
+			for (String response : expectedResponse) {
+				String line = fromHandler.readLine();
+				assertEquals("[locale=" + Locale.getDefault() + "] Failed at line " + lineNum++, response, line);
+			}
+
+			//Read and parse the INTERNALDATE line which should be of the form:
+			//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
 			String line = fromHandler.readLine();
-			assertEquals("[locale=" + Locale.getDefault() + "] Failed at line " + lineNum++, response, line);
+			String[] parts = line.split("\"");
+			assertEquals("[locale=" + Locale.getDefault() + "] " + line, 3, parts.length);
+			String date = parts[1];
+			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
+			sdf.parse(date);
+
+			//Read final line of expected output
+			line = fromHandler.readLine();
+			assertEquals("[locale=" + Locale.getDefault() + "] Incorrect final output", "0003 OK Fetch completed", line);
+
+			assertFalse("[locale=" + Locale.getDefault() + "] IMAP socket has more data", fromHandler.ready());
 		}
-
-		//Read and parse the INTERNALDATE line which should be of the form:
-		//* 1 FETCH (INTERNALDATE "dd MMM yyyy HH:mm:ss Z")
-		String line = fromHandler.readLine();
-		String[] parts = line.split("\"");
-		assertEquals("[locale=" + Locale.getDefault() + "] " + line, 3, parts.length);
-		String date = parts[1];
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-		sdf.parse(date);
-
-		//Read final line of expected output
-		line = fromHandler.readLine();
-		assertEquals("[locale=" + Locale.getDefault() + "] Incorrect final output", "0003 OK Fetch completed", line);
-
-		assertFalse("[locale=" + Locale.getDefault() + "] IMAP socket has more data", fromHandler.ready());
-		fromHandler.close();
-		toHandler.close();
 	}
 
 	/**
