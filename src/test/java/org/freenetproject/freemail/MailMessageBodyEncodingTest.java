@@ -136,16 +136,20 @@ public class MailMessageBodyEncodingTest {
 
 	@Test
 	public void hardLineBreakResetsOutputCharCount() throws IOException {
-		byte[] input = ("This test checks for the bug that was fixed in \r\n"
-				+ "commit 4d6245a3921c3711e68c419856edd47fb2404e19, where \r\n"
-				+ "writing a hard line break wouldn't reset the output \r\n"
-				+ "character count, resulting in extra soft line breaks \r\n"
-				+ "being inserted\r\n").getBytes(UTF_8);
-		byte[] expected = ("This test checks for the bug that was fixed in=20\r\n"
-				+ "commit 4d6245a3921c3711e68c419856edd47fb2404e19, where=20\r\n"
-				+ "writing a hard line break wouldn't reset the output=20\r\n"
-				+ "character count, resulting in extra soft line breaks=20\r\n"
-				+ "being inserted\r\n").getBytes(UTF_8);
+		byte[] input = ("""
+				This test checks for the bug that was fixed in \r
+				commit 4d6245a3921c3711e68c419856edd47fb2404e19, where \r
+				writing a hard line break wouldn't reset the output \r
+				character count, resulting in extra soft line breaks \r
+				being inserted\r
+				""").getBytes(UTF_8);
+		byte[] expected = ("""
+				This test checks for the bug that was fixed in=20\r
+				commit 4d6245a3921c3711e68c419856edd47fb2404e19, where=20\r
+				writing a hard line break wouldn't reset the output=20\r
+				character count, resulting in extra soft line breaks=20\r
+				being inserted\r
+				""").getBytes(UTF_8);
 		runEncoderTest(expected, input);
 	}
 

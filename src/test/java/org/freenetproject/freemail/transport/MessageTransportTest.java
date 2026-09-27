@@ -149,10 +149,11 @@ public class MessageTransportTest {
 		for(int i = 0; i < 1; i++) {
 			recipients.add(new MockIdentity(TestId1Data.Identity.ID, TestId1Data.Identity.REQUEST_URI, TestId1Data.Identity.NICKNAME));
 		}
-		final String msg =
-				  "Subject: Test message\r\n"
-				+ "\r\n"
-				+ "Test message\r\n";
+		final String msg = """
+				Subject: Test message\r
+				\r
+				Test message\r
+				""";
 		Bucket message = new ArrayBucket(msg.getBytes(UTF_8));
 
 		handler.sendMessage(recipients, message);
