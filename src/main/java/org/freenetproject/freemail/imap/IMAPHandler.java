@@ -859,7 +859,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private boolean doStore(String[] args, int offset, Collection<MailMessage> mmsgs, IMAPMessage msg, boolean senduid) {
-		if(args[offset].toLowerCase(Locale.ROOT).indexOf("flags") < 0) {
+		if (!args[offset].toLowerCase(Locale.ROOT).contains("flags")) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
@@ -899,7 +899,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 		}
 
-		if(msg.args[offset].toLowerCase(Locale.ROOT).indexOf("silent") < 0) {
+		if (!msg.args[offset].toLowerCase(Locale.ROOT).contains("silent")) {
 			for(MailMessage message : mmsgs) {
 				StringBuffer buf = new StringBuffer("");
 
