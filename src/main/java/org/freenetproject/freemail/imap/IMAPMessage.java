@@ -19,8 +19,8 @@
 
 package org.freenetproject.freemail.imap;
 
+import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Vector;
 import java.util.Stack;
 
 public class IMAPMessage {
@@ -62,7 +62,7 @@ public class IMAPMessage {
 
 	// split on spaces that aren't between two given characters
 	public static String[] doSplit(String in, char[] c1, char[] c2) {
-		Vector<String> parts = new Vector<>();
+		var parts = new ArrayList<String>();
 		StringBuffer buf = new StringBuffer("");
 		Stack<Character> context = new Stack<>();
 

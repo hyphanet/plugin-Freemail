@@ -32,8 +32,6 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.TreeMap;
 import java.util.SortedMap;
-import java.util.Vector;
-import java.util.Enumeration;
 import java.util.Comparator;
 import java.util.Arrays;
 
@@ -242,23 +240,11 @@ public class MessageBank {
 	}
 
 	public synchronized MessageBank[] listSubFolders() {
-		File[] files = this.dir.listFiles();
-		Vector<File> subfolders = new Vector<>();
-
-		stream(files)
+		return stream(this.dir.listFiles())
 				.filter(file -> !file.getName().startsWith("."))
 				.filter(File::isDirectory)
-				.forEach(subfolders::add);
-
-		MessageBank[] retval = new MessageBank[subfolders.size()];
-
-		Enumeration<File> e = subfolders.elements();
-		int i = 0;
-		while(e.hasMoreElements()) {
-			retval[i] = new MessageBank(e.nextElement(), topLevel == null ? this : topLevel);
-			i++;
-		}
-		return retval;
+				.map(directory -> new MessageBank(directory, topLevel == null ? this : topLevel))
+				.toArray(MessageBank[]::new);
 	}
 
 	/**

@@ -21,11 +21,9 @@
 
 package org.freenetproject.freemail;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
-import java.util.Iterator;
-import java.util.Vector;
-import java.util.Enumeration;
 import java.io.File;
 
 import org.freenetproject.freemail.utils.DateStringFactory;
@@ -89,7 +87,7 @@ public class RTSLog {
 
 	public void pruneBefore(Date keepafter) {
 		Set<String> props = this.logfile.listProps();
-		Vector<String> hitlist = new Vector<>();
+		var hitlist = new ArrayList<String>();
 
 		for (String cur : props) {
 			String datestr;
