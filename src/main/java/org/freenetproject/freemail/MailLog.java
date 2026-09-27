@@ -98,14 +98,7 @@ class MailLog {
 
 			pw.println("passes="+this.passes);
 
-			Iterator<Map.Entry<Integer, String>> i = this.messages.entrySet().iterator();
-			while(i.hasNext()) {
-				Map.Entry<Integer, String> e = i.next();
-
-				Integer num = e.getKey();
-				String checksum = e.getValue();
-				pw.println(num.toString()+"="+checksum);
-			}
+			this.messages.forEach((num, checksum) -> pw.println(num + "=" + checksum));
 
 			pw.flush();
 

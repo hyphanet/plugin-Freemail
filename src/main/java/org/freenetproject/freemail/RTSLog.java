@@ -91,10 +91,7 @@ public class RTSLog {
 		Set<String> props = this.logfile.listProps();
 		Vector<String> hitlist = new Vector<String>();
 
-		Iterator<String> i = props.iterator();
-		while(i.hasNext()) {
-			String cur = i.next();
-
+		for (String cur : props) {
 			String datestr;
 			if(cur.startsWith(PASSES)) {
 				datestr = cur.substring(PASSES.length());
@@ -113,12 +110,7 @@ public class RTSLog {
 			}
 		}
 
-		Enumeration<String> e = hitlist.elements();
-		while(e.hasMoreElements()) {
-			String victim = e.nextElement();
-
-			this.logfile.remove(victim);
-		}
+		hitlist.forEach(logfile::remove);
 	}
 
 	public String getSlots(String day) {

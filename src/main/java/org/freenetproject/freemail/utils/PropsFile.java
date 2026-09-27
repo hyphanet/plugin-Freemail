@@ -164,14 +164,7 @@ public class PropsFile {
 
 			if (this.header != null) pw.println(this.header);
 
-			Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
-			while (i.hasNext()) {
-				Map.Entry<String, String> e = i.next();
-				String key = e.getKey();
-				String val = e.getValue();
-
-				pw.println(key + "=" + val);
-			}
+			this.data.forEach((key, val) -> pw.println(key + "=" + val));
 
 		}
 	}
