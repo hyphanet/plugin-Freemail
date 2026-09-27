@@ -115,7 +115,7 @@ public class MailMessage {
 	}
 
 	public String getHeaders(String name) {
-		StringBuffer buf = new StringBuffer("");
+		var buf = new StringBuilder("");
 
 		for(MailMessageHeader header : headers) {
 			if(header.name.equalsIgnoreCase(name)) {
@@ -179,7 +179,7 @@ public class MailMessage {
 	}
 
 	public String getAllHeadersAsString() {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		for(MailMessageHeader header : headers) {
 			buf.append(header.name);
@@ -503,7 +503,7 @@ public class MailMessage {
 			return null;
 		}
 
-		StringBuffer subject = new StringBuffer();
+		var subject = new StringBuilder();
 
 		int offset = 0;
 		while(offset < rawHeader.length()) {

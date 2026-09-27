@@ -37,7 +37,7 @@ public class MailSite {
 	}
 
 	private String getMailPage() {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		String rtsksk = this.accprops.get("rtskey");
 		if(rtsksk == null) {

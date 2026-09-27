@@ -63,7 +63,7 @@ public class IMAPMessage {
 	// split on spaces that aren't between two given characters
 	public static String[] doSplit(String in, char[] c1, char[] c2) {
 		var parts = new ArrayList<String>();
-		StringBuffer buf = new StringBuffer("");
+		var buf = new StringBuilder("");
 		Stack<Character> context = new Stack<>();
 
 		for(int i = 0; i < in.length(); i++) {
@@ -85,7 +85,7 @@ public class IMAPMessage {
 				buf.append(c);
 			} else if(c == ' ' && context.empty()) {
 				parts.add(buf.toString());
-				buf = new StringBuffer("");
+				buf = new StringBuilder("");
 			} else if(context.empty()) {
 				buf.append(c);
 			} else buf.append(c);

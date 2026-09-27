@@ -125,7 +125,7 @@ public abstract class SlotManager {
 	}
 
 	private void saveSlots() {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		Enumeration<Slot> e = this.slots.elements();
 		boolean first = true;

@@ -1112,7 +1112,7 @@ class Channel {
 						+ ", current time=" + System.currentTimeMillis() + ")");
 			}
 
-			StringBuffer rtsMessage = new StringBuffer();
+			var rtsMessage = new StringBuilder();
 			rtsMessage.append(RTSKeys.MAILSITE + "=" + senderMailsiteKey + "\r\n");
 			rtsMessage.append(RTSKeys.TO + "=" + recipientIdentityID + "\r\n");
 			rtsMessage.append(RTSKeys.CHANNEL + "=" + channelPrivateKey + "\r\n");

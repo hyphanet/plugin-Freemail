@@ -66,7 +66,7 @@ public class IMAPMessageFlags {
 
 	public static String getAllFlagsAsString() {
 		int i;
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 		boolean first = true;
 
 		for(i = 0; i < allFlags.length; i++) {
@@ -81,7 +81,7 @@ public class IMAPMessageFlags {
 
 	public static String getPermanentFlagsAsString() {
 		int i;
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 		boolean first = true;
 
 		for(i = 0; i < permanentFlags.length; i++) {

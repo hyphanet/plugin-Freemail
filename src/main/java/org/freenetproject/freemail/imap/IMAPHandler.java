@@ -751,7 +751,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return true;
 		}
 
-		StringBuffer buf = new StringBuffer("");
+		var buf = new StringBuilder("");
 
 		String[] parts = IMAPMessage.doSplit(attr, '(', ')');
 		if(parts.length > 0) {
@@ -901,7 +901,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 		if (!msg.args[offset].toLowerCase(Locale.ROOT).contains("silent")) {
 			for(MailMessage message : mmsgs) {
-				StringBuffer buf = new StringBuffer("");
+				var buf = new StringBuilder("");
 
 				buf.append(message.getSeqNum());
 				if(senduid) {
@@ -1017,7 +1017,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			msgs = msgs.tailMap(current + 1);
 		}
 
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 		buf.append("STATUS ");
 		buf.append(msg.args[0]);
 		buf.append(" (");
@@ -1534,7 +1534,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private String getEnvelope(MailMessage mmsg) {
-		StringBuffer buf = new StringBuffer("(");
+		var buf = new StringBuilder("(");
 
 		try {
 			mmsg.readHeaders();

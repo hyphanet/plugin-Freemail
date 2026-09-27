@@ -157,7 +157,7 @@ public class FCPMessage {
 	}
 
 	public void writeto(OutputStream os) throws IOException, FCPBadFileException {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		buf.append(this.messagetype);
 		buf.append("\r\n");

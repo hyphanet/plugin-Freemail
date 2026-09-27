@@ -451,7 +451,7 @@ public class RTSFetcher implements SlotSaveCallback {
 	 */
 	/* FIXME: Throw a different exception */
 	private void validate_rts(PropsFile rts) throws Exception {
-		StringBuffer missing = new StringBuffer();
+		var missing = new StringBuilder();
 
 		if(rts.get("mailsite") == null) {
 			missing.append("mailsite, ");

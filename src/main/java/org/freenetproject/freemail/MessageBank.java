@@ -100,7 +100,7 @@ public class MessageBank {
 	}
 
 	public String getFolderFlagsString() {
-		StringBuffer retval = new StringBuffer("(");
+		var retval = new StringBuilder("(");
 
 		if(this.listSubFolders().length > 0) {
 			retval.append("\\HasChildren");
