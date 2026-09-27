@@ -88,35 +88,32 @@ public class FreemailPlugin extends Freemail implements FredPlugin, FredPluginBa
 	}
 
 	private void startIdentityFetch(final PluginRespirator pr, final AccountManager accountManager) {
-		pr.getNode().getExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				List<OwnIdentity> oids = null;
-				while(oids == null) {
-					WoTConnection wot = getWotConnection();
-					if(wot != null) {
-						try {
-							oids = wot.getAllOwnIdentities();
-						} catch(PluginNotFoundException e) {
-							//Try again later
-							oids = null;
-						}
-					}
-
-					if(oids == null) {
-						try {
-							Thread.sleep(60 * 1000);
-						} catch(InterruptedException e) {
-							//Just try again
-						}
+		pr.getNode().getExecutor().execute(() -> {
+			List<OwnIdentity> oids = null;
+			while(oids == null) {
+				WoTConnection wot = getWotConnection();
+				if(wot != null) {
+					try {
+						oids = wot.getAllOwnIdentities();
+					} catch(PluginNotFoundException e) {
+						//Try again later
+						oids = null;
 					}
 				}
 
-				for(OwnIdentity oid : oids) {
-					for(FreemailAccount account : accountManager.getAllAccounts()) {
-						if(account.getIdentity().equals(oid.getIdentityID())) {
-							account.setNickname(oid.getNickname());
-						}
+				if(oids == null) {
+					try {
+						Thread.sleep(60 * 1000);
+					} catch(InterruptedException e) {
+						//Just try again
+					}
+				}
+			}
+
+			for(OwnIdentity oid : oids) {
+				for(FreemailAccount account : accountManager.getAllAccounts()) {
+					if(account.getIdentity().equals(oid.getIdentityID())) {
+						account.setNickname(oid.getNickname());
 					}
 				}
 			}
