@@ -164,9 +164,7 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 		                            + ", suffix=" + suffix + ")");
 		try {
 			put(new ByteArrayInputStream(data), basekey + "-" + minslot);
-		} catch (FCPBadFileException e) {
-			throw new AssertionError();
-		} catch (FCPException e) {
+		} catch (FCPBadFileException | FCPException e) {
 			throw new AssertionError();
 		}
 		return minslot;

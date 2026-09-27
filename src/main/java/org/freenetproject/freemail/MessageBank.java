@@ -280,9 +280,7 @@ public class MessageBank {
 				retval = Long.parseLong(br.readLine());
 
 			}
-		} catch (IOException ioe) {
-			return 1;
-		} catch (NumberFormatException nfe) {
+		} catch (IOException | NumberFormatException ioe) {
 			return 1;
 		}
 
