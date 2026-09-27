@@ -19,10 +19,16 @@
 
 package org.freenetproject.freemail.utils;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -65,4 +71,53 @@ public class DateStringFactoryTest {
 			Locale.setDefault(orig);
 		}
 	}
+
+	@Test
+	public void fullDateIsCreatedCorrectly() {
+		var dateTime = OffsetDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(0));
+		assertThat(DateStringFactory.formatFullDate(dateTime), equalTo("Thu, 24 Sep 2026 20:27:45 +0000"));
+	}
+
+	@Test
+	public void fullDateWithSingleDigitDayIsCreatedCorrectly() {
+		var dateTime = OffsetDateTime.of(2015, 10, 1, 18, 56, 16, 0, ZoneOffset.ofHours(2));
+		assertThat(DateStringFactory.formatFullDate(dateTime), equalTo("Thu, 1 Oct 2015 16:56:16 +0000"));
+	}
+
+	@Test
+	public void fullDateRemovesTimezoneOffset() {
+		var dateTime = OffsetDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2));
+		assertThat(DateStringFactory.formatFullDate(dateTime), equalTo("Thu, 24 Sep 2026 18:27:45 +0000"));
+	}
+
+	@Test
+	public void fullDateCanBeCreatedFromZonedDateTime() {
+		var dateTime = ZonedDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2));
+		assertThat(DateStringFactory.formatFullDate(dateTime), equalTo("Thu, 24 Sep 2026 18:27:45 +0000"));
+	}
+
+	@Test
+	public void fullDateIsParsedCorrectly() {
+		var parsedDateTime = DateStringFactory.parseFullDate("Thu, 24 Sep 2026 20:27:45 +0200").get();
+		assertThat(parsedDateTime, equalTo(OffsetDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2))));
+	}
+
+	@Test
+	public void fullDateWithSingleDigitDayIsParsedCorrectly() {
+		var parsedDateTime = DateStringFactory.parseFullDate("Thu, 1 Oct 2015 18:56:16 +0200").get();
+		assertThat(parsedDateTime, equalTo(OffsetDateTime.of(2015, 10, 1, 18, 56, 16, 0, ZoneOffset.ofHours(2))));
+	}
+
+	@Test
+	public void fullDateWithoutWeekdayIsParsedCorrectly() {
+		var parsedDateTime = DateStringFactory.parseFullDate("24 Sep 2026 20:27:45 +0200").get();
+		assertThat(parsedDateTime, equalTo(OffsetDateTime.of(2026, 9, 24, 20, 27, 45, 0, ZoneOffset.ofHours(2))));
+	}
+
+	@Test
+	public void invalidFullDateReturnsEmptyOptional() {
+		var parsedDateTime = DateStringFactory.parseFullDate("not a valid date");
+		assertThat(parsedDateTime.isPresent(), equalTo(false));
+	}
+
 }

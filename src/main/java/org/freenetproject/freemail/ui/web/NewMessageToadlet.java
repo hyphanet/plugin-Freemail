@@ -28,9 +28,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,7 +37,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +46,7 @@ import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.l10n.FreemailL10n;
 import org.freenetproject.freemail.support.MessageBankTools;
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.Timer;
@@ -296,8 +295,6 @@ public class NewMessageToadlet extends WebPage {
 
 		//Build message header
 		StringBuilder header = new StringBuilder();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		FreemailAccount account = freemail.getAccountManager().getAccount(loginManager.getSession(ctx).getUserID());
 
 		//TODO: Check for newlines etc.
@@ -314,7 +311,7 @@ public class NewMessageToadlet extends WebPage {
 				+ " <" + local + "@" + account.getDomain() + ">" + "\r\n");
 
 		header.append("Subject: " + MailMessage.encodeHeader(getBucketAsString(req.getPart("subject"))) + "\r\n");
-		header.append("Date: " + sdf.format(new Date()) + "\r\n");
+		header.append("Date: " + DateStringFactory.formatFullDate(ZonedDateTime.now()) + "\r\n");
 		header.append("Message-ID: <" + UUID.randomUUID() + "@" + account.getDomain() + ">\r\n");
 		header.append("Content-Type: text/plain; charset=UTF-8\r\n");
 		header.append("Content-Transfer-Encoding: quoted-printable\r\n");

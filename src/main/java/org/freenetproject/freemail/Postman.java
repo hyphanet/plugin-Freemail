@@ -21,10 +21,8 @@
 
 package org.freenetproject.freemail;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 import java.io.File;
 import java.io.BufferedReader;
@@ -33,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.IOException;
 
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.EmailAddress;
 
 import freenet.support.Logger;
@@ -48,13 +47,11 @@ public abstract class Postman {
 	protected void storeMessage(BufferedReader brdr, MessageBank mb) throws IOException {
 		MailMessage newmsg = mb.createMessage();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-
 		newmsg.readHeaders(brdr);
 
 		// add our own headers
 		// received and date
-		newmsg.addHeader("Received", "(Freemail); "+sdf.format(new Date()));
+		newmsg.addHeader("Received", "(Freemail); "+ DateStringFactory.formatFullDate(ZonedDateTime.now()));
 
 		// validate the from header - or headers. There could be several.
 		List<String> froms = newmsg.getHeadersByName("From");
@@ -106,8 +103,6 @@ public abstract class Postman {
 		try {
 			bmsg = mb.createMessage();
 
-			SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-
 			bmsg.addHeader("From", "Freemail Postmaster <postmaster@freemail>");
 			bmsg.addHeader("Subject", "Undeliverable Freemail");
 			String origFrom = extractFromAddress(origmsg, isFreemailFormat);
@@ -118,7 +113,7 @@ public abstract class Postman {
 				String toDomain = origFrom.substring(origFrom.lastIndexOf("@") + 1);
 				bmsg.addHeader("Message-id", "<" + MailMessage.generateMessageID(toDomain) + ">");
 			}
-			bmsg.addHeader("Date", sdf.format(new Date()));
+			bmsg.addHeader("Date", DateStringFactory.formatFullDate(ZonedDateTime.now()));
 			bmsg.addHeader("MIME-Version", "1.0");
 			String boundary="boundary-";
 			Random rnd = new Random();
