@@ -19,21 +19,33 @@
 
 package org.freenetproject.freemail.imap;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.anyOf;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.stream.IntStream;
 import org.freenetproject.freemail.AccountManager;
-import org.freenetproject.freemail.imap.IMAPHandler;
+import org.freenetproject.freemail.FreemailAccount;
+import org.freenetproject.freemail.MailMessage;
+import org.freenetproject.freemail.MessageBank;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import fakes.ConfigurableAccountManager;
 import fakes.FakeSocket;
+import utils.TextProtocolTester.Command;
 
 public class IMAPHandlerTest extends IMAPTestWithMessages {
 	@Test
@@ -397,4 +409,58 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	@Test
+	public void internalDateForAMessageReturnsMessagesReceivedHeaderDate() throws IOException {
+		AccountManager accountManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		FreemailAccount account = accountManager.authenticate(BASE64_USERNAME, "");
+		MessageBank messageBank = account.getMessageBank();
+		MailMessage newMessage = messageBank.listMessages().get(8);
+		newMessage.addHeader("Received", "(Freemail); 22 Sep 2026 21:41:08 +0200");
+		newMessage.writeHeadersAndGetStream();
+
+		List<Command> commands = asList(
+				new Command("0001 LOGIN "+ IMAP_USERNAME + " test"),
+				new Command("0002 SELECT \"INBOX\"", INITIAL_RESPONSES),
+				new Command("0003 FETCH 7 (INTERNALDATE)", "* 7 FETCH (INTERNALDATE \"22-Sep-2026 19:41:08 +0000\")", "0003 OK Fetch completed")
+		);
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void internalDateForAMessageReturnsMessagesDateHeaderIfNoReceivedHeaderIsPresent() throws IOException {
+		AccountManager accountManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		FreemailAccount account = accountManager.authenticate(BASE64_USERNAME, "");
+		MessageBank messageBank = account.getMessageBank();
+		MailMessage newMessage = messageBank.listMessages().get(8);
+		newMessage.addHeader("Date", "Thu, 1 Oct 2015 18:56:16 +0200");
+		newMessage.writeHeadersAndGetStream();
+
+		List<Command> commands = asList(
+				new Command("0001 LOGIN "+ IMAP_USERNAME + " test"),
+				new Command("0002 SELECT \"INBOX\"", INITIAL_RESPONSES),
+				new Command("0003 FETCH 7 (INTERNALDATE)", "* 7 FETCH (INTERNALDATE \"1-Oct-2015 16:56:16 +0000\")", "0003 OK Fetch completed")
+		);
+		runSimpleTest(commands);
+	}
+
+	@Test
+	public void internalDateForAMessageReturnsCurrentTimeIfNoReceivedOrDateHeadersArePresent() throws IOException {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d-MMM-yyyy HH:mm:ss ZZZZ", Locale.ROOT);
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		var now = new Date();
+		var expectedDateMatchers = IntStream.range(-15, 5)
+				// we’re matching everything from 15s in the post to 5s in the future, to allow for funky runtime delays.
+				.mapToObj(seconds -> simpleDateFormat.format(new Date(now.getTime() + seconds * 1000L)))
+				.map(formattedDate -> "* 7 FETCH (INTERNALDATE \"" + formattedDate + "\")")
+				.map(Matchers::equalTo)
+				.toList();
+		List<Command> commands = asList(
+				new Command("0001 LOGIN "+ IMAP_USERNAME + " test"),
+				new Command("0002 SELECT \"INBOX\"", INITIAL_RESPONSES),
+				new Command("0003 FETCH 7 (INTERNALDATE)", anyOf(expectedDateMatchers.toArray(new Matcher[0])), "0003 OK Fetch completed")
+		);
+		runSimpleTest(commands);
+	}
+
 }
