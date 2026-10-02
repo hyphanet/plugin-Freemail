@@ -248,7 +248,7 @@ public class AccountManager {
 		m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
 		m.addHeader("Content-Transfer-Encoding", "7bit");
 		m.addHeader("Content-Disposition", "inline");
-		m.addHeader("Message-id", "<freemail-welcome-msg@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
+		m.addHeader("Message-id", "<freemail-welcome-msg-" + System.nanoTime() + "@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
 
 		PrintStream ps = m.writeHeadersAndGetStream();
 
