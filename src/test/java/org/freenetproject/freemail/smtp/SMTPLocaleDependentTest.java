@@ -24,50 +24,29 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import org.junit.After;
-import org.junit.Before;
+import org.freenetproject.freemail.test.OverrideLocale;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import utils.LocaleDependentTest;
+import static java.util.Arrays.asList;
+import static java.util.Locale.getAvailableLocales;
 
 /**
  * Contains regression tests for locale dependent bugs that have been found in the SMTP code.
  */
 @RunWith(value = Parameterized.class)
 public class SMTPLocaleDependentTest extends SMTPTestBase {
-	private final LocaleDependentTest localeDependentTest;
 
-	@Parameters
-	public static List<Locale[]> data() {
-		List<Locale[]> data = new LinkedList<>();
-		for(Locale l : LocaleDependentTest.data()) {
-			data.add(new Locale[] {l});
-		}
-		return data;
+	@Parameters(name = "Locale: {0}")
+	public static List<Locale> data() {
+		return asList(getAvailableLocales());
 	}
 
 	public SMTPLocaleDependentTest(Locale locale) {
-		this.localeDependentTest = new LocaleDependentTest(locale);
-	}
-
-	@Before
-	@Override
-	public void before() {
-		super.before();
-		localeDependentTest.before();
-	}
-
-	@After
-	@Override
-	public void after() {
-		try {
-			localeDependentTest.after();
-		} finally {
-			super.after();
-		}
+		this.overrideLocale = new OverrideLocale(locale);
 	}
 
 	/**
@@ -85,4 +64,8 @@ public class SMTPLocaleDependentTest extends SMTPTestBase {
 
 		runSimpleTest(commands, expectedResponse);
 	}
+
+	@Rule
+	public final OverrideLocale overrideLocale;
+
 }

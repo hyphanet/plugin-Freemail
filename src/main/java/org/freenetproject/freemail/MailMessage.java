@@ -38,8 +38,6 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Iterator;
@@ -48,11 +46,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.imap.IMAPMessageFlags;
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.support.MediaType;
@@ -60,13 +58,6 @@ import freenet.support.MediaType;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MailMessage {
-	private static final Set<String> dateFormats = Set.of(
-			// Mon, 17 Oct 2011 10:24:14 +0200
-			"EEE, d MMM yyyy HH:mm:ss Z",
-			// 18 Feb 2012 03:32:22 +0100
-			"d MMM yyyy HH:mm:ss Z"
-	);
-
 	private File file;
 	private OutputStream os;
 	private PrintStream ps;
@@ -381,17 +372,9 @@ public class MailMessage {
 			return null;
 		}
 
-		for(String format : dateFormats) {
-			SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.ROOT);
-			try {
-				return sdf.parse(date);
-			} catch (ParseException e) {
-				//Try next format
-			}
-		}
-
-		Logger.minor(MailMessage.class, "No format matched for date " + date);
-		return null;
+		return DateStringFactory.parseFullDate(date)
+				.map(dateTime -> new Date(dateTime.toInstant().toEpochMilli()))
+				.orElse(null);
 	}
 
 	/**

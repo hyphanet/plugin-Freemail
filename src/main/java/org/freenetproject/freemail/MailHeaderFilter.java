@@ -29,14 +29,13 @@ package org.freenetproject.freemail;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.StringBuffer;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Set;
-import java.util.TimeZone;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
@@ -45,15 +44,8 @@ public class MailHeaderFilter {
 	private final BufferedReader reader;
 	private final StringBuffer buffer;
 	private boolean foundEnd;
-	private static final SimpleDateFormat sdf;
-	private static final TimeZone utc;
 
 	private static final Pattern messageIdPattern = Pattern.compile("<?([^\\@>])*\\@([^>]*)>?");
-	static {
-		sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-		utc = TimeZone.getTimeZone("UTC");
-		sdf.setTimeZone(utc);
-	}
 
 	/** List of headers that can be passed though without being checked */
 	private static final Set<String> headerWhitelist =
@@ -163,11 +155,7 @@ public class MailHeaderFilter {
 				return null;
 			}
 
-			String strDate;
-			synchronized(sdf) {
-				strDate = sdf.format(d);
-			}
-			return strDate;
+			return DateStringFactory.formatFullDate(d.toInstant().atZone(ZoneOffset.systemDefault()));
 		} else if(name.equalsIgnoreCase("Message-ID")) {
 			// We want to keep message-ids for in-reply-to and hence message threading to work, but
 			// we need to make sure the mail client hasn't put in a real hostname, as some have been
