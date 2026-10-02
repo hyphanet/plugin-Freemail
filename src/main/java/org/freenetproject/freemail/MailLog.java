@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 class MailLog {
 	private final File logfile;
@@ -42,15 +43,11 @@ class MailLog {
 		this.lastMessageId = 0;
 		this.passes = 0;
 
-		this.messages = new HashMap<Integer, String>();
+		this.messages = new HashMap<>();
 		this.logfile = logfile;
 
-		InputStream frdr;
-		try {
-			frdr = new FileInputStream(this.logfile);
-
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(frdr, "UTF-8"));
+		try (InputStream frdr = new FileInputStream(this.logfile);
+				BufferedReader br = new BufferedReader(new InputStreamReader(frdr, UTF_8))) {
 			String line;
 
 			while((line = br.readLine()) != null) {
@@ -66,11 +63,9 @@ class MailLog {
 				int thisnum = Integer.parseInt(parts[0]);
 				if(thisnum > this.lastMessageId)
 					this.lastMessageId = thisnum;
-				this.messages.put(new Integer(thisnum), parts[1]);
+				this.messages.put(thisnum, parts[1]);
 			}
 
-			br.close();
-			frdr.close();
 		} catch (IOException ioe) {
 			return;
 		}
@@ -91,38 +86,22 @@ class MailLog {
 	}
 
 	public void addMessage(int num, String checksum) {
-		this.messages.put(new Integer(num), checksum);
+		this.messages.put(num, checksum);
 		if(num > this.lastMessageId)
 			this.lastMessageId = num;
 		this.writeLogFile();
 	}
 
 	private void writeLogFile() {
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(this.logfile);
-		} catch (IOException ioe) {
-			return;
-		}
+		try (FileOutputStream fos = new FileOutputStream(this.logfile);
+				PrintWriter pw = new PrintWriter(fos)) {
 
-		PrintWriter pw = new PrintWriter(fos);
+			pw.println("passes="+this.passes);
 
-		pw.println("passes="+this.passes);
+			this.messages.forEach((num, checksum) -> pw.println(num + "=" + checksum));
 
-		Iterator<Map.Entry<Integer, String>> i = this.messages.entrySet().iterator();
-		while(i.hasNext()) {
-			Map.Entry<Integer, String> e = i.next();
+			pw.flush();
 
-			Integer num = e.getKey();
-			String checksum = e.getValue();
-			pw.println(num.toString()+"="+checksum);
-		}
-
-		pw.flush();
-
-		try {
-			pw.close();
-			fos.close();
 		} catch (IOException ioe) {
 			return;
 		}

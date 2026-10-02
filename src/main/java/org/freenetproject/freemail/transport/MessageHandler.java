@@ -57,7 +57,6 @@ import org.freenetproject.freemail.wot.Identity;
 import freenet.support.Base64;
 import freenet.support.IllegalBase64Exception;
 import freenet.support.api.Bucket;
-import freenet.support.io.Closer;
 import freenet.support.io.FileBucket;
 
 /**
@@ -93,12 +92,12 @@ public class MessageHandler {
 	/** Channels (may be more than one per correspondent). LOCKING: Channels lock should be taken 
 	 * before the locks inside Channel, not after. I.e. Channel should not call back to us with 
 	 * locks held. */
-	private final List<Channel> channels = new LinkedList<Channel>();
+	private final List<Channel> channels = new LinkedList<>();
 	private final Freemail freemail;
 	private final File channelDir;
 	private final FreemailAccount freemailAccount;
 	private final AtomicInteger nextChannelNum = new AtomicInteger();
-	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<String, Future<?>>();
+	private final ConcurrentHashMap<String, Future<?>> tasks = new ConcurrentHashMap<>();
 	private final HighLevelFCPClientFactory hlFcpClientFactory;
 
 	public MessageHandler(File outbox, Freemail freemail, File channelDir,
@@ -228,11 +227,10 @@ public class MessageHandler {
 			}
 
 			OutputStream os = new FileOutputStream(messageFile);
-			PrintWriter pw = new PrintWriter(os);
-			InputStream messageStream = message.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream));
-			MailHeaderFilter filter = new MailHeaderFilter(reader, freemailAccount);
-			try {
+			try (PrintWriter pw = new PrintWriter(os);
+					InputStream messageStream = message.getInputStream();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(messageStream))) {
+				MailHeaderFilter filter = new MailHeaderFilter(reader, freemailAccount);
 				//Copy headers
 				String header = filter.readHeader();
 				while(header != null) {
@@ -248,9 +246,6 @@ public class MessageHandler {
 					if(read == -1) break;
 					pw.write(buffer, 0, read);
 				}
-			} finally {
-				Closer.close(pw);
-				Closer.close(reader);
 			}
 
 			PropsFile props = PropsFile.createPropsFile(new File(rcptOutbox, INDEX_NAME));
@@ -334,7 +329,7 @@ public class MessageHandler {
 	}
 
 	public List<OutboxMessage> listOutboxMessages() throws IOException {
-		List<OutboxMessage> messages = new LinkedList<OutboxMessage>();
+		List<OutboxMessage> messages = new LinkedList<>();
 
 		File[] outboxFiles = outbox.listFiles();
 		if(outboxFiles == null) {

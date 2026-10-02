@@ -41,7 +41,7 @@ import fakes.ConfigurableAccountManager;
 public abstract class IMAPTestWithMessages extends IMAPTestBase {
 	protected static final List<String> INITIAL_RESPONSES;
 	static {
-		List<String> backing = new LinkedList<String>();
+		List<String> backing = new LinkedList<>();
 		backing.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		backing.add("0001 OK Logged in");
 		backing.add("* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)");
@@ -54,20 +54,20 @@ public abstract class IMAPTestWithMessages extends IMAPTestBase {
 	}
 
 	protected static List<Command> connectSequence() {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(null, "* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick."));
 		return commands;
 	}
 
 	protected static List<Command> loginSequence(String tag) {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(tag + "-1 LOGIN " + IMAP_USERNAME + " test",
 		                         tag + "-1 OK Logged in"));
 		return commands;
 	}
 
 	protected static List<Command> selectInboxSequence(String tag) {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.add(new Command(tag + "-1 SELECT INBOX",
 		                         "* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)",
 		                         "* OK [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft \\Recent)] Limited",

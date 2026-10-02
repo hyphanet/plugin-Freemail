@@ -52,7 +52,7 @@ public class Configurator {
 		this.props = PropsFile.createPropsFile(f);
 		this.props.setCommentPrefix("#");
 		String ls = System.getProperty("line.separator");
-		StringBuffer head = new StringBuffer();
+		var head = new StringBuilder();
 		head.append("# This is the configuration file for Freemail."+ls);
 		head.append("# "+ls);
 		head.append("# You are free to edit this file, but if Freemail"+ls);
@@ -64,7 +64,7 @@ public class Configurator {
 		head.append("# of editing this file.");
 
 		this.props.setHeader(head.toString());
-		this.callbacks = new HashMap<String, ConfigClient>();
+		this.callbacks = new HashMap<>();
 	}
 
 	/**

@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +52,8 @@ import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.wot.Identity;
 import org.freenetproject.freemail.wot.IdentityMatcher;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class SMTPHandler extends ServerHandler implements Runnable {
 	private final OutputStream os;
 	private final PrintStream ps;
@@ -74,7 +75,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		this.bufrdr = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		this.identityMatcher = identityMatcher;
 
-		this.to = new Vector<Identity>();
+		this.to = new Vector<>();
 	}
 
 	@Override
@@ -104,27 +105,20 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void dispatch(SMTPCommand cmd) {
-		if(cmd.command.equals("helo")) {
-			this.handle_helo();
-		} else if(cmd.command.equals("ehlo")) {
-			this.handle_ehlo();
-		} else if(cmd.command.equals("quit")) {
-			this.handle_quit();
-		} else if(cmd.command.equals("turn")) {
-			this.handle_turn();
-		} else if(cmd.command.equals("auth")) {
-			this.handle_auth(cmd);
-		} else if(cmd.command.equals("mail")) {
-			this.handle_mail();
-		} else if(cmd.command.equals("rcpt")) {
-			this.handle_rcpt(cmd);
-		} else if(cmd.command.equals("data")) {
-			this.handle_data();
-		} else if(cmd.command.equals("rset")) {
-			this.handle_rset();
-		} else {
-			Logger.normal(this, "Unknown command: " + cmd.command);
-			this.ps.print("502 Unimplemented\r\n");
+		switch (cmd.command) {
+			case "helo" -> this.handle_helo();
+			case "ehlo" -> this.handle_ehlo();
+			case "quit" -> this.handle_quit();
+			case "turn" -> this.handle_turn();
+			case "auth" -> this.handle_auth(cmd);
+			case "mail" -> this.handle_mail();
+			case "rcpt" -> this.handle_rcpt(cmd);
+			case "data" -> this.handle_data();
+			case "rset" -> this.handle_rset();
+			default -> {
+				Logger.normal(this, "Unknown command: " + cmd.command);
+				this.ps.print("502 Unimplemented\r\n");
+			}
 		}
 	}
 
@@ -165,12 +159,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 
 		if(cmd.args[0].equalsIgnoreCase("login")) {
-			try {
-				this.ps.print("334 "+new String(Base64.encode("Username:".getBytes("UTF-8")))+"\r\n");
-			} catch(UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			this.ps.print("334 "+new String(Base64.encode("Username:".getBytes(UTF_8)))+"\r\n");
 
 			String b64username;
 			String b64password;
@@ -181,12 +170,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if(b64username == null) return;
 
-			try {
-				this.ps.print("334 "+new String(Base64.encode("Password:".getBytes("UTF-8")))+"\r\n");
-			} catch(UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			this.ps.print("334 "+new String(Base64.encode("Password:".getBytes(UTF_8)))+"\r\n");
 			try {
 				b64password = this.bufrdr.readLine();
 			} catch (IOException ioe) {
@@ -194,13 +178,8 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 			if(b64password == null) return;
 
-			try {
-				uname = new String(Base64.decode(b64username.getBytes("UTF-8")));
-				password = new String(Base64.decode(b64password.getBytes("UTF-8")));
-			} catch(UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			uname = new String(Base64.decode(b64username.getBytes(UTF_8)));
+			password = new String(Base64.decode(b64password.getBytes(UTF_8)));
 		} else if(cmd.args[0].equalsIgnoreCase("plain")) {
 			String b64creds;
 
@@ -222,12 +201,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 			}
 
 			String creds_plain;
-			try {
-				creds_plain = new String(Base64.decode(b64creds.getBytes("UTF-8")));
-			} catch (UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			creds_plain = new String(Base64.decode(b64creds.getBytes(UTF_8)));
 			String[] creds = creds_plain.split("\0");
 			if (creds.length != 3) {
 				this.ps.print("501 Invalid arguments to plain auth\r\n");
@@ -309,7 +283,7 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		}
 
 		//Check if the identity is in WoT
-		Set<String> recipient = new HashSet<String>();
+		Set<String> recipient = new HashSet<>();
 		recipient.add(address);
 		Map<String, List<Identity>> matches;
 		try {
@@ -343,24 +317,24 @@ public class SMTPHandler extends ServerHandler implements Runnable {
 		File tempfile = null;
 		try {
 			tempfile = File.createTempFile("freemail-", ".message", Freemail.getTempDir());
-			PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile));
-
-			this.ps.print("354 Go crazy\r\n");
-
-			String line;
 			boolean done = false;
-			while((line = this.bufrdr.readLine()) != null) {
-				if(line.equals(".")) {
-					done = true;
-					break;
+			try (PrintWriter pw = new PrintWriter(new FileOutputStream(tempfile))) {
+
+				this.ps.print("354 Go crazy\r\n");
+
+				String line;
+				while ((line = this.bufrdr.readLine()) != null) {
+					if (line.equals(".")) {
+						done = true;
+						break;
+					}
+					if (line.startsWith(".")) {
+						line = line.substring(1);
+					}
+					pw.print(line + "\r\n");
 				}
-				if(line.startsWith(".")) {
-					line = line.substring(1);
-				}
-				pw.print(line+"\r\n");
 			}
 
-			pw.close();
 			if(!done) {
 				// connection closed before the message was
 				// finished. bail out.

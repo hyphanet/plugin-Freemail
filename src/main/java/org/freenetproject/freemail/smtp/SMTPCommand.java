@@ -19,8 +19,8 @@
 
 package org.freenetproject.freemail.smtp;
 
+import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Vector;
 
 public class SMTPCommand {
 	public final String command;
@@ -28,8 +28,8 @@ public class SMTPCommand {
 
 	public SMTPCommand(String line) throws SMTPBadCommandException {
 		boolean in_quotes = false;
-		Vector<String> tmp_args = new Vector<String>();
-		StringBuffer buf = new StringBuffer("");
+		var tmp_args = new ArrayList<String>();
+		var buf = new StringBuilder("");
 
 		for(int i = 0; i < line.length(); i++) {
 			char c = line.charAt(i);
@@ -40,7 +40,7 @@ public class SMTPCommand {
 						buf.append(c);
 					} else if(buf.length() > 0) {
 						tmp_args.add(buf.toString());
-						buf = new StringBuffer("");
+						buf = new StringBuilder("");
 					}
 					break;
 				case '"':

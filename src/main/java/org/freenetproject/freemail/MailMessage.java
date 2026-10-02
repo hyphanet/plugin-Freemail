@@ -41,9 +41,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,14 +57,15 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.support.MediaType;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class MailMessage {
-	private static final Set<String> dateFormats;
-	static {
-		Set<String> backing = new HashSet<String>();
-		backing.add("EEE, d MMM yyyy HH:mm:ss Z"); //Mon, 17 Oct 2011 10:24:14 +0200
-		backing.add("d MMM yyyy HH:mm:ss Z");      //     18 Feb 2012 03:32:22 +0100
-		dateFormats = Collections.unmodifiableSet(backing);
-	}
+	private static final Set<String> dateFormats = Set.of(
+			// Mon, 17 Oct 2011 10:24:14 +0200
+			"EEE, d MMM yyyy HH:mm:ss Z",
+			// 18 Feb 2012 03:32:22 +0100
+			"d MMM yyyy HH:mm:ss Z"
+	);
 
 	private File file;
 	private OutputStream os;
@@ -79,7 +78,7 @@ public class MailMessage {
 
 	public MailMessage(File f, int msg_seqnum) {
 		this.file = f;
-		this.headers = new Vector<MailMessageHeader>();
+		this.headers = new Vector<>();
 		this.msg_seqnum=msg_seqnum;
 
 		// initialize flags from filename
@@ -113,7 +112,7 @@ public class MailMessage {
 	}
 
 	public String getHeaders(String name) {
-		StringBuffer buf = new StringBuffer("");
+		var buf = new StringBuilder("");
 
 		for(MailMessageHeader header : headers) {
 			if(header.name.equalsIgnoreCase(name)) {
@@ -141,10 +140,9 @@ public class MailMessage {
 		if(obj == null) {
 			return false;
 		}
-		if(!(obj instanceof MailMessage)) {
+		if(!(obj instanceof MailMessage other)) {
 			return false;
 		}
-		MailMessage other = (MailMessage) obj;
 		if(file == null) {
 			if(other.file != null) {
 				return false;
@@ -161,7 +159,7 @@ public class MailMessage {
 	 * @return a list of the values of all headers with the given name
 	 */
 	public List<String> getHeadersByName(String name) {
-		List<String> matches = new LinkedList<String>();
+		List<String> matches = new LinkedList<>();
 
 		for(MailMessageHeader header : headers) {
 			if(header.name.equalsIgnoreCase(name)) {
@@ -173,17 +171,11 @@ public class MailMessage {
 	}
 
 	public void removeHeader(String name, String val) {
-		Iterator<MailMessageHeader> headerIt = headers.iterator();
-		while(headerIt.hasNext()) {
-			MailMessageHeader header = headerIt.next();
-			if(header.name.equalsIgnoreCase(name) && header.val.equalsIgnoreCase(val)) {
-				headerIt.remove();
-			}
-		}
+		headers.removeIf(header -> header.name.equalsIgnoreCase(name) && header.val.equalsIgnoreCase(val));
 	}
 
 	public String getAllHeadersAsString() {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		for(MailMessageHeader header : headers) {
 			buf.append(header.name);
@@ -241,10 +233,10 @@ public class MailMessage {
 	}
 
 	public void readHeaders() throws IOException {
-		BufferedReader bufrdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
+		try (BufferedReader bufrdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), UTF_8))) {
 
-		this.readHeaders(bufrdr);
-		bufrdr.close();
+			this.readHeaders(bufrdr);
+		}
 	}
 
 	public void readHeaders(BufferedReader bufrdr) throws IOException {
@@ -292,19 +284,16 @@ public class MailMessage {
 	public long getSize() throws IOException {
 		// this is quite arduous since we have to send the message
 		// with \r\n's, and hence it may not be the size it is on disk
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
-		try {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), UTF_8))) {
 			long counter = 0;
 			String line;
 
 			while((line = br.readLine()) != null) {
-				counter += line.getBytes("UTF-8").length;
-				counter += "\r\n".getBytes("UTF-8").length;
+				counter += line.getBytes(UTF_8).length;
+				counter += "\r\n".getBytes(UTF_8).length;
 			}
 
 			return counter;
-		} finally {
-			br.close();
 		}
 	}
 
@@ -319,7 +308,7 @@ public class MailMessage {
 
 	public String readLine() throws IOException {
 		if(this.brdr == null) {
-			this.brdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
+			this.brdr = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), UTF_8));
 		}
 
 		return this.brdr.readLine();
@@ -329,13 +318,11 @@ public class MailMessage {
 		this.closeStream();
 		String line;
 		try {
-			PrintStream copyps = msg.getRawStream();
-			try {
+
+			try (PrintStream copyps = msg.getRawStream()) {
 				while((line = this.readLine()) != null) {
 					copyps.println(line);
 				}
-			} finally {
-				copyps.close();
 			}
 			msg.commit();
 		} catch (IOException ioe) {
@@ -462,7 +449,7 @@ public class MailMessage {
 
 		if(encoding.equalsIgnoreCase("B")) {
 			//Base64 encoding
-			byte[] bytes = Base64.getDecoder().decode(text.getBytes("UTF-8"));
+			byte[] bytes = Base64.getDecoder().decode(text.getBytes(UTF_8));
 			return new String(bytes, charset);
 		}
 
@@ -512,7 +499,7 @@ public class MailMessage {
 			return null;
 		}
 
-		StringBuffer subject = new StringBuffer();
+		var subject = new StringBuilder();
 
 		int offset = 0;
 		while(offset < rawHeader.length()) {
@@ -571,13 +558,12 @@ public class MailMessage {
 
 			//Encode the rest
 			//FIXME: There has to be a better way than wrapping with arrays everywhere...
-			Charset utf8 = Charset.forName("UTF-8");
-			ByteBuffer bytes = utf8.encode(CharBuffer.wrap(new char[] {c}));
+			ByteBuffer bytes = UTF_8.encode(CharBuffer.wrap(new char[] { c }));
 			result.append("=?UTF-8?Q?");
 			while(bytes.hasRemaining()) {
 				byte b = bytes.get();
 				result.append("=");
-				String encodedString = new String(Hex.encode(new byte[] {b}), utf8).toUpperCase(Locale.ROOT);
+				String encodedString = new String(Hex.encode(new byte[] { b }), UTF_8).toUpperCase(Locale.ROOT);
 				result.append(encodedString);
 			}
 			result.append("?=");
@@ -587,7 +573,7 @@ public class MailMessage {
 	}
 
 	public BufferedReader getBodyReader() throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));
 
 		//Read past the headers and store them if they haven't been read
 		//already

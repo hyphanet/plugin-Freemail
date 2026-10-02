@@ -73,7 +73,7 @@ public class MockWoTConnection implements WoTConnection {
 
 	@Override
 	public Set<Identity> getAllIdentities() throws PluginNotFoundException {
-		Set<Identity> allIdentities = new HashSet<Identity>();
+		Set<Identity> allIdentities = new HashSet<>();
 		if (trustedIdentities != null)
 			allIdentities.addAll(trustedIdentities);
 		if (untrustedIdentities != null)

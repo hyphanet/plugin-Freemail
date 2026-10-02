@@ -32,13 +32,14 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.TreeMap;
 import java.util.SortedMap;
-import java.util.Vector;
-import java.util.Enumeration;
 import java.util.Comparator;
 import java.util.Arrays;
 
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.stream;
 
 
 public class MessageBank {
@@ -99,7 +100,7 @@ public class MessageBank {
 	}
 
 	public String getFolderFlagsString() {
-		StringBuffer retval = new StringBuffer("(");
+		var retval = new StringBuilder("(");
 
 		if(this.listSubFolders().length > 0) {
 			retval.append("\\HasChildren");
@@ -114,13 +115,13 @@ public class MessageBank {
 	public synchronized boolean delete() {
 		File[] files = this.dir.listFiles();
 
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().equals(".")) continue;
-			if(files[i].getName().equals("..")) continue;
+		for (File file : files) {
+			if (file.getName().equals(".")) continue;
+			if (file.getName().equals("..")) continue;
 
 			// this method should will fail if there are directories
 			// here. It should never be called if this is the case.
-			if(!files[i].delete()) return false;
+			if (!file.delete()) return false;
 		}
 
 		return this.dir.delete();
@@ -153,15 +154,15 @@ public class MessageBank {
 
 		Arrays.sort(files, new UIDComparator());
 
-		TreeMap<Integer, MailMessage> msgs = new TreeMap<Integer, MailMessage>();
+		TreeMap<Integer, MailMessage> msgs = new TreeMap<>();
 
 		int seq=1;
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].isDirectory()) continue;
+		for (File file : files) {
+			if (file.isDirectory()) continue;
 
-			MailMessage msg = new MailMessage(files[i], seq++);
+			MailMessage msg = new MailMessage(file, seq++);
 
-			msgs.put(new Integer(msg.getUID()), msg);
+			msgs.put(msg.getUID(), msg);
 		}
 
 		return msgs;
@@ -222,8 +223,8 @@ public class MessageBank {
 		File ghostdir = new File(this.dir, "."+name);
 		if(ghostdir.exists()) {
 			File[] files = ghostdir.listFiles();
-			for(int i = 0; i < files.length; i++) {
-				files[i].delete();
+			for (File file : files) {
+				file.delete();
 			}
 			ghostdir.delete();
 		}
@@ -239,26 +240,11 @@ public class MessageBank {
 	}
 
 	public synchronized MessageBank[] listSubFolders() {
-		File[] files = this.dir.listFiles();
-		Vector<File> subfolders = new Vector<File>();
-
-		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().startsWith(".")) continue;
-
-			if(files[i].isDirectory()) {
-				subfolders.add(files[i]);
-			}
-		}
-
-		MessageBank[] retval = new MessageBank[subfolders.size()];
-
-		Enumeration<File> e = subfolders.elements();
-		int i = 0;
-		while(e.hasMoreElements()) {
-			retval[i] = new MessageBank(e.nextElement(), topLevel == null ? this : topLevel);
-			i++;
-		}
-		return retval;
+		return stream(this.dir.listFiles())
+				.filter(file -> !file.getName().startsWith("."))
+				.filter(File::isDirectory)
+				.map(directory -> new MessageBank(directory, topLevel == null ? this : topLevel))
+				.toArray(MessageBank[]::new);
 	}
 
 	/**
@@ -275,14 +261,12 @@ public class MessageBank {
 		long retval;
 
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), "UTF-8"));
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nidfile), UTF_8))) {
 
-			retval = Long.parseLong(br.readLine());
+				retval = Long.parseLong(br.readLine());
 
-			br.close();
-		} catch (IOException ioe) {
-			return 1;
-		} catch (NumberFormatException nfe) {
+			}
+		} catch (IOException | NumberFormatException ioe) {
 			return 1;
 		}
 
@@ -293,10 +277,10 @@ public class MessageBank {
 		// write the new ID to a temporary file
 		File nidfile = new File(this.dir, NIDTMPFILE);
 		try {
-			PrintStream ps = new PrintStream(new FileOutputStream(nidfile));
-			ps.print(newid);
-			ps.flush();
-			ps.close();
+			try (PrintStream ps = new PrintStream(new FileOutputStream(nidfile))) {
+				ps.print(newid);
+				ps.flush();
+			}
 
 			// make sure the old nextid file doesn't contain a
 			// value greater than our one
@@ -321,11 +305,8 @@ public class MessageBank {
 			//First read the next value from the UID file
 			File uidFile = new File(dir, UIDVALIDITYFILE);
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), "UTF-8"));
-				try {
+				try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(uidFile), UTF_8))) {
 					uid = Long.parseLong(reader.readLine());
-				} finally {
-					reader.close();
 				}
 			} catch (FileNotFoundException e) {
 				//No values have been assigned yet
@@ -340,17 +321,14 @@ public class MessageBank {
 			}
 
 			//Write the next uid to file
-			PrintStream ps;
-			try {
-				ps = new PrintStream(new FileOutputStream(uidFile));
+			try (PrintStream ps = new PrintStream(new FileOutputStream(uidFile))) {
+				ps.print((uid + 1) % 0x100000000l);
 			} catch (FileNotFoundException e) {
 				Logger.error(this, "Couldn't create the uidvalidity file");
 
 				//Return -1, or else we would return the same value next time
 				return -1;
 			}
-			ps.print((uid + 1) % 0x100000000l);
-			ps.close();
 		}
 
 		return uid % 0x100000000l;

@@ -64,7 +64,8 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
-import freenet.support.io.Closer;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class NewMessageToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/NewMessage";
@@ -85,7 +86,7 @@ public class NewMessageToadlet extends WebPage {
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
-		List<String> recipients = new LinkedList<String>();
+		List<String> recipients = new LinkedList<>();
 		String recipient = req.getParam("to");
 		if(!recipient.equals("")) {
 			Identity identity;
@@ -116,7 +117,7 @@ public class NewMessageToadlet extends WebPage {
 			return createReply(req, ctx, page);
 		}
 
-		List<String> recipients = new LinkedList<String>();
+		List<String> recipients = new LinkedList<>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
 			recipients.add(getBucketAsString(req.getPart("to" + i)));
 		}
@@ -183,17 +184,13 @@ public class NewMessageToadlet extends WebPage {
 
 		//Write a copy of the message
 		MailMessage msg = target.createMessage();
-		PrintStream ps = null;
-		try {
-			ps = msg.getRawStream();
+		try (PrintStream ps = msg.getRawStream()) {
 			BucketTools.copyTo(message, ps, message.size());
 		} catch (IOException e) {
 			Logger.error(this, "Caugth exception while copying message to sent folder", e);
-			Closer.close(ps);
 			msg.cancel();
 			return false;
 		}
-		Closer.close(ps);
 
 		msg.flags.setSeen();
 		msg.commit();
@@ -206,7 +203,7 @@ public class NewMessageToadlet extends WebPage {
 		Timer sendMessageTimer = Timer.start();
 
 		Timer recipientHandling = sendMessageTimer.startSubTimer();
-		Map<String, String> recipients = new HashMap<String, String>();
+		Map<String, String> recipients = new HashMap<>();
 		for(int i = 0; req.isPartSet("to" + i); i++) {
 			String recipient = getBucketAsString(req.getPart("to" + i));
 			if(recipient.equals("")) {
@@ -266,8 +263,8 @@ public class NewMessageToadlet extends WebPage {
 		identityMatching.log(this, "Time spent matching identities");
 
 		//Check if there were any unknown or ambiguous identities
-		List<String> failedRecipients = new LinkedList<String>();
-		List<Identity> knownRecipients = new LinkedList<Identity>();
+		List<String> failedRecipients = new LinkedList<>();
+		List<Identity> knownRecipients = new LinkedList<>();
 		for(Map.Entry<String, List<Identity>> entry : matches.entrySet()) {
 			if(entry.getValue().size() == 1)
 				knownRecipients.add(entry.getValue().get(0));
@@ -333,15 +330,15 @@ public class NewMessageToadlet extends WebPage {
 		}
 		header.append("\r\n");
 
-		Bucket messageHeader = new ArrayBucket(header.toString().getBytes("UTF-8"));
+		Bucket messageHeader = new ArrayBucket(header.toString().getBytes(UTF_8));
 		Bucket messageText = req.getPart("message-text");
 
 		//Now combine them in a single bucket
 		Bucket message = new ArrayBucket();
-		OutputStream messageOutputStream = message.getOutputStream();
-		BucketTools.copyTo(messageHeader, messageOutputStream, -1);
-		BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
-		messageOutputStream.close();
+		try (OutputStream messageOutputStream = message.getOutputStream()) {
+			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
+			BucketTools.copyTo(messageText, new MailMessage.EncodingOutputStream(messageOutputStream), -1);
+		}
 
 		copyMessageToSentFolder(message, account.getMessageBank());
 
@@ -387,15 +384,12 @@ public class NewMessageToadlet extends WebPage {
 		}
 
 		StringBuilder body = new StringBuilder();
-		BufferedReader bodyReader = msg.getBodyReader();
-		try {
+		try (BufferedReader bodyReader = msg.getBodyReader()) {
 			String line = bodyReader.readLine();
 			while(line != null) {
 				body.append(">" + line + "\r\n");
 				line = bodyReader.readLine();
 			}
-		} finally {
-			bodyReader.close();
 		}
 
 		List<String> extraHeaders = readExtraHeaders(req);
@@ -514,11 +508,7 @@ public class NewMessageToadlet extends WebPage {
 			baos.write(buffer, 0, read);
 		}
 
-		try {
-			return new String(baos.toByteArray(), "UTF-8");
-		} catch(UnsupportedEncodingException e) {
-			return null;
-		}
+		return baos.toString(UTF_8);
 	}
 
 	private FreemailAccount getFreemailAccount(ToadletContext ctx) {
@@ -551,16 +541,11 @@ public class NewMessageToadlet extends WebPage {
 	}
 
 	private Bucket bucketFromString(String data) {
-		try {
-			return new ArrayBucket(data.getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset");
-		}
+		return new ArrayBucket(data.getBytes(UTF_8));
 	}
 
 	private List<String> readExtraHeaders(HTTPRequest req) {
-		List<String> extraHeaders = new LinkedList<String>();
+		List<String> extraHeaders = new LinkedList<>();
 		for(int i = 0;; i++) {
 			String header = getBucketAsString(req.getPart("extraHeader" + i));
 			if(header == null) {

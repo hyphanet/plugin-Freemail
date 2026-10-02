@@ -102,7 +102,7 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback, Li
 		}
 
 		//Check the form password
-		String formPassword = pluginRespirator.getNode().clientCore.formPassword;
+		String formPassword = pluginRespirator.getNode().getClientCore().getFormPassword();
 		String pass = req.getPartAsStringFailsafe("formPassword", formPassword.length());
 
 		if(!pass.equals(formPassword)) {

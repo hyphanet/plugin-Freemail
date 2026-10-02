@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.util.Iterator;
@@ -80,7 +79,8 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.support.api.Bucket;
 import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
-import freenet.support.io.Closer;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 //FIXME: The message id gives away how many messages has been sent over the channel.
 //       Could it be replaced by a different solution that gives away less information?
@@ -134,7 +134,7 @@ class Channel {
 	private final FreemailAccount account;
 	private final Fetcher fetcher = new Fetcher();
 	private final RTSSender rtsSender = new RTSSender();
-	private final AtomicReference<ChannelEventCallback> channelEventCallback = new AtomicReference<ChannelEventCallback>();
+	private final AtomicReference<ChannelEventCallback> channelEventCallback = new AtomicReference<>();
 	private final MessageLog ackLog;
 
 	Channel(File channelDir, ScheduledExecutorService executor, HighLevelFCPClient fcpClient, Freemail freemail, FreemailAccount account, String remoteId) throws ChannelTimedOutException {
@@ -294,12 +294,7 @@ class Channel {
 
 			//Build the header of the inserted message
 			Bucket bucket;
-			try {
-				bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes("UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			bucket = new ArrayBucket("messagetype=cts\r\n\r\n".getBytes(UTF_8));
 
 			boolean inserted;
 			try {
@@ -428,17 +423,13 @@ class Channel {
 			"messagetype=message\r\n"
 			+ "id=" + messageId + "\r\n"
 			+ "\r\n";
-		Bucket messageHeader = new ArrayBucket(header.getBytes("UTF-8"));
+		Bucket messageHeader = new ArrayBucket(header.getBytes(UTF_8));
 
 		//Now combine them in a single bucket
 		ArrayBucket fullMessage = new ArrayBucket();
-		OutputStream messageOutputStream = null;
-		try {
-			messageOutputStream = fullMessage.getOutputStream();
+		try (OutputStream messageOutputStream = fullMessage.getOutputStream()) {
 			BucketTools.copyTo(messageHeader, messageOutputStream, -1);
 			BucketTools.copyTo(message, messageOutputStream, -1);
-		} finally {
-			Closer.close(messageOutputStream);
 		}
 
 		return insertMessage(fullMessage, "msg" + messageId);
@@ -492,9 +483,7 @@ class Channel {
 
 			String insertKey = privateKey + sendCode + "-" + sendSlot;
 
-			InputStream messageStream = null;
-			try {
-				messageStream = message.getInputStream();
+			try (InputStream messageStream = message.getInputStream()) {
 				Logger.minor(this, "Inserting data");
 				Logger.debug(this, "Insert key is " + insertKey);
 				FCPPutFailedException fcpMessage;
@@ -548,8 +537,6 @@ class Channel {
 				/* TODO: Log at a higher level for more serious errors */
 				Logger.minor(this, "Insert failed, error code " + fcpMessage.errorcode);
 				return false;
-			} finally {
-				Closer.close(messageStream);
 			}
 		}
 	}
@@ -726,28 +713,33 @@ class Channel {
 					continue;
 				}
 
-				if(messageType.equals("message")) {
-					if(handleMessage(result)) {
-						slotManager.slotUsed();
+				switch (messageType) {
+					case "message" -> {
+						if (handleMessage(result)) {
+							slotManager.slotUsed();
+						}
 					}
-				} else if(messageType.equals("cts")) {
-					Logger.minor(this, "Successfully received CTS");
+					case "cts" -> {
+						Logger.minor(this, "Successfully received CTS");
 
-					boolean success;
-					synchronized(channelProps) {
-						success = channelProps.put(PropsKeys.SENDER_STATE, "cts-received");
-					}
+						boolean success;
+						synchronized (channelProps) {
+							success = channelProps.put(PropsKeys.SENDER_STATE, "cts-received");
+						}
 
-					if(success) {
+						if (success) {
+							slotManager.slotUsed();
+						}
+					}
+					case "ack" -> {
+						if (handleAck(result)) {
+							slotManager.slotUsed();
+						}
+					}
+					default -> {
+						Logger.error(this, "Got message of unknown type: " + messageType);
 						slotManager.slotUsed();
 					}
-				} else if(messageType.equals("ack")) {
-					if(handleAck(result)) {
-						slotManager.slotUsed();
-					}
-				} else {
-					Logger.error(this, "Got message of unknown type: " + messageType);
-					slotManager.slotUsed();
 				}
 
 				if(!result.delete()) {
@@ -1125,7 +1117,7 @@ class Channel {
 						+ ", current time=" + System.currentTimeMillis() + ")");
 			}
 
-			StringBuffer rtsMessage = new StringBuffer();
+			var rtsMessage = new StringBuilder();
 			rtsMessage.append(RTSKeys.MAILSITE + "=" + senderMailsiteKey + "\r\n");
 			rtsMessage.append(RTSKeys.TO + "=" + recipientIdentityID + "\r\n");
 			rtsMessage.append(RTSKeys.CHANNEL + "=" + channelPrivateKey + "\r\n");
@@ -1134,15 +1126,7 @@ class Channel {
 			rtsMessage.append(RTSKeys.TIMEOUT + "=" + timeout + "\r\n");
 			rtsMessage.append("\r\n");
 
-			byte[] rtsMessageBytes;
-			try {
-				rtsMessageBytes = rtsMessage.toString().getBytes("UTF-8");
-			} catch(UnsupportedEncodingException e) {
-				Logger.error(this, "JVM doesn't support UTF-8 charset", e);
-				return null;
-			}
-
-			return rtsMessageBytes;
+			return rtsMessage.toString().getBytes(UTF_8);
 		}
 
 		private byte[] signRtsMessage(byte[] rtsMessageBytes) {
@@ -1289,13 +1273,7 @@ class Channel {
 				"messagetype=ack\r\n"
 				+ "id=" + ackId + "\r\n"
 				+ "\r\n";
-			Bucket bucket;
-			try {
-				bucket = new ArrayBucket(header.getBytes("UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				//JVMs are required to support UTF-8, so we can assume it is always available
-				throw new AssertionError("JVM doesn't support UTF-8 charset");
-			}
+			Bucket bucket = new ArrayBucket(header.getBytes(UTF_8));
 
 			boolean inserted;
 			try {

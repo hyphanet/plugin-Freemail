@@ -28,12 +28,12 @@ import org.junit.Test;
 public class IMAPStoreTest extends IMAPTestWithMessages {
 	@Test
 	public void storeWithoutArguments() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Not enough arguments");
 
@@ -42,12 +42,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithoutFlags() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Not enough arguments");
 
@@ -56,12 +56,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithoutFlagsList() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1 FLAGS");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Not enough arguments to store flags");
 
@@ -70,12 +70,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void simpleStore() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1 FLAGS \\Seen");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen)");
 		expectedResponse.add("0003 OK Store completed");
@@ -85,12 +85,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void addMessageFlags() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1 +FLAGS (\\Seen \\Flagged \\Answered)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen \\Answered \\Flagged)");
 		expectedResponse.add("0003 OK Store completed");
@@ -100,12 +100,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithBadRangeStart() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE BAD:12 +FLAGS (\\Seen \\Flagged \\Answered)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
@@ -114,12 +114,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithBadRangeEnd() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 11:BAD +FLAGS (\\Seen \\Flagged \\Answered)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
@@ -128,12 +128,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeToMsgWithDifferentSeqNumAndUid() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 7 Flags (\\Seen)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 7 FETCH FLAGS (\\Seen)");
 		expectedResponse.add("0003 OK Store completed");
@@ -147,12 +147,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 	 */
 	@Test
 	public void storeDeleteFlag() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 7 +FLAGS (\\Deleted)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 7 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
@@ -162,12 +162,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithWildcardFirst() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE *:7 FLAGS (\\Seen)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 7 FETCH FLAGS (\\Seen)");
 		expectedResponse.add("* 8 FETCH FLAGS (\\Seen)");
@@ -179,12 +179,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithWildcardLast() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 7:* FLAGS (\\Seen)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 7 FETCH FLAGS (\\Seen)");
 		expectedResponse.add("* 8 FETCH FLAGS (\\Seen)");
@@ -196,12 +196,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithMessageId0() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 0 FLAGS \\Seen");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO Invalid message ID");
 
@@ -210,12 +210,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithRangeFrom0() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 STORE 0:1 FLAGS (\\Seen)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO Invalid message ID");
 
@@ -224,12 +224,12 @@ public class IMAPStoreTest extends IMAPTestWithMessages {
 
 	@Test
 	public void storeWithRangeTo0() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT inbox");
 		commands.add("0003 STORE 1:0 FLAGS (\\Seen)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO Invalid message ID");
 

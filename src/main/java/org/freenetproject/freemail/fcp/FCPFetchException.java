@@ -121,18 +121,10 @@ public class FCPFetchException extends FCPException {
 	 *              the key itself is present or not.
 	 */
 	public boolean isNetworkError() {
-		switch (getCode()) {
-		case BUCKET_ERROR:
-		case ROUTE_NOT_FOUND:
-		case REJECTED_OVERLOAD:
-		case INTERNAL_ERROR:
-		case TRANSFER_FAILED:
-		case CANCELLED:
-			return true;
-
-		default:
-			return false;
-		}
+		return switch (getCode()) {
+			case BUCKET_ERROR, ROUTE_NOT_FOUND, REJECTED_OVERLOAD, INTERNAL_ERROR, TRANSFER_FAILED, CANCELLED -> true;
+			default -> false;
+		};
 	}
 
 	/**

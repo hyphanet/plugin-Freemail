@@ -38,18 +38,18 @@ import fakes.FakeSocket;
 public class IMAPHandlerTest extends IMAPTestWithMessages {
 	@Test
 	public void imapGreeting() throws IOException {
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 
-		runSimpleTest(new LinkedList<String>(), expectedResponse);
+		runSimpleTest(new LinkedList<>(), expectedResponse);
 	}
 
 	@Test
 	public void imapLogin() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 
@@ -79,7 +79,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void imapSelect() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 
@@ -121,11 +121,11 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void imapSelectUnknown() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT ShouldNotExist\r\n");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("0002 NO No such mailbox");
@@ -135,10 +135,10 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void unimplementedCommand() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 NoSuchCommand");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 NO Sorry - not implemented");
 
@@ -147,52 +147,51 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void logout() throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		try (FakeSocket sock = new FakeSocket();
+				PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+				BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		new Thread(new IMAPHandler(accManager, sock)).start();
+			new Thread(new IMAPHandler(accManager, sock)).start();
 
-		PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-		BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
+			send(toHandler, "0001 LOGOUT\r\n");
 
-		send(toHandler, "0001 LOGOUT\r\n");
-
-		int lineNum = 0;
-		List<String> expectedResponse = new LinkedList<String>();
-		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
-		expectedResponse.add("* BYE");
-		expectedResponse.add("0001 OK Bye");
-		for(String response : expectedResponse) {
-			String line;
-			try {
-				line = fromHandler.readLine();
-			} catch(IOException e) {
-				//Because of the way we set up the socket we might not be able
-				//to read data after the server closes its end of the pipe
-				if(!e.getMessage().equals("Pipe closed")) {
-					throw e;
+			int lineNum = 0;
+			List<String> expectedResponse = new LinkedList<>();
+			expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
+			expectedResponse.add("* BYE");
+			expectedResponse.add("0001 OK Bye");
+			for (String response : expectedResponse) {
+				String line;
+				try {
+					line = fromHandler.readLine();
+				} catch (IOException e) {
+					//Because of the way we set up the socket we might not be able
+					//to read data after the server closes its end of the pipe
+					if (!e.getMessage().equals("Pipe closed")) {
+						throw e;
+					}
+					return;
 				}
-				return;
-			}
-			if(line == null) {
-				//Same reason as above
-				return;
+				if (line == null) {
+					//Same reason as above
+					return;
+				}
+
+				assertEquals("Failed at line " + lineNum++, response, line);
 			}
 
-			assertEquals("Failed at line " + lineNum++, response, line);
+			assertFalse("IMAP socket has more data", fromHandler.ready());
+
 		}
-
-		assertFalse("IMAP socket has more data", fromHandler.ready());
-
-		sock.close();
 	}
 
 	@Test
 	public void capability() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 CAPABILITY");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("* CAPABILITY IMAP4rev1 CHILDREN NAMESPACE");
 		expectedResponse.add("0001 OK Capability completed");
@@ -202,10 +201,10 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void noop() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 NOOP");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK NOOP completed");
 
@@ -214,10 +213,10 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void loginWithoutArguments() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 BAD Not enough arguments");
 
@@ -226,10 +225,10 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void loginWithoutPassword() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 BAD Not enough arguments");
 
@@ -238,14 +237,14 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void implicitExpungeOnClose() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1 +FLAGS (\\Deleted)");
 		commands.add("0004 CLOSE");
 		commands.add("0005 SELECT INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
@@ -262,13 +261,13 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void noImplicitExpungeOnSelect() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1 +FLAGS (\\Deleted)");
 		commands.add("0004 SELECT INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("0003 OK Store completed");
@@ -284,14 +283,14 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void explicitExpunge() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1:2 +FLAGS (\\Deleted)");
 		commands.add("0004 STORE 4 +FLAGS (\\Deleted)");
 		commands.add("0005 EXPUNGE");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Deleted)");
 		expectedResponse.add("* 2 FETCH FLAGS (\\Deleted)");
@@ -308,7 +307,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void literalWithoutEndingLinebreak() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 
 		/*
@@ -321,7 +320,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		commands.add("A0003 LOGOUT");
 		commands.add("0004 ShouldNotRun");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("+ OK");
@@ -338,7 +337,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 	 */
 	@Test
 	public void thunderbirdDraftStore() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT \"INBOX\"");
 		commands.add("0002 APPEND \"INBOX\" (\\Draft) {696}");
@@ -360,7 +359,7 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 		commands.add("0003 NOOP");
 		commands.add("0004 uid SEARCH UNDELETED HEADER Message-ID 4FF2057E.8000902@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("+ OK");
 		expectedResponse.add("0002 OK APPEND completed");
@@ -373,12 +372,12 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidWithNoArgs() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT \"INBOX\"");
 		commands.add("0003 UID");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Not enough arguments for uid command");
 
@@ -387,12 +386,12 @@ public class IMAPHandlerTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidWithUnknownCommand() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT \"INBOX\"");
 		commands.add("0003 UID NoSuchCommand 1:2 arg2 arg3");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Unknown command");
 

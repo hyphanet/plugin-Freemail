@@ -76,7 +76,7 @@ public class AddAccountToadlet extends WebPage {
 			return new GenericHTMLResponse(ctx, 200, "OK", pageNode.generate());
 		}
 
-		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<OwnIdentity>();
+		List<OwnIdentity> identitiesWithoutAccount = new LinkedList<>();
 		for(OwnIdentity oid : ownIdentities) {
 			if(accountManager.getAccount(oid.getIdentityID()) == null) {
 				identitiesWithoutAccount.add(oid);
@@ -126,7 +126,7 @@ public class AddAccountToadlet extends WebPage {
 			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Missing form password");
 		}
 
-		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().clientCore.formPassword)) {
+		if((pass.length() == 0) || !pass.equals(pluginRespirator.getNode().getClientCore().getFormPassword())) {
 			return new GenericHTMLResponse(ctx, 403, "Forbidden", "Invalid form password.");
 		}
 
@@ -168,7 +168,7 @@ public class AddAccountToadlet extends WebPage {
 			return new GenericHTMLResponse(ctx, 200, "OK", "The specified identitiy doesn't exist");
 		}
 
-		List<OwnIdentity> toAdd = new LinkedList<OwnIdentity>();
+		List<OwnIdentity> toAdd = new LinkedList<>();
 		toAdd.add(ownIdentity);
 		accountManager.addIdentities(toAdd);
 		FreemailAccount account = accountManager.getAccount(ownIdentity.getIdentityID());

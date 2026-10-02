@@ -40,7 +40,7 @@ public class WebInterface {
 	/**
 	 * Holds all the Toadlets that must be unregistered when the web interface terminates
 	 */
-	private final Set<Toadlet> registeredToadlets = new HashSet<Toadlet>();
+	private final Set<Toadlet> registeredToadlets = new HashSet<>();
 	private final ToadletContainer container;
 	private final PluginRespirator pluginRespirator;
 	private final FreemailPlugin freemail;

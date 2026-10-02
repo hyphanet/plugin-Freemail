@@ -46,7 +46,7 @@ public class FCPConnection implements Runnable {
 
 	public FCPConnection(FCPContext ctx) {
 		this.fcpctx = ctx;
-		this.clients = new HashMap<String, FCPClient>();
+		this.clients = new HashMap<>();
 
 		this.tryConnect();
 	}
@@ -99,11 +99,7 @@ public class FCPConnection implements Runnable {
 				this.os = null;
 				this.is = null;
 				// tell all our clients it's all over
-				Iterator<FCPClient> i = this.clients.values().iterator();
-				while(i.hasNext()) {
-					FCPClient cli = i.next();
-					cli.requestFinished(new FCPMessage(1, "ConnectionClosed"));
-				}
+				this.clients.values().forEach(client -> client.requestFinished(new FCPMessage(1, "ConnectionClosed")));
 				this.clients.clear();
 				// wait a bit
 				if(!stopping) {

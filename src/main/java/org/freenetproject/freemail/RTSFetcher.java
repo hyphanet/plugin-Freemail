@@ -235,70 +235,58 @@ public class RTSFetcher implements SlotSaveCallback {
 		File rtsfile = null;
 		byte[] their_encrypted_sig;
 		int messagebytes = 0;
-		LineReadingInputStream lis = null;
-		PrintStream ps = null;
 		try {
 			rtsfile = File.createTempFile("rtstmp", "tmp", Freemail.getTempDir());
 
-			ByteArrayInputStream bis = new ByteArrayInputStream(plaintext);
-			lis = new LineReadingInputStream(bis);
-			ps = new PrintStream(new FileOutputStream(rtsfile));
+			try (ByteArrayInputStream bis = new ByteArrayInputStream(plaintext);
+					LineReadingInputStream lis = new LineReadingInputStream(bis);
+					PrintStream ps = new PrintStream(new FileOutputStream(rtsfile))) {
 
-			String line;
-			while(true) {
-				try {
-					line = lis.readLine(200, 200, false);
-				} catch (TooLongException tle) {
-					Logger.normal(this, "RTS message has lines that are too long. Discarding.");
+				String line;
+				while (true) {
+					try {
+						line = lis.readLine(200, 200, false);
+					} catch (TooLongException tle) {
+						Logger.normal(this, "RTS message has lines that are too long. Discarding.");
+						rtsfile.delete();
+						return true;
+					}
+					messagebytes += lis.getLastBytesRead();
+
+					if (line == null || line.equals("")) break;
+					//FreemailLogger.normal(this, line);
+
+					ps.println(line);
+				}
+
+				if (line == null) {
+					// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
+
+					Logger.normal(this, "Couldn't find signature on RTS message - ignoring!");
 					rtsfile.delete();
 					return true;
 				}
-				messagebytes += lis.getLastBytesRead();
 
-				if(line == null || line.equals("")) break;
-				//FreemailLogger.normal(this, line);
+				// read the rest of the file into a byte array.
+				// will probably have extra stuff on the end because
+				// the byte array returned by the decrypt function
+				// isn't resized when we know how much plaintext
+				// there is. It would be a waste of time, we know
+				// we have to read exactly one RSA block's worth.
+				their_encrypted_sig = new byte[bis.available()];
 
-				ps.println(line);
-			}
-
-			if(line == null) {
-				// that's not right, we shouldn't have reached the end of the file, just the blank line before the signature
-
-				Logger.normal(this, "Couldn't find signature on RTS message - ignoring!");
-				rtsfile.delete();
-				return true;
-			}
-
-			// read the rest of the file into a byte array.
-			// will probably have extra stuff on the end because
-			// the byte array returned by the decrypt function
-			// isn't resized when we know how much plaintext
-			// there is. It would be a waste of time, we know
-			// we have to read exactly one RSA block's worth.
-			their_encrypted_sig = new byte[bis.available()];
-
-			int totalread = 0;
-			while(true) {
-				int read = bis.read(their_encrypted_sig, totalread, bis.available());
-				if(read <= 0) break;
-				totalread += read;
+				int totalread = 0;
+				while (true) {
+					int read = bis.read(their_encrypted_sig, totalread, bis.available());
+					if (read <= 0) break;
+					totalread += read;
+				}
 			}
 		} catch (IOException ioe) {
 			Logger.normal(this, "IO error whilst handling RTS message. "+ioe.getMessage());
 			ioe.printStackTrace();
 			if(rtsfile != null) rtsfile.delete();
 			return false;
-		} finally {
-			if(ps != null) {
-				ps.close();
-			}
-			if(lis != null) {
-				try {
-					lis.close();
-				} catch (IOException e) {
-					Logger.error(this, "Caugth IOException while closing input", e);
-				}
-			}
 		}
 
 		PropsFile rtsprops = PropsFile.createPropsFile(rtsfile);
@@ -416,15 +404,13 @@ public class RTSFetcher implements SlotSaveCallback {
 		// AES IV and Key. Read that.
 		byte[] encrypted_params = new byte[deccipher.getInputBlockSize()];
 		int read = 0;
-		FileInputStream fis = new FileInputStream(rtsmessage);
-		try {
+		try (FileInputStream fis = new FileInputStream(rtsmessage)) {
 			while(read < encrypted_params.length) {
 				read += fis.read(encrypted_params, read, encrypted_params.length - read);
 				if(read < 0) break;
 			}
 
 			if(read < 0) {
-				fis.close();
 				throw new InvalidCipherTextException("RTS Message too short");
 			}
 
@@ -435,7 +421,6 @@ public class RTSFetcher implements SlotSaveCallback {
 			try {
 				aescipher.init(false, kpiv);
 			} catch (IllegalArgumentException iae) {
-				fis.close();
 				throw new InvalidCipherTextException(iae.getMessage());
 			}
 
@@ -457,8 +442,6 @@ public class RTSFetcher implements SlotSaveCallback {
 			}
 
 			return plaintext;
-		} finally {
-			fis.close();
 		}
 	}
 
@@ -468,7 +451,7 @@ public class RTSFetcher implements SlotSaveCallback {
 	 */
 	/* FIXME: Throw a different exception */
 	private void validate_rts(PropsFile rts) throws Exception {
-		StringBuffer missing = new StringBuffer();
+		var missing = new StringBuilder();
 
 		if(rts.get("mailsite") == null) {
 			missing.append("mailsite, ");

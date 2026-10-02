@@ -47,12 +47,12 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 	/**
 	 * Records the fetches that have occurred. Guarded by {@code this}.
 	 */
-	private final List<Fetch> fetches = new LinkedList<Fetch>();
+	private final List<Fetch> fetches = new LinkedList<>();
 
 	/**
 	 * Records the put operations that have occurred.
 	 */
-	private final List<Insert> inserts = new LinkedList<Insert>();
+	private final List<Insert> inserts = new LinkedList<>();
 
 	public MockHighLevelFCPClient(Map<String, File> fetchResult) {
 		this.fetchResults = fetchResult;
@@ -164,9 +164,7 @@ public class MockHighLevelFCPClient extends HighLevelFCPClient {
 		                            + ", suffix=" + suffix + ")");
 		try {
 			put(new ByteArrayInputStream(data), basekey + "-" + minslot);
-		} catch (FCPBadFileException e) {
-			throw new AssertionError();
-		} catch (FCPException e) {
+		} catch (FCPBadFileException | FCPException e) {
 			throw new AssertionError();
 		}
 		return minslot;

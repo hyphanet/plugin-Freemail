@@ -70,11 +70,11 @@ public class IMAPStateCheckSelectedTest extends IMAPTestWithMessages {
 
 	@Test
 	public void failsWithoutSelect() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 " + command);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 OK Logged in");
 		expectedResponse.add("0002 NO No mailbox selected");

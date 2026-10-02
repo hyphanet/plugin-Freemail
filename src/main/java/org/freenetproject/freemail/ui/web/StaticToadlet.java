@@ -38,7 +38,7 @@ import freenet.support.io.BucketTools;
 public class StaticToadlet extends WebPage {
 	private static final String PATH = WebInterface.PATH + "/static";
 
-	private final List<Mapping> requests = new CopyOnWriteArrayList<Mapping>();
+	private final List<Mapping> requests = new CopyOnWriteArrayList<>();
 
 	StaticToadlet(PluginRespirator pluginRespirator, LoginManager loginManager) {
 		super(pluginRespirator, loginManager);

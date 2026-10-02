@@ -60,7 +60,7 @@ public abstract class SMTPTestBase {
 	private static final File TEST_DIR = new File("smtptest");
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
 
-	private final Map<String, File> accountDirs = new HashMap<String, File>();
+	private final Map<String, File> accountDirs = new HashMap<>();
 	private File accountManagerDir;
 
 	@Before
@@ -82,7 +82,7 @@ public abstract class SMTPTestBase {
 
 	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
-		List<Command> combined = new LinkedList<Command>();
+		List<Command> combined = new LinkedList<>();
 
 		//Add all the commands first, then the replies, ensuring all the
 		//commands will be sent before checking the replies
@@ -94,25 +94,25 @@ public abstract class SMTPTestBase {
 	}
 
 	protected void runSimpleTest(List<Command> commands) throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+		try (FakeSocket sock = new FakeSocket();
+				PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
+				BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
 
-		SMTPHandler handler = new SMTPHandler(accManager, sock, new NullIdentityMatcher());
-		Thread smtpThread = new Thread(handler);
-		smtpThread.start();
+			SMTPHandler handler = new SMTPHandler(accManager, sock, new NullIdentityMatcher());
+			Thread smtpThread = new Thread(handler);
+			smtpThread.start();
 
-		try {
-			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
-			tester.runProtocolTest(commands);
-		} finally {
-			handler.kill();
-			sock.close();
 			try {
-				smtpThread.join();
-			} catch(InterruptedException e) {
-				fail("Caught unexpected InterruptedException");
+				TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+				tester.runProtocolTest(commands);
+			} finally {
+				handler.kill();
+				try {
+					smtpThread.join();
+				} catch (InterruptedException e) {
+					fail("Caught unexpected InterruptedException");
+				}
 			}
 		}
 	}

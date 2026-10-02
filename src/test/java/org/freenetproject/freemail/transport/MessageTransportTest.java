@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail.transport;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -91,12 +92,12 @@ public class MessageTransportTest {
 	@Test(timeout=10 * 1000)
 	public void messageHandlerTest() throws IOException, InterruptedException, TimeoutException {
 		//Set up the fake FCP client
-		Map<String, File> fetchResults = new HashMap<String, File>();
+		Map<String, File> fetchResults = new HashMap<>();
 		{
 			File mailpage = new File(testDir, "mailsite");
-			PrintWriter pw = new PrintWriter(mailpage);
-			pw.write(TestId1Data.Mailsite.CONTENT);
-			pw.close();
+			try (PrintWriter pw = new PrintWriter(mailpage)) {
+				pw.write(TestId1Data.Mailsite.CONTENT);
+			}
 			fetchResults.put(TestId1Data.Mailsite.REQUEST_KEY, mailpage);
 		}
 		final MockHighLevelFCPClient fcpClient = new MockHighLevelFCPClient(fetchResults);
@@ -110,13 +111,13 @@ public class MessageTransportTest {
 		//The WoT connection, seeded with our only id
 		final MockWoTConnection wotConnection;
 		{
-			Map<String, Map<String, Identity>> identites = new HashMap<String, Map<String, Identity>>();
-			Map<String, Identity> ids = new HashMap<String, Identity>();
+			Map<String, Map<String, Identity>> identites = new HashMap<>();
+			Map<String, Identity> ids = new HashMap<>();
 			ids.put(TestId1Data.Identity.ID, id);
 			identites.put(TestId1Data.Identity.ID, ids);
 
-			Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-			Map<String, String> props = new HashMap<String, String>();
+			Map<String, Map<String, String>> properties = new HashMap<>();
+			Map<String, String> props = new HashMap<>();
 			props.put("Freemail.mailsite", TestId1Data.Mailsite.EDITION + "");
 			properties.put(TestId1Data.Identity.ID, props);
 
@@ -130,9 +131,9 @@ public class MessageTransportTest {
 		final MockFreemailAccount account;
 		{
 			File accProps = new File(accountDir, "accprops");
-			PrintWriter pw = new PrintWriter(accProps);
-			pw.write(TestId1Data.FreemailAccount.ACCPROPS_CONTENT);
-			pw.close();
+			try (PrintWriter pw = new PrintWriter(accProps)) {
+				pw.write(TestId1Data.FreemailAccount.ACCPROPS_CONTENT);
+			}
 			account = new MockFreemailAccount(TestId1Data.FreemailAccount.IDENTITY, accountDir, PropsFile.createPropsFile(accProps), freemail);
 		}
 
@@ -144,15 +145,16 @@ public class MessageTransportTest {
 		MessageHandler handler = new MessageHandler(outboxDir, freemail, channelDir, account, hlFcpClientFactory);
 
 		//Now send the actual message
-		List<Identity> recipients = new ArrayList<Identity>(1);
+		List<Identity> recipients = new ArrayList<>(1);
 		for(int i = 0; i < 1; i++) {
 			recipients.add(new MockIdentity(TestId1Data.Identity.ID, TestId1Data.Identity.REQUEST_URI, TestId1Data.Identity.NICKNAME));
 		}
-		final String msg =
-				  "Subject: Test message\r\n"
-				+ "\r\n"
-				+ "Test message\r\n";
-		Bucket message = new ArrayBucket(msg.getBytes("UTF-8"));
+		final String msg = """
+				Subject: Test message\r
+				\r
+				Test message\r
+				""";
+		Bucket message = new ArrayBucket(msg.getBytes(UTF_8));
 
 		handler.sendMessage(recipients, message);
 
@@ -170,7 +172,7 @@ public class MessageTransportTest {
 		//Then an insert of any key, which should be the message. Since we don't bother to decrypt
 		//the RTS we don't actually know which key this is inserted to.
 		Insert i = fcpClient.awaitInsert(null, 10, TimeUnit.MINUTES);
-		assertEquals(new String(i.data, "UTF-8"),
+		assertEquals(new String(i.data, UTF_8),
 				  "messagetype=message\r\n"
 				+ "id=0\r\n"
 				+ "\r\n"

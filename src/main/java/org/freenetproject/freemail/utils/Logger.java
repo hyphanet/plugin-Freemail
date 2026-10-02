@@ -213,16 +213,16 @@ public class Logger {
 
 				int updated = 0;
 
-				for(int i = 0; i < levels.length; i++) {
-					if(levels[i].equalsIgnoreCase("debug")) {
+				for (String level : levels) {
+					if (level.equalsIgnoreCase("debug")) {
 						updated |= DEBUG;
-					} else if(levels[i].equalsIgnoreCase("minor")) {
+					} else if (level.equalsIgnoreCase("minor")) {
 						updated |= MINOR;
-					} else if(levels[i].equalsIgnoreCase("normal")) {
+					} else if (level.equalsIgnoreCase("normal")) {
 						updated |= NORMAL;
-					} else if(levels[i].equalsIgnoreCase("warning")) {
+					} else if (level.equalsIgnoreCase("warning")) {
 						updated |= WARNING;
-					} else if(levels[i].equalsIgnoreCase("error")) {
+					} else if (level.equalsIgnoreCase("error")) {
 						updated |= ERROR;
 					}
 				}

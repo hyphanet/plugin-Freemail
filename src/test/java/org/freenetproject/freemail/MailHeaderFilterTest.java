@@ -19,6 +19,7 @@
 
 package org.freenetproject.freemail;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
@@ -46,10 +47,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void filteringOfWhitelistedHeader() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Subject: Test message");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("Subject: Test message");
 
 		runSimpleTest(input, output);
@@ -57,20 +58,20 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void filteringOfBlacklistedHeader() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("BCC: local@domain.freemail");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 
 		runSimpleTest(input, output);
 	}
 
 	@Test
 	public void dateWithCorrectFormat() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Date: Tue, 10 Jul 2012 16:37:19 +0000");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("Date: Tue, 10 Jul 2012 16:37:19 +0000");
 
 		runSimpleTest(input, output);
@@ -78,10 +79,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void dateWithMissingDay() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Date: 10 Jul 2012 16:37:19 +0000");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("Date: Tue, 10 Jul 2012 16:37:19 +0000");
 
 		runSimpleTest(input, output);
@@ -89,10 +90,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void dateHeaderWithTimezone() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Date: Tue, 10 Jul 2012 16:37:19 +0200");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("Date: Tue, 10 Jul 2012 14:37:19 +0000");
 
 		runSimpleTest(input, output);
@@ -100,22 +101,22 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void invalidDateHeader() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Date: Thu, 10 Juli 2012 16:37:19 +0200");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 
 		runSimpleTest(input, output);
 	}
 
 	@Test
 	public void multilineReferencesHeader() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("References:");
 		input.add(" <message-id1@domain.freemail>");
 		input.add(" <message-id2@domain.freemail>");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("References: <message-id1@domain.freemail>\r\n"
 				+ " <message-id2@domain.freemail>");
 
@@ -124,12 +125,12 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void multilineWithTab() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("References:");
 		input.add("\t<message-id1@domain.freemail>");
 		input.add("\t<message-id2@domain.freemail>");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("References: <message-id1@domain.freemail>\r\n"
 				+ " <message-id2@domain.freemail>");
 
@@ -138,10 +139,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void messageIdWithFreemailDomain() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Message-ID: <message-id1@domain.freemail>");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("Message-ID: <message-id1@domain.freemail>");
 
 		runSimpleTest(input, output);
@@ -149,10 +150,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void messageIdWithRealDomain() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("Message-ID: <20130225001826.78db4f15@example.com>");
 
-		List<Pattern> output = new LinkedList<Pattern>();
+		List<Pattern> output = new LinkedList<>();
 
 		//The message id should have been replaced with a completely new one
 		output.add(Pattern.compile("Message-ID: <-?[0-9]+\\.-?[0-9]+@"
@@ -166,10 +167,10 @@ public class MailHeaderFilterTest {
 	 */
 	@Test
 	public void nonFreemailFromAddress() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("From: example@example.com");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("From: null@" + TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + ".freemail");
 
 		runSimpleTest(input, output);
@@ -177,10 +178,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void invalidFromAddress() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("From: example.com");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("From: null@" + TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + ".freemail");
 
 		runSimpleTest(input, output);
@@ -188,10 +189,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void fromAddressWrongDomain() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("From: " + TestId2Data.FreemailAccount.ADDRESS);
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("From: null@" + TestId1Data.BASE32_ID.toLowerCase(Locale.ROOT) + ".freemail");
 
 		runSimpleTest(input, output);
@@ -199,10 +200,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void fromAddressUppercaseDomain() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("From: " + TestId1Data.Identity.NICKNAME + "@" + TestId1Data.BASE32_ID.toUpperCase(Locale.ROOT) + ".freemail");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("From: " + TestId1Data.Identity.NICKNAME + "@" + TestId1Data.BASE32_ID.toUpperCase(Locale.ROOT) + ".freemail");
 
 		runSimpleTest(input, output);
@@ -210,10 +211,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void fromAddressIgnoresLocalPart() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("From: garbage@" + TestId1Data.BASE32_ID + ".freemail");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 		output.add("From: garbage@" + TestId1Data.BASE32_ID + ".freemail");
 		
         runSimpleTest(input, output);
@@ -221,10 +222,10 @@ public class MailHeaderFilterTest {
 
 	@Test
 	public void dropsUnknownHeader() throws IOException {
-		List<String> input = new LinkedList<String>();
+		List<String> input = new LinkedList<>();
 		input.add("header: value");
 
-		List<String> output = new LinkedList<String>();
+		List<String> output = new LinkedList<>();
 
 		runSimpleTest(input, output);
 	}
@@ -280,7 +281,7 @@ public class MailHeaderFilterTest {
 		}
 		inputBuilder.append("\r\n");
 
-		byte[] data = inputBuilder.toString().getBytes("UTF-8");
+		byte[] data = inputBuilder.toString().getBytes(UTF_8);
 		ByteArrayInputStream is = new ByteArrayInputStream(data);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 

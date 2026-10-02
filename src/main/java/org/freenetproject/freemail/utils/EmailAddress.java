@@ -51,7 +51,7 @@ public class EmailAddress {
 		this.user = null;
 		this.domain = null;
 
-		StringBuffer bank = new StringBuffer("");
+		var bank = new StringBuilder("");
 		for(int i = 0; i < address.length(); i++) {
 			char c = address.charAt(i);
 

@@ -27,7 +27,6 @@ import java.io.PrintStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,6 +51,8 @@ import org.freenetproject.freemail.wot.OwnIdentity;
 
 import freenet.support.Base64;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class AccountManager {
 	static final String ACCOUNT_FILE = "accprops";
 	private static final int RTS_KEY_LENGTH = 32;
@@ -66,11 +67,11 @@ public class AccountManager {
 	// We keep FreemailAccount objects for all the accounts in this instance of Freemail - they need to be in memory
 	// anyway since there's SingleAccountWatcher thread running for each of them anyway - and we return the same object
 	// each time a request is made for a given account.
-	private Map<String, FreemailAccount> accounts = new HashMap<String, FreemailAccount>();
+	private Map<String, FreemailAccount> accounts = new HashMap<>();
 
 	//LOCKING: singleAccountWatcherList locks both these lists. lock always taken last.
-	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<SingleAccountWatcher>();
-	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<Thread>();
+	private final ArrayList<SingleAccountWatcher> singleAccountWatcherList = new ArrayList<>();
+	private final ArrayList<Thread> singleAccountWatcherThreadList = new ArrayList<>();
 
 	private final File datadir;
 	private final Freemail freemail;
@@ -131,20 +132,15 @@ public class AccountManager {
 
 	public List<FreemailAccount> getAllAccounts() {
 		synchronized(accounts) {
-			return new LinkedList<FreemailAccount>(accounts.values());
+			return new LinkedList<>(accounts.values());
 		}
 	}
 
 	public static void changePassword(FreemailAccount account, String newpassword) {
 		MD5Digest md5 = new MD5Digest();
 
-		try {
-			byte[] passwordBytes = newpassword.getBytes("UTF-8");
-			md5.update(passwordBytes, 0, passwordBytes.length);
-		} catch (UnsupportedEncodingException e) {
-			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset");
-		}
+		byte[] passwordBytes = newpassword.getBytes(UTF_8);
+		md5.update(passwordBytes, 0, passwordBytes.length);
 		byte[] md5passwd = new byte[md5.getDigestSize()];
 		md5.doFinal(md5passwd, 0);
 		String strmd5 = new String(Hex.encode(md5passwd));
@@ -226,12 +222,7 @@ public class AccountManager {
 		if(realmd5str == null) return null;
 
 		MD5Digest md5 = new MD5Digest();
-		try {
-			md5.update(password.getBytes("UTF-8"), 0, password.getBytes("UTF-8").length);
-		} catch (UnsupportedEncodingException e) {
-			//JVMs are required to support UTF-8, so we can assume it is always available
-			throw new AssertionError("JVM doesn't support UTF-8 charset");
-		}
+		md5.update(password.getBytes(UTF_8), 0, password.getBytes(UTF_8).length);
 		byte[] givenmd5 = new byte[md5.getDigestSize()];
 		md5.doFinal(givenmd5, 0);
 

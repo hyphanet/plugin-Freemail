@@ -34,12 +34,12 @@ import java.util.concurrent.TimeoutException;
 import freenet.support.Logger;
 
 public class MockExecutor implements ScheduledExecutorService {
-	private final List<NullReturnFuture<?>> tasks = new ArrayList<NullReturnFuture<?>>();
+	private final List<NullReturnFuture<?>> tasks = new ArrayList<>();
 
 	@Override
 	public Future<?> submit(Runnable task) {
 		Logger.debug(this, "New task submitted: " + task);
-		final NullReturnFuture<?> f = new NullReturnFuture<Object>(task);
+		final NullReturnFuture<?> f = new NullReturnFuture<>(task);
 		tasks.add(f);
 		return f;
 	}
@@ -47,14 +47,14 @@ public class MockExecutor implements ScheduledExecutorService {
 	@Override
 	public void execute(Runnable command) {
 		Logger.debug(this, "New task submitted: " + command);
-		final NullReturnFuture<?> f = new NullReturnFuture<Object>(command);
+		final NullReturnFuture<?> f = new NullReturnFuture<>(command);
 		tasks.add(f);
 	}
 
 	@Override
 	public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
 		Logger.debug(this, "New task submitted: " + command);
-		final NullReturnFuture<?> f = new NullReturnFuture<Object>(command);
+		final NullReturnFuture<?> f = new NullReturnFuture<>(command);
 		tasks.add(f);
 		return f;
 	}

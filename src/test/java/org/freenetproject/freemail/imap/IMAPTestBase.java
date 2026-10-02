@@ -57,7 +57,7 @@ public abstract class IMAPTestBase {
 	private static final String ACCOUNT_MANAGER_DIR = "account_manager_dir";
 	private static final String ACCOUNT_DIR = "account_dir";
 
-	protected final Map<String, File> accountDirs = new HashMap<String, File>();
+	protected final Map<String, File> accountDirs = new HashMap<>();
 	protected File accountManagerDir;
 
 	@Before
@@ -89,7 +89,7 @@ public abstract class IMAPTestBase {
 
 	@Deprecated
 	protected void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
-		List<Command> combined = new LinkedList<Command>();
+		List<Command> combined = new LinkedList<>();
 
 		//Add all the commands first, then the replies, ensuring all the
 		//commands will be sent before checking the replies
@@ -101,25 +101,25 @@ public abstract class IMAPTestBase {
 	}
 
 	protected void runSimpleTest(List<Command> commands) throws IOException {
-		FakeSocket sock = new FakeSocket();
-		AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
-
-		IMAPHandler handler = new IMAPHandler(accManager, sock);
-		Thread imapThread = new Thread(handler);
-		imapThread.start();
-
-		try {
+		try (FakeSocket sock = new FakeSocket();
 			PrintWriter toHandler = new PrintWriter(sock.getOutputStreamOtherSide());
-			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()));
-			TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
-			tester.runProtocolTest(commands);
-		} finally {
-			handler.kill();
-			sock.close();
+			BufferedReader fromHandler = new BufferedReader(new InputStreamReader(sock.getInputStreamOtherSide()))) {
+			AccountManager accManager = new ConfigurableAccountManager(accountManagerDir, false, accountDirs);
+
+			IMAPHandler handler = new IMAPHandler(accManager, sock);
+			Thread imapThread = new Thread(handler);
+			imapThread.start();
+
 			try {
-				imapThread.join();
-			} catch(InterruptedException e) {
-				fail("Caught unexpected InterruptedException");
+				TextProtocolTester tester = new TextProtocolTester(toHandler, fromHandler);
+				tester.runProtocolTest(commands);
+			} finally {
+				handler.kill();
+				try {
+					imapThread.join();
+				} catch (InterruptedException e) {
+					fail("Caught unexpected InterruptedException");
+				}
 			}
 		}
 	}

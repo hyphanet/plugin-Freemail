@@ -28,14 +28,14 @@ import org.junit.Test;
 public class IMAPUidCopyTest extends IMAPTestWithMessages {
 	@Test
 	public void uidCopySingleMessageToSameFolder() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 SEARCH ALL");
 		commands.add("0004 UID COPY 1 INBOX");
 		commands.add("0005 SEARCH ALL");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* SEARCH 1 2 3 4 5 6 7 8 9");
 		expectedResponse.add("0003 OK Search completed");
@@ -48,12 +48,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithMessageId0() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 0 INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO Invalid message ID");
 
@@ -62,12 +62,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithMessageIdRangeFrom0() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 0:* INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO Invalid message ID");
 
@@ -76,12 +76,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithMessageIdRangeTo0() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY *:0 INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO Invalid message ID");
 
@@ -90,12 +90,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithTooHighMessageIdFirstInRange() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 11:10 INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 OK COPY completed");
 
@@ -104,12 +104,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithTooHighMessageIdLastInRange() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 10:11 INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 OK COPY completed");
 
@@ -118,12 +118,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyToNonexistentMailbox() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 1 INBOX.abc");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
 
@@ -136,13 +136,13 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 	 */
 	@Test
 	public void uidCopySetsRecentFlag() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 1 INBOX");
 		commands.add("0004 FETCH * FLAGS");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 OK COPY completed");
 		expectedResponse.add("* 10 FETCH (FLAGS (\\Recent))");
@@ -153,13 +153,13 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyDoesntCreateMailbox() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY 1 INBOX.abc");
 		commands.add("0004 SELECT INBOX.abc");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 NO [TRYCREATE] No such mailbox.");
 		expectedResponse.add("0004 NO No such mailbox");
@@ -169,7 +169,7 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidAfterUidCopy() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID SEARCH ALL");
@@ -177,7 +177,7 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 		commands.add("0005 UID SEARCH ALL");
 		commands.add("0005 FETCH 10 (UID)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* SEARCH 1 2 3 4 6 7 8 9 10");
 		expectedResponse.add("0003 OK Search completed");
@@ -192,7 +192,7 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyPreservesFlags() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 STORE 1 FLAGS (\\Seen)");
@@ -201,7 +201,7 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 		commands.add("0006 UID COPY 1:3 INBOX");
 		commands.add("0007 UID FETCH 11:* (UID FLAGS)");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("* 1 FETCH FLAGS (\\Seen)");
 		expectedResponse.add("0003 OK Store completed");
@@ -220,12 +220,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithNoArgs() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0006 UID COPY");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0006 BAD Not enough arguments");
 
@@ -234,12 +234,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithoutDestination() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0006 UID COPY *");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0006 BAD Not enough arguments");
 
@@ -248,12 +248,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithIllegalSequenceNumber() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY BAD INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
@@ -262,12 +262,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithIllegalSequenceNumberFirstInRange() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY BAD:* INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
@@ -276,12 +276,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithIllegalSequenceNumberLastInRange() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY *:BAD INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
@@ -290,12 +290,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithIllegalSequenceNumberFirstInList() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY BAD,* INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 
@@ -304,12 +304,12 @@ public class IMAPUidCopyTest extends IMAPTestWithMessages {
 
 	@Test
 	public void uidCopyWithIllegalSequenceNumberLastInList() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 LOGIN " + IMAP_USERNAME + " test");
 		commands.add("0002 SELECT INBOX");
 		commands.add("0003 UID COPY *,BAD INBOX");
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.addAll(INITIAL_RESPONSES);
 		expectedResponse.add("0003 BAD Illegal sequence number set");
 

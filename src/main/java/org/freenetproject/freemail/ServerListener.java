@@ -30,8 +30,8 @@ public abstract class ServerListener {
 	private final ArrayList<Thread> handlerThreads;
 
 	protected ServerListener() {
-		handlers = new ArrayList<ServerHandler>();
-		handlerThreads = new ArrayList<Thread>();
+		handlers = new ArrayList<>();
+		handlerThreads = new ArrayList<>();
 	}
 
 	/**
@@ -45,10 +45,7 @@ public abstract class ServerListener {
 		}
 		// kill all our handlers too
 		synchronized(handlers) {
-			for(Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
-				ServerHandler handler = i.next();
-				handler.kill();
-			}
+			handlers.forEach(ServerHandler::kill);
 		}
 	}
 
@@ -56,9 +53,8 @@ public abstract class ServerListener {
 	 * Wait for all our client threads to terminate
 	 */
 	public void joinClientThreads() {
-		for(Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
-			Thread t = i.next();
-			while(t != null) {
+		for (Thread t : handlerThreads) {
+			while (t != null) {
 				try {
 					t.join();
 					t = null;
@@ -79,20 +75,10 @@ public abstract class ServerListener {
 	protected void reapHandlers() {
 		// clean up dead handlers...
 		synchronized(handlers) {
-			for(Iterator<ServerHandler> i = handlers.iterator(); i.hasNext(); ) {
-				ServerHandler handler = i.next();
-				if(!handler.isAlive()) {
-					i.remove();
-				}
-			}
+			handlers.removeIf(handler -> !handler.isAlive());
 		}
 
 		// ...and threads...
-		for(Iterator<Thread> i = handlerThreads.iterator(); i.hasNext(); ) {
-			Thread t = i.next();
-			if(!t.isAlive()) {
-				i.remove();
-			}
-		}
+		handlerThreads.removeIf(t -> !t.isAlive());
 	}
 }

@@ -66,11 +66,10 @@ public class Identity {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(!(obj instanceof Identity)) {
+		if(!(obj instanceof Identity other)) {
 			return false;
 		}
 
-		Identity other = (Identity) obj;
 		return identityID.equals(other.identityID);
 	}
 

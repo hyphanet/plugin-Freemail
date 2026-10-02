@@ -30,7 +30,7 @@ import utils.TextProtocolTester.Command;
 public class IMAPAppendTest extends IMAPTestWithMessages {
 	@Test
 	public void basicAppendFromSelectedState() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -48,7 +48,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithFlag() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -70,7 +70,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 */
 	@Test
 	public void appendWithCustomFlag() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -88,7 +88,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithTwoStandardFlags() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -106,7 +106,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithFlagAndDate() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -126,7 +126,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithBadLiteralLength() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -138,7 +138,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void multilineAppend() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -154,7 +154,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void multilineAppendWithTwoFlags() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -175,7 +175,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 	 */
 	@Test
 	public void appendWithSubfolderBeforeLogin() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.add(new Command("0001 APPEND inbox.folder arg2",
 		                         "0001 NO Must be authenticated"));
@@ -185,7 +185,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithoutArguments() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -197,7 +197,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithoutMessageLiteral() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -209,7 +209,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendWithMoreThan3Flags() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));
@@ -228,7 +228,7 @@ public class IMAPAppendTest extends IMAPTestWithMessages {
 
 	@Test
 	public void appendToMailboxThatDoesntExist() throws IOException {
-		List<Command> commands = new LinkedList<Command>();
+		List<Command> commands = new LinkedList<>();
 		commands.addAll(connectSequence());
 		commands.addAll(loginSequence("0001"));
 		commands.addAll(selectInboxSequence("0002"));

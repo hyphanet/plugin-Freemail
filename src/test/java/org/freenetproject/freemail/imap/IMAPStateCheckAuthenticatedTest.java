@@ -78,10 +78,10 @@ public class IMAPStateCheckAuthenticatedTest extends IMAPTestWithMessages {
 
 	@Test
 	public void failsWithoutLogin() throws IOException {
-		List<String> commands = new LinkedList<String>();
+		List<String> commands = new LinkedList<>();
 		commands.add("0001 " + command);
 
-		List<String> expectedResponse = new LinkedList<String>();
+		List<String> expectedResponse = new LinkedList<>();
 		expectedResponse.add("* OK [CAPABILITY IMAP4rev1 CHILDREN NAMESPACE] Freemail ready - hit me with your rhythm stick.");
 		expectedResponse.add("0001 NO Must be authenticated");
 

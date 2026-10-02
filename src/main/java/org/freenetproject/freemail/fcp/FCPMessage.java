@@ -34,7 +34,7 @@ import org.freenetproject.freemail.Freemail;
 import org.freenetproject.freemail.support.io.LineReader;
 import org.freenetproject.freemail.support.io.LineReadingInputStream;
 
-
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class FCPMessage {
 	private String messagetype;
@@ -46,14 +46,14 @@ public class FCPMessage {
 
 	public FCPMessage(int id, String type) {
 		this.identifier = Integer.toString(id);
-		this.headers = new HashMap<String, String>();
+		this.headers = new HashMap<>();
 		this.messagetype = type;
 		this.data = null;
 		this.outData = null;
 	}
 
 	public FCPMessage(InputStream is) throws IOException {
-		this.headers = new HashMap<String, String>();
+		this.headers = new HashMap<>();
 		this.outData = null;
 
 		this.messagetype = null;
@@ -72,7 +72,7 @@ public class FCPMessage {
 				return;
 			} else if(line.equals("Data")) {
 				try {
-					int len = Integer.decode(this.headers.get("DataLength")).intValue();
+					int len = Integer.decode(this.headers.get("DataLength"));
 					this.readData(is, len);
 				} catch (NumberFormatException nfe) {
 				}
@@ -116,9 +116,7 @@ public class FCPMessage {
 			this.data = null;
 			return;
 		}
-		try {
-			FileOutputStream fos = new FileOutputStream(this.data);
-
+		try (FileOutputStream fos = new FileOutputStream(this.data)) {
 			byte[] buf = new byte[1024];
 			while(len > 0) {
 				int toRead = len;
@@ -128,7 +126,6 @@ public class FCPMessage {
 				fos.write(buf, 0, read);
 				len -= read;
 			}
-			fos.close();
 		} catch (IOException ioe) {
 			this.data = null;
 			return;
@@ -160,7 +157,7 @@ public class FCPMessage {
 	}
 
 	public void writeto(OutputStream os) throws IOException, FCPBadFileException {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		buf.append(this.messagetype);
 		buf.append("\r\n");
@@ -192,7 +189,7 @@ public class FCPMessage {
 		}
 		if(buf.length() > 0) {
 			//Logger.normal(this,buf.toString());
-			os.write(buf.toString().getBytes("UTF-8"));
+			os.write(buf.toString().getBytes(UTF_8));
 		}
 		if(this.outData != null) {
 			byte[] bytebuf = new byte[1024];

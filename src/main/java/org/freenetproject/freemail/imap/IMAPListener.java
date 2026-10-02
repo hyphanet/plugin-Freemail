@@ -75,10 +75,7 @@ public class IMAPListener extends ServerListener implements Runnable, ConfigClie
 				newthread.setDaemon(true);
 				newthread.start();
 				addHandler(newcli, newthread);
-			} catch (SocketTimeoutException ste) {
-
 			} catch (IOException ioe) {
-
 			}
 
 			reapHandlers();

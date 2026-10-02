@@ -45,7 +45,7 @@ public class TextProtocolTester {
 	 */
 	@Deprecated
 	public void runSimpleTest(List<String> commands, List<String> expectedResponse) throws IOException {
-		List<Command> combined = new LinkedList<Command>();
+		List<Command> combined = new LinkedList<>();
 
 		//Add all the commands first, then the replies, ensuring all the
 		//commands will be sent before checking the replies
@@ -117,7 +117,7 @@ public class TextProtocolTester {
 
 	public static final class Command {
 		private final String command;
-		private final List<String> replies = new LinkedList<String>();
+		private final List<String> replies = new LinkedList<>();
 
 		public Command(String command, String ... replies) {
 			this.command = command;

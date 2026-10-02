@@ -34,10 +34,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Hashtable;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class PropsFile {
 	// substitute static methods for constructor
 
-	private static final Hashtable<String, PropsFile> propsList=new Hashtable<String, PropsFile>();
+	private static final Hashtable<String, PropsFile> propsList= new Hashtable<>();
 
 	private static int reapCounter = 0;
 	/// We go through the list and remove stale entries once in this many times a PropsFile is created
@@ -116,9 +118,9 @@ public class PropsFile {
 	}
 
 	private synchronized BufferedReader read(boolean stopAtBlank) throws IOException {
-		this.data = new HashMap<String, String>();
+		this.data = new HashMap<>();
 
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), "UTF-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(this.file), UTF_8));
 
 		String line = null;
 		while((line = br.readLine()) != null) {
@@ -158,20 +160,13 @@ public class PropsFile {
 			}
 		}
 
-		PrintWriter pw = new PrintWriter(new FileOutputStream(this.file));
+		try (PrintWriter pw = new PrintWriter(new FileOutputStream(this.file))) {
 
-		if(this.header != null) pw.println(this.header);
+			if (this.header != null) pw.println(this.header);
 
-		Iterator<Map.Entry<String, String>> i = this.data.entrySet().iterator();
-		while(i.hasNext()) {
-			Map.Entry<String, String> e = i.next();
-			String key = e.getKey();
-			String val = e.getValue();
+			this.data.forEach((key, val) -> pw.println(key + "=" + val));
 
-			pw.println(key+"="+val);
 		}
-
-		pw.close();
 	}
 
 	public String get(String key) {
@@ -182,7 +177,7 @@ public class PropsFile {
 
 	public boolean put(String key, String val) {
 		if(this.data == null) {
-			this.data = new HashMap<String, String>();
+			this.data = new HashMap<>();
 		}
 
 		Object o = this.data.put(key, val);

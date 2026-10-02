@@ -57,6 +57,8 @@ import org.freenetproject.freemail.utils.Logger;
 
 import freenet.support.Base64;
 
+import static java.util.Arrays.stream;
+
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
 
@@ -119,49 +121,31 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 	private void dispatch(IMAPMessage msg) {
 		Logger.debug(this, "Received: " + msg);
-		if(msg.type.equals("login")) {
-			this.handleLogin(msg);
-		} else if(msg.type.equals("logout")) {
-			this.handleLogout(msg);
-		} else if(msg.type.equals("capability")) {
-			this.handleCapability(msg);
-		} else if(msg.type.equals("list")) {
-			this.handleList(msg);
-		} else if(msg.type.equals("select")) {
-			this.handleSelect(msg);
-		} else if(msg.type.equals("noop")) {
-			this.handleNoop(msg);
-		} else if(msg.type.equals("check")) {
-			this.handleCheck(msg);
-		} else if(msg.type.equals("uid")) {
-			this.handleUid(msg);
-		} else if(msg.type.equals("fetch")) {
-			this.handleFetch(msg);
-		} else if(msg.type.equals("store")) {
-			this.handleStore(msg);
-		} else if(msg.type.equals("close")) {
-			this.handleClose(msg);
-		} else if(msg.type.equals("expunge")) {
-			this.handleExpunge(msg);
-		} else if(msg.type.equals("namespace")) {
-			this.handleNamespace(msg);
-		} else if(msg.type.equals("lsub")) {
-			this.handleLsub(msg);
-		} else if(msg.type.equals("status")) {
-			this.handleStatus(msg);
-		} else if(msg.type.equals("create")) {
-			this.handleCreate(msg);
-		} else if(msg.type.equals("delete")) {
-			this.handleDelete(msg);
-		} else if(msg.type.equals("copy")) {
-			this.handleCopy(msg);
-		} else if(msg.type.equals("append")) {
-			this.handleAppend(msg);
-		} else if(msg.type.equals("search")) {
-			handleSearch(msg);
-		} else {
-			Logger.error(this, "Unknown IMAP command: " + msg.type);
-			this.reply(msg, "NO Sorry - not implemented");
+		switch (msg.type) {
+			case "login" -> this.handleLogin(msg);
+			case "logout" -> this.handleLogout(msg);
+			case "capability" -> this.handleCapability(msg);
+			case "list" -> this.handleList(msg);
+			case "select" -> this.handleSelect(msg);
+			case "noop" -> this.handleNoop(msg);
+			case "check" -> this.handleCheck(msg);
+			case "uid" -> this.handleUid(msg);
+			case "fetch" -> this.handleFetch(msg);
+			case "store" -> this.handleStore(msg);
+			case "close" -> this.handleClose(msg);
+			case "expunge" -> this.handleExpunge(msg);
+			case "namespace" -> this.handleNamespace(msg);
+			case "lsub" -> this.handleLsub(msg);
+			case "status" -> this.handleStatus(msg);
+			case "create" -> this.handleCreate(msg);
+			case "delete" -> this.handleDelete(msg);
+			case "copy" -> this.handleCopy(msg);
+			case "append" -> this.handleAppend(msg);
+			case "search" -> handleSearch(msg);
+			default -> {
+				Logger.error(this, "Unknown IMAP command: " + msg.type);
+				this.reply(msg, "NO Sorry - not implemented");
+			}
 		}
 	}
 
@@ -273,12 +257,12 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	private void listMatchingFolders(MessageBank folder, String pattern, String replyprefix, String folderpath) {
 		MessageBank[] folders = folder.listSubFolders();
 
-		for(int i = 0; i < folders.length; i++) {
-			String fullpath = folderpath+folders[i].getName();
+		for (MessageBank messageBank : folders) {
+			String fullpath = folderpath + messageBank.getName();
 
-			this.listMatchingFolders(folders[i], pattern, replyprefix, fullpath+".");
-			if(fullpath.matches(pattern)) {
-				this.sendState(replyprefix+" "+folders[i].getFolderFlagsString()+" \".\" \""+fullpath+"\"");
+			this.listMatchingFolders(messageBank, pattern, replyprefix, fullpath + ".");
+			if (fullpath.matches(pattern)) {
+				this.sendState(replyprefix + " " + messageBank.getFolderFlagsString() + " \".\" \"" + fullpath + "\"");
 			}
 		}
 	}
@@ -346,7 +330,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 				m.storeFlags();
 			}
 
-			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+			msgs = msgs.tailMap(current + 1);
 		}
 
 		this.sendState(numexists+" EXISTS");
@@ -511,12 +495,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		Iterator<MailMessage> msgIt = msgs.values().iterator();
-		while(msgIt.hasNext()) {
-			if(!ts.contains(msgIt.next().getUID())) {
-				msgIt.remove();
-			}
-		}
+		msgs.values().removeIf(mailMessage -> !ts.contains(mailMessage.getUID()));
 
 		if(!this.doStore(msg.args, 2, msgs.values(), msg, true)) {
 			return;
@@ -754,7 +733,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return true;
 		}
 
-		StringBuffer buf = new StringBuffer("");
+		var buf = new StringBuilder("");
 
 		String[] parts = IMAPMessage.doSplit(attr, '(', ')');
 		if(parts.length > 0) {
@@ -774,10 +753,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 					Logger.error(this, "Caught IOException while reading message headers: " + ioe.getMessage(), ioe);
 				}
 
-				String[] fields = parts[1].split(" ");
-				for(int j = 0; j < fields.length; j++) {
-					buf.append(mmsg.getHeaders(fields[j]));
-				}
+				stream(parts[1].split(" "))
+						.map(mmsg::getHeaders)
+						.forEach(buf::append);
 				buf.append("\r\n");
 			} else if(parts[0].equalsIgnoreCase("header")) {
 				if(!hasSentDataName) {
@@ -853,12 +831,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			return;
 		}
 
-		Iterator<MailMessage> msgIt = msgs.values().iterator();
-		while(msgIt.hasNext()) {
-			if(!ts.contains(msgIt.next().getSeqNum())) {
-				msgIt.remove();
-			}
-		}
+		msgs.values().removeIf(mailMessage -> !ts.contains(mailMessage.getSeqNum()));
 
 		if(!doStore(msg.args, 1, msgs.values(), msg, false)) {
 			return;
@@ -868,7 +841,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private boolean doStore(String[] args, int offset, Collection<MailMessage> mmsgs, IMAPMessage msg, boolean senduid) {
-		if(args[offset].toLowerCase(Locale.ROOT).indexOf("flags") < 0) {
+		if (!args[offset].toLowerCase(Locale.ROOT).contains("flags")) {
 			// IMAP4Rev1 can only store flags, so you're
 			// trying something crazy
 			this.reply(msg, "BAD Can't store that");
@@ -908,9 +881,9 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			}
 		}
 
-		if(msg.args[offset].toLowerCase(Locale.ROOT).indexOf("silent") < 0) {
+		if (!msg.args[offset].toLowerCase(Locale.ROOT).contains("silent")) {
 			for(MailMessage message : mmsgs) {
-				StringBuffer buf = new StringBuffer("");
+				var buf = new StringBuilder("");
 
 				buf.append(message.getSeqNum());
 				if(senduid) {
@@ -1023,10 +996,10 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 
 			if(m.getUID() > lastuid) lastuid = m.getUID();
 
-			msgs = msgs.tailMap(new Integer(current.intValue()+1));
+			msgs = msgs.tailMap(current + 1);
 		}
 
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 		buf.append("STATUS ");
 		buf.append(msg.args[0]);
 		buf.append(" (");
@@ -1222,7 +1195,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		String mbname = trimQuotes(msg.args[0]);
 
 		String sdatalen = "";
-		List<String> flags = new LinkedList<String>();
+		List<String> flags = new LinkedList<>();
 
 		for(int i = 1; i < msg.args.length; i++) {
 			if(msg.args[i].startsWith("(")) {
@@ -1523,12 +1496,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private void filterMessagesOnFlag(Collection<MailMessage> messages, String flag, boolean state) {
-		Iterator<MailMessage> it = messages.iterator();
-		while(it.hasNext()) {
-			if(it.next().flags.get(flag) != state) {
-				it.remove();
-			}
-		}
+		messages.removeIf(mailMessage -> mailMessage.flags.get(flag) != state);
 	}
 
 	private void filterMessagesOnHeader(Collection<MailMessage> messages, String headerName, String searchString) {
@@ -1548,7 +1516,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private String getEnvelope(MailMessage mmsg) {
-		StringBuffer buf = new StringBuffer("(");
+		var buf = new StringBuilder("(");
 
 		try {
 			mmsg.readHeaders();
@@ -1628,7 +1596,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 	}
 
 	private SortedSet<Integer> parseSequenceSet(String seqNum, int maxSeqNum) throws IllegalSequenceNumberException {
-		SortedSet<Integer> result = new TreeSet<Integer>();
+		SortedSet<Integer> result = new TreeSet<>();
 
 		//Split on , to get the ranges
 		for(String range : seqNum.split(",")) {

@@ -43,7 +43,7 @@ public abstract class SlotManager {
 	private int pollAhead;
 
 	protected SlotManager(SlotSaveCallback cb, Object userdata, String slotlist) {
-		this.slots = new Vector<Slot>();
+		this.slots = new Vector<>();
 		this.cb = cb;
 		this.userdata = userdata;
 		this.nextSlotNum = 0;
@@ -125,7 +125,7 @@ public abstract class SlotManager {
 	}
 
 	private void saveSlots() {
-		StringBuffer buf = new StringBuffer();
+		var buf = new StringBuilder();
 
 		Enumeration<Slot> e = this.slots.elements();
 		boolean first = true;

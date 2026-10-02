@@ -41,7 +41,7 @@ public class HighLevelFCPClient implements FCPClient {
 	private FCPConnection conn;
 
 	// FIXME use a map?
-	private final List<FCPMessage> doneMsgs = new LinkedList<FCPMessage>();
+	private final List<FCPMessage> doneMsgs = new LinkedList<>();
 
 	public HighLevelFCPClient() {
 		this.conn = Freemail.getFCPConnection();

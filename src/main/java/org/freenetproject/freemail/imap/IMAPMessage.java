@@ -19,8 +19,8 @@
 
 package org.freenetproject.freemail.imap;
 
+import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Vector;
 import java.util.Stack;
 
 public class IMAPMessage {
@@ -62,9 +62,9 @@ public class IMAPMessage {
 
 	// split on spaces that aren't between two given characters
 	public static String[] doSplit(String in, char[] c1, char[] c2) {
-		Vector<String> parts = new Vector<String>();
-		StringBuffer buf = new StringBuffer("");
-		Stack<Character> context = new Stack<Character>();
+		var parts = new ArrayList<String>();
+		var buf = new StringBuilder("");
+		Stack<Character> context = new Stack<>();
 
 		for(int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
@@ -77,15 +77,15 @@ public class IMAPMessage {
 				}
 			}
 
-			if(!context.empty() && c == context.peek().charValue()) {
+			if(!context.empty() && c == context.peek()) {
 				context.pop();
 				buf.append(c);
 			} else if(pos >= 0) {
-				context.push(new Character(c2[pos]));
+				context.push(c2[pos]);
 				buf.append(c);
 			} else if(c == ' ' && context.empty()) {
 				parts.add(buf.toString());
-				buf = new StringBuffer("");
+				buf = new StringBuilder("");
 			} else if(context.empty()) {
 				buf.append(c);
 			} else buf.append(c);
@@ -112,9 +112,7 @@ public class IMAPMessage {
 
 		if(this.args == null) return retval;
 
-		for(int i = 0; i < this.args.length; i++) {
-			retval += " " + this.args[i];
-		}
+		retval += String.join(" ", args);
 		return retval;
 	}
 }

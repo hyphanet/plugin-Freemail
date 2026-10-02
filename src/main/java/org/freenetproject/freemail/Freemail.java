@@ -257,14 +257,10 @@ public abstract class Freemail implements ConfigClient {
 	}
 
 	public ScheduledExecutorService getExecutor(TaskType type) {
-		switch (type) {
-		case UNSPECIFIED:
-			return defaultExecutor;
-		case SENDER:
-			return senderExecutor;
-		default:
-			throw new AssertionError("Missing case " + type);
-		}
+		return switch (type) {
+			case UNSPECIFIED -> defaultExecutor;
+			case SENDER -> senderExecutor;
+		};
 	}
 
 	private static class FreemailThreadFactory implements ThreadFactory {
@@ -288,5 +284,3 @@ public abstract class Freemail implements ConfigClient {
 		SENDER
 	}
 }
-
-

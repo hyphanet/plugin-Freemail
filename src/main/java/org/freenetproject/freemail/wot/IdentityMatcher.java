@@ -44,16 +44,16 @@ public class IdentityMatcher {
 		Set<Identity> ids = wotConnection.getAllIdentities();
 		List<OwnIdentity> ownIds = wotConnection.getAllOwnIdentities();
 
-		Map<String, List<Identity>> allMatches = new HashMap<String, List<Identity>>(recipients.size());
+		Map<String, List<Identity>> allMatches = new HashMap<>(recipients.size());
 		for(String recipient : recipients) {
-			allMatches.put(recipient, new LinkedList<Identity>());
+			allMatches.put(recipient, new LinkedList<>());
 		}
 
 		if(ids == null || ownIds == null) {
 			return allMatches;
 		}
 
-		Set<Identity> wotIdentities = new HashSet<Identity>();
+		Set<Identity> wotIdentities = new HashSet<>();
 		wotIdentities.addAll(ids);
 		wotIdentities.addAll(ownIds);
 
