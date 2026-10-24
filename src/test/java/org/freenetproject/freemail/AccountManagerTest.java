@@ -19,17 +19,23 @@
 
 package org.freenetproject.freemail;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
 
+import java.nio.file.Files;
+import java.security.SecureRandom;
+import java.util.Locale;
+import org.freenetproject.freemail.wot.OwnIdentity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.freenetproject.freemail.AccountManager;
-import org.freenetproject.freemail.FreemailAccount;
 
 import data.TestId1Data;
 
@@ -100,4 +106,23 @@ public class AccountManagerTest {
 
 		assertNotNull(manager.authenticate(TestId1Data.BASE64_ID, ACCOUNT_PASSWORD));
 	}
+
+	@Test
+	public void welcomeMailGeneratesRandomMessageId() throws IOException {
+		var manager = new AccountManager(dataDir, null);
+		var ownIdentity1 = new OwnIdentity("EcLVfft8UqOpQSLM6kjXfUmPuh4hFshNq84M~8EDmaE", "SSK@EcLVfft8UqOpQSLM6kjXfUmPuh4hFshNq84M~8EDmaE,Q7mrjNlzKkaUUdm8VSg5Ax90jOBwI10Ma3BIzSPCtm4,AQACAAE/", "SSK@UDjIgNFEXl-rdN8nIpMrx-C0kcogLL8rXi2m3ESfbJ8,Q7mrjNlzKkaUUdm8VSg5Ax90jOBwI10Ma3BIzSPCtm4,AQECAAE/", "OwnId");
+		var ownIdentity2 = new OwnIdentity("ReRtZLTNVwUYdG-PTul2mmAPjQPkym7hRcm~wEk85I8", "SSK@ReRtZLTNVwUYdG-PTul2mmAPjQPkym7hRcm~wEk85I8,pNwknsSCUWKMXtja29kuUYza6~gRKYaBFw2-OWKSFyI,AQACAAE/", "SSK@aQzNb4xJEP2a3JGcDDUY~6WXYgf-THvtwt~KUQLVluk,pNwknsSCUWKMXtja29kuUYza6~gRKYaBFw2-OWKSFyI,AQECAAE/", "OwnId");
+		Freemail.setRNG(new SecureRandom());
+		manager.addIdentities(asList(ownIdentity1, ownIdentity2));
+		var messageId1 = extractMessageIdFromFirstMessageInInbox(ownIdentity1.getBase32IdentityID());
+		var messageId2 = extractMessageIdFromFirstMessageInInbox(ownIdentity2.getBase32IdentityID());
+		assertThat(messageId1, not(equalTo(messageId2)));
+	}
+
+	private String extractMessageIdFromFirstMessageInInbox(String identity) throws IOException {
+		var messagePath = dataDir.toPath().resolve(identity).resolve("inbox").resolve("1");
+		var messageLines = Files.readAllLines(messagePath, UTF_8);
+		return messageLines.stream().filter(line -> line.toLowerCase(Locale.ROOT).startsWith("message-id:")).findFirst().get().split(":", 2)[1].trim().replaceAll("(^<|>$)", "");
+	}
+
 }
