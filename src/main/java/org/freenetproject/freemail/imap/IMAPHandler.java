@@ -30,20 +30,20 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.Arrays;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.lang.NumberFormatException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.freenetproject.freemail.AccountManager;
@@ -52,16 +52,19 @@ import org.freenetproject.freemail.MailMessage;
 import org.freenetproject.freemail.MessageBank;
 import org.freenetproject.freemail.ServerHandler;
 import org.freenetproject.freemail.utils.Base32;
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 
 import freenet.support.Base64;
+import org.freenetproject.freemail.utils.ReceivedParser;
 
 import static java.util.Arrays.stream;
 
 public class IMAPHandler extends ServerHandler implements Runnable {
 	private static final String CAPABILITY = "IMAP4rev1 CHILDREN NAMESPACE";
 
+	private final ReceivedParser receivedParser = new ReceivedParser();
 	private final PrintStream ps;
 	private final BufferedReader bufrdr;
 	private MessageBank mb;
@@ -119,7 +122,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.ps.print("* OK [CAPABILITY "+CAPABILITY+"] Freemail ready - hit me with your rhythm stick.\r\n");
 	}
 
-	private void dispatch(IMAPMessage msg) {
+	private void dispatch(IMAPMessage msg) throws IOException {
 		Logger.debug(this, "Received: " + msg);
 		switch (msg.type) {
 			case "login" -> this.handleLogin(msg);
@@ -358,11 +361,11 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Check completed");
 	}
 
-	private void handleFetch(IMAPMessage msg) {
+	private void handleFetch(IMAPMessage msg) throws IOException {
 		handleFetch(msg, false);
 	}
 
-	private void handleFetch(IMAPMessage msg, boolean uid) {
+	private void handleFetch(IMAPMessage msg, boolean uid) throws IOException {
 		if(!this.verifyAuth(msg)) {
 			return;
 		}
@@ -425,7 +428,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Fetch completed");
 	}
 
-	private void handleUid(IMAPMessage msg) {
+	private void handleUid(IMAPMessage msg) throws IOException {
 		if(msg.args == null || msg.args.length < 1) {
 			this.reply(msg, "BAD Not enough arguments for uid command");
 			return;
@@ -504,7 +507,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		this.reply(msg, "OK Store completed");
 	}
 
-	private boolean fetchSingle(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) {
+	private boolean fetchSingle(MailMessage msg, String[] args, int firstarg, boolean send_uid_too) throws IOException {
 		String[] imap_args = args.clone();
 		this.ps.print("* "+msg.getSeqNum()+" FETCH (");
 
@@ -579,7 +582,7 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 		return false;
 	}
 
-	private boolean sendAttr(MailMessage mmsg, String a) {
+	private boolean sendAttr(MailMessage mmsg, String a) throws IOException {
 		String attr = a.toLowerCase(Locale.ROOT);
 		String val = null;
 
@@ -623,21 +626,21 @@ public class IMAPHandler extends ServerHandler implements Runnable {
 			this.ps.flush();
 			return this.sendBody(mmsg, "header", true);
 		} else if(attr.startsWith("internaldate")) {
-			/*
-			 * FIXME: Internaldate should not return Date from the message
-			 * For messages received though SMTP we want the date when we received it, for messages
-			 * added by COPY it should be the internal date of the source message, and for messages
-			 * added by APPEND it should either be the specified date or the date of the APPEND.
-			 * See RFC 3501 section 2.3.3 (Internal Date Message Attribute).
-			 */
-			val = mmsg.getFirstHeader("Date");
-			if(val == null) {
-				// possibly should keep our own dates...
-				SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-
-				val = sdf.format(new Date());
+			try {
+				mmsg.readHeaders();
+			} catch (IOException ignored) {
+				/* ignore. */
 			}
-			val = "\""+val+"\"";
+			var internalDate = mmsg.getHeadersByName("Received").stream()
+					.flatMap(header -> receivedParser.parse(header).dateTime().stream())
+					.findFirst()
+					.or(() -> mmsg.getHeadersByName("Date").stream()
+							.flatMap(header -> DateStringFactory.parseFullDate(header).stream())
+							.findFirst())
+					.or(() -> Optional.of(OffsetDateTime.now()))
+					.map(DateStringFactory::formatInternalDate)
+					.get();
+			val = "\"" + internalDate + "\"";
 		}
 
 		if(val == null)

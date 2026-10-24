@@ -20,6 +20,7 @@
 package org.freenetproject.freemail;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
@@ -96,6 +97,13 @@ public class MailHeaderFilterTest {
 		List<String> output = new LinkedList<>();
 		output.add("Date: Tue, 10 Jul 2012 14:37:19 +0000");
 
+		runSimpleTest(input, output);
+	}
+
+	@Test
+	public void dateHeaderWithoutWeekdayIsGettingWeekdayAdded() throws IOException {
+		var input = asList("Date: 22 Sep 2026 15:06:47 +0000");
+		var output = asList("Date: Tue, 22 Sep 2026 15:06:47 +0000");
 		runSimpleTest(input, output);
 	}
 

@@ -19,8 +19,18 @@
 
 package org.freenetproject.freemail.utils;
 
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -56,4 +66,88 @@ public class DateStringFactory {
 			return null;
 		}
 	}
+
+	/**
+	 * Formats the given {@link TemporalAccessor} into a full,
+	 * <a href="https://www.rfc-editor.org/info/rfc5322/">RFC
+	 * 5322</a>-compliant date string.
+	 * <p>
+	 * The formatted date will always have an offset of 0, in order to not
+	 * expose the user’s local timezone offset. Temporal accessors that have
+	 * an offset (such as {@link ZonedDateTime} or {@link OffsetDateTime})
+	 * will be translated correctly; others (like {@link Instant} or {@link
+	 * LocalDateTime}) will be assumed to already be at an offset of 0.
+	 * </p>
+	 *
+	 * @param dateTime The temporal accessor to format
+	 * @return The formatted date string
+	 */
+	public static String formatFullDate(TemporalAccessor dateTime) {
+		return formatWithFormatter(dateTime, fullDateFormat);
+	}
+
+	/**
+	 * Parses the given {@link String} as a full date, according to < a
+	 * href="https://www.rfc-editor.org/info/rfc5322/">RFC 5322</a>.
+	 *
+	 * @param dateTimeString The string to parse
+	 * @return A parsed {@link OffsetDateTime date with offset}, or
+	 *        {@link Optional#empty()} if the date could not be parsed
+	 */
+	public static Optional<OffsetDateTime> parseFullDate(String dateTimeString) {
+		try {
+			return Optional.of(fullDateFormat.parse(dateTimeString, OffsetDateTime::from));
+		} catch(DateTimeException e) {
+			return Optional.empty();
+		}
+	}
+
+	/**
+	 * Formats the given {@link TemporalAccessor} into a full,
+	 * <a href="https://www.rfc-editor.org/info/rfc9051/">RFC
+	 * 9051</a>-compliant string, usable with IMAP’s INTERNALDATE attribute.
+	 * <p>
+	 * The formatted date will always have an offset of 0, in order to not
+	 * expose the user’s local timezone offset. Temporal accessors that have
+	 * an offset (such as {@link ZonedDateTime} or {@link OffsetDateTime})
+	 * will be translated correctly; others (like {@link Instant} or {@link
+	 * LocalDateTime}) will be assumed to already be at an offset of 0.
+	 * </p>
+	 *
+	 * @param dateTime The temporal accessor to format
+	 * @return The formatted date string
+	 */
+	public static String formatInternalDate(TemporalAccessor dateTime) {
+		return formatWithFormatter(dateTime, internalDateFormat);
+	}
+
+	/**
+	 * Parses the given {@link String} as internal date, according to < a
+	 * href="https://www.rfc-editor.org/info/rfc9051/">RFC 9051</a>.
+	 *
+	 * @param dateTimeString The string to parse
+	 * @return A parsed {@link OffsetDateTime date with offset}, or
+	 *        {@link Optional#empty()} if the date could not be parsed
+	 */
+	public static Optional<OffsetDateTime> parseInternalDate(String dateTimeString) {
+		try {
+			return Optional.of(internalDateFormat.parse(dateTimeString, OffsetDateTime::from));
+		} catch(DateTimeException e) {
+			return Optional.empty();
+		}
+	}
+
+	private static String formatWithFormatter(TemporalAccessor dateTime, DateTimeFormatter internalDateFormat) {
+		if (dateTime.isSupported(ChronoField.OFFSET_SECONDS)) {
+			return internalDateFormat.format(dateTime.query(OffsetDateTime::from).withOffsetSameInstant(ZoneOffset.ofHours(0)));
+		} else if (dateTime.isSupported(ChronoField.HOUR_OF_DAY)) {
+			return internalDateFormat.format(dateTime.query(LocalDateTime::from).atOffset(ZoneOffset.ofHours(0)));
+		} else {
+			return internalDateFormat.format(dateTime.query(Instant::from).atOffset(ZoneOffset.ofHours(0)));
+		}
+	}
+
+	private static final DateTimeFormatter fullDateFormat = DateTimeFormatter.ofPattern("[EEE, ]d MMM yyyy HH:mm:ss ZZZ", Locale.ROOT);
+	private static final DateTimeFormatter internalDateFormat = DateTimeFormatter.ofPattern("d-MMM-yyyy HH:mm:ss ZZZ", Locale.ROOT);
+
 }

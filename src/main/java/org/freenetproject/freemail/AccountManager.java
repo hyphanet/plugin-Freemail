@@ -26,16 +26,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.MD5Digest;
@@ -44,6 +41,7 @@ import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 import org.freenetproject.freemail.utils.Base32;
+import org.freenetproject.freemail.utils.DateStringFactory;
 import org.freenetproject.freemail.utils.EmailAddress;
 import org.freenetproject.freemail.utils.Logger;
 import org.freenetproject.freemail.utils.PropsFile;
@@ -235,16 +233,12 @@ public class AccountManager {
 	}
 
 	private static void putWelcomeMessage(FreemailAccount account, EmailAddress to) throws IOException {
-		SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", Locale.ROOT);
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-
 		MailMessage m = account.getMessageBank().createMessage();
-		Date currentDate = new Date();
 
 		m.addHeader("From", "Martin Nyhus <zidel@b5zswai7ybkmvcrfddlz5euw3ifzn5z5m3bzdgpucb26mzqvsflq.freemail>");
 		m.addHeader("To", to.toString());
 		m.addHeader("Subject", "Welcome to Freemail!");
-		m.addHeader("Date", sdf.format(currentDate));
+		m.addHeader("Date", DateStringFactory.formatFullDate(ZonedDateTime.now()));
 		m.addHeader("Content-Type", "text/plain;charset=\"us-ascii\"");
 		m.addHeader("Content-Transfer-Encoding", "7bit");
 		m.addHeader("Content-Disposition", "inline");
